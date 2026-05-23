@@ -6,37 +6,42 @@
 // @author          Lanbo & Antigravity
 // @github          https://github.com/Liset999
 // @include         explorer.exe
+// @architecture    x86-64
+// @compilerOptions -lcomctl32 -lole32 -loleaut32 -lruntimeobject -Wl,--export-all-symbols
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
-// # ZenDesktop: Double Click to Hide Icons
-// 
-// Have you ever wanted a clean, clutter-free desktop but found it annoying to right-click -> View -> Show desktop icons every time? 
-// 
-// **ZenDesktop** brings the ultimate native solution to Windows. It allows you to **double-click empty space on your desktop** to instantly hide or show your icons.
-// 
-// ### 🌟 Key Features:
-// *   **Zero UI Overhead**: Embedded natively inside `explorer.exe` process space. No background EXE running, no taskbar/tray icons, 0% CPU and virtually 0MB extra RAM.
-// *   **Process-Native Hit-Testing**: When you double-click, it performs a real-time ListView hit-test. If you double-click a file, folder, or shortcut, the default "open" action is triggered normally. If you double-click empty space, it toggles your desktop icons.
-// *   **Dynamic Hooking**: Automatically subclasses the shell views, meaning even if your Explorer crashes, restarts, or you plug/unplug monitors, the mod remains fully active and stable.
-// *   **Completely Safe**: Uses native Windows `0x7402` (WM_COMMAND) toggle signals, ensuring Windows handles the fade animations and desktop state natively without breaking icon grid arrangements.
+/*
+# ZenDesktop: Double Click to Hide Icons
+
+Have you ever wanted a clean, clutter-free desktop but found it annoying to right-click -> View -> Show desktop icons every time? 
+
+**ZenDesktop** brings the ultimate native solution to Windows. It allows you to **double-click empty space on your desktop** to instantly hide or show your icons.
+
+### 🌟 Key Features:
+* **Zero UI Overhead**: Embedded natively inside `explorer.exe` process space. No background EXE running, no taskbar/tray icons, 0% CPU and virtually 0MB extra RAM.
+* **Process-Native Hit-Testing**: When you double-click, it performs a real-time ListView hit-test. If you double-click a file, folder, or shortcut, the default "open" action is triggered normally. If you double-click empty space, it toggles your desktop icons.
+* **Dynamic Hooking**: Automatically subclasses the shell views, meaning even if your Explorer crashes, restarts, or you plug/unplug monitors, the mod remains fully active and stable.
+* **Completely Safe**: Uses native Windows `0x7402` (WM_COMMAND) toggle signals, ensuring Windows handles the fade animations and desktop state natively without breaking icon grid arrangements.
+*/
 // ==/WindhawkModReadme==
 
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <windhawk_utils.h>
 
-// Global pointers to hold original Window Procedures for subclassing
-WNDPROC g_pfnOldListViewProc = nullptr;
-WNDPROC g_pfnOldShellViewProc = nullptr;
-
-// Forward Declarations of Window Procedures
-LRESULT CALLBACK DesktopListViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK DesktopShellViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+// Forward Declarations of Subclass Procedures
+LRESULT CALLBACK DesktopListViewSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+LRESULT CALLBACK DesktopShellViewSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 
 // Real pointer to CreateWindowExW hook
 using CreateWindowExW_t = decltype(&CreateWindowExW);
 CreateWindowExW_t Real_CreateWindowExW;
+
+// Unique Subclass IDs
+const UINT_PTR SUBCLASS_LISTVIEW_ID = 1001;
+const UINT_PTR SUBCLASS_SHELLVIEW_ID = 1002;
 
 // Helper to find the current active SHELLDLL_DefView window
 HWND FindDesktopShellView() {
@@ -55,17 +60,15 @@ HWND FindDesktopShellView() {
     return NULL;
 }
 
-// Subclasses active windows in explorer using standard SetWindowLongPtr
+// Subclasses active windows in explorer using SetWindowSubclassFromAnyThread
 void SubclassExistingWindows() {
     HWND hwndShell = FindDesktopShellView();
     if (hwndShell) {
-        if (!g_pfnOldShellViewProc) {
-            g_pfnOldShellViewProc = (WNDPROC)SetWindowLongPtrW(hwndShell, GWLP_WNDPROC, (LONG_PTR)DesktopShellViewProc);
-        }
+        WindhawkUtils::SetWindowSubclassFromAnyThread(hwndShell, DesktopShellViewSubclassProc, SUBCLASS_SHELLVIEW_ID, 0);
         
         HWND hwndListView = FindWindowExW(hwndShell, NULL, L"SysListView32", NULL);
-        if (hwndListView && !g_pfnOldListViewProc) {
-            g_pfnOldListViewProc = (WNDPROC)SetWindowLongPtrW(hwndListView, GWLP_WNDPROC, (LONG_PTR)DesktopListViewProc);
+        if (hwndListView) {
+            WindhawkUtils::SetWindowSubclassFromAnyThread(hwndListView, DesktopListViewSubclassProc, SUBCLASS_LISTVIEW_ID, 0);
         }
     }
 }
@@ -73,15 +76,13 @@ void SubclassExistingWindows() {
 // Unsubclasses active windows to allow a safe DLL unload
 void UnsubclassWindows() {
     HWND hwndShell = FindDesktopShellView();
-    if (hwndShell && g_pfnOldShellViewProc) {
-        SetWindowLongPtrW(hwndShell, GWLP_WNDPROC, (LONG_PTR)g_pfnOldShellViewProc);
-        g_pfnOldShellViewProc = nullptr;
-    }
-    
-    HWND hwndListView = FindWindowExW(hwndShell, NULL, L"SysListView32", NULL);
-    if (hwndListView && g_pfnOldListViewProc) {
-        SetWindowLongPtrW(hwndListView, GWLP_WNDPROC, (LONG_PTR)g_pfnOldListViewProc);
-        g_pfnOldListViewProc = nullptr;
+    if (hwndShell) {
+        WindhawkUtils::RemoveWindowSubclassFromAnyThread(hwndShell, DesktopShellViewSubclassProc, SUBCLASS_SHELLVIEW_ID);
+        
+        HWND hwndListView = FindWindowExW(hwndShell, NULL, L"SysListView32", NULL);
+        if (hwndListView) {
+            WindhawkUtils::RemoveWindowSubclassFromAnyThread(hwndListView, DesktopListViewSubclassProc, SUBCLASS_LISTVIEW_ID);
+        }
     }
 }
 
@@ -108,17 +109,13 @@ HWND WINAPI Hook_CreateWindowExW(
     if (hWnd) {
         if (lpClassName && !IS_INTRESOURCE(lpClassName)) {
             if (wcscmp(lpClassName, L"SHELLDLL_DefView") == 0) {
-                if (!g_pfnOldShellViewProc) {
-                    g_pfnOldShellViewProc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DesktopShellViewProc);
-                }
+                WindhawkUtils::SetWindowSubclassFromAnyThread(hWnd, DesktopShellViewSubclassProc, SUBCLASS_SHELLVIEW_ID, 0);
             }
             else if (wcscmp(lpClassName, L"SysListView32") == 0) {
                 // Ensure this ListView is indeed the desktop listview
                 WCHAR parentClass[256] = {0};
                 if (hWndParent && GetClassNameW(hWndParent, parentClass, 256) && wcscmp(parentClass, L"SHELLDLL_DefView") == 0) {
-                    if (!g_pfnOldListViewProc) {
-                        g_pfnOldListViewProc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DesktopListViewProc);
-                    }
+                    WindhawkUtils::SetWindowSubclassFromAnyThread(hWnd, DesktopListViewSubclassProc, SUBCLASS_LISTVIEW_ID, 0);
                 }
             }
         }
@@ -128,7 +125,7 @@ HWND WINAPI Hook_CreateWindowExW(
 }
 
 // Subclass Proc for the Desktop ListView (Handles click empty space detection)
-LRESULT CALLBACK DesktopListViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK DesktopListViewSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_LBUTTONDOWN) {
         static DWORD lastClickTime = 0;
         static POINT lastClickPt = {0, 0};
@@ -170,15 +167,11 @@ LRESULT CALLBACK DesktopListViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         }
     }
     
-    // Call old window procedure
-    if (g_pfnOldListViewProc) {
-        return CallWindowProcW(g_pfnOldListViewProc, hWnd, uMsg, wParam, lParam);
-    }
-    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
 // Subclass Proc for the SHELLDLL_DefView (Handles double-click when icons are already hidden)
-LRESULT CALLBACK DesktopShellViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK DesktopShellViewSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_LBUTTONDOWN) {
         static DWORD lastClickTime = 0;
         static POINT lastClickPt = {0, 0};
@@ -207,10 +200,7 @@ LRESULT CALLBACK DesktopShellViewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
         }
     }
     
-    if (g_pfnOldShellViewProc) {
-        return CallWindowProcW(g_pfnOldShellViewProc, hWnd, uMsg, wParam, lParam);
-    }
-    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
 // Mod initialization (hook APIs and subclass existing desktop windows)
