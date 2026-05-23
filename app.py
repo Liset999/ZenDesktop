@@ -72,9 +72,40 @@ def set_start_on_boot(enabled):
         print(f"[Registry] Unable to modify startup registry key: {e}")
         return False
 
+# Prevent multiple instances using a Windows named mutex
+_mutex_handle = None
+
+def check_single_instance():
+    global _mutex_handle
+    mutex_name = "Global\\ZenDesktop_SingleInstance_Mutex_Liset999"
+    try:
+        _mutex_handle = ctypes.windll.kernel32.CreateMutexW(None, ctypes.c_bool(True), mutex_name)
+        err = ctypes.windll.kernel32.GetLastError()
+        if err == 183:  # ERROR_ALREADY_EXISTS
+            if _mutex_handle:
+                ctypes.windll.kernel32.CloseHandle(_mutex_handle)
+                _mutex_handle = None
+            return False
+        return True
+    except Exception as e:
+        print(f"[SingleInstance] Error creating mutex: {e}")
+        return True
+
 def main():
     global desktop_handler, taskbar_handler
     
+    # 0. Check single instance to prevent duplicate daemon processes
+    if not check_single_instance():
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            "ZenDesktop 已经在后台运行中。\n\n"
+            "它正在静默守护您的桌面，无需重复启动！\n"
+            "若需退出，请在任务管理器中结束 ZenDesktop 进程。",
+            "ZenDesktop - 已在运行",
+            0x40 | 0x0  # MB_ICONINFORMATION | MB_OK
+        )
+        sys.exit(0)
+        
     # 1. Automatically register program to boot startup registry key
     set_start_on_boot(True)
     
