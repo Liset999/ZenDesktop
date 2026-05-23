@@ -1,0 +1,14 @@
+# Ignore installers
+*.exe
+!deploy.bat
+
+# Ignore Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Ignore temporary files
+*.tmp
+*.log
+copy_log.txt
+*.bak
