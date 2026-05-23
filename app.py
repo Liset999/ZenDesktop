@@ -71,6 +71,22 @@ def main():
     desktop_handler.start()
     taskbar_handler.start()
     
+    # Check if taskbar handler successfully started or attached to TranslucentTB
+    if not taskbar_handler.running:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            "无法启动或下载 TranslucentTB 任务栏透明引擎。\n\n"
+            "请确保：\n"
+            "1. 您的电脑已联网（本程序会自动从 GitHub 下载依赖），或者\n"
+            "2. 您已经手动运行了 TranslucentTB，或者\n"
+            "3. 将包含 TranslucentTB 的 'ext' 文件夹复制到了本程序同级目录下。\n\n"
+            "本程序需要与 TranslucentTB 协同运行以提供完整的任务栏特效，程序即将退出。",
+            "ZenDesktop - 启动失败",
+            0x10 | 0x0  # MB_ICONERROR | MB_OK
+        )
+        sys.exit(1)
+    
     print("[Engine] DesktopTaskbarHelper background engine successfully started.")
     print("[Engine] TranslucentTB (TTB) orchestrated. Monitoring life cycle...")
     

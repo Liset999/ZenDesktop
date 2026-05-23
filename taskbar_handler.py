@@ -21,9 +21,15 @@ class TaskbarHandler:
         self.process = None
         import sys
         if getattr(sys, 'frozen', False):
-            base_dir = os.path.dirname(os.path.abspath(sys.executable))
+            # Check if ext folder is embedded in the executable (sys._MEIPASS)
+            meipass_ext = os.path.join(getattr(sys, '_MEIPASS', ''), "ext")
+            if os.path.exists(os.path.join(meipass_ext, "TranslucentTB", "TranslucentTB.exe")):
+                base_dir = getattr(sys, '_MEIPASS', '')
+            else:
+                base_dir = os.path.dirname(os.path.abspath(sys.executable))
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
+            
         self.ext_dir = os.path.join(base_dir, "ext")
         self.ttb_dir = os.path.join(self.ext_dir, "TranslucentTB")
         self.ttb_exe = os.path.join(self.ttb_dir, "TranslucentTB.exe")
