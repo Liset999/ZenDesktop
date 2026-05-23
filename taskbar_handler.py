@@ -20,17 +20,38 @@ class TaskbarHandler:
         self.running = False
         self.process = None
         import sys
+        import shutil
+        
         if getattr(sys, 'frozen', False):
+            # Define a fixed, static directory in the user's Local AppData to ensure the DLL path is persistent
+            local_appdata = os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local"))
+            static_dir = os.path.join(local_appdata, "ZenDesktop")
+            self.ext_dir = os.path.join(static_dir, "ext")
+            
             # Check if ext folder is embedded in the executable (sys._MEIPASS)
             meipass_ext = os.path.join(getattr(sys, '_MEIPASS', ''), "ext")
-            if os.path.exists(os.path.join(meipass_ext, "TranslucentTB", "TranslucentTB.exe")):
-                base_dir = getattr(sys, '_MEIPASS', '')
+            meipass_ttb_exe = os.path.join(meipass_ext, "TranslucentTB", "TranslucentTB.exe")
+            
+            if os.path.exists(meipass_ttb_exe):
+                # Copy from the temp extraction folder to the static AppData folder on first run
+                static_ttb_exe = os.path.join(self.ext_dir, "TranslucentTB", "TranslucentTB.exe")
+                if not os.path.exists(static_ttb_exe):
+                    try:
+                        os.makedirs(self.ext_dir, exist_ok=True)
+                        src_ttb = os.path.join(meipass_ext, "TranslucentTB")
+                        dst_ttb = os.path.join(self.ext_dir, "TranslucentTB")
+                        if os.path.exists(dst_ttb):
+                            shutil.rmtree(dst_ttb)
+                        shutil.copytree(src_ttb, dst_ttb)
+                    except Exception as e:
+                        print(f"[TaskbarHandler] Static extraction failed: {e}")
             else:
                 base_dir = os.path.dirname(os.path.abspath(sys.executable))
+                self.ext_dir = os.path.join(base_dir, "ext")
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
+            self.ext_dir = os.path.join(base_dir, "ext")
             
-        self.ext_dir = os.path.join(base_dir, "ext")
         self.ttb_dir = os.path.join(self.ext_dir, "TranslucentTB")
         self.ttb_exe = os.path.join(self.ttb_dir, "TranslucentTB.exe")
 
