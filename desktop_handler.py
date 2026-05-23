@@ -6,6 +6,7 @@ It intercepts left-clicks, checks the system double-click speed interval,
 and verifies if the clicked point belongs to empty space on the desktop.
 If it is empty space, it triggers the native icon visibility toggle.
 """
+import logging
 
 import time
 import ctypes
@@ -16,16 +17,22 @@ import win32con
 import win32process
 from pynput import mouse
 
+log = logging.getLogger(__name__)
+
 # Struct definitions for cross-process hit testing on SysListView32
 class POINT(ctypes.Structure):
     _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
 
 class LVHITTESTINFO(ctypes.Structure):
+    """Must match the full Win32 LVHITTESTINFO struct (including iGroup added in Vista+).
+    A missing field causes struct size mismatch in cross-process memory operations,
+    leading to corrupted iItem read-back and false empty-space detection."""
     _fields_ = [
         ("pt", POINT),
         ("flags", ctypes.c_uint),
         ("iItem", ctypes.c_int),
-        ("iSubItem", ctypes.c_int)
+        ("iSubItem", ctypes.c_int),
+        ("iGroup", ctypes.c_int),  # Critical: required since Windows Vista
     ]
 
 # Win32 Constants for memory operations and ListView messages
@@ -46,6 +53,7 @@ class DesktopHandler:
         self.enabled = True
         self.listener = None
         self.last_click_time = 0
+        self.last_click_pos = (0, 0)
         self.on_toggle_callback = on_toggle_callback
         
     def find_shelldll_defview(self):
@@ -128,7 +136,8 @@ class DesktopHandler:
             # Get the process ID of the explorer thread owning SysListView32
             _, pid = win32process.GetWindowThreadProcessId(hwnd)
             if not pid:
-                return True
+                log.debug("is_empty_space: failed to get PID, defaulting to False (safe)")
+                return False
                 
             # Open explorer.exe process memory with appropriate rights
             h_process = ctypes.windll.kernel32.OpenProcess(
@@ -137,8 +146,9 @@ class DesktopHandler:
                 pid
             )
             if not h_process:
-                # If we lack permission or cannot open, default to True (safe fallback)
-                return True
+                # If we lack permission or cannot open, default to False (do NOT toggle)
+                log.debug("is_empty_space: OpenProcess failed, defaulting to False (safe)")
+                return False
                 
             # Allocate space for LVHITTESTINFO inside explorer.exe's memory space
             remote_mem = ctypes.windll.kernel32.VirtualAllocEx(
@@ -150,7 +160,8 @@ class DesktopHandler:
             )
             if not remote_mem:
                 ctypes.windll.kernel32.CloseHandle(h_process)
-                return True
+                log.debug("is_empty_space: VirtualAllocEx failed, defaulting to False (safe)")
+                return False
                 
             # Convert screen coordinates to client coordinates relative to SysListView32
             try:
@@ -165,6 +176,7 @@ class DesktopHandler:
             local_info.flags = 0
             local_info.iItem = -1
             local_info.iSubItem = -1
+            local_info.iGroup = -1
             
             # Write structure to remote process
             written = ctypes.c_size_t(0)
@@ -194,11 +206,14 @@ class DesktopHandler:
             ctypes.windll.kernel32.CloseHandle(h_process)
             
             # iItem == -1 means no icon/item was hit (empty space)
-            return local_info.iItem == -1
+            is_empty = local_info.iItem == -1
+            log.debug(f"is_empty_space: client=({client_x},{client_y}) iItem={local_info.iItem} flags={local_info.flags} -> empty={is_empty}")
+            return is_empty
             
-        except Exception:
-            # Fallback to True under any exception to keep functionality working
-            return True
+        except Exception as e:
+            # Fallback to False under any exception — never accidentally toggle!
+            log.debug(f"is_empty_space: exception {e}, defaulting to False (safe)")
+            return False
 
     def on_click(self, x, y, button, pressed):
         """
@@ -214,14 +229,26 @@ class DesktopHandler:
                 double_click_time = win32gui.GetDoubleClickTime() / 1000.0
             except Exception:
                 double_click_time = 0.5  # Standard default of 500ms
+            
+            # Get system double-click distance thresholds (in pixels)
+            try:
+                cx_dblclk = win32api.GetSystemMetrics(win32con.SM_CXDOUBLECLK)
+                cy_dblclk = win32api.GetSystemMetrics(win32con.SM_CYDOUBLECLK)
+            except Exception:
+                cx_dblclk, cy_dblclk = 4, 4  # Default fallback
+            
+            last_x, last_y = self.last_click_pos
+            time_ok = (current_time - self.last_click_time) <= double_click_time
+            dist_ok = abs(x - last_x) <= cx_dblclk and abs(y - last_y) <= cy_dblclk
                 
-            # If left-clicks are within system double-click threshold
-            if current_time - self.last_click_time <= double_click_time:
+            # If left-clicks are within BOTH time AND distance thresholds
+            if time_ok and dist_ok:
                 try:
                     # Retrieve the window handle under the current mouse position
                     hwnd = win32gui.WindowFromPoint((x, y))
                     if hwnd:
                         class_name = win32gui.GetClassName(hwnd)
+                        log.debug(f"Double-click detected at ({x},{y}) on window class: {class_name}")
                         
                         # Validate that the clicked window belongs to the desktop
                         # We MUST include "SHELLDLL_DefView" because when icons are hidden,
@@ -234,17 +261,26 @@ class DesktopHandler:
                             # or we clicked on raw wallpaper root, so bypass empty hit-test to guarantee restoring works!
                             if class_name == "SysListView32" and syslistview:
                                 if not self.is_empty_space(syslistview, x, y):
+                                    log.debug("Hit-test: clicked on an ICON, NOT toggling.")
+                                    # Reset timer so this doesn't chain into the next click
+                                    self.last_click_time = 0
                                     return
                                     
                             # Send toggle command to SHELLDLL_DefView
                             shelldll = self.find_shelldll_defview()
                             if shelldll:
+                                log.debug("Toggling desktop icons!")
                                 win32gui.SendMessage(shelldll, win32con.WM_COMMAND, 0x7402, 0)
                                 if self.on_toggle_callback:
                                     self.on_toggle_callback()
-                except Exception:
-                    pass
-            self.last_click_time = current_time
+                except Exception as e:
+                    log.debug(f"on_click exception: {e}")
+                # Reset timer after a completed double-click to prevent triple-click chaining
+                self.last_click_time = 0
+                self.last_click_pos = (0, 0)
+            else:
+                self.last_click_time = current_time
+                self.last_click_pos = (x, y)
 
     def start(self):
         """

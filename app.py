@@ -8,6 +8,23 @@ This module acts as an invisible background service that:
 4. Harmonizes process lifecycle: exits cleanly when TranslucentTB is closed by the user.
 """
 
+# ──────────────────────────────────────────────────────────────────────
+# CRITICAL: Declare Per-Monitor DPI Awareness BEFORE any GUI imports.
+# Without this, on HiDPI screens (e.g. 150% scaling), our process sees
+# virtualized coordinates (e.g. 1707x1067) while Explorer's SysListView32
+# uses real physical coordinates (2560x1600). This mismatch causes
+# ScreenToClient to produce wrong client coords, making LVM_HITTEST
+# check the wrong position and falsely report "empty space" on icons.
+# ──────────────────────────────────────────────────────────────────────
+import ctypes
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
+except Exception:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()  # Fallback for older Windows
+    except Exception:
+        pass
+
 import os
 import sys
 import time
