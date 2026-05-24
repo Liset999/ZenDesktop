@@ -1,5 +1,5 @@
 @echo off
-title ZenDesktop One-Key Deploy v2.5.0
+title ZenDesktop One-Key Deploy v2.5.1
 
 :: Request Admin
 net session >nul 2>&1
@@ -13,7 +13,7 @@ color 0B
 
 echo.
 echo  ============================================================
-echo    ZenDesktop Premium Theme - One-Key Deploy v2.5.0
+echo    ZenDesktop Premium Theme - One-Key Deploy v2.5.1
 echo  ============================================================
 echo    3 independent local mods, no conflict with originals
 echo  ============================================================
@@ -64,7 +64,7 @@ reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Loggi
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Include" /t REG_SZ /d "explorer.exe" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Exclude" /t REG_SZ /d "" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Architecture" /t REG_SZ /d "x86-64" /f >nul
-reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Version" /t REG_SZ /d "2.5.0" /f >nul
+reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Version" /t REG_SZ /d "2.5.1" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "LibraryFileName" /t REG_SZ /d "" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic\Settings" /v "theme" /t REG_SZ /d "TranslucentTaskbar" /f >nul
 
@@ -74,7 +74,7 @@ reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Log
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Include" /t REG_SZ /d "StartMenuExperienceHost.exe|SearchHost.exe|SearchApp.exe" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Exclude" /t REG_SZ /d "" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Architecture" /t REG_SZ /d "x86-64" /f >nul
-reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version" /t REG_SZ /d "2.5.0" /f >nul
+reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version" /t REG_SZ /d "2.5.1" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "LibraryFileName" /t REG_SZ /d "" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic\Settings" /v "theme" /t REG_SZ /d "TranslucentStartMenu" /f >nul
 
@@ -84,7 +84,7 @@ reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Include" /t REG_SZ /d "explorer.exe" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Exclude" /t REG_SZ /d "" /f >nul
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Architecture" /t REG_SZ /d "" /f >nul
-reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version" /t REG_SZ /d "2.5.0" /f >nul
+reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version" /t REG_SZ /d "2.5.1" /f >nul
 
 echo       [OK] All 3 mods registered
 echo.

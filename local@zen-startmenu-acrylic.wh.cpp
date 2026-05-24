@@ -2,7 +2,7 @@
 // @id              zen-startmenu-acrylic
 // @name            ZenDesktop: Start Menu Acrylic Styler
 // @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
-// @version         2.5.0
+// @version         2.5.1
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -430,6 +430,15 @@ from the **TranslucentTB** project.
   - LayerMicaUI: LayerMicaUI (for the redesigned Start menu)
   - Borderless: Borderless
   - Command Center: Command Center (for the redesigned Start menu)
+- textColorMode: "default"
+  $name: Text Color Mode
+  $description: >-
+    Customize the text color for translucent and transparent themes. Use "Force Dark Gray" or "System-aware" if text is unreadable on light backgrounds.
+  $options:
+    - default: Default (Theme preset default)
+    - white: Force White text
+    - dark: Force Dark Gray text
+    - system: System-aware (White in Dark theme, Black in Light theme)
 - disableNewStartMenuLayout: ""
   $name: Start menu layout
   $description: >-
@@ -12906,6 +12915,39 @@ void ProcessAllStylesFromSettings() {
         overrideStyleConstants.empty()
             ? (theme ? theme->styleConstants : std::vector<PCWSTR>{})
             : overrideStyleConstants);
+
+    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
+    if (textColorMode && *textColorMode) {
+        std::wstring newFgBrush;
+        if (wcscmp(textColorMode, L"white") == 0) {
+            newFgBrush = L"White";
+        } else if (wcscmp(textColorMode, L"dark") == 0) {
+            newFgBrush = L"#CC000000";
+        } else if (wcscmp(textColorMode, L"system") == 0) {
+            newFgBrush = L"{ThemeResource SystemControlForegroundBaseHighBrush}";
+        }
+
+        if (!newFgBrush.empty()) {
+            bool found = false;
+            for (auto& sc : styleConstants) {
+                if (sc.first == L"CommonFgBrush") {
+                    sc.second = newFgBrush;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                StyleConstant newSc{L"CommonFgBrush", newFgBrush};
+                auto insertIndex = std::lower_bound(
+                    styleConstants.begin(), styleConstants.end(), newSc,
+                    [](const StyleConstant& a, const StyleConstant& b) {
+                        return a.first.size() > b.first.size();
+                    });
+                styleConstants.insert(insertIndex, std::move(newSc));
+            }
+        }
+    }
+    Wh_FreeStringSetting(textColorMode);
 
     if (theme) {
         for (const auto& themeTargetStyle : theme->targetStyles) {
