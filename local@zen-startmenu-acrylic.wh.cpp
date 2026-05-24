@@ -12704,61 +12704,61 @@ void ProcessAllStylesFromSettings() {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#00000000\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#00000000\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Clear_90") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#1A000000\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#1A000000\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Clear_80") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#33000000\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#33000000\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Clear_70") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#4D000000\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"0\" TintColor=\"#4D000000\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_LightFog_High") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#0AFFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#0AFFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_LightFog") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#20FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#20FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_LightFog_Low") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#40FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#40FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic_High") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#20FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#20FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#50FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#50FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic_Low") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#80FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#80FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic_90") == 0) {
         theme = g_isRedesignedStartMenu
@@ -12776,37 +12776,37 @@ void ProcessAllStylesFromSettings() {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6121214\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6121214\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_80") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CC121214\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CC121214\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_High") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#40121214\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#40121214\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#80121214\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#80121214\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_Low") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#C0121214\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#C0121214\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_FrostedWhite") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"20\" TintColor=\"#B0FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"20\" TintColor=\"#B0FFFFFF\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"NoRecommendedSection") == 0) {
         theme = g_isRedesignedStartMenu
