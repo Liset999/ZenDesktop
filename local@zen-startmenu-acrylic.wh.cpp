@@ -3,7 +3,7 @@
 // @name            ZenDesktop: Start Menu Acrylic Styler
 // @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
 // @version         1.0.0
-// @author          Lanbo & Antigravity
+// @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
 // @include         SearchHost.exe

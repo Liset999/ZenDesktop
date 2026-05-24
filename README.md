@@ -97,3 +97,5 @@ ZenDesktop/
 This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details.
 
 Developed with ❤️ by **Lanbo**.
+
+Special thanks to **m417z** for the original Windhawk Taskbar Styler and Start Menu Styler mods which served as the codebase foundation for these styling modules.
