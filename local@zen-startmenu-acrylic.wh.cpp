@@ -398,6 +398,8 @@ from the **TranslucentTB** project.
   - TranslucentStartMenu_DarkGlass_High: "TranslucentStartMenu (Dark Glass - High Translucent)"
   - TranslucentStartMenu_DarkGlass: "TranslucentStartMenu (Dark Glass - Standard)"
   - TranslucentStartMenu_DarkGlass_Low: "TranslucentStartMenu (Dark Glass - Low Translucent)"
+  - TranslucentStartMenu_DarkGlass_90: "TranslucentStartMenu (Dark Glass - 90% Opacity)"
+  - TranslucentStartMenu_DarkGlass_80: "TranslucentStartMenu (Dark Glass - 80% Opacity)"
   - TranslucentStartMenu_FrostedWhite: "TranslucentStartMenu (Frosted White)"
   - NoRecommendedSection: NoRecommendedSection
   - SideBySide: SideBySide
@@ -559,7 +561,7 @@ const Theme g_themeTranslucentStartMenu = {{
     ThemeTargetStyles{L"Grid#TopLevelSuggestionsRoot", {
         L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"TextBlock#Text", {
-        L"Foreground=White"}},
+        L"Foreground=$CommonFgBrush"}},
     ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.DropDownButton > Grid#RootGrid", {
         L"Background:=<RevealBorderBrush Color=\"Transparent\" TargetTheme=\"1\" Opacity=\"0.3\"/>",
         L"BorderBrush:=<RevealBorderBrush Color=\"Transparent\" TargetTheme=\"1\" Opacity=\"0.6\"/>",
@@ -590,6 +592,7 @@ const Theme g_themeTranslucentStartMenu = {{
         L"CornerRadius=5"}},
 }, {
     L"CommonBgBrush=<WindhawkBlur BlurAmount=\"25\" TintColor=\"#25323232\"/>",
+    L"CommonFgBrush=White",
 }};
 
 const Theme g_themeTranslucentStartMenu_variant_ClassicStartMenu = {{
@@ -689,6 +692,7 @@ const Theme g_themeTranslucentStartMenu_variant_ClassicStartMenu = {{
         L"CornerRadius=4"}},
 }, {
     L"CommonBgBrush=<WindhawkBlur BlurAmount=\"25\" TintColor=\"#25323232\"/>",
+    L"CommonFgBrush=White",
 }};
 
 const Theme g_themeNoRecommendedSection = {{
@@ -5941,7 +5945,7 @@ const Theme g_themeTintedGlass = {{
     ThemeTargetStyles{L"Grid#TopLevelSuggestionsRoot", {
         L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"TextBlock#Text", {
-        L"Foreground=White"}},
+        L"Foreground=$CommonFgBrush"}},
     ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.DropDownButton > Grid#RootGrid", {
         L"Background:=<RevealBorderBrush Color=\"Transparent\" TargetTheme=\"1\" Opacity=\"0.3\"/>",
         L"BorderBrush:=<RevealBorderBrush Color=\"Transparent\" TargetTheme=\"1\" Opacity=\"0.6\"/>",
@@ -5972,6 +5976,7 @@ const Theme g_themeTintedGlass = {{
         L"CornerRadius=5"}},
 }, {
     L"CommonBgBrush=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#80000000\"/>",
+    L"CommonFgBrush=White",
 }};
 
 const Theme g_themeTintedGlass_variant_ClassicStartMenu = {{
@@ -6069,6 +6074,7 @@ const Theme g_themeTintedGlass_variant_ClassicStartMenu = {{
         L"CornerRadius=14"}},
 }, {
     L"CommonBgBrush=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#80000000\"/>",
+    L"CommonFgBrush=White",
 }};
 
 const Theme g_themeLayerMicaUI = {{
@@ -12737,13 +12743,25 @@ void ProcessAllStylesFromSettings() {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6FFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6FFFFFF\"/>", L"CommonFgBrush=#E6000000" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic_80") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CCFFFFFF\"/>" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CCFFFFFF\"/>", L"CommonFgBrush=#CC000000" };
+        isCustomTheme = true;
+    } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_90") == 0) {
+        theme = g_isRedesignedStartMenu
+                    ? &g_themeTranslucentStartMenu
+                    : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6121214\"/>" };
+        isCustomTheme = true;
+    } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_80") == 0) {
+        theme = g_isRedesignedStartMenu
+                    ? &g_themeTranslucentStartMenu
+                    : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CC121214\"/>" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_DarkGlass_High") == 0) {
         theme = g_isRedesignedStartMenu

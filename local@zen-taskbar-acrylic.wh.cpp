@@ -455,6 +455,8 @@ from the **TranslucentTB** project.
   - TranslucentTaskbar_DarkGlass_High: "TranslucentTaskbar (Dark Glass - High Translucent)"
   - TranslucentTaskbar_DarkGlass: "TranslucentTaskbar (Dark Glass - Standard)"
   - TranslucentTaskbar_DarkGlass_Low: "TranslucentTaskbar (Dark Glass - Low Translucent)"
+  - TranslucentTaskbar_DarkGlass_90: "TranslucentTaskbar (Dark Glass - 90% Opacity)"
+  - TranslucentTaskbar_DarkGlass_80: "TranslucentTaskbar (Dark Glass - 80% Opacity)"
   - TranslucentTaskbar_FrostedWhite: "TranslucentTaskbar (Frosted White)"
   - DockLike: DockLike
   - SimplyTransparent: SimplyTransparent
@@ -11184,6 +11186,12 @@ void ProcessAllStylesFromSettings() {
     } else if (wcscmp(themeName, L"TranslucentTaskbar_Acrylic_80") == 0) {
         theme = &g_themeTranslucentTaskbar;
         overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CCFFFFFF\"/>" };
+    } else if (wcscmp(themeName, L"TranslucentTaskbar_DarkGlass_90") == 0) {
+        theme = &g_themeTranslucentTaskbar;
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#E6121214\"/>" };
+    } else if (wcscmp(themeName, L"TranslucentTaskbar_DarkGlass_80") == 0) {
+        theme = &g_themeTranslucentTaskbar;
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#CC121214\"/>" };
     } else if (wcscmp(themeName, L"TranslucentTaskbar_DarkGlass_High") == 0) {
         theme = &g_themeTranslucentTaskbar;
         overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"30\" TintColor=\"#40121214\"/>" };
