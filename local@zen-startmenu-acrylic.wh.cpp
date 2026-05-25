@@ -405,6 +405,7 @@ from the **TranslucentTB** project.
   - TranslucentStartMenu_DarkGlass_80: "TranslucentStartMenu (Dark Glass - 80% Opacity)"
   - TranslucentStartMenu_FrostedWhite: "TranslucentStartMenu (Frosted White)"
   - AppleLiquidGlass: Apple Liquid Glass (for the redesigned Start menu)
+  - AppleLiquidGlassClassic: Apple Liquid Glass (Classic Refraction)
   - NoRecommendedSection: NoRecommendedSection
   - SideBySide: SideBySide
   - SideBySide2: SideBySide2
@@ -5326,14 +5327,14 @@ const Theme g_themeLiquidGlass = {{
 }};
 
 const Theme g_themeAppleLiquidGlass = {{
-    // ── 3D Specular Overlay (Fresnel rim light simulation) ──
+    // -- 3D Specular Overlay (Fresnel rim light simulation) --
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
         L"CornerRadius=20",
-        L"BorderThickness=1.5,1.5,0.6,0.6",
+        L"BorderThickness=1.8,1.8,0.8,0.8",
         L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
         L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
-    // ── Main glass body (hyper-transparent + chromatic dispersion border) ──
+    // -- Main glass body (hyper-transparent + chromatic dispersion border) --
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$Apple_Background",
         L"BorderBrush:=$Apple_BorderBrush",
@@ -5349,15 +5350,15 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderBrush:=$Apple_BorderBrush",
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // ── Inner container (override system acrylic, aligned corners) ──
+    // -- Inner container (override system acrylic, aligned corners) --
     ThemeTargetStyles{L"Border#BorderElement", {
         L"Background:=$Apple_Background",
         L"BorderThickness=0",
         L"CornerRadius=$Apple_InnerCornerRadius"}},
-    // ── Kill the gray frosted square that causes corner artifacts ──
+    // -- Kill the gray frosted square that causes corner artifacts --
     ThemeTargetStyles{L"Border#LayerBorder", {
         L"Visibility=Collapsed"}},
-    // ── Pinned tile backgrounds ──
+    // -- Pinned tile backgrounds --
     ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid > Border#BackgroundBorder", {
         L"Background@Normal:=$Apple_ElementTileBG",
         L"Background@PointerOver:=$Apple_ElementTileBGHover",
@@ -5377,7 +5378,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
         L"BackgroundSizing=InnerBorderEdge",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Category control ──
+    // -- Category control --
     ThemeTargetStyles{L"StartMenu.CategoryControl > Grid > Border", {
         L"BorderThickness=$Apple_ElementBorderThickness",
         L"BorderBrush:=$Apple_ElementBorderBrush",
@@ -5385,19 +5386,21 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background:=$Apple_ElementBackground",
         L"Opacity=0.8",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Smooth transitions ──
+    // -- Smooth transitions (breathing feel) --
     ThemeTargetStyles{L"Grid#LayoutRoot", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
     ThemeTargetStyles{L"Border#BackgroundBorder", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
-    // ── Header button ──
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+    ThemeTargetStyles{L"Border#BackgroundElement", {
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+    // -- Header button --
     ThemeTargetStyles{L"Button#Header > Border@CommonStates", {
         L"BorderThickness=$Apple_ElementBorderThickness",
         L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
         L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
         L"BackgroundSizing=InnerBorderEdge",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── List view items ──
+    // -- List view items --
     ThemeTargetStyles{L"ListViewItem > Grid@CommonStates > Border#BorderBackground", {
         L"Background@Normal:=$Apple_ElementTileBG",
         L"Background@PointerOver:=$Apple_ElementTileBGHover",
@@ -5408,7 +5411,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
         L"BackgroundSizing=InnerBorderEdge",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Search box ──
+    // -- Search box --
     ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid@CommonStates > Border#BorderElement", {
         L"CornerRadius=$Apple_ElementCornerRadius",
         L"BorderThickness=$Apple_ElementBorderThickness",
@@ -5417,7 +5420,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background@CheckedPointerOver:=$Apple_AccentBackground",
         L"Background@CheckedPressed:=$Apple_ElementBackground2",
         L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
-    // ── More/Less suggestions buttons ──
+    // -- More/Less suggestions buttons --
     ThemeTargetStyles{L"Button#HideMoreSuggestionsButton > Grid@CommonStates > Border#BackgroundBorder", {
         L"Background@Normal:=$Apple_ElementBackground",
         L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
@@ -5438,7 +5441,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderThickness=$Apple_ElementBorderThickness",
         L"Margin=2",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Folder modal (liquid glass folders) ──
+    // -- Folder modal (liquid glass folders) --
     ThemeTargetStyles{L"StartMenu.FolderModal > Grid#Root > Border", {
         L"Background:=$Apple_Background",
         L"BorderBrush:=$Apple_BorderBrush",
@@ -5450,13 +5453,13 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
     ThemeTargetStyles{L"StartMenu.FolderModal", {
-        L"Background:=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" />"}},
+        L"Background:=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#00000000\" TintOpacity=\"0.03\" />"}},
     ThemeTargetStyles{L"StartMenu.ExpandedFolderList > Grid > Border", {
         L"Background:=$Apple_Background",
         L"BorderBrush:=$Apple_BorderBrush",
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // ── Folder plate tiles ──
+    // -- Folder plate tiles --
     ThemeTargetStyles{L"Border#FolderPlate", {
         L"Background:=<SolidColorBrush Color=\"#06FFFFFF\" />",
         L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#18FFFFFF\" Offset=\"0\"/><GradientStop Color=\"#04FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
@@ -5467,24 +5470,24 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background@PointerOver:=<SolidColorBrush Color=\"#10FFFFFF\" />",
         L"Background@Pressed:=<SolidColorBrush Color=\"#1CFFFFFF\" />",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Context menu ──
+    // -- Context menu --
     ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
         L"BorderThickness=$Apple_BorderThickness",
         L"BorderBrush:=$Apple_BorderBrush",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // ── Pressed scale animations ──
+    // -- Pressed scale animations --
     ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter#ContentPresenter > ContentControl > Grid#RootGrid > Border#LogoBackgroundPlate > Image#AllAppsItemLogo", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Navigation pane ──
+    // -- Navigation pane --
     ThemeTargetStyles{L"StartDocked.NavigationPaneButton > Grid@CommonStates > Border#BackgroundBorder", {
         L"BorderThickness=$Apple_ElementBorderThickness",
         L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
         L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
         L"BackgroundSizing=InnerBorderEdge",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── App list items ──
+    // -- App list items --
     ThemeTargetStyles{L"StartDocked.AppListViewItem > Grid@CommonStates > Border#BackgroundBorder", {
         L"Background@Normal:=$Apple_ElementTileBG",
         L"Background@PointerOver:=$Apple_ElementTileBGHover",
@@ -5495,7 +5498,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderBrush@Pressed:=$Apple_BorderBrush",
         L"BackgroundSizing=InnerBorderEdge",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Dropdown button ──
+    // -- Dropdown button --
     ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.DropDownButton > Grid@CommonStates", {
         L"Background@PointerOver:=$Apple_AccentBackground",
         L"Background@Pressed:=$Apple_ElementBackground2",
@@ -5509,7 +5512,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderThickness@Normal=$Apple_ElementBorderThickness",
         L"BorderThickness@PointerOver=$Apple_ElementBorderThickness",
         L"BorderThickness@Pressed=$Apple_ElementBorderThickness"}},
-    // ── More pressed scale transforms ──
+    // -- More pressed scale transforms --
     ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter#ContentPresenter > ContentControl > Grid#RootGrid > Grid#LogoContainer > Image#AllAppsTileLogo", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5",
@@ -5522,14 +5525,14 @@ const Theme g_themeAppleLiquidGlass = {{
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Flyout entrance animation ──
+    // -- Flyout entrance animation --
     ThemeTargetStyles{L"ScrollViewer#MenuFlyoutPresenterScrollViewer > Border > Grid > ScrollContentPresenter > ItemsPresenter > StackPanel", {
         L"ChildrenTransitions:=<TransitionCollection><EntranceThemeTransition IsStaggeringEnabled=\"False\" FromHorizontalOffset=\"-25\" FromVerticalOffset=\"0\" /></TransitionCollection>"}},
     ThemeTargetStyles{L"FlyoutPresenter > Border > ScrollViewer > Border > Grid > ScrollContentPresenter > ContentPresenter > Border", {
         L"BorderBrush:=$Apple_BorderBrush",
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // ── Generic button content presenter ──
+    // -- Generic button content presenter --
     ThemeTargetStyles{L"Button > ContentPresenter#ContentPresenter@CommonStates", {
         L"Background@PointerOver:=$Apple_AccentBackground",
         L"Background@Pressed:=$Apple_ElementBackground2",
@@ -5538,7 +5541,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderThickness=$Apple_ElementBorderThickness",
         L"Background@Normal=$Apple_ElementBackground",
         L"CornerRadius=$Apple_ElementCornerRadius"}},
-    // ── Search box background ──
+    // -- Search box background --
     ThemeTargetStyles{L"Grid@SearchBoxInputStates > Border#TaskbarSearchBackground", {
         L"CornerRadius=$Apple_ElementCornerRadius",
         L"Background@ActiveInput:=$Apple_ElementBackground2",
@@ -5547,35 +5550,315 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background@SearchBoxHover:=$Apple_AccentBackground",
         L"Background@NoFocus:=$Apple_ElementBackground",
         L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
-    // ── More pressed transforms ──
+    // -- More pressed transforms --
     ThemeTargetStyles{L"Border@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Image", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
     ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
+    // -- Text foreground (respects textColorMode setting) --
+    ThemeTargetStyles{L"TextBlock", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#AppDisplayName", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#HeaderText", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
 }, {
-    // ══════════════════════════════════════════════════════
-    // Style constants — all use private "Apple_" prefix
-    // ══════════════════════════════════════════════════════
+    // ------------------------------------------------------
+    // Style constants - v2 refraction upgrade
+    // ------------------------------------------------------
+    L"Apple_BorderThickness=1.6",
+    L"Apple_ElementBorderThickness=0.6,0.6,0.6,1.2",
+    L"Apple_CornerRadius=20",
+    L"Apple_InnerCornerRadius=18",
+    L"Apple_ElementCornerRadius=10",
+    // Refraction glass body (moderate blur = "bent light" distortion, NOT frosted)
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" TintSaturation=\"2.2\" FallbackColor=\"#08FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.06\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.08\" />",
+    // Chromatic dispersion border - DOUBLED alpha for visibility
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#DDFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#30FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#28FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#3034C759\" Offset=\"0.48\" /><GradientStop Color=\"#35007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#30AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    // Element border - stronger top highlight + bottom shadow
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    // Tile backgrounds - slightly more visible for readability
+    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.05\" />",
+    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.12\" />",
+    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.20\" />",
+    // Text foreground - system-adaptive by default; overridden by textColorMode setting
+    L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
+}, {}, {
+    ThemeTargetStyles{L"*", {
+        L"transition: background-color 0.083s ease-in-out !important"}},
+}};
+
+const Theme g_themeAppleLiquidGlass_variant_Classic = {{
+    // -- 3D Specular Overlay (Fresnel rim light simulation) --
+    ThemeTargetStyles{L"Border#AcrylicOverlay", {
+        L"Visibility=Visible",
+        L"CornerRadius=20",
+        L"BorderThickness=1.8,1.8,0.8,0.8",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
+    // -- Main glass body (hyper-transparent + chromatic dispersion border) --
+    ThemeTargetStyles{L"Border#AcrylicBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Border#AppBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Border#AccentAppBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    // -- Inner container (override system acrylic, aligned corners) --
+    ThemeTargetStyles{L"Border#BorderElement", {
+        L"Background:=$Apple_Background",
+        L"BorderThickness=0",
+        L"CornerRadius=$Apple_InnerCornerRadius"}},
+    // -- Kill the gray frosted square that causes corner artifacts --
+    ThemeTargetStyles{L"Border#LayerBorder", {
+        L"Visibility=Collapsed"}},
+    // -- Pinned tile backgrounds --
+    ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid > Border#BackgroundBorder", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Button > Grid@CommonStates > Border#BackgroundBorder", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Category control --
+    ThemeTargetStyles{L"StartMenu.CategoryControl > Grid > Border", {
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"Background:=$Apple_ElementBackground",
+        L"Opacity=0.8",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Smooth transitions (breathing feel) --
+    ThemeTargetStyles{L"Grid#LayoutRoot", {
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+    ThemeTargetStyles{L"Border#BackgroundBorder", {
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+    ThemeTargetStyles{L"Border#BackgroundElement", {
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+    // -- Header button --
+    ThemeTargetStyles{L"Button#Header > Border@CommonStates", {
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- List view items --
+    ThemeTargetStyles{L"ListViewItem > Grid@CommonStates > Border#BorderBackground", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Search box --
+    ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid@CommonStates > Border#BorderElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"Background@Checked:=$Apple_ElementBackground",
+        L"Background@CheckedPointerOver:=$Apple_AccentBackground",
+        L"Background@CheckedPressed:=$Apple_ElementBackground2",
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
+    // -- More/Less suggestions buttons --
+    ThemeTargetStyles{L"Button#HideMoreSuggestionsButton > Grid@CommonStates > Border#BackgroundBorder", {
+        L"Background@Normal:=$Apple_ElementBackground",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"Background@PointerOver:=$Apple_AccentBackground",
+        L"Background@Pressed:=$Apple_ElementBackground2",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Margin=2",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Button#ShowMoreSuggestionsButton > Grid@CommonStates > Border#BackgroundBorder", {
+        L"Background@Normal:=$Apple_ElementBackground",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"Background@PointerOver:=$Apple_AccentBackground",
+        L"Background@Pressed:=$Apple_ElementBackground2",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Margin=2",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Folder modal (liquid glass folders) --
+    ThemeTargetStyles{L"StartMenu.FolderModal > Grid#Root > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"StartMenu.FolderModal > Grid > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"StartMenu.FolderModal", {
+        L"Background:=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#00000000\" TintOpacity=\"0.03\" />"}},
+    ThemeTargetStyles{L"StartMenu.ExpandedFolderList > Grid > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    // -- Folder plate tiles --
+    ThemeTargetStyles{L"Border#FolderPlate", {
+        L"Background:=<SolidColorBrush Color=\"#06FFFFFF\" />",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#18FFFFFF\" Offset=\"0\"/><GradientStop Color=\"#04FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
+        L"BorderThickness=0.5",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Button#FolderPlate > Grid@CommonStates > Border", {
+        L"Background@Normal=Transparent",
+        L"Background@PointerOver:=<SolidColorBrush Color=\"#10FFFFFF\" />",
+        L"Background@Pressed:=<SolidColorBrush Color=\"#1CFFFFFF\" />",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Context menu --
+    ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    // -- Pressed scale animations --
+    ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter#ContentPresenter > ContentControl > Grid#RootGrid > Border#LogoBackgroundPlate > Image#AllAppsItemLogo", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Navigation pane --
+    ThemeTargetStyles{L"StartDocked.NavigationPaneButton > Grid@CommonStates > Border#BackgroundBorder", {
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- App list items --
+    ThemeTargetStyles{L"StartDocked.AppListViewItem > Grid@CommonStates > Border#BackgroundBorder", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush@Normal:=$Apple_BorderBrush",
+        L"BorderBrush@PointerOver:=$Apple_BorderBrush",
+        L"BorderBrush@Pressed:=$Apple_BorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Dropdown button --
+    ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.DropDownButton > Grid@CommonStates", {
+        L"Background@PointerOver:=$Apple_AccentBackground",
+        L"Background@Pressed:=$Apple_ElementBackground2",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BackgroundSizing=InnerBorderEdge",
+        L"Background@Normal:=$Apple_ElementBackground",
+        L"BorderBrush@Normal:=$Apple_ElementBorderBrush",
+        L"Padding=9,3,7,4",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness@Normal=$Apple_ElementBorderThickness",
+        L"BorderThickness@PointerOver=$Apple_ElementBorderThickness",
+        L"BorderThickness@Pressed=$Apple_ElementBorderThickness"}},
+    // -- More pressed scale transforms --
+    ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter#ContentPresenter > ContentControl > Grid#RootGrid > Grid#LogoContainer > Image#AllAppsTileLogo", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Flyout entrance animation --
+    ThemeTargetStyles{L"ScrollViewer#MenuFlyoutPresenterScrollViewer > Border > Grid > ScrollContentPresenter > ItemsPresenter > StackPanel", {
+        L"ChildrenTransitions:=<TransitionCollection><EntranceThemeTransition IsStaggeringEnabled=\"False\" FromHorizontalOffset=\"-25\" FromVerticalOffset=\"0\" /></TransitionCollection>"}},
+    ThemeTargetStyles{L"FlyoutPresenter > Border > ScrollViewer > Border > Grid > ScrollContentPresenter > ContentPresenter > Border", {
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    // -- Generic button content presenter --
+    ThemeTargetStyles{L"Button > ContentPresenter#ContentPresenter@CommonStates", {
+        L"Background@PointerOver:=$Apple_AccentBackground",
+        L"Background@Pressed:=$Apple_ElementBackground2",
+        L"BorderBrush@PointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@Pressed:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@Normal=$Apple_ElementBackground",
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    // -- Search box background --
+    ThemeTargetStyles{L"Grid@SearchBoxInputStates > Border#TaskbarSearchBackground", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"Background@ActiveInput:=$Apple_ElementBackground2",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@SearchBoxHover:=$Apple_AccentBackground",
+        L"Background@NoFocus:=$Apple_ElementBackground",
+        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
+    // -- More pressed transforms --
+    ThemeTargetStyles{L"Border@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Image", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5"}},
+    ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
+        L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
+        L"RenderTransformOrigin=0.5,0.5"}},
+    // -- Text foreground (respects textColorMode setting) --
+    ThemeTargetStyles{L"TextBlock", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#AppDisplayName", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#HeaderText", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+    ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
+        L"Foreground:=$Apple_ForegroundBrush"}},
+}, {
+    // ------------------------------------------------------
+    // Style constants - v2.7.0 style (Classic Refraction)
+    // ------------------------------------------------------
     L"Apple_BorderThickness=1.2",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_InnerCornerRadius=18",
     L"Apple_ElementCornerRadius=10",
-    // Hyper-transparent glass body (refraction-like: background visible, not frosted)
+    // Original hyper-transparent glass (low blur=2, no tint, low opacity)
     L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
     L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
     L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
     L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-    // Chromatic dispersion border (Apple system colors: Red→Orange→Green→Blue→Purple)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#15FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#1834C759\" Offset=\"0.48\" /><GradientStop Color=\"#1A007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#50000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Subtle inner element border (top highlight)
+    // Chromatic dispersion border
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.15\" /><GradientStop Color=\"#15FF9500\" Offset=\"0.3\" /><GradientStop Color=\"#1834C759\" Offset=\"0.5\" /><GradientStop Color=\"#1A007AFF\" Offset=\"0.7\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#50000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    // Element border
     L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Ultra-subtle tile backgrounds
+    // Tile backgrounds
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
+    // Text foreground
+    L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
 }, {}, {
     ThemeTargetStyles{L"*", {
         L"transition: background-color 0.083s ease-in-out !important"}},
@@ -13185,6 +13468,8 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLiquidGlass;
     } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0) {
         theme = &g_themeAppleLiquidGlass;
+    } else if (wcscmp(themeName, L"AppleLiquidGlassClassic") == 0) {
+        theme = &g_themeAppleLiquidGlass_variant_Classic;
     } else if (wcscmp(themeName, L"Windows10X") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeWindows10X
@@ -13219,22 +13504,30 @@ void ProcessAllStylesFromSettings() {
         }
 
         if (!newFgBrush.empty()) {
-            bool found = false;
-            for (auto& sc : styleConstants) {
-                if (sc.first == L"CommonFgBrush") {
-                    sc.second = newFgBrush;
-                    found = true;
-                    break;
+            // Override ALL theme foreground variables so textColorMode works
+            // universally regardless of which theme is active.
+            static const std::wstring kFgVarNames[] = {
+                L"CommonFgBrush",        // TintedGlass, Windows10X, LayerMicaUI, etc.
+                L"Apple_ForegroundBrush", // Apple Liquid Glass
+            };
+            for (const auto& varName : kFgVarNames) {
+                bool found = false;
+                for (auto& sc : styleConstants) {
+                    if (sc.first == varName) {
+                        sc.second = newFgBrush;
+                        found = true;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                StyleConstant newSc{L"CommonFgBrush", newFgBrush};
-                auto insertIndex = std::lower_bound(
-                    styleConstants.begin(), styleConstants.end(), newSc,
-                    [](const StyleConstant& a, const StyleConstant& b) {
-                        return a.first.size() > b.first.size();
-                    });
-                styleConstants.insert(insertIndex, std::move(newSc));
+                if (!found) {
+                    StyleConstant newSc{varName, newFgBrush};
+                    auto insertIndex = std::lower_bound(
+                        styleConstants.begin(), styleConstants.end(), newSc,
+                        [](const StyleConstant& a, const StyleConstant& b) {
+                            return a.first.size() > b.first.size();
+                        });
+                    styleConstants.insert(insertIndex, std::move(newSc));
+                }
             }
         }
     }

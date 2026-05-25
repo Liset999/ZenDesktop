@@ -463,6 +463,8 @@ from the **TranslucentTB** project.
   - TranslucentTaskbar_FrostedWhite: "TranslucentTaskbar (Frosted White)"
   - AppleLiquidGlass: AppleLiquidGlass
   - AppleLiquidGlass_variant_Alternate: AppleLiquidGlass (Alternate)
+  - AppleLiquidGlassClassic: AppleLiquidGlass (Classic)
+  - AppleLiquidGlassClassic_variant_Alternate: AppleLiquidGlass (Classic Alternate)
   - DockLike: DockLike
   - SimplyTransparent: SimplyTransparent
   - Squircle: Squircle
@@ -5360,6 +5362,7 @@ const Theme g_themeLiquidGlass_variant_Alternate = {{
         L"HorizontalAlignment=Right"}},
     ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
         L"HorizontalAlignment=Left"}},
+}, {
     L"Background=<WindhawkBlur BlurAmount=\"15\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.2\" />",
     L"ElementBackground=<WindhawkBlur BlurAmount=\"20\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.4\" />",
     L"ElementBackground2=<WindhawkBlur BlurAmount=\"20\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.2\" />",
@@ -5374,8 +5377,7 @@ const Theme g_themeLiquidGlass_variant_Alternate = {{
 
 const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Taskbar.TaskbarFrame > Grid#RootGrid", {
-        L"BorderThickness=$Apple_BorderThickness",
-        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=0",
         L"Background:=$Apple_Background"}},
     ThemeTargetStyles{L"Rectangle#BackgroundFill", {
         L"Visibility=1"}},
@@ -5401,14 +5403,7 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Width=Auto",
         L"MinWidth=24",
         L"HorizontalAlignment=Left"}},
-    ThemeTargetStyles{L"TextBlock#TimeInnerTextBlock", {
-        L"FontSize=13",
-        L"Margin=0",
-        L"Padding=0",
-        L"RenderTransform:=<TranslateTransform X=\"0\" Y=\"0\" />"}},
-    ThemeTargetStyles{L"TextBlock#DateInnerTextBlock", {
-        L"Visibility=1"}},
-    ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
+            ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
         L"Text=\\uED14"}},
     ThemeTargetStyles{L"TextBlock#SearchBoxTextBlock", {
         L"Text=Search This PC",
@@ -5539,17 +5534,17 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
         L"HorizontalAlignment=Left"}},
 }, {
-    L"Apple_BorderThickness=1.2",
+    L"Apple_BorderThickness=1.8",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-    // Taskbar: Convex 3D vertical gradient (top highlight → bottom shadow)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FF3B30\" Offset=\"0.1\" /><GradientStop Color=\"#12FF9500\" Offset=\"0.25\" /><GradientStop Color=\"#1534C759\" Offset=\"0.45\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.65\" /><GradientStop Color=\"#15AF52DE\" Offset=\"0.8\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    // 3D Refraction Prismatic Convex Mercury Border (v2.8.0 signature)
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#E0FF3B30\" Offset=\"0.02\" /><GradientStop Color=\"#C0FF9500\" Offset=\"0.05\" /><GradientStop Color=\"#C034C759\" Offset=\"0.09\" /><GradientStop Color=\"#D0007AFF\" Offset=\"0.14\" /><GradientStop Color=\"#C0AF52DE\" Offset=\"0.2\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#05FFFFFF\" Offset=\"0.8\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
@@ -5592,14 +5587,7 @@ const Theme g_themeAppleLiquidGlass_variant_Alternate = {{
         L"Width=Auto",
         L"MinWidth=24",
         L"HorizontalAlignment=Left"}},
-    ThemeTargetStyles{L"TextBlock#TimeInnerTextBlock", {
-        L"FontSize=13",
-        L"Margin=0",
-        L"Padding=0",
-        L"RenderTransform:=<TranslateTransform X=\"0\" Y=\"0\" />"}},
-    ThemeTargetStyles{L"TextBlock#DateInnerTextBlock", {
-        L"Visibility=1"}},
-    ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
+            ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
         L"Text=\\uED14"}},
     ThemeTargetStyles{L"TextBlock#SearchBoxTextBlock", {
         L"Text=Search This PC",
@@ -5730,14 +5718,383 @@ const Theme g_themeAppleLiquidGlass_variant_Alternate = {{
     ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
         L"HorizontalAlignment=Left"}},
 }, {
+    L"Apple_BorderThickness=1.8",
+    L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
+    L"Apple_CornerRadius=20",
+    L"Apple_ElementCornerRadius=10",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    // 3D Refraction Prismatic Convex Mercury Border (v2.8.0 signature)
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#E0FF3B30\" Offset=\"0.02\" /><GradientStop Color=\"#C0FF9500\" Offset=\"0.05\" /><GradientStop Color=\"#C034C759\" Offset=\"0.09\" /><GradientStop Color=\"#D0007AFF\" Offset=\"0.14\" /><GradientStop Color=\"#C0AF52DE\" Offset=\"0.2\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#05FFFFFF\" Offset=\"0.8\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
+    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
+    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
+}};
+
+
+const Theme g_themeAppleLiquidGlass_variant_Classic = {{
+    ThemeTargetStyles{L"Taskbar.TaskbarFrame > Grid#RootGrid", {
+        L"BorderThickness=0",
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"Rectangle#BackgroundFill", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Rectangle#BackgroundStroke", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Taskbar.AugmentedEntryPointButton#AugmentedEntryPointButton > Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel", {
+        L"Margin=-3,0"}},
+    ThemeTargetStyles{L"Grid#SystemTrayFrameGrid", {
+        L"Background:=$Apple_ElementBackground",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"Margin=6"}},
+    ThemeTargetStyles{L"SystemTray.ChevronIconView", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.NotifyIconView#NotifyItemIcon", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.OmniButton", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.IconView#SystemTrayIcon > Grid#ContainerGrid > ContentPresenter#ContentPresenter > Grid#ContentGrid > SystemTray.TextIconContent > Grid#ContainerGrid", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Taskbar.Gripper#GripperControl", {
+        L"Width=Auto",
+        L"MinWidth=24",
+        L"HorizontalAlignment=Left"}},
+            ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
+        L"Text=\\uED14"}},
+    ThemeTargetStyles{L"TextBlock#SearchBoxTextBlock", {
+        L"Text=Search This PC",
+        L"FontSize=10"}},
+    ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"Background:=$Apple_Background",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#ModalRootGrid > Windows.UI.Xaml.Controls.Border#BackgroundElement", {
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"Background=Transparent",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#ModalRootGrid > Windows.UI.Xaml.Controls.Border#BackgroundElement > WindowsInternal.ComposableShell.Experiences.Switcher.SwitchItemList", {
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.VirtualDesktopBarElement#VirtualDesktopBar", {
+        L"CornerRadius=$Apple_CornerRadius",
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"Border#BackgroundDimmingLayer", {
+        L"Background:=$Apple_Background",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel > Border#BackgroundElement", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness"}},
+    ThemeTargetStyles{L"Taskbar.TaskListButton#TaskListButton", {
+        L"Background@Normal:=$Apple_ElementTileBG",
+        L"Background@PointerOver:=$Apple_ElementTileBGHover",
+        L"Background@Pressed:=$Apple_ElementTileBGPressed",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness"}},
+    ThemeTargetStyles{L"Border#SnapBarBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"Margin=2"}},
+    ThemeTargetStyles{L"Taskbar.TaskListLabeledButtonPanel@CommonStates > Border#BackgroundElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@ActiveNormal:=$Apple_ElementBackground",
+        L"Background@ActivePointerOver:=$Apple_AccentBackground",
+        L"Background@ActivePressed:=$Apple_ElementBackground2",
+        L"Background@InactivePointerOver:=$Apple_AccentBackground",
+        L"Background@InactivePressed:=$Apple_ElementBackground2",
+        L"BorderBrush@ActiveNormal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePressed:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePressed:=$Apple_ElementBorderBrush",
+        L"Margin=1"}},
+    ThemeTargetStyles{L"ContentPresenter#ContentPresenter@CommonStates", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@ActiveNormal:=$Apple_ElementBackground",
+        L"Background@ActivePointerOver:=$Apple_AccentBackground",
+        L"Background@ActivePressed:=$Apple_ElementBackground2",
+        L"Background@InactivePointerOver:=$Apple_AccentBackground",
+        L"Background@InactivePressed:=$Apple_ElementBackground2",
+        L"BorderBrush@ActiveNormal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePressed:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePressed:=$Apple_ElementBorderBrush",
+        L"Margin=1"}},
+    ThemeTargetStyles{L"Border#SnapPickerBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"Margin=2"}},
+    ThemeTargetStyles{L"Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel", {
+        L"Background:=Transparent"}},
+    ThemeTargetStyles{L"ToolTip > ContentPresenter#LayoutRoot", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness:=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.VirtualDesktopBarElement > Grid#GridElement > Border#VirtualDesktopSwitcherBackground", {
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.SwitchItemListViewItem > Grid > Border", {
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Border#VirtualDesktopBarBackground", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Rectangle#RunningIndicator", {
+        L"Fill:=$Apple_AccentBackground",
+        L"Width=14"}},
+    ThemeTargetStyles{L"Rectangle#ShowDesktopPipe", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Rectangle#RightOverflowButtonDivider", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchIconButton > SearchUx.SearchUI.SearchButtonRootGrid@CommonStates > Border#BackgroundElement", {
+        L"Background:=Transparent",
+        L"BorderBrush:=Transparent"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchButtonRootGrid", {
+        L"Background:=Transparent",
+        L"BorderBrush:=Transparent"}},
+    ThemeTargetStyles{L"Border#SearchPillBackgroundElement", {
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"Margin=0,1"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchBoxButton > SearchUx.SearchUI.SearchButtonRootGrid@CommonStates > Border#BackgroundElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"Background:=$Apple_ElementBackground",
+        L"Margin=0,-4"}},
+    ThemeTargetStyles{L"Canvas#HoverFlyoutCanvas > Grid#HoverFlyoutGrid > Border#HoverFlyoutBackground", {
+        L"Shadow:=",
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.SystemTrayFrame", {
+        L"HorizontalAlignment=Right"}},
+    ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
+        L"HorizontalAlignment=Left"}},
+}, {
+    // ------------------------------------------------------
+    // Style constants — v2.7.0 style (Classic Refraction)
+    // ------------------------------------------------------
     L"Apple_BorderThickness=1.2",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
+    // Original hyper-transparent glass (low blur=2, no tint, low opacity)
     L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
     L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
     L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
     L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    // Taskbar: Convex 3D vertical gradient (top highlight → bottom shadow)
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FF3B30\" Offset=\"0.1\" /><GradientStop Color=\"#12FF9500\" Offset=\"0.25\" /><GradientStop Color=\"#1534C759\" Offset=\"0.45\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.65\" /><GradientStop Color=\"#15AF52DE\" Offset=\"0.8\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
+    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
+    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
+}};
+
+const Theme g_themeAppleLiquidGlass_variant_Classic_Alternate = {{
+    ThemeTargetStyles{L"Taskbar.TaskbarFrame", {
+        L"Width=Auto",
+        L"MinWidth:=100",
+        L"MaxWidth:=1200",
+        L"HorizontalAlignment=Center"}},
+    ThemeTargetStyles{L"Taskbar.TaskbarFrame > Grid#RootGrid", {
+        L"Margin=0,3,12,3",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"Background:=$Apple_Background",
+        L"Padding=1"}},
+    ThemeTargetStyles{L"Rectangle#BackgroundFill", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Rectangle#BackgroundStroke", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Taskbar.AugmentedEntryPointButton#AugmentedEntryPointButton > Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel", {
+        L"Margin=-3,0"}},
+    ThemeTargetStyles{L"Grid#SystemTrayFrameGrid", {
+        L"Background:=$Apple_ElementBackground",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"Margin=6"}},
+    ThemeTargetStyles{L"SystemTray.ChevronIconView", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.NotifyIconView#NotifyItemIcon", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.OmniButton", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.IconView#SystemTrayIcon > Grid#ContainerGrid > ContentPresenter#ContentPresenter > Grid#ContentGrid > SystemTray.TextIconContent > Grid#ContainerGrid", {
+        L"CornerRadius=$Apple_ElementCornerRadius"}},
+    ThemeTargetStyles{L"Taskbar.Gripper#GripperControl", {
+        L"Width=Auto",
+        L"MinWidth=24",
+        L"HorizontalAlignment=Left"}},
+            ThemeTargetStyles{L"TextBlock#InnerTextBlock[Text=\\uE971]", {
+        L"Text=\\uED14"}},
+    ThemeTargetStyles{L"TextBlock#SearchBoxTextBlock", {
+        L"Text=Search This PC",
+        L"FontSize=10"}},
+    ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"Background:=$Apple_Background",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#ModalRootGrid > Windows.UI.Xaml.Controls.Border#BackgroundElement", {
+        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"Background=Transparent",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#ModalRootGrid > Windows.UI.Xaml.Controls.Border#BackgroundElement > WindowsInternal.ComposableShell.Experiences.Switcher.SwitchItemList", {
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.VirtualDesktopBarElement#VirtualDesktopBar", {
+        L"CornerRadius=$Apple_CornerRadius",
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"Border#BackgroundDimmingLayer", {
+        L"Background:=$Apple_Background",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Taskbar.AugmentedEntryPointButton#AugmentedEntryPointButton > Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel", {
+        L"Margin=2",
+        L"Background:=$Apple_ElementBackground",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Padding=0,-6",
+        L"MaxWidth:=200",
+        L"MaxHeight=46"}},
+    ThemeTargetStyles{L"Taskbar.TaskListButtonPanel#ExperienceToggleButtonRootPanel > Border#BackgroundElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness"}},
+    ThemeTargetStyles{L"Taskbar.TaskListButton#TaskListButton", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness"}},
+    ThemeTargetStyles{L"Border#SnapBarBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"Margin=2"}},
+    ThemeTargetStyles{L"Taskbar.TaskListLabeledButtonPanel@CommonStates > Border#BackgroundElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@ActiveNormal:=$Apple_ElementBackground",
+        L"Background@ActivePointerOver:=$Apple_AccentBackground",
+        L"Background@ActivePressed:=$Apple_ElementBackground2",
+        L"Background@InactivePointerOver:=$Apple_AccentBackground",
+        L"Background@InactivePressed:=$Apple_ElementBackground2",
+        L"BorderBrush@ActiveNormal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePressed:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePressed:=$Apple_ElementBorderBrush",
+        L"Margin=1"}},
+    ThemeTargetStyles{L"ContentPresenter#ContentPresenter@CommonStates", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"Background@ActiveNormal:=$Apple_ElementBackground",
+        L"Background@ActivePointerOver:=$Apple_AccentBackground",
+        L"Background@ActivePressed:=$Apple_ElementBackground2",
+        L"Background@InactivePointerOver:=$Apple_AccentBackground",
+        L"Background@InactivePressed:=$Apple_ElementBackground2",
+        L"BorderBrush@ActiveNormal:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@ActivePressed:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePointerOver:=$Apple_ElementBorderBrush",
+        L"BorderBrush@InactivePressed:=$Apple_ElementBorderBrush",
+        L"Margin=1"}},
+    ThemeTargetStyles{L"Border#SnapPickerBorder", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"Margin=2"}},
+    ThemeTargetStyles{L"ToolTip > ContentPresenter#LayoutRoot", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness:=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.VirtualDesktopBarElement > Grid#GridElement > Border#VirtualDesktopSwitcherBackground", {
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius",
+        L"Background:=$Apple_Background"}},
+    ThemeTargetStyles{L"WindowsInternal.ComposableShell.Experiences.Switcher.SwitchItemListViewItem > Grid > Border", {
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Border#VirtualDesktopBarBackground", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"Rectangle#RunningIndicator", {
+        L"Fill:=$Apple_AccentBackground",
+        L"Width=14"}},
+    ThemeTargetStyles{L"Rectangle#ShowDesktopPipe", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"Rectangle#RightOverflowButtonDivider", {
+        L"Visibility=1"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchIconButton > SearchUx.SearchUI.SearchButtonRootGrid@CommonStates > Border#BackgroundElement", {
+        L"Background:=Transparent",
+        L"BorderBrush:=Transparent"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchButtonRootGrid", {
+        L"Background:=Transparent",
+        L"BorderBrush:=Transparent"}},
+    ThemeTargetStyles{L"Border#SearchPillBackgroundElement", {
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"Margin=0,1"}},
+    ThemeTargetStyles{L"SearchUx.SearchUI.SearchBoxButton > SearchUx.SearchUI.SearchButtonRootGrid@CommonStates > Border#BackgroundElement", {
+        L"CornerRadius=$Apple_ElementCornerRadius",
+        L"BorderThickness=$Apple_ElementBorderThickness",
+        L"BorderBrush:=$Apple_ElementBorderBrush",
+        L"Background:=$Apple_ElementBackground",
+        L"Margin=0,-4"}},
+    ThemeTargetStyles{L"Canvas#HoverFlyoutCanvas > Grid#HoverFlyoutGrid > Border#HoverFlyoutBackground", {
+        L"Shadow:=",
+        L"Background:=$Apple_Background",
+        L"BorderBrush:=$Apple_BorderBrush",
+        L"BorderThickness=$Apple_BorderThickness",
+        L"CornerRadius=$Apple_CornerRadius"}},
+    ThemeTargetStyles{L"SystemTray.SystemTrayFrame", {
+        L"HorizontalAlignment=Right"}},
+    ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
+        L"HorizontalAlignment=Left"}},
+}, {
+    // ------------------------------------------------------
+    // Style constants — v2.7.0 style (Classic Refraction)
+    // ------------------------------------------------------
+    L"Apple_BorderThickness=1.2",
+    L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
+    L"Apple_CornerRadius=20",
+    L"Apple_ElementCornerRadius=10",
+    // Original hyper-transparent glass (low blur=2, no tint, low opacity)
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    // Taskbar: Convex 3D vertical gradient (top highlight → bottom shadow)
     L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FF3B30\" Offset=\"0.1\" /><GradientStop Color=\"#12FF9500\" Offset=\"0.25\" /><GradientStop Color=\"#1534C759\" Offset=\"0.45\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.65\" /><GradientStop Color=\"#15AF52DE\" Offset=\"0.8\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
@@ -11679,6 +12036,10 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeAppleLiquidGlass;
     } else if (wcscmp(themeName, L"AppleLiquidGlass_variant_Alternate") == 0) {
         theme = &g_themeAppleLiquidGlass_variant_Alternate;
+    } else if (wcscmp(themeName, L"AppleLiquidGlassClassic") == 0) {
+        theme = &g_themeAppleLiquidGlass_variant_Classic;
+    } else if (wcscmp(themeName, L"AppleLiquidGlassClassic_variant_Alternate") == 0) {
+        theme = &g_themeAppleLiquidGlass_variant_Classic_Alternate;
     } else if (wcscmp(themeName, L"Borderless") == 0) {
         theme = &g_themeBorderless;
     }
