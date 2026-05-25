@@ -12771,7 +12771,7 @@ void ProcessAllStylesFromSettings() {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"35\" TintColor=\"#30FFFFFF\" TintOpacity="0.3\" TintSaturation=\"1.8\"/>", L"CommonFgBrush=White" };
+        overrideStyleConstants = { L"CommonBgBrush=<WindhawkBlur BlurAmount=\"35\" TintColor=\"#30FFFFFF\" TintOpacity=\"0.3\" TintSaturation=\"1.8\"/>", L"CommonFgBrush=White" };
         isCustomTheme = true;
     } else if (wcscmp(themeName, L"TranslucentStartMenu_Acrylic_Low") == 0) {
         theme = g_isRedesignedStartMenu
