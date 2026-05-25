@@ -21,14 +21,16 @@ A native Windows 11 Taskbar beautification module offering fine-grained, premium
 * **Acrylic (High / Standard / Low)**: Real-time high-fidelity WinUI 3 acrylic glass effect.
 * **Dark Glass (High / Standard / Low)**: Sleek, premium dark mode smoked glass.
 * **Frosted White**: Snow-white premium frosted glass design.
+* **Apple Liquid Glass / Alternate**: Hyper-transparent 3D droplet glass with a subtle chromatic dispersion border (featuring diagonal red→orange→green→blue→purple gradient stops), Fresnel specular edge reflections, and a precise 2px corner radius compensation (perfectly matching floating macOS-like Dock layout).
 
 ### 2. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`)
-Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts, including expanded folders and search dialogs.
+Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts, including expanded folders and search dialogs. Features **Apple Liquid Glass** preset with clear liquid body, diagonal glass light sheen, adapted folder plates, and expanded panels with sub-pixel alignment.
 
 ### 3. 🖱️ Double-Click to Toggle Icons (`local@zen-desktop-toggle-icons`)
 A process-native desktop subclassing module. **Double-click empty desktop space to instantly hide/show icons.**
 * Uses native Win32 hit-testing: double-clicking files or folders triggers their default actions normally.
 * Intercepts messages directly inside `explorer.exe` shell views. Zero lag, zero background EXEs.
+* **Note**: Now disabled by default in `deploy.bat` to guarantee 100% stability and prevent the known Explorer flashing/crash bugs on Windows 11 Build 26100 (24H2). You can still choose to manually compile and enable it inside the Windhawk UI if your build is compatible.
 
 ---
 
@@ -84,6 +86,8 @@ ZenDesktop/
 * **纯本地化编译**：脱离官方云服务器连接限制，即插即用，完美解决国内连不上网的困境。
 * **彻底告别乱码**：全面采用标准纯英及 ASCII 标签，完全杜绝 Windows 编码带来的乱码 Bug。
 * **极致性能**：利用进程级注入与 Hook 技术，不占用任何后台常驻进程，0% CPU 开销，近乎 0MB 内存占用。
+* **Apple Liquid Glass (苹果流体玻璃) 主题**：v2.7.0 重磅引入超写实拟真玻璃美学！完美的圆角对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）搭配五彩斑斓的虹彩边缘与 Fresnel spec 高光，超透且清晰。
+* **100% 稳定性保障**：默认禁用易引发 Windows 11 24H2 / Build 26100 系统黑屏/闪屏的双击隐藏图标插件，稳定性达工业级，免去后顾之忧。
 
 ### 🛠️ 快速开始
 1. 下载并安装 [Windhawk](https://windhawk.net) 引擎。
