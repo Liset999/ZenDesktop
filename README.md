@@ -22,6 +22,10 @@ A native Windows 11 Taskbar beautification module offering fine-grained, premium
 * **Dark Glass (High / Standard / Low)**: Sleek, premium dark mode smoked glass.
 * **Frosted White**: Snow-white premium frosted glass design.
 * **Apple Liquid Glass / Alternate**: Hyper-transparent 3D droplet glass with a subtle chromatic dispersion border (featuring diagonal red→orange→green→blue→purple gradient stops), Fresnel specular edge reflections, and a precise 2px corner radius compensation (perfectly matching floating macOS-like Dock layout).
+  * **v2.7.0 Premium Aesthetics Refinement**:
+    * *Zero Border Line on Full-Width*: Eliminated the top horizontal border line in full-width themes to achieve a perfectly borderless, pure liquid glass edge (specular border line is beautifully preserved only in floating Alternate Dock layouts).
+    * *Date & Time Restoration*: Fully removed override styles for `TimeInnerTextBlock` and `DateInnerTextBlock`, restoring the native dual-line (time on top, date on bottom) align layout for Windows 11 system tray.
+    * *ASCII Code Cleaning*: Stripped risky multi-byte character separators (like `═`) in file comments to prevent compiler token collapse (`missing terminating '"' character` syntax errors) under local system non-UTF-8 locales (e.g. GBK/ANSI).
 
 ### 2. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`)
 Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts, including expanded folders and search dialogs. Features **Apple Liquid Glass** preset with clear liquid body, diagonal glass light sheen, adapted folder plates, and expanded panels with sub-pixel alignment.
@@ -87,6 +91,10 @@ ZenDesktop/
 * **彻底告别乱码**：全面采用标准纯英及 ASCII 标签，完全杜绝 Windows 编码带来的乱码 Bug。
 * **极致性能**：利用进程级注入与 Hook 技术，不占用任何后台常驻进程，0% CPU 开销，近乎 0MB 内存占用。
 * **Apple Liquid Glass (苹果流体玻璃) 主题**：v2.7.0 重磅引入超写实拟真玻璃美学！完美的圆角对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）搭配五彩斑斓的虹彩边缘与 Fresnel spec 高光，超透且清晰。
+  * **v2.7.0 精致化视觉重构与修复（2026/05/25）**：
+    * **极致去横线**：彻底消除全宽屏幕任务栏顶部的突兀渐变边框线，只在悬浮 Dock 卡片模式下保留高亮亮边，达成纯净无痕贴底的完美通透感。
+    * **恢复原生双行日期**：清空所有对托盘时间与日期的样式劫持，完美还原 Win11 经典的上下双行（时间在上、日期在下）居右排版。
+    * **消灭编译报错**：大扫除代码注释里所有导致 GBK 编码下编译失败的非 ASCII 字符（如 `═` 等），彻底铲除 `missing terminating '"'` 错误，实现 100% 顺畅本地秒编译。
 * **100% 稳定性保障**：默认禁用易引发 Windows 11 24H2 / Build 26100 系统黑屏/闪屏的双击隐藏图标插件，稳定性达工业级，免去后顾之忧。
 
 ### 🛠️ 快速开始
