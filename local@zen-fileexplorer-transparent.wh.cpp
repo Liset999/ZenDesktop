@@ -50,17 +50,15 @@ fully visible and functional.
 
 // ==WindhawkModSettings==
 /*
-- transparencyMode: "mica"
+- transparencyMode: "blur"
   $name: 文件夹背景透明模式
-  $type: combo
   $options:
   - "mica": "Mica - 壁纸派生背景 (推荐)"
   - "micaAlt": "Mica Alt - 更亮的壁纸背景 (22H2+)"
-  - "clear": "Clear - 无背景效果"
+  - "clear": "Clear - 透明效果"
   - "blur": "Blur - 丙烯酸模糊效果"
 - textColorMode: "default"
   $name: 文件列表文字颜色覆盖
-  $type: combo
   $options:
   - "default": "Default - 系统默认"
   - "white": "White - 强制白色文字"
@@ -68,10 +66,8 @@ fully visible and functional.
   - "system": "System - 跟随系统主题"
 - applyToNavPane: false
   $name: 透明效果应用到导航树面板
-  $type: bool
 - applyToCommandBar: false
   $name: 透明效果应用到命令工具栏
-  $type: bool
 */
 // ==/WindhawkModSettings==
 
@@ -216,37 +212,78 @@ static void LoadDwmApis()
 
 // ==================== 背景效果应用 ====================
 
+// 清除之前设置的 SWCA 效果
+static void ClearAccent(HWND hWnd)
+{
+    if (pSetWindowCompositionAttribute)
+    {
+        ACCENT_POLICY accent = { ACCENT_DISABLED, 0, 0, 0 };
+        WINCOMPATTRDATA wcd = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
+        pSetWindowCompositionAttribute(hWnd, &wcd);
+    }
+}
+
+// 将 DWM 背景恢复为系统默认 (AUTO)
+static void ResetDwmBackdrop(HWND hWnd)
+{
+    if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    {
+        DWORD auto_ = DWMSBT_AUTO;
+        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
+                               &auto_, sizeof(auto_));
+    }
+}
+
 static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
 {
-    if (mode == kModeMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    // 先清除所有已有效果，避免 SWCA 与 DWM 冲突
+    ClearAccent(hWnd);
+    ResetDwmBackdrop(hWnd);
+
+    if (mode == kModeBlur)
     {
-        DWORD backdropType = DWMSBT_MAINWINDOW;
-        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
-                               &backdropType, sizeof(backdropType));
-    }
-    else if (mode == kModeMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
-    {
-        DWORD backdropType = DWMSBT_TABBEDWINDOW;
-        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
-                               &backdropType, sizeof(backdropType));
-    }
-    else if (mode == kModeClear)
-    {
-        if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+        // Blur: SWCA 丙烯酸模糊 — 在所有 Win11 版本上产生肉眼可见的透明效果
+        if (pSetWindowCompositionAttribute)
         {
-            DWORD backdropType = DWMSBT_NONE;
+            // 配合 DWMSBT_NONE 去除 Mica，让 SWCA 单独工作
+            if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+            {
+                DWORD none = DWMSBT_NONE;
+                pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
+                                       &none, sizeof(none));
+            }
+            ACCENT_POLICY accent = {
+                ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                0,
+                0x10FFFFFF,  // 半透明浅色: AA=0x10 (6%不透明度), RGB=白色
+                0
+            };
+            WINCOMPATTRDATA wcd = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
+            pSetWindowCompositionAttribute(hWnd, &wcd);
+        }
+        // Fallback: 使用 TabbedWindow (MicaAlt)
+        else if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+        {
+            DWORD backdropType = DWMSBT_TABBEDWINDOW;
             pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                    &backdropType, sizeof(backdropType));
         }
     }
-    else if (mode == kModeBlur)
+    else if (mode == kModeClear)
     {
+        // Clear: SWCA 透明模糊 — 完全透明效果
         if (pSetWindowCompositionAttribute)
         {
+            if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+            {
+                DWORD none = DWMSBT_NONE;
+                pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
+                                       &none, sizeof(none));
+            }
             ACCENT_POLICY accent = {
-                ACCENT_ENABLE_ACRYLICBLURBEHIND,
+                ACCENT_ENABLE_TRANSPARENTBLURBEHIND,
                 0,
-                0x10FFFFFF,
+                0x00FFFFFF,  // 完全透明, 保留白色色调
                 0
             };
             WINCOMPATTRDATA wcd = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
@@ -254,10 +291,23 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
         }
         else if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
-            DWORD backdropType = DWMSBT_TABBEDWINDOW;
+            DWORD backdropType = DWMSBT_NONE;
             pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                    &backdropType, sizeof(backdropType));
         }
+    }
+    else if (mode == kModeMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    {
+        DWORD backdropType = DWMSBT_MAINWINDOW;
+        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
+                               &backdropType, sizeof(backdropType));
+        // Mica 模式下，子窗口背景擦除由 EnumCabinetChildProc 中的子类化处理
+    }
+    else if (mode == kModeMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    {
+        DWORD backdropType = DWMSBT_TABBEDWINDOW;
+        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
+                               &backdropType, sizeof(backdropType));
     }
 }
 
@@ -533,15 +583,8 @@ static void ApplyToExistingExplorerWindows()
 
 static void ReapplyToAllCabinets()
 {
-    auto cabinets = g_processedCabinets;
+    // 清空记录，ApplyToExistingExplorerWindows 会重新枚举并应用
     g_processedCabinets.clear();
-
-    for (HWND hCabinet : cabinets)
-    {
-        ApplyBackdropEffect(hCabinet, g_settings.transparencyMode);
-        InvalidateRect(hCabinet, NULL, TRUE);
-    }
-
     ApplyToExistingExplorerWindows();
 }
 
@@ -587,13 +630,17 @@ BOOL Wh_ModInit()
     LoadDwmApis();
     LoadSettings();
 
-    if (!Wh_SetFunctionHook(
-            (void*)CreateWindowExW,
-            (void*)CreateWindowExW_Hook,
-            (void**)&Real_CreateWindowExW))
+    // Hook CreateWindowExW 以捕获新打开的 Explorer 窗口
+    // 即使 Hook 失败（可能被其它模组占用），已有窗口仍会被处理
+    bool hookSucceeded = Wh_SetFunctionHook(
+        (void*)CreateWindowExW,
+        (void*)CreateWindowExW_Hook,
+        (void**)&Real_CreateWindowExW);
+
+    if (!hookSucceeded)
     {
-        Wh_Log(L"[ExplorerTP] Failed to hook CreateWindowExW");
-        return FALSE;
+        Wh_Log(L"[ExplorerTP] Warning: CreateWindowExW hook unavailable");
+        Wh_Log(L"[ExplorerTP] New windows won't auto-detect, existing windows will still work");
     }
 
     ApplyToExistingExplorerWindows();
@@ -607,6 +654,14 @@ void Wh_ModAfterInit()
 
 void Wh_ModUninit()
 {
+    // 恢复所有窗口到系统默认背景
+    for (HWND hCabinet : g_processedCabinets)
+    {
+        ClearAccent(hCabinet);
+        ResetDwmBackdrop(hCabinet);
+        InvalidateRect(hCabinet, NULL, TRUE);
+    }
+
     UnsubclassAllWindows();
 }
 
