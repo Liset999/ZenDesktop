@@ -49,40 +49,30 @@ fully visible and functional.
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
-{
-  "transparencyMode": {
-    "type": "combo",
-    "default": "mica",
-    "options": {
-      "mica": "Mica - 壁纸派生背景 (推荐)",
-      "micaAlt": "Mica Alt - 更亮的壁纸背景 (22H2+)",
-      "clear": "Clear - 无背景效果",
-      "blur": "Blur - 丙烯酸模糊效果"
-    },
-    "description": "文件夹背景透明模式"
-  },
-  "textColorMode": {
-    "type": "combo",
-    "default": "default",
-    "options": {
-      "default": "Default - 系统默认",
-      "white": "White - 强制白色文字",
-      "dark": "Dark - 强制深灰文字",
-      "system": "System - 跟随系统主题"
-    },
-    "description": "文件列表文字颜色覆盖"
-  },
-  "applyToNavPane": {
-    "type": "bool",
-    "default": false,
-    "description": "透明效果应用到导航树面板"
-  },
-  "applyToCommandBar": {
-    "type": "bool",
-    "default": false,
-    "description": "透明效果应用到命令工具栏"
-  }
-}
+/*
+- transparencyMode: "mica"
+  $name: 文件夹背景透明模式
+  $type: combo
+  $options:
+  - "mica": "Mica - 壁纸派生背景 (推荐)"
+  - "micaAlt": "Mica Alt - 更亮的壁纸背景 (22H2+)"
+  - "clear": "Clear - 无背景效果"
+  - "blur": "Blur - 丙烯酸模糊效果"
+- textColorMode: "default"
+  $name: 文件列表文字颜色覆盖
+  $type: combo
+  $options:
+  - "default": "Default - 系统默认"
+  - "white": "White - 强制白色文字"
+  - "dark": "Dark - 强制深灰文字"
+  - "system": "System - 跟随系统主题"
+- applyToNavPane: false
+  $name: 透明效果应用到导航树面板
+  $type: bool
+- applyToCommandBar: false
+  $name: 透明效果应用到命令工具栏
+  $type: bool
+*/
 // ==/WindhawkModSettings==
 
 #include <windows.h>
@@ -93,77 +83,49 @@ fully visible and functional.
 
 #include <unordered_set>
 
-// ==================== 窗口消息常量 ====================
+// ==================== 消息常量 ====================
 
 #define WM_DEFERRED_INIT (WM_APP + 0x100)
 
 // ==================== Windows 版本检测 ====================
 
-enum class Win11Build {
-    kUnknown,
-    k21H2,    // 22000
-    k22H2,    // 22621
-    k23H2,    // 22631
-    k24H2,    // 26100
-};
-
-Win11Build g_win11Build = Win11Build::kUnknown;
+// 使用 ntdll!RtlGetNtVersionNumbers 检测构建版本号
+// 不需要任何结构体定义，兼容所有 MinGW 版本
 bool g_canUseDwmBackdrop = false;  // DWMWA_SYSTEMBACKDROP_TYPE 可用 (22H2+)
 
-// ntdll 版本号结构体（避免依赖 winternl.h）
-struct RTL_OSVERSIONINFOW_TP {
-    ULONG dwOSVersionInfoSize;
-    ULONG dwMajorVersion;
-    ULONG dwMinorVersion;
-    ULONG dwBuildNumber;
-    ULONG dwPlatformId;
-    WCHAR szCSDVersion[128];
-};
-
-void DetectWindowsBuild()
+static void DetectWindowsBuild()
 {
     HMODULE hNtdll = GetModuleHandleW(L"ntdll.dll");
     if (!hNtdll) return;
 
-    // RtlGetVersion 是 ntdll 中获取真实版本号的可靠方式
-    typedef LONG(WINAPI* RtlGetVersion_t)(PVOID);
-    auto pRtlGetVersion = (RtlGetVersion_t)GetProcAddress(
-        hNtdll, "RtlGetVersion");
-    if (!pRtlGetVersion) return;
+    typedef void(WINAPI* RtlGetNtVersionNumbers_t)(DWORD*, DWORD*, DWORD*);
+    auto pRtlGetNtVersionNumbers = (RtlGetNtVersionNumbers_t)
+        GetProcAddress(hNtdll, "RtlGetNtVersionNumbers");
+    if (!pRtlGetNtVersionNumbers) return;
 
-    RTL_OSVERSIONINFOW_TP osvi = { sizeof(osvi) };
-    if (pRtlGetVersion(&osvi) == 0)
-    {
-        DWORD build = osvi.dwBuildNumber;
-        if (build == 22000)
-            g_win11Build = Win11Build::k21H2;
-        else if (build == 22621)
-            g_win11Build = Win11Build::k22H2;
-        else if (build == 22631)
-            g_win11Build = Win11Build::k23H2;
-        else if (build >= 26100)
-            g_win11Build = Win11Build::k24H2;
-        else if (build >= 22000)
-            g_win11Build = Win11Build::k22H2;
+    DWORD major = 0, minor = 0, build = 0;
+    pRtlGetNtVersionNumbers(&major, &minor, &build);
+    build &= 0x0FFFFFFF;  // 高半字节是修订号，掩码去除
 
-        g_canUseDwmBackdrop = (build >= 22621);
-    }
+    // DWMWA_SYSTEMBACKDROP_TYPE 从 Win11 22H2 (build 22621) 开始可用
+    if (build >= 22621)
+        g_canUseDwmBackdrop = true;
 }
 
 // ==================== 设置管理 ====================
 
-enum class TransparencyMode {
-    kMica,
-    kMicaAlt,
-    kClear,
-    kBlur,
+enum TransparencyMode {
+    kModeMica,
+    kModeMicaAlt,
+    kModeClear,
+    kModeBlur,
 };
 
-enum class TextColorMode {
-    kDefault,
-    kWhite,
-    kDark,
-    kSystem,
+enum TextColorMode {
+    kColorDefault,
+    kColorWhite,
+    kColorDark,
+    kColorSystem,
 };
 
 struct {
@@ -173,43 +135,39 @@ struct {
     bool applyToCommandBar;
 } g_settings;
 
-void LoadSettings()
+static void LoadSettings()
 {
     PCWSTR mode = Wh_GetStringSetting(L"transparencyMode");
-    g_settings.transparencyMode = TransparencyMode::kMica;
+    g_settings.transparencyMode = kModeMica;
     if (wcscmp(mode, L"micaAlt") == 0)
-        g_settings.transparencyMode = TransparencyMode::kMicaAlt;
+        g_settings.transparencyMode = kModeMicaAlt;
     else if (wcscmp(mode, L"clear") == 0)
-        g_settings.transparencyMode = TransparencyMode::kClear;
+        g_settings.transparencyMode = kModeClear;
     else if (wcscmp(mode, L"blur") == 0)
-        g_settings.transparencyMode = TransparencyMode::kBlur;
+        g_settings.transparencyMode = kModeBlur;
     Wh_FreeStringSetting(mode);
 
     PCWSTR textMode = Wh_GetStringSetting(L"textColorMode");
-    g_settings.textColorMode = TextColorMode::kDefault;
+    g_settings.textColorMode = kColorDefault;
     if (wcscmp(textMode, L"white") == 0)
-        g_settings.textColorMode = TextColorMode::kWhite;
+        g_settings.textColorMode = kColorWhite;
     else if (wcscmp(textMode, L"dark") == 0)
-        g_settings.textColorMode = TextColorMode::kDark;
+        g_settings.textColorMode = kColorDark;
     else if (wcscmp(textMode, L"system") == 0)
-        g_settings.textColorMode = TextColorMode::kSystem;
+        g_settings.textColorMode = kColorSystem;
     Wh_FreeStringSetting(textMode);
 
     g_settings.applyToNavPane = Wh_GetIntSetting(L"applyToNavPane") != 0;
     g_settings.applyToCommandBar = Wh_GetIntSetting(L"applyToCommandBar") != 0;
-
-    Wh_Log(L"[ExplorerTP] Settings: mode=%d textColor=%d nav=%d cmd=%d",
-           (int)g_settings.transparencyMode, (int)g_settings.textColorMode,
-           g_settings.applyToNavPane, g_settings.applyToCommandBar);
 }
 
 // ==================== DWM/ACCENT API 动态加载 ====================
 
 typedef HRESULT(WINAPI* DwmSetWindowAttribute_t)(HWND, DWORD, LPCVOID, DWORD);
-DwmSetWindowAttribute_t pDwmSetWindowAttribute = nullptr;
+static DwmSetWindowAttribute_t pDwmSetWindowAttribute = nullptr;
 
 typedef BOOL(WINAPI* SetWindowCompositionAttribute_t)(HWND, PVOID);
-SetWindowCompositionAttribute_t pSetWindowCompositionAttribute = nullptr;
+static SetWindowCompositionAttribute_t pSetWindowCompositionAttribute = nullptr;
 
 // ACCENT_POLICY 结构体 (uxtheme 未公开)
 struct ACCENT_POLICY {
@@ -225,24 +183,17 @@ struct WINCOMPATTRDATA {
     SIZE_T DataSize;
 };
 
-// ACCENT_STATE 常量
-constexpr DWORD ACCENT_DISABLED = 0;
-constexpr DWORD ACCENT_ENABLE_GRADIENT = 1;
-constexpr DWORD ACCENT_ENABLE_TRANSPARENTBLURBEHIND = 2;
-constexpr DWORD ACCENT_ENABLE_BLURBEHIND = 3;
-constexpr DWORD ACCENT_ENABLE_ACRYLICBLURBEHIND = 4;
-constexpr DWORD ACCENT_ENABLE_HOSTBACKDROP = 5;
+// ACCENT_STATE 常量 (未公开)
+#define ACCENT_DISABLED 0
+#define ACCENT_ENABLE_GRADIENT 1
+#define ACCENT_ENABLE_TRANSPARENTBLURBEHIND 2
+#define ACCENT_ENABLE_BLURBEHIND 3
+#define ACCENT_ENABLE_ACRYLICBLURBEHIND 4
 
-// WCA 常量
-constexpr DWORD WCA_ACCENT_POLICY = 19;
+// WCA 常量 (未公开)
+#define WCA_ACCENT_POLICY 19
 
-// DWMWA 常量 (Win11 22H2+)
-constexpr DWORD DWMWA_SYSTEMBACKDROP_TYPE = 102;
-constexpr DWORD DWMSBT_DISABLE = 1;
-constexpr DWORD DWMSBT_MAINWINDOW = 2;
-constexpr DWORD DWMSBT_TABBEDWINDOW = 3;
-
-void LoadDwmApis()
+static void LoadDwmApis()
 {
     HMODULE hDwmApi = GetModuleHandleW(L"dwmapi.dll");
     if (hDwmApi)
@@ -261,30 +212,30 @@ void LoadDwmApis()
 
 // ==================== 背景效果应用 ====================
 
-void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
+static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
 {
-    if (mode == TransparencyMode::kMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    if (mode == kModeMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
     {
         DWORD backdropType = DWMSBT_MAINWINDOW;
         pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
                                &backdropType, sizeof(backdropType));
     }
-    else if (mode == TransparencyMode::kMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
+    else if (mode == kModeMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
     {
         DWORD backdropType = DWMSBT_TABBEDWINDOW;
         pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
                                &backdropType, sizeof(backdropType));
     }
-    else if (mode == TransparencyMode::kClear)
+    else if (mode == kModeClear)
     {
         if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
-            DWORD backdropType = DWMSBT_DISABLE;
+            DWORD backdropType = DWMSBT_NONE;
             pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
                                    &backdropType, sizeof(backdropType));
         }
     }
-    else if (mode == TransparencyMode::kBlur)
+    else if (mode == kModeBlur)
     {
         if (pSetWindowCompositionAttribute)
         {
@@ -308,15 +259,15 @@ void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
 
 // ==================== 文字颜色工具 ====================
 
-COLORREF GetTextColorForMode()
+static COLORREF GetTextColorForMode()
 {
     switch (g_settings.textColorMode)
     {
-    case TextColorMode::kWhite:
+    case kColorWhite:
         return RGB(0xFF, 0xFF, 0xFF);
-    case TextColorMode::kDark:
+    case kColorDark:
         return RGB(0x33, 0x33, 0x33);
-    case TextColorMode::kSystem:
+    case kColorSystem:
     {
         HKEY hKey;
         DWORD value = 1;
@@ -336,9 +287,9 @@ COLORREF GetTextColorForMode()
     }
 }
 
-bool IsTextColorOverridden()
+static bool IsTextColorOverridden()
 {
-    return g_settings.textColorMode != TextColorMode::kDefault;
+    return g_settings.textColorMode != kColorDefault;
 }
 
 // ==================== 子类化过程声明 ====================
@@ -355,20 +306,17 @@ BOOL CALLBACK EnumExistingExplorerProc(HWND, LPARAM);
 // ==================== 全局状态 ====================
 
 using CreateWindowExW_t = decltype(&CreateWindowExW);
-CreateWindowExW_t Real_CreateWindowExW;
+static CreateWindowExW_t Real_CreateWindowExW;
 
-std::unordered_set<HWND> g_processedCabinets;
+static std::unordered_set<HWND> g_processedCabinets;
 
 // ==================== 核心透明化逻辑 ====================
 
-void ApplyTransparencyToCabinet(HWND hCabinet)
+static void ApplyTransparencyToCabinet(HWND hCabinet)
 {
     if (g_processedCabinets.count(hCabinet))
         return;
     g_processedCabinets.insert(hCabinet);
-
-    Wh_Log(L"[ExplorerTP] Apply transparency to %08X mode=%d",
-           (DWORD)(ULONG_PTR)hCabinet, (int)g_settings.transparencyMode);
 
     ApplyBackdropEffect(hCabinet, g_settings.transparencyMode);
     EnumChildWindows(hCabinet, EnumCabinetChildProc, 0);
@@ -388,7 +336,6 @@ BOOL CALLBACK EnumCabinetChildProc(HWND hChild, LPARAM lParam)
         WindhawkUtils::SetWindowSubclassFromAnyThread(
             hChild, ShellDefViewSubclassProc, 0);
 
-        // 查找 SysListView32 (22H2/23H2 传统列表视图)
         HWND hListView = FindWindowExW(hChild, NULL, L"SysListView32", NULL);
         if (hListView)
         {
@@ -396,16 +343,13 @@ BOOL CALLBACK EnumCabinetChildProc(HWND hChild, LPARAM lParam)
             ListView_SetTextBkColor(hListView, CLR_NONE);
 
             if (IsTextColorOverridden())
-            {
                 ListView_SetTextColor(hListView, GetTextColorForMode());
-            }
 
             WindhawkUtils::SetWindowSubclassFromAnyThread(
                 hListView, ListViewSubclassProc, 0);
             InvalidateRect(hListView, NULL, TRUE);
         }
 
-        // 24H2+ 可能用 DirectUIHWND 渲染文件列表
         HWND hDui = FindWindowExW(hChild, NULL, L"DirectUIHWND", NULL);
         if (hDui)
         {
@@ -429,19 +373,15 @@ BOOL CALLBACK EnumCabinetChildProc(HWND hChild, LPARAM lParam)
              wcscmp(szClass, L"NamespaceTreeControl") == 0)
     {
         if (g_settings.applyToNavPane)
-        {
             WindhawkUtils::SetWindowSubclassFromAnyThread(
                 hChild, NavPaneSubclassProc, 0);
-        }
     }
     else if (wcscmp(szClass, L"ReBarWindow32") == 0 ||
              wcscmp(szClass, L"ToolbarWindow32") == 0)
     {
         if (g_settings.applyToCommandBar)
-        {
             WindhawkUtils::SetWindowSubclassFromAnyThread(
                 hChild, TransparentChildSubclassProc, 0);
-        }
     }
     else if (wcscmp(szClass, L"UserSettingsBox") == 0 ||
              wcscmp(szClass, L"WorkerW") == 0)
@@ -496,10 +436,6 @@ LRESULT CALLBACK ListViewSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
     {
     case WM_ERASEBKGND:
         return 1;
-    case WM_CHANGE:
-        if (IsTextColorOverridden())
-            ListView_SetTextColor(hWnd, GetTextColorForMode());
-        break;
     }
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
@@ -584,14 +520,14 @@ BOOL CALLBACK EnumExistingExplorerProc(HWND hWnd, LPARAM lParam)
     return TRUE;
 }
 
-void ApplyToExistingExplorerWindows()
+static void ApplyToExistingExplorerWindows()
 {
     EnumWindows(EnumExistingExplorerProc, 0);
 }
 
 // ==================== 重新应用设置 ====================
 
-void ReapplyToAllCabinets()
+static void ReapplyToAllCabinets()
 {
     auto cabinets = g_processedCabinets;
     g_processedCabinets.clear();
@@ -623,7 +559,7 @@ BOOL CALLBACK EnumWindowForUnsubclassProc(HWND hChild, LPARAM lParam)
     return TRUE;
 }
 
-void UnsubclassAllWindows()
+static void UnsubclassAllWindows()
 {
     for (HWND hCabinet : g_processedCabinets)
     {
@@ -642,8 +578,7 @@ BOOL Wh_ModInit()
     Wh_Log(L"[ExplorerTP] Initializing v2.0.0...");
 
     DetectWindowsBuild();
-    Wh_Log(L"[ExplorerTP] Win11 build=%d, canUseDwmBackdrop=%d",
-           (int)g_win11Build, g_canUseDwmBackdrop);
+    Wh_Log(L"[ExplorerTP] canUseDwmBackdrop=%d", g_canUseDwmBackdrop);
 
     LoadDwmApis();
     LoadSettings();
@@ -658,27 +593,21 @@ BOOL Wh_ModInit()
     }
 
     ApplyToExistingExplorerWindows();
-    Wh_Log(L"[ExplorerTP] Initialized successfully");
     return TRUE;
 }
 
 void Wh_ModAfterInit()
 {
-    Wh_Log(L"[ExplorerTP] AfterInit - reapplying...");
     ApplyToExistingExplorerWindows();
 }
 
 void Wh_ModUninit()
 {
-    Wh_Log(L"[ExplorerTP] Uninitializing...");
     UnsubclassAllWindows();
-    Wh_Log(L"[ExplorerTP] Uninitialized");
 }
 
 void Wh_ModSettingsChanged()
 {
-    Wh_Log(L"[ExplorerTP] Settings changed, reloading...");
     LoadSettings();
     ReapplyToAllCabinets();
-    Wh_Log(L"[ExplorerTP] Settings applied");
 }
