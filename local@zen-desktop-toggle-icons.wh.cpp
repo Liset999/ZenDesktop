@@ -497,7 +497,7 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
 // ─────────────────────────────────────────────────────────────────────────────
 // Windhawk lifecycle
 // ─────────────────────────────────────────────────────────────────────────────
-bool Wh_ModInit()
+BOOL Wh_ModInit()
 {
     Wh_Log(L"[ZenDesktop] === Wh_ModInit v3.0.0 ===");
     LoadSettings();
@@ -507,12 +507,12 @@ bool Wh_ModInit()
             (void*)Hook_CreateWindowExW,
             (void**)&Real_CreateWindowExW)) {
         Wh_Log(L"[ZenDesktop] FAILED to hook CreateWindowExW");
-        return false;
+        return FALSE;
     }
 
     SubclassExistingWindows();
     Wh_Log(L"[ZenDesktop] Init complete");
-    return true;
+    return TRUE;
 }
 
 void Wh_ModUninit()
