@@ -14,29 +14,29 @@ Previously powered by TranslucentTB, this repository has been **completely rewri
 
 ## 🌟 Premium Features
 
-### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic`)
+### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic`) [v3.0.0]
 A native Windows 11 Taskbar beautification module offering fine-grained, premium transparency & blur presets:
 * **Clear**: 100% full transparency (only taskbar icons remain).
-* **Light Fog (High / Standard / Low)**: An elegant misty frost overlay with configurable遮罩 (opacity).
 * **Acrylic (High / Standard / Low)**: Real-time high-fidelity WinUI 3 acrylic glass effect.
-* **Dark Glass (High / Standard / Low)**: Sleek, premium dark mode smoked glass.
-* **Frosted White**: Snow-white premium frosted glass design.
 * **Apple Liquid Glass / Alternate**: Hyper-transparent 3D droplet glass with a subtle chromatic dispersion border (featuring diagonal red→orange→green→blue→purple gradient stops), Fresnel specular edge reflections, and a precise 2px corner radius compensation (perfectly matching floating macOS-like Dock layout).
-  * **v2.7.0 Premium Aesthetics Refinement**:
-    * *Zero Border Line on Full-Width*: Eliminated the top horizontal border line in full-width themes to achieve a perfectly borderless, pure liquid glass edge (specular border line is beautifully preserved only in floating Alternate Dock layouts).
-    * *Date & Time Restoration*: Fully removed override styles for `TimeInnerTextBlock` and `DateInnerTextBlock`, restoring the native dual-line (time on top, date on bottom) align layout for Windows 11 system tray.
-    * *ASCII Code Cleaning*: Stripped risky multi-byte character separators (like `═`) in file comments to prevent compiler token collapse (`missing terminating '"' character` syntax errors) under local system non-UTF-8 locales (e.g. GBK/ANSI).
+* **v3.0.0 Updates**: Swapped out all non-ASCII character markers to prevent locale-specific compiler token collapse (`missing terminating '"' character` errors) and aligned the metadata fully to version `3.0.0`.
 
-### 2. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`)
-Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts, including expanded folders and search dialogs. Features **Apple Liquid Glass** preset with clear liquid body, diagonal glass light sheen, adapted folder plates, and expanded panels with sub-pixel alignment.
+### 2. 🔔 Notification Center Acrylic Styler (`local@zen-notificationcenter-acrylic`) [v3.0.0 NEW]
+A premium notification and action center acrylic glass styler co-created by **Lanbo** and **m417z**:
+* Brings high-fidelity real-time acrylic and frosted glass effects to the Windows 11 Notification Center, calendar panel, and Quick Settings/System Tray panels.
+* Perfectly synchronized with your desktop theme presets, retaining flawless WinUI shadows and smooth animations.
 
-### 3. 🖱️ Double-Click to Toggle Icons (`local@zen-desktop-toggle-icons`)
+### 3. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`) [v3.0.0]
+Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts, including expanded folders and search dialogs. Features **Apple Liquid Glass** preset with a clear liquid body, diagonal glass light sheen, adapted folder plates, and expanded panels with sub-pixel alignment.
+
+### 4. 🖱️ Double-Click to Toggle Icons (`local@zen-desktop-toggle-icons`) [v3.0.0 Reconstructed]
 A process-native desktop subclassing module. **Double-click empty desktop space to instantly hide/show icons.**
-* **System-Wide Auto-Hide (v3.1.0 Update)**: Automatically hides desktop icons after a configurable period of system-wide inactivity (tracks all keyboard/mouse input, not just desktop interactions).
-* **Smart Auto-Restore**: Icons auto-restore instantly on any user input. Intentionally double-clicked hidden icons are respected and will not auto-restore.
-* Uses native Win32 hit-testing: double-clicking files or folders triggers their default actions normally.
-* Intercepts messages directly inside `explorer.exe` shell views. Zero lag, zero background EXEs.
-* **Note**: Disabled by default in `deploy.bat` to prevent known Explorer flashing bugs on Windows 11 Build 26100 (24H2). You can manually enable it inside the Windhawk UI.
+* **Asynchronous Message Pipeline**: Implements `PostMessageW` instead of synchronous notifications to eliminate Win32 message queue blocking and prevent Windows Explorer (`explorer.exe`) hangs.
+* **Full-Screen Window Guard**: Automatically suspends double-click capture and auto-hide tracking when running full-screen games, video players, or active presentations, ensuring zero gameplay or media interference.
+* **Physical Coordinate Guard (Zero-Latency)**: Instantly records and filters physical mouse coordinates during state transitions. This blocks synthetic `WM_MOUSEMOVE` messages triggered natively by `SysListView32` when toggling visibility, eliminating screen flicker with absolute zero latency.
+* **Dynamic CS_DBLCLKS Support**: Automatically queries target window classes, ensuring zero interference with native double-click behaviors of standard system elements and third-party apps.
+* **Robust Lifecycle Verification**: Incorporates double-buffered window subclass state checking on module destruction, preventing detached dangling hooks and ensuring Explorer stability.
+* **Smart Auto-Restore & Auto-Hide**: Icons auto-restore instantly on keyboard/mouse input. Active user double-click toggles are respected and will not be overridden by auto-restore loops.
 
 ---
 
@@ -63,12 +63,12 @@ Download and install [Windhawk](https://windhawk.net) on your Windows 11 PC.
 ### Step 2: One-Key Local Registry & Mod Deployment
 1. Download this repository and extract it.
 2. Right-click **`deploy.bat`** and select **Run as Administrator** (以管理员身份运行).
-3. The script will automatically stop the Windhawk service, register the 3 premium local mods, enable local compilation, and restart Windhawk safely.
+3. The script will automatically stop the Windhawk service, register the 4 premium local mods, enable local compilation, reset compiler caching keys, and restart Windhawk safely.
 
 ### Step 3: Fast Native Compilation
-1. Open the **Windhawk** user interface. You will see 3 newly registered local mods in your home dashboard.
+1. Open the **Windhawk** user interface. You will see 4 newly registered local mods in your home dashboard.
 2. Click into **ZenDesktop: Taskbar Acrylic Styler** and click **Save / Compile** (保存并编译). The engine will compile the native C++ code in ~10 seconds.
-3. Repeat the compilation step for **ZenDesktop: Start Menu Acrylic Styler**.
+3. Repeat the compilation step for the other active mods (**Start Menu Acrylic Styler**, **Notification Center Acrylic Styler**).
 4. In the settings dropdown under **Theme**, choose your favorite transparency preset!
 
 ---
@@ -76,12 +76,13 @@ Download and install [Windhawk](https://windhawk.net) on your Windows 11 PC.
 ## 📁 Repository Structure
 ```
 ZenDesktop/
-├── local@zen-taskbar-acrylic.wh.cpp        # C++ Source Code (Taskbar)
-├── local@zen-startmenu-acrylic.wh.cpp      # C++ Source Code (Start Menu)
-├── local@zen-desktop-toggle-icons.wh.cpp    # C++ Source Code (Icon Toggle)
-├── deploy.bat                              # One-Key Admin Deployment Script
-├── Readme.txt                              # Compact Chinese User Guide
-└── README.md                               # GitHub Homepage
+├── local@zen-taskbar-acrylic.wh.cpp          # C++ Source Code (Taskbar Acrylic Styler)
+├── local@zen-notificationcenter-acrylic.wh.cpp # C++ Source Code (Notification Center Acrylic Styler)
+├── local@zen-startmenu-acrylic.wh.cpp        # C++ Source Code (Start Menu Acrylic Styler)
+├── local@zen-desktop-toggle-icons.wh.cpp      # C++ Source Code (Double-Click Icon Toggle)
+├── deploy.bat                                # One-Key Admin Deployment Script
+├── Readme.txt                                # Compact Chinese User Guide
+└── README.md                                 # GitHub Homepage
 ```
 
 ---
@@ -92,21 +93,20 @@ ZenDesktop/
 * **纯本地化编译**：脱离官方云服务器连接限制，即插即用，完美解决国内连不上网的困境。
 * **彻底告别乱码**：全面采用标准纯英及 ASCII 标签，完全杜绝 Windows 编码带来的乱码 Bug。
 * **极致性能**：利用进程级注入与 Hook 技术，不占用任何后台常驻进程，0% CPU 开销，近乎 0MB 内存占用。
-* **Apple Liquid Glass (苹果流体玻璃) 主题**：v2.7.0 重磅引入超写实拟真玻璃美学！完美的圆角对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）搭配五彩斑斓的虹彩边缘与 Fresnel spec 高光，超透且清晰。
-  * **v2.7.0 精致化视觉重构与修复（2026/05/25）**：
-    * **极致去横线**：彻底消除全宽屏幕任务栏顶部的突兀渐变边框线，只在悬浮 Dock 卡片模式下保留高亮亮边，达成纯净无痕贴底的完美通透感。
-    * **恢复原生双行日期**：清空所有对托盘时间与日期的样式劫持，完美还原 Win11 经典的上下双行（时间在上、日期在下）居右排版。
-    * **消灭编译报错**：大扫除代码注释里所有导致 GBK 编码下编译失败的非 ASCII 字符（如 `═` 等），彻底铲除 `missing terminating '"'` 错误，实现 100% 顺畅本地秒编译。
-* **v3.1.0 桌面自动隐藏功能升级（2026/05/29）**：
-  * **系统级全局无响应检测**：利用 `GetLastInputInfo()` 监听全系统键盘与鼠标事件。在浏览器、任务栏或其他窗口操作时，不再会错误判定为“闲置”而导致桌面图标突然消失。
-  * **智能自动恢复**：因闲置而自动隐藏的桌面图标，一旦您移动鼠标或敲击键盘（即使不在桌面），图标会立刻自动浮现。
-  * **用户意图保护**：若您通过“双击空白处”主动隐藏了图标，系统将尊重您的选择，绝不会在后续操作中自作主张把它弹出来。
-* **100% 稳定性保障**：默认禁用易引发 Windows 11 24H2 / Build 26100 系统黑屏/闪屏的双击隐藏图标插件，稳定性达工业级，免去后顾之忧。
+* **Apple Liquid Glass (苹果流体玻璃) 主题**：引入超写实拟真玻璃美学！完美的圆角对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）搭配五彩斑斓的虹彩边缘与 Fresnel spec 高光，超透且清晰。
+* **v3.0.0 精构化通知中心 (2026/05/29)**：
+  * **深度共创**：携手 Windhawk 官方作者 m417z 深度共创通知中心亚克力插件，完美覆盖 Win11 通知中心、日历及系统控制中心托盘。
+* **v3.0.0 桌面双击隐藏重构 (2026/05/30)**：
+  * **异步管道（PostMessageW）**：彻底打通异步消息管道，绝不阻塞 Win32 主消息循环，彻底避免因消息堆积引起的桌面假死和资源管理器未响应。
+  - **全屏程序避让守护**：智能侦测当前是否存在全屏运行的游戏或影音程序。全屏状态下自动挂起动作拦截，防止玩游戏时误触隐藏桌面图标。
+  - **物理坐标去闪拦截（物理坐标哨兵）**：利用高精度物理坐标过滤，完美抹除因 `SysListView32` 切换显示状态触发的系统模拟 `WM_MOUSEMOVE` 闪烁，实现零延迟、零画幅撕裂的平滑过渡。
+  - **动态 CS_DBLCLKS 支持**：动态查询系统窗口类型，保护系统自带及第三方应用的双击逻辑不受任何干扰。
+  - **稳健生命周期（双重销毁校验）**：在模块卸载时通过双重安全校验，平滑销毁子类化钩子，100% 避免钩子残留造成的 Explorer 崩溃。
 
 ### 🛠️ 快速开始
 1. 下载并安装 [Windhawk](https://windhawk.net) 引擎。
 2. 鼠标右键点击本仓库中的 **`deploy.bat`**，选择 **以管理员身份运行**。
-3. 打开 Windhawk 软件，进入 **ZenDesktop: Taskbar Acrylic Styler** 和 **ZenDesktop: Start Menu Acrylic Styler** 本地插件页，分别点击右上角的 **保存并编译**。
+3. 打开 Windhawk 软件，进入各本地插件页（Taskbar, Start Menu, Notification Center），点击右上角的 **保存并编译**。
 4. 编译完成后，在设置选项的 **Theme** 下拉菜单中挑选您喜爱的高级透明度与亚克力效果预设！
 
 ---
@@ -116,4 +116,4 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) f
 
 Developed with ❤️ by **Lanbo**.
 
-Special thanks to **m417z** for the original Windhawk Taskbar Styler and Start Menu Styler mods which served as the codebase foundation for these styling modules.
+Special thanks to **m417z** for the original Windhawk Taskbar Styler, Notification Center Styler, and Start Menu Styler mods which served as the codebase foundation for these styling modules.

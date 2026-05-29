@@ -180,7 +180,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Include"          /t REG_SZ    /d "explorer.exe" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Exclude"          /t REG_SZ    /d ""           /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Architecture"     /t REG_SZ    /d "x86-64"     /f >nul 2>&1
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Version"          /t REG_SZ    /d "2.7.0"      /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Version"          /t REG_SZ    /d "3.0.0"      /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "LibraryFileName"  /t REG_SZ    /d ""           /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic\Settings" /v "theme"   /t REG_SZ    /d "TranslucentTaskbar" /f >nul 2>&1
 
@@ -204,7 +204,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Include"         /t REG_SZ    /d "StartMenuExperienceHost.exe|SearchHost.exe|SearchApp.exe"          /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Exclude"         /t REG_SZ    /d ""                                                                  /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Architecture"    /t REG_SZ    /d "x86-64"                                                            /f >nul 2>&1
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version"         /t REG_SZ    /d "2.7.0"                                                             /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version"         /t REG_SZ    /d "3.0.0"                                                             /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "LibraryFileName" /t REG_SZ    /d ""                                                                  /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic\Settings" /v "theme"  /t REG_SZ    /d "TranslucentStartMenu"                                              /f >nul 2>&1
 

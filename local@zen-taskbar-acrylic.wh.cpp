@@ -2,7 +2,7 @@
 // @id              zen-taskbar-acrylic
 // @name            ZenDesktop: Taskbar Acrylic Styler
 // @description     Premium acrylic/frosted glass taskbar themes with custom blur presets. Based on m417z's Taskbar Styler.
-// @version         2.8.0
+// @version         3.0.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
