@@ -87,11 +87,15 @@ fully visible and functional.
 
 #define WM_DEFERRED_INIT (WM_APP + 0x100)
 
+// 修复：mingw-w64 dwmapi.h 的 DWMWA_SYSTEMBACKDROP_TYPE = 38（枚举位置）
+// 正确 Windows SDK 值应为 102，头文件枚举值不可用，自定义常量代替
+#define DWMWA_SYSTEMBACKDROP_TYPE_102 102
+
 // ==================== Windows 版本检测 ====================
 
 // 使用 ntdll!RtlGetNtVersionNumbers 检测构建版本号
 // 不需要任何结构体定义，兼容所有 MinGW 版本
-bool g_canUseDwmBackdrop = false;  // DWMWA_SYSTEMBACKDROP_TYPE 可用 (22H2+)
+bool g_canUseDwmBackdrop = false;  // DWMWA_SYSTEMBACKDROP_TYPE_102 可用 (22H2+)
 
 static void DetectWindowsBuild()
 {
@@ -107,7 +111,7 @@ static void DetectWindowsBuild()
     pRtlGetNtVersionNumbers(&major, &minor, &build);
     build &= 0x0FFFFFFF;  // 高半字节是修订号，掩码去除
 
-    // DWMWA_SYSTEMBACKDROP_TYPE 从 Win11 22H2 (build 22621) 开始可用
+    // DWMWA_SYSTEMBACKDROP_TYPE_102 从 Win11 22H2 (build 22621) 开始可用
     if (build >= 22621)
         g_canUseDwmBackdrop = true;
 }
@@ -217,13 +221,13 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
     if (mode == kModeMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
     {
         DWORD backdropType = DWMSBT_MAINWINDOW;
-        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
+        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                &backdropType, sizeof(backdropType));
     }
     else if (mode == kModeMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
     {
         DWORD backdropType = DWMSBT_TABBEDWINDOW;
-        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
+        pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                &backdropType, sizeof(backdropType));
     }
     else if (mode == kModeClear)
@@ -231,7 +235,7 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
         if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
             DWORD backdropType = DWMSBT_NONE;
-            pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
+            pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                    &backdropType, sizeof(backdropType));
         }
     }
@@ -251,7 +255,7 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
         else if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
             DWORD backdropType = DWMSBT_TABBEDWINDOW;
-            pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
+            pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                    &backdropType, sizeof(backdropType));
         }
     }
