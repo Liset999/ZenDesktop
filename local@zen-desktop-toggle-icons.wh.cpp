@@ -2,7 +2,7 @@
 // @id              zen-desktop-toggle-icons
 // @name            ZenDesktop: Double Click to Hide Icons
 // @description     Native C++ Windhawk mod to hide/show desktop icons by double-clicking. Auto-hides on system-wide inactivity and restores on any user input.
-// @version         3.1.0
+// @version         3.0.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -49,6 +49,9 @@ Have you ever wanted a clean, clutter-free desktop but found it annoying to righ
 
 #define TIMER_AUTOHIDE   1001
 #define WM_REFRESH_TIMER (WM_USER + 5001)
+#define WM_MANUAL_TOGGLE (WM_USER + 5002)
+#define WM_AUTO_HIDE     (WM_USER + 5003)
+#define WM_AUTO_RESTORE  (WM_USER + 5004)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Forward declarations
@@ -109,6 +112,31 @@ static void UpdateAllTimers()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Full-Screen Application Guard
+// ─────────────────────────────────────────────────────────────────────────────
+static bool IsFullscreenWindowActive()
+{
+    HWND hwndForeground = GetForegroundWindow();
+    if (hwndForeground && hwndForeground != GetDesktopWindow()) {
+        WCHAR className[256] = {};
+        if (GetClassNameW(hwndForeground, className, 256)) {
+            // Exclude desktop manager windows
+            if (wcscmp(className, L"Progman") != 0 && wcscmp(className, L"WorkerW") != 0) {
+                RECT rect;
+                if (GetWindowRect(hwndForeground, &rect)) {
+                    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+                    if (rect.left <= 0 && rect.top <= 0 && rect.right >= screenWidth && rect.bottom >= screenHeight) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Icon visibility helpers
 //
 // ManualToggleIcons  — user double-clicked: toggle and clear auto-hide marker.
@@ -132,6 +160,8 @@ static void ManualToggleIcons(HWND hwndShellView)
     }
     // Clear auto-hide marker — this was a deliberate user action
     RemovePropW(hwndShellView, L"ZenAutoHiddenAt");
+    RemovePropW(hwndShellView, L"ZenMouseX");
+    RemovePropW(hwndShellView, L"ZenMouseY");
 }
 
 static void AutoHideIcons(HWND hwndShellView)
@@ -142,8 +172,15 @@ static void AutoHideIcons(HWND hwndShellView)
         DWORD now = GetTickCount();
         // Avoid storing 0 (which means "not set"); extremely unlikely but be safe
         if (now == 0) now = 1;
-        SetPropW(hwndShellView, L"ZenAutoHiddenAt", (HANDLE)(ULONG_PTR)now);
-        Wh_Log(L"[ZenDesktop] AutoHide: icons hidden at tick=%u", now);
+        SetPropW(hwndShellView, L"ZenAutoHiddenAt", UlongToHandle(now));
+        
+        // Store current physical mouse coordinates for zero-latency coordinate guard
+        POINT pt = {};
+        GetCursorPos(&pt);
+        SetPropW(hwndShellView, L"ZenMouseX", UlongToHandle((DWORD)pt.x));
+        SetPropW(hwndShellView, L"ZenMouseY", UlongToHandle((DWORD)pt.y));
+
+        Wh_Log(L"[ZenDesktop] AutoHide: icons hidden at tick=%u, mouse=(%d,%d)", now, pt.x, pt.y);
     }
 }
 
@@ -155,6 +192,8 @@ static void AutoRestoreIcons(HWND hwndShellView)
         Wh_Log(L"[ZenDesktop] AutoRestore: icons restored");
     }
     RemovePropW(hwndShellView, L"ZenAutoHiddenAt");
+    RemovePropW(hwndShellView, L"ZenMouseX");
+    RemovePropW(hwndShellView, L"ZenMouseY");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,13 +230,18 @@ static void UnsubclassWindows()
         KillTimer(hwndShell, TIMER_AUTOHIDE);
         RemovePropW(hwndShell, L"ZenTimerInit");
         RemovePropW(hwndShell, L"ZenAutoHiddenAt");
+        RemovePropW(hwndShell, L"ZenMouseX");
+        RemovePropW(hwndShell, L"ZenMouseY");
         
-        // Ensure SysListView32 is shown when mod is disabled/unloaded
         HWND lv = FindWindowExW(hwndShell, NULL, L"SysListView32", NULL);
         if (lv) {
-            if (!IsWindowVisible(lv)) {
-                ShowWindow(lv, SW_SHOW);
-                Wh_Log(L"[ZenDesktop] Cleanup: restored SysListView32 visibility");
+            DWORD pid = 0;
+            // Verify window validity and process ownership before restoring visibility
+            if (IsWindow(lv) && GetWindowThreadProcessId(lv, &pid) && pid == GetCurrentProcessId()) {
+                if (!IsWindowVisible(lv)) {
+                    ShowWindow(lv, SW_SHOW);
+                    Wh_Log(L"[ZenDesktop] Cleanup: restored SysListView32 visibility");
+                }
             }
             WindhawkUtils::RemoveWindowSubclassFromAnyThread(lv, DesktopListViewSubclassProc);
         }
@@ -216,8 +260,6 @@ static void UnsubclassWindows()
 // ─────────────────────────────────────────────────────────────────────────────
 // CreateWindowExW hook — dynamically subclass new desktop windows
 // ─────────────────────────────────────────────────────────────────────────────
-// Note: If you experience Explorer flashing on Windows 11 Build 26100 (24H2),
-// please disable the mod in the Windhawk UI.
 HWND WINAPI Hook_CreateWindowExW(
     DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName,
     DWORD dwStyle, int X, int Y, int nWidth, int nHeight,
@@ -255,25 +297,30 @@ LRESULT CALLBACK DesktopListViewSubclassProc(
     HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, DWORD_PTR)
 {
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_LBUTTONDOWN) {
-        static DWORD lastClickTime = 0;
-        static POINT lastClickPt   = {};
+        bool hasDblClkStyle = (GetClassLongPtrW(hWnd, GCL_STYLE) & CS_DBLCLKS) != 0;
+        bool isDblClick = false;
 
-        bool isDblClick = (uMsg == WM_LBUTTONDBLCLK);
-
-        // Fallback manual double-click detection for windows without CS_DBLCLKS.
-        if (uMsg == WM_LBUTTONDOWN) {
-            DWORD now          = GetTickCount();
-            DWORD dblClickTime = GetDoubleClickTime();
-            POINT pt = { (short)GET_X_LPARAM(lParam), (short)GET_Y_LPARAM(lParam) };
-
-            if (now - lastClickTime <= dblClickTime &&
-                abs(pt.x - lastClickPt.x) <= GetSystemMetrics(SM_CXDOUBLECLK) / 2 &&
-                abs(pt.y - lastClickPt.y) <= GetSystemMetrics(SM_CYDOUBLECLK) / 2)
-            {
+        if (hasDblClkStyle) {
+            isDblClick = (uMsg == WM_LBUTTONDBLCLK);
+        } else {
+            if (uMsg == WM_LBUTTONDBLCLK) {
                 isDblClick = true;
-            } else {
-                lastClickTime = now;
-                lastClickPt   = pt;
+            } else if (uMsg == WM_LBUTTONDOWN) {
+                static DWORD lastClickTime = 0;
+                static POINT lastClickPt   = {};
+                DWORD now          = GetTickCount();
+                DWORD dblClickTime = GetDoubleClickTime();
+                POINT pt = { (short)GET_X_LPARAM(lParam), (short)GET_Y_LPARAM(lParam) };
+
+                if (now - lastClickTime <= dblClickTime &&
+                    abs(pt.x - lastClickPt.x) <= GetSystemMetrics(SM_CXDOUBLECLK) / 2 &&
+                    abs(pt.y - lastClickPt.y) <= GetSystemMetrics(SM_CYDOUBLECLK) / 2)
+                {
+                    isDblClick = true;
+                } else {
+                    lastClickTime = now;
+                    lastClickPt   = pt;
+                }
             }
         }
 
@@ -284,10 +331,11 @@ LRESULT CALLBACK DesktopListViewSubclassProc(
             SendMessageW(hWnd, LVM_HITTEST, 0, (LPARAM)&ht);
 
             if (ht.iItem == -1) {
-                // Empty space — manual toggle (not auto-hide).
+                // Empty space — post manual toggle command asynchronously
                 HWND hwndParent = GetParent(hWnd);
-                if (hwndParent)
-                    ManualToggleIcons(hwndParent);
+                if (hwndParent) {
+                    PostMessageW(hwndParent, WM_MANUAL_TOGGLE, 0, 0);
+                }
                 return 0; // suppress default double-click action
             }
         }
@@ -309,7 +357,6 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
     HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, DWORD_PTR)
 {
     // ── One-time timer bootstrap ─────────────────────────────────────────────
-    // On the very first message after subclassing, set up the polling timer.
     bool timerInitialized = GetPropW(hWnd, L"ZenTimerInit") != NULL;
     if (!timerInitialized && g_settings.enableAutoHide) {
         if (SetTimer(hWnd, TIMER_AUTOHIDE, 500, NULL)) {
@@ -333,6 +380,20 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
         return 0;
     }
 
+    // ── Async Operations execution ───────────────────────────────────────────
+    if (uMsg == WM_MANUAL_TOGGLE) {
+        ManualToggleIcons(hWnd);
+        return 0;
+    }
+    if (uMsg == WM_AUTO_HIDE) {
+        AutoHideIcons(hWnd);
+        return 0;
+    }
+    if (uMsg == WM_AUTO_RESTORE) {
+        AutoRestoreIcons(hWnd);
+        return 0;
+    }
+
     // ── Auto-hide / auto-restore timer tick (every 500 ms) ───────────────────
     if (uMsg == WM_TIMER && wParam == TIMER_AUTOHIDE) {
         if (!g_settings.enableAutoHide) return 0;
@@ -346,27 +407,25 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
         if (!GetLastInputInfo(&lii)) return 0;
         DWORD now = GetTickCount();
 
-        DWORD autoHiddenAt = (DWORD)(ULONG_PTR)GetPropW(hWnd, L"ZenAutoHiddenAt");
+        DWORD autoHiddenAt = HandleToUlong(GetPropW(hWnd, L"ZenAutoHiddenAt"));
 
         if (isVis) {
-            // ── Icons visible → check if system has been idle long enough ────
+            // Check full screen guard
+            if (IsFullscreenWindowActive()) {
+                return 0; // Skip auto-hide if a full-screen window is active (video/game/PPT)
+            }
             DWORD idleMs = now - lii.dwTime;
             if (idleMs >= (DWORD)g_settings.autoHideDelay * 1000) {
-                Wh_Log(L"[ZenDesktop] Timer: idle %ums >= %us threshold → AutoHide",
+                Wh_Log(L"[ZenDesktop] Timer: idle %ums >= %us threshold -> AutoHide",
                        idleMs, g_settings.autoHideDelay);
-                AutoHideIcons(hWnd);
+                PostMessageW(hWnd, WM_AUTO_HIDE, 0, 0);
             }
         }
         else if (autoHiddenAt != 0 && g_settings.showIconsOnAnyInput) {
-            // ── Icons auto-hidden → check if user provided new input ─────────
-            // lii.dwTime = tick of last real user input
-            // autoHiddenAt = tick when we auto-hid
-            // Require: last input happened AFTER we hid, with ≥500ms gap to
-            // avoid restoring from lingering input timestamps.
-            if (lii.dwTime > autoHiddenAt && (lii.dwTime - autoHiddenAt) > 500) {
-                Wh_Log(L"[ZenDesktop] Timer: new input detected (lastInput=%u, hidAt=%u) → AutoRestore",
-                       lii.dwTime, autoHiddenAt);
-                AutoRestoreIcons(hWnd);
+            // Check system-wide physical input
+            if (lii.dwTime > autoHiddenAt) {
+                Wh_Log(L"[ZenDesktop] Timer: new system-wide input detected -> AutoRestore");
+                PostMessageW(hWnd, WM_AUTO_RESTORE, 0, 0);
             }
         }
 
@@ -374,17 +433,24 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
     }
 
     // ── Immediate mouse/click restore (only when auto-hidden + restore-on-input enabled) ──
-    // Mouse clicks and moves directly on the desktop are immediate indications of activity.
-    // To prevent the synthetic WM_MOUSEMOVE generated during ShowWindow(SW_HIDE) from 
-    // immediately triggering a restore, we enforce a 100ms time guard after auto-hide.
+    // Zero-latency coordinate-based physical mouse movement detection
     {
-        DWORD autoHiddenAt = (DWORD)(ULONG_PTR)GetPropW(hWnd, L"ZenAutoHiddenAt");
+        DWORD autoHiddenAt = HandleToUlong(GetPropW(hWnd, L"ZenAutoHiddenAt"));
         if (autoHiddenAt != 0 && g_settings.showIconsOnAnyInput) {
-            if (uMsg == WM_MOUSEMOVE || uMsg == WM_LBUTTONDOWN || uMsg == WM_RBUTTONDOWN) {
-                DWORD now = GetTickCount();
-                if (now - autoHiddenAt > 100) {
-                    Wh_Log(L"[ZenDesktop] Immediate mouse/click restore on DefView (uMsg=%u)", uMsg);
-                    AutoRestoreIcons(hWnd);
+            if (uMsg == WM_LBUTTONDOWN || uMsg == WM_RBUTTONDOWN) {
+                Wh_Log(L"[ZenDesktop] Immediate click restore on DefView (uMsg=%u)", uMsg);
+                PostMessageW(hWnd, WM_AUTO_RESTORE, 0, 0);
+            }
+            else if (uMsg == WM_MOUSEMOVE) {
+                POINT ptCurrent = {};
+                GetCursorPos(&ptCurrent);
+                DWORD savedX = HandleToUlong(GetPropW(hWnd, L"ZenMouseX"));
+                DWORD savedY = HandleToUlong(GetPropW(hWnd, L"ZenMouseY"));
+
+                if (ptCurrent.x != (int)savedX || ptCurrent.y != (int)savedY) {
+                    Wh_Log(L"[ZenDesktop] Physical mouse move detected: (%d,%d) vs (%d,%d) -> AutoRestore",
+                           ptCurrent.x, ptCurrent.y, (int)savedX, (int)savedY);
+                    PostMessageW(hWnd, WM_AUTO_RESTORE, 0, 0);
                 }
             }
         }
@@ -392,29 +458,35 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
 
     // ── Double-click restore (works for both auto-hidden AND manually hidden) ──
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_LBUTTONDOWN) {
-        static DWORD lastClickTime = 0;
-        static POINT lastClickPt   = {};
+        bool hasDblClkStyle = (GetClassLongPtrW(hWnd, GCL_STYLE) & CS_DBLCLKS) != 0;
+        bool isDblClick = false;
 
-        bool isDblClick = (uMsg == WM_LBUTTONDBLCLK);
-
-        if (uMsg == WM_LBUTTONDOWN) {
-            DWORD now          = GetTickCount();
-            DWORD dblClickTime = GetDoubleClickTime();
-            POINT pt = { (short)GET_X_LPARAM(lParam), (short)GET_Y_LPARAM(lParam) };
-
-            if (now - lastClickTime <= dblClickTime &&
-                abs(pt.x - lastClickPt.x) <= GetSystemMetrics(SM_CXDOUBLECLK) / 2 &&
-                abs(pt.y - lastClickPt.y) <= GetSystemMetrics(SM_CYDOUBLECLK) / 2)
-            {
+        if (hasDblClkStyle) {
+            isDblClick = (uMsg == WM_LBUTTONDBLCLK);
+        } else {
+            if (uMsg == WM_LBUTTONDBLCLK) {
                 isDblClick = true;
-            } else {
-                lastClickTime = now;
-                lastClickPt   = pt;
+            } else if (uMsg == WM_LBUTTONDOWN) {
+                static DWORD lastClickTime = 0;
+                static POINT lastClickPt   = {};
+                DWORD now          = GetTickCount();
+                DWORD dblClickTime = GetDoubleClickTime();
+                POINT pt = { (short)GET_X_LPARAM(lParam), (short)GET_Y_LPARAM(lParam) };
+
+                if (now - lastClickTime <= dblClickTime &&
+                    abs(pt.x - lastClickPt.x) <= GetSystemMetrics(SM_CXDOUBLECLK) / 2 &&
+                    abs(pt.y - lastClickPt.y) <= GetSystemMetrics(SM_CYDOUBLECLK) / 2)
+                {
+                    isDblClick = true;
+                } else {
+                    lastClickTime = now;
+                    lastClickPt   = pt;
+                }
             }
         }
 
         if (isDblClick) {
-            ManualToggleIcons(hWnd);
+            PostMessageW(hWnd, WM_MANUAL_TOGGLE, 0, 0);
             return 0;
         }
     }
@@ -427,7 +499,7 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
 // ─────────────────────────────────────────────────────────────────────────────
 bool Wh_ModInit()
 {
-    Wh_Log(L"[ZenDesktop] === Wh_ModInit v3.1.0 ===");
+    Wh_Log(L"[ZenDesktop] === Wh_ModInit v3.0.0 ===");
     LoadSettings();
 
     if (!Wh_SetFunctionHook(

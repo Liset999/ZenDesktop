@@ -1,5 +1,5 @@
 @echo off
-title ZenDesktop One-Key Deploy v3.1.0
+title ZenDesktop One-Key Deploy v3.0.0
 
 :: ============================================================
 ::  Auto-elevate to Administrator
@@ -15,7 +15,7 @@ color 0B
 
 echo.
 echo  ============================================================
-echo    ZenDesktop Premium Theme - One-Key Deploy v3.1.0
+echo    ZenDesktop Premium Theme - One-Key Deploy v3.0.0
 echo  ============================================================
 echo    4 independent local mods - no conflict with originals
 echo  ============================================================
@@ -219,7 +219,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Exclude"         /t REG_SZ    /d ""           /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Architecture"    /t REG_SZ    /d ""           /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "LibraryFileName" /t REG_SZ    /d ""           /f >nul 2>&1
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version"         /t REG_SZ    /d "3.1.0"      /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version"         /t REG_SZ    /d "3.0.0"      /f >nul 2>&1
 
     echo       [OK] Registry entries created for all 4 mods
 )
