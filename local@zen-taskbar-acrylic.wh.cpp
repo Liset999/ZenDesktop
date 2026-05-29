@@ -435,106 +435,106 @@ from the **TranslucentTB** project.
 // ==WindhawkModSettings==
 /*
 - theme: "TranslucentTaskbar"
-  $name: Theme
+  $name: "🎭 视觉风格 (Visual Style)"
   $description: >-
-    Themes are collections of styles. For details about the themes below, or for
-    information about submitting your own theme, refer to the relevant section
-    in the mod details.
+    选择任务栏的整体视觉风格。搭配下方的颜色和模糊度设置使用。
   $options:
-  - "": None
-  - TranslucentTaskbar: TranslucentTaskbar
-  - TranslucentTaskbar_Clear: "TranslucentTaskbar (Clear - 100% Translucent)"
-  - TranslucentTaskbar_Clear_90: "TranslucentTaskbar (Clear - 90% Transparency)"
-  - TranslucentTaskbar_Clear_80: "TranslucentTaskbar (Clear - 80% Transparency)"
-  - TranslucentTaskbar_Clear_70: "TranslucentTaskbar (Clear - 70% Transparency)"
-  - TranslucentTaskbar_LightFog_High: "TranslucentTaskbar (Light Fog - High Translucent)"
-  - TranslucentTaskbar_LightFog: "TranslucentTaskbar (Light Fog - Standard)"
-  - TranslucentTaskbar_LightFog_Low: "TranslucentTaskbar (Light Fog - Low Translucent)"
-  - TranslucentTaskbar_Acrylic_High: "TranslucentTaskbar (Acrylic - High Translucent)"
-  - TranslucentTaskbar_Acrylic: "TranslucentTaskbar (Acrylic - Standard)"
-  - TranslucentTaskbar_Acrylic_Low: "TranslucentTaskbar (Acrylic - Low Translucent)"
-  - TranslucentTaskbar_Acrylic_90: "TranslucentTaskbar (Acrylic - 90% Opacity)"
-  - TranslucentTaskbar_Acrylic_80: "TranslucentTaskbar (Acrylic - 80% Opacity)"
-  - TranslucentTaskbar_DarkGlass_High: "TranslucentTaskbar (Dark Glass - High Translucent)"
-  - TranslucentTaskbar_DarkGlass: "TranslucentTaskbar (Dark Glass - Standard)"
-  - TranslucentTaskbar_DarkGlass_Low: "TranslucentTaskbar (Dark Glass - Low Translucent)"
-  - TranslucentTaskbar_DarkGlass_90: "TranslucentTaskbar (Dark Glass - 90% Opacity)"
-  - TranslucentTaskbar_DarkGlass_80: "TranslucentTaskbar (Dark Glass - 80% Opacity)"
-  - TranslucentTaskbar_FrostedWhite: "TranslucentTaskbar (Frosted White)"
-  - AppleLiquidGlass: AppleLiquidGlass
-  - AppleLiquidGlass_variant_Alternate: AppleLiquidGlass (Alternate)
-  - AppleLiquidGlassClassic: AppleLiquidGlass (Classic)
-  - AppleLiquidGlassClassic_variant_Alternate: AppleLiquidGlass (Classic Alternate)
-  - DockLike: DockLike
-  - SimplyTransparent: SimplyTransparent
-  - Squircle: Squircle
-  - Matter: Matter
-  - WinXP: WinXP
-  - WinXP_variant_Zune: WinXP (Zune)
-  - Bubbles: Bubbles
-  - RosePine: RosePine
-  - WinVista: WinVista
-  - CleanSlate: CleanSlate
-  - Lucent: Lucent (Accented Bar)
-  - Lucent_variant_Light: Lucent (Light Bar)
-  - SunValley: SunValley
-  - 21996Taskbar: SunValley (Legacy)
-  - BottomDensy: BottomDensy
-  - BottomDensy_variant_NoInd: BottomDensy (NoInd)
-  - TaskbarXII: TaskbarXII
-  - xdark: xdark
-  - Windows7: Windows7
-  - Aeris: Aeris
-  - Plasma: Plasma
-  - WindowGlass: WindowGlass
-  - WindowGlass_variant_Split: WindowGlass (Split)
-  - WindowGlass_variant_FullLength: WindowGlass (Full-Length)
-  - Surface: Surface
-  - Oversimplified&Accentuated: Oversimplified&Accentuated
-  - Luminosity_variant_Dock: Luminosity (Dock)
-  - Luminosity_variant_Classic: Luminosity (Classic)
-  - Luminosity_variant_Compact: Luminosity (Compact)
-  - LayerMicaUI: LayerMicaUI
-  - Fluid: Fluid
-  - TintedGlass: TintedGlass
-  - TaskbarToStatusbar: TaskbarToStatusbar
-  - UltraWideFriendly: UltraWideFriendly
-  - LiquidGlass: LiquidGlass
-  - LiquidGlass_variant_Alternate: LiquidGlass (Alternate)
-  - Borderless: Borderless
-- styleConstants: [""]
-  $name: Style constants
+  - "": "无 (None)"
+  - TranslucentTaskbar: "透明玻璃 (Transparent Glass)"
+  - Matter: "亚克力 (Acrylic)"
+  - WindowGlass: "白毛玻璃 (White Frosted Glass)"
+  - TintedGlass: "黑毛玻璃 (Dark Frosted Glass)"
+  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
+  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
+  - SimplyTransparent: "纯粹透明 (Simply Transparent)"
+  - TaskbarXII: "任务栏 XII (Taskbar XII)"
+  - Windows7: "Windows 7 风格 (Windows 7)"
+  - WinXP: "Windows XP 风格 (Windows XP)"
+- bgColorMode: "Default"
+  $name: "🎨 背景颜色 (Color Preset)"
   $description: >-
-    Some themes support style constants for customization, such as colors. Refer
-    to the theme page for available constants. For technical details, refer to
-    the mod description.
+    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
+  $options:
+    - Default: "主题默认 (Theme Default)"
+    - Accent: "跟随系统强调色 (System Accent)"
+    - GlassWhite: "晶莹透白 (Glass White)"
+    - MistGrey: "迷雾墨灰 (Mist Grey)"
+    - DeepBlack: "深空极黑 (Space Black)"
+    - OceanBlue: "深海湛蓝 (Ocean Blue)"
+    - AuroraCyan: "极光幻青 (Aurora Cyan)"
+    - RosePink: "玫瑰幽粉 (Rose Pink)"
+    - BordeauxRed: "波尔多红 (Bordeaux Red)"
+    - ForestGreen: "森林黛绿 (Forest Green)"
+    - RoyalPurple: "皇家黛紫 (Royal Purple)"
+    - SunsetOrange: "落日熔橙 (Sunset Orange)"
+    - ChampagneGold: "香槟金黄 (Champagne Gold)"
+    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+- blurPreset: 30
+  $name: "🔮 毛玻璃模糊度 (Blur)"
+  $description: >-
+    调节背景的模糊程度，数值越大越模糊。
+  $options:
+    - 0: "不模糊 (Clear)"
+    - 10: "微弱毛玻璃 (Subtle)"
+    - 20: "中度毛玻璃 (Standard)"
+    - 30: "高阶亚克力 (Deep Acrylic)"
+    - 45: "重度磨砂 (Heavy Frosted)"
+    - 60: "终极磨砂 (Max Blur)"
+- opacityPreset: 50
+  $name: "💧 背景填充浓度 (Opacity)"
+  $description: >-
+    调节背景颜色的填充浓度，数值越大颜色越深。
+  $options:
+    - 0: "完全透明 (Ultra Glass)"
+    - 10: "极薄亚克力 (Thin)"
+    - 25: "浅透亚克力 (Light)"
+    - 50: "半透亚克力 (Standard)"
+    - 75: "重色亚克力 (Heavy)"
+    - 90: "厚实亚克力 (Solid)"
+    - 100: "完全不透明 (Opaque)"
+- luminosityPreset: 100
+  $name: "☀️ 亮度通透度 (Luminosity)"
+  $description: >-
+    调节背景的亮度与通透程度。
+  $options:
+    - 0: "暗淡无光 (Dark)"
+    - 25: "弱饱和 (Low)"
+    - 50: "中饱和 (Medium)"
+    - 75: "偏亮 (Bright)"
+    - 100: "标准通透 (Standard)"
+    - 125: "高亮 (High)"
+    - 150: "极致通透 (Ultra Bright)"
+- textColorMode: "default"
+  $name: "🔤 文字颜色 (Text Color)"
+  $description: >-
+    自定义文字颜色，浅色背景下文字不清晰时可切换。
+  $options:
+    - default: "主题默认 (Theme Default)"
+    - white: "强制白色 (Force White)"
+    - dark: "强制深灰 (Force Dark)"
+    - system: "跟随系统 (System-aware)"
+- styleConstants: [""]
+  $name: "⚙️ Style constants (高级)"
+  $description: >-
+    高级用户自定义样式常量，一般用户无需修改。
 - controlStyles:
   - - target: ""
       $name: Target
     - styles: [""]
       $name: Styles
-  $name: Control styles
+  $name: "⚙️ Control styles (高级)"
 - themeResourceVariables: [""]
-  $name: Resource variables
+  $name: "⚙️ Resource variables (高级)"
   $description: >-
-    Use "Key=Value" to override an existing resource with a new value.
-
-    Use "Key@Dark=Value" or "Key@Light=Value" to define theme-aware resources
-    that can be referenced with {ThemeResource Key} in styles.
-
-    The ":=" syntax can be used to set a XAML value. For details, refer to the
-    mod description.
+    高级用户自定义资源变量，一般用户无需修改。
 - xamlDiagnosticsHandling: alert
-  $name: XAML diagnostics consumer handling
+  $name: "⚙️ XAML diagnostics (高级)"
   $description: >-
-    How to handle other programs that try to use XAML diagnostics. There can
-    only be one consumer at a time. Block will prevent other programs from using
-    it, which might break them. Allow will let them use it, which might break
-    this mod.
+    控制与其他XAML诊断程序（如TranslucentTB）的冲突处理方式。
   $options:
-  - alert: Alert (prompt before blocking)
-  - block: Block other consumers
-  - allow: Allow other consumers
+  - alert: "弹窗提示 (Alert)"
+  - block: "自动阻止 (Block)"
+  - allow: "允许共存 (Allow)"
 */
 // ==/WindhawkModSettings==
 
@@ -12050,6 +12050,112 @@ void ProcessAllStylesFromSettings() {
             ? (theme ? theme->styleConstants : std::vector<PCWSTR>{})
             : overrideStyleConstants);
 
+    // Dynamic Brush Customization logic
+    PCWSTR bgColorMode = Wh_GetStringSetting(L"bgColorMode");
+    int blurVal = Wh_GetIntSetting(L"blurPreset");
+    int opVal = Wh_GetIntSetting(L"opacityPreset");
+    int lumVal = Wh_GetIntSetting(L"luminosityPreset");
+
+    std::wstring existingBrush = L"";
+    static const std::wstring kBgVarNames_extract[] = {
+        L"CommonBgBrush", L"Apple_Background", L"ZenBg", L"Background", L"ElementBackground",
+        L"base", L"overlay", L"overlay2", L"BackgroundBrush", L"bgBrush",
+    };
+    for (const auto& varName : kBgVarNames_extract) {
+        for (auto& sc : styleConstants) {
+            if (sc.first == varName) { existingBrush = sc.second; break; }
+        }
+        if (!existingBrush.empty()) break;
+    }
+
+    std::wstring colorStr = L"";
+    const wchar_t* bgMode = bgColorMode ? bgColorMode : L"Default";
+
+    if (wcscmp(bgMode, L"Accent") == 0) { colorStr = L"{ThemeResource SystemAccentColor}";
+    } else if (wcscmp(bgMode, L"GlassWhite") == 0) { colorStr = L"#FFFFFF";
+    } else if (wcscmp(bgMode, L"MistGrey") == 0) { colorStr = L"#2E2E2E";
+    } else if (wcscmp(bgMode, L"DeepBlack") == 0) { colorStr = L"#0A0A0A";
+    } else if (wcscmp(bgMode, L"OceanBlue") == 0) { colorStr = L"#1A365D";
+    } else if (wcscmp(bgMode, L"AuroraCyan") == 0) { colorStr = L"#005C53";
+    } else if (wcscmp(bgMode, L"RosePink") == 0) { colorStr = L"#5B2C30";
+    } else if (wcscmp(bgMode, L"BordeauxRed") == 0) { colorStr = L"#4A0E17";
+    } else if (wcscmp(bgMode, L"ForestGreen") == 0) { colorStr = L"#1A3A2A";
+    } else if (wcscmp(bgMode, L"RoyalPurple") == 0) { colorStr = L"#3B1354";
+    } else if (wcscmp(bgMode, L"SunsetOrange") == 0) { colorStr = L"#8C3D00";
+    } else if (wcscmp(bgMode, L"ChampagneGold") == 0) { colorStr = L"#7A653F";
+    } else if (wcscmp(bgMode, L"MorandiSage") == 0) { colorStr = L"#4E5E50";
+    } else { colorStr = L""; }
+
+    std::wstring customBrush = L"";
+    
+    std::wstring blurStr = std::to_wstring(blurVal >= 0 ? blurVal : 30);
+    
+    wchar_t opBuf[16];
+    swprintf_s(opBuf, L"%.2f", (double)(opVal >= 0 ? opVal : 50) / 100.0);
+    std::wstring opacityStr = opBuf;
+
+    wchar_t lumBuf[16];
+    swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
+    std::wstring lumStr = lumBuf;
+
+    if (wcscmp(bgMode, L"Default") == 0) {
+        if (!existingBrush.empty()) {
+            customBrush = existingBrush;
+            
+            size_t blurPos = customBrush.find(L"BlurAmount=\"");
+            if (blurPos != std::wstring::npos) {
+                size_t start = blurPos + 12;
+                size_t end = customBrush.find(L"\"", start);
+                if (end != std::wstring::npos) customBrush.replace(start, end - start, blurStr);
+            }
+            
+            size_t opPos = customBrush.find(L"TintOpacity=\"");
+            if (opPos != std::wstring::npos) {
+                size_t start = opPos + 13;
+                size_t end = customBrush.find(L"\"", start);
+                if (end != std::wstring::npos) customBrush.replace(start, end - start, opacityStr);
+            }
+            
+            size_t lumPos = customBrush.find(L"TintLuminosityOpacity=\"");
+            if (lumPos != std::wstring::npos) {
+                size_t start = lumPos + 23;
+                size_t end = customBrush.find(L"\"", start);
+                if (end != std::wstring::npos) customBrush.replace(start, end - start, lumStr);
+            } else {
+                size_t insertPos = customBrush.rfind(L"/>");
+                if (insertPos != std::wstring::npos) {
+                    customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
+                } else {
+                    insertPos = customBrush.rfind(L">");
+                    if (insertPos != std::wstring::npos) {
+                        customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
+                    }
+                }
+            }
+        }
+    } else if (!colorStr.empty()) {
+        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L"\" TintColor=\"" + colorStr + L"\" TintOpacity=\"" + opacityStr + L"\" TintLuminosityOpacity=\"" + lumStr + L"\" />";
+    }
+
+    if (!customBrush.empty()) {
+        bool replaced = false;
+        for (const auto& varName : kBgVarNames_extract) {
+            if (replaced) break;
+            for (auto& sc : styleConstants) {
+                if (sc.first == varName) {
+                    sc.second = customBrush;
+                    replaced = true;
+                    break;
+                }
+            }
+        }
+        if (!replaced) {
+            styleConstants.push_back({L"CommonBgBrush", customBrush});
+        }
+    }
+
+    Wh_FreeStringSetting(bgColorMode);
+
     if (theme) {
         for (const auto& themeTargetStyle : theme->targetStyles) {
             try {
@@ -12068,6 +12174,27 @@ void ProcessAllStylesFromSettings() {
             }
         }
     }
+
+    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
+    if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
+        std::wstring newFgBrush;
+        if (wcscmp(textColorMode, L"white") == 0) {
+            newFgBrush = L"White";
+        } else if (wcscmp(textColorMode, L"dark") == 0) {
+            newFgBrush = L"#CC000000";
+        } else if (wcscmp(textColorMode, L"system") == 0) {
+            newFgBrush = L"{ThemeResource SystemControlForegroundBaseHighBrush}";
+        }
+
+        if (!newFgBrush.empty()) {
+            std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
+            AddElementCustomizationRules(L"TextBlock", fgStyles);
+            AddElementCustomizationRules(L"FontIcon", fgStyles);
+            AddElementCustomizationRules(L"PathIcon", fgStyles);
+            AddElementCustomizationRules(L"ContentPresenter", fgStyles);
+        }
+    }
+    Wh_FreeStringSetting(textColorMode);
 
     for (int i = 0;; i++) {
         try {
