@@ -53,9 +53,9 @@ fully visible and functional.
 - transparencyMode: "blur"
   $name: 文件夹背景透明模式
   $options:
-  - "mica": "Mica - 壁纸派生背景 (推荐)"
-  - "micaAlt": "Mica Alt - 更亮的壁纸背景 (22H2+)"
-  - "clear": "Clear - 透明效果"
+  - "mica": "Mica - 壁纸派生背景"
+  - "micaAlt": "Mica Alt - 变体壁纸背景 (22H2+)"
+  - "clear": "Clear - 无背景效果"
   - "blur": "Blur - 丙烯酸模糊效果"
 - textColorMode: "default"
   $name: 文件列表文字颜色覆盖
@@ -242,26 +242,20 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
 
     if (mode == kModeBlur)
     {
-        // Blur: SWCA 丙烯酸模糊 — 在所有 Win11 版本上产生肉眼可见的透明效果
+        // Blur: 真正可见的丙烯酸模糊效果
+        // 保留 Mica 作为基础层，再叠 SWCA 丙烯酸模糊 + 白色着色
         if (pSetWindowCompositionAttribute)
         {
-            // 配合 DWMSBT_NONE 去除 Mica，让 SWCA 单独工作
-            if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
-            {
-                DWORD none = DWMSBT_NONE;
-                pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
-                                       &none, sizeof(none));
-            }
             ACCENT_POLICY accent = {
                 ACCENT_ENABLE_ACRYLICBLURBEHIND,
                 0,
-                0x10FFFFFF,  // 半透明浅色: AA=0x10 (6%不透明度), RGB=白色
+                0x30FFFFFF,  // AA=0x30 (19%白色着色) — 肉眼可见的磨砂玻璃效果
                 0
             };
             WINCOMPATTRDATA wcd = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
             pSetWindowCompositionAttribute(hWnd, &wcd);
         }
-        // Fallback: 使用 TabbedWindow (MicaAlt)
+        // Fallback: MicaAlt 提供变体背景
         else if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
             DWORD backdropType = DWMSBT_TABBEDWINDOW;
@@ -271,29 +265,12 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
     }
     else if (mode == kModeClear)
     {
-        // Clear: SWCA 透明模糊 — 完全透明效果
-        if (pSetWindowCompositionAttribute)
+        // Clear: 完全去除背景，无 DWM 无 SWCA
+        if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
         {
-            if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
-            {
-                DWORD none = DWMSBT_NONE;
-                pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
-                                       &none, sizeof(none));
-            }
-            ACCENT_POLICY accent = {
-                ACCENT_ENABLE_TRANSPARENTBLURBEHIND,
-                0,
-                0x00FFFFFF,  // 完全透明, 保留白色色调
-                0
-            };
-            WINCOMPATTRDATA wcd = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
-            pSetWindowCompositionAttribute(hWnd, &wcd);
-        }
-        else if (g_canUseDwmBackdrop && pDwmSetWindowAttribute)
-        {
-            DWORD backdropType = DWMSBT_NONE;
+            DWORD none = DWMSBT_NONE;
             pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
-                                   &backdropType, sizeof(backdropType));
+                                   &none, sizeof(none));
         }
     }
     else if (mode == kModeMica && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
@@ -301,7 +278,6 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
         DWORD backdropType = DWMSBT_MAINWINDOW;
         pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                &backdropType, sizeof(backdropType));
-        // Mica 模式下，子窗口背景擦除由 EnumCabinetChildProc 中的子类化处理
     }
     else if (mode == kModeMicaAlt && g_canUseDwmBackdrop && pDwmSetWindowAttribute)
     {
@@ -309,6 +285,9 @@ static void ApplyBackdropEffect(HWND hWnd, TransparencyMode mode)
         pDwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE_102,
                                &backdropType, sizeof(backdropType));
     }
+
+    // 强制刷新窗口
+    InvalidateRect(hWnd, NULL, TRUE);
 }
 
 // ==================== 文字颜色工具 ====================
