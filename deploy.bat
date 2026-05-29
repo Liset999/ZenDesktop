@@ -1,5 +1,5 @@
 @echo off
-title ZenDesktop One-Key Deploy v2.7.0
+title ZenDesktop One-Key Deploy v3.1.0
 
 :: Auto-elevate to Admin
 net session >nul 2>&1
@@ -13,7 +13,7 @@ color 0B
 
 echo.
 echo  ============================================================
-echo    ZenDesktop Premium Theme - One-Key Deploy v2.7.0
+echo    ZenDesktop Premium Theme - One-Key Deploy v3.1.0
 echo  ============================================================
 echo    3 independent local mods, no conflict with originals
 echo  ============================================================
@@ -87,7 +87,7 @@ echo.
 
 :: Step 2: Stop Windhawk to safely copy files
 echo [2/7] Stopping Windhawk service...
-net stop Windhawk >nul 2>&1
+net stop Windhawk
 taskkill /f /im windhawk.exe >nul 2>&1
 echo       [OK] Windhawk stopped
 echo.
@@ -115,7 +115,7 @@ copy /y "local@zen-notificationcenter-acrylic.wh.cpp" "%WINDHAWK_MODS%\" >nul 2>
 if %errorLevel% neq 0 ( echo [ERROR] Failed to copy notification center mod! & pause & exit /b )
 copy /y "local@translucent-windows.wh.cpp" "%WINDHAWK_MODS%\" >nul 2>&1
 if %errorLevel% neq 0 ( echo [ERROR] Failed to copy translucent windows mod! & pause & exit /b )
-copy /y "local@zen-desktop-toggle-icons.wh.cpp" "%WINDHAWK_MODS%\" >nul 2>&1
+copy /y "local@zen-desktop-toggle-icons.wh.cpp" "%WINDHAWK_MODS%\"
 if %errorLevel% neq 0 ( echo [ERROR] Failed to copy desktop icons mod! & pause & exit /b )
 :: Clean up removed size icons mod from ModsSource
 del /f /q "%WINDHAWK_MODS%\local@zen-taskbar-size-icons.wh.cpp" >nul 2>&1
@@ -133,7 +133,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg delete "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-size-icons" /f >nul 2>&1
 
     :: 1. Taskbar Acrylic Styler
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Disabled" /t REG_DWORD /d 1 /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Disabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "LoggingEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Include" /t REG_SZ /d "explorer.exe" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic" /v "Exclude" /t REG_SZ /d "" /f >nul 2>&1
@@ -143,7 +143,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic\Settings" /v "theme" /t REG_SZ /d "TranslucentTaskbar" /f >nul 2>&1
 
     :: 2. Start Menu Acrylic Styler
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Disabled" /t REG_DWORD /d 1 /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Disabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "LoggingEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Include" /t REG_SZ /d "StartMenuExperienceHost.exe|SearchHost.exe|SearchApp.exe" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Exclude" /t REG_SZ /d "" /f >nul 2>&1
@@ -153,7 +153,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic\Settings" /v "theme" /t REG_SZ /d "TranslucentStartMenu" /f >nul 2>&1
 
     :: 3. Notification Center Styler
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Disabled" /t REG_DWORD /d 1 /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Disabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "LoggingEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Include" /t REG_SZ /d "ShellExperienceHost.exe|ShellHost.exe" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Exclude" /t REG_SZ /d "" /f >nul 2>&1
@@ -177,12 +177,12 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@translucent-windows\Settings" /v "RenderingMod.SysColors" /t REG_DWORD /d 1 /f >nul 2>&1
 
     :: 5. Desktop Toggle Icons (Double Click to Hide Icons)
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Disabled" /t REG_DWORD /d 1 /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Disabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "LoggingEnabled" /t REG_DWORD /d 0 /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Include" /t REG_SZ /d "explorer.exe" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Exclude" /t REG_SZ /d "" /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Architecture" /t REG_SZ /d "" /f >nul 2>&1
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version" /t REG_SZ /d "2.7.0" /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version" /t REG_SZ /d "3.1.0" /f >nul 2>&1
 
     echo       [OK] Registry entries created
 )
@@ -193,7 +193,7 @@ echo [6/7] Starting Windhawk service...
 if %WINDHAWK_IS_PORTABLE%==1 (
     start "" "%WINDHAWK_DIR%windhawk.exe" >nul 2>&1
 ) else (
-    net start Windhawk >nul 2>&1
+    net start Windhawk
 )
 echo       [OK] Windhawk started
 echo.
