@@ -1,5 +1,5 @@
 @echo off
-title ZenDesktop One-Key Deploy v2.7.0
+title TPDesktop One-Key Deploy v2.8.0
 
 :: Auto-elevate to Admin
 net session >nul 2>&1
@@ -13,9 +13,10 @@ color 0B
 
 echo.
 echo  ============================================================
-echo    ZenDesktop Premium Theme - One-Key Deploy v2.7.0
+echo    TPDesktop Premium Theme - One-Key Deploy v2.8.0
+echo    Based on ZenDesktop by Lanbo
 echo  ============================================================
-echo    3 independent local mods, no conflict with originals
+echo    4 independent local mods, no conflict with originals
 echo  ============================================================
 echo.
 
@@ -118,7 +119,9 @@ copy /y "local@zen-startmenu-acrylic.wh.cpp" "%WINDHAWK_MODS%\" >nul
 if %errorLevel% neq 0 ( echo [ERROR] Failed to copy start menu mod! & pause & exit /b )
 copy /y "local@zen-desktop-toggle-icons.wh.cpp" "%WINDHAWK_MODS%\" >nul
 if %errorLevel% neq 0 ( echo [ERROR] Failed to copy desktop icons mod! & pause & exit /b )
-echo       [OK] 3 mods deployed to %WINDHAWK_MODS%
+copy /y "local@zen-fileexplorer-transparent.wh.cpp" "%WINDHAWK_MODS%\" >nul
+if %errorLevel% neq 0 ( echo [ERROR] Failed to copy file explorer mod! & pause & exit /b )
+echo       [OK] 4 mods deployed to %WINDHAWK_MODS%
 echo.
 
 :: Step 5: Register mods (installed version uses registry, portable auto-detects from ModsSource)
@@ -158,6 +161,13 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Architecture" /t REG_SZ /d "" /f >nul
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-desktop-toggle-icons" /v "Version" /t REG_SZ /d "2.7.0" /f >nul
 
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "Disabled" /t REG_DWORD /d 0 /f >nul
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "LoggingEnabled" /t REG_DWORD /d 0 /f >nul
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "Include" /t REG_SZ /d "explorer.exe" /f >nul
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "Exclude" /t REG_SZ /d "" /f >nul
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "Architecture" /t REG_SZ /d "x86-64" /f >nul
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-transparent" /v "Version" /t REG_SZ /d "2.0.0" /f >nul
+
     reg add "HKLM\SOFTWARE\Windhawk\Settings" /v "AlwaysCompileModsLocally" /t REG_DWORD /d 1 /f >nul
     echo       [OK] Registry entries created
 )
@@ -178,13 +188,14 @@ echo  ============================================================
 echo    DEPLOY COMPLETE!
 echo  ============================================================
 echo.
-echo    Windhawk is compiling 3 mods in background (~60 sec).
+echo    Windhawk is compiling 4 mods in background (~60 sec).
 echo    Open Windhawk to check progress.
 echo.
 echo    Installed mods:
 echo      1. ZenDesktop: Taskbar Acrylic Styler
 echo      2. ZenDesktop: Start Menu Acrylic Styler
 echo      3. ZenDesktop: Double Click to Hide Icons
+echo      4. ZenDesktop: File Explorer Transparent Background
 echo.
 echo  ============================================================
 echo.

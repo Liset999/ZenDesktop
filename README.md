@@ -1,10 +1,10 @@
-# ZenDesktop Premium 🪟✨
+# TPDesktop Premium 🪟✨
 
 [![GitHub License](https://img.shields.io/github/license/Liset999/ZenDesktop?color=blue&style=flat-square)](LICENSE)
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium** is a high-performance, native Win32/C++ desktop styling suite for Windows 11. It brings elite-level desktop aesthetics with **zero background processes, zero UI lag, and 0% CPU overhead**.
+**TPDesktop Premium** is a high-performance, native Win32/C++ desktop styling suite for Windows 11. It brings elite-level desktop aesthetics with **zero background processes, zero UI lag, and 0% CPU overhead**.
 
 Previously powered by TranslucentTB, this repository has been **completely rewritten and upgraded** to utilize a process-native C++ hooking architecture via **Windhawk**, offering unmatched system integration, stability, and premium aesthetics.
 
@@ -36,6 +36,12 @@ A process-native desktop subclassing module. **Double-click empty desktop space 
 * Intercepts messages directly inside `explorer.exe` shell views. Zero lag, zero background EXEs.
 * **Note**: Now disabled by default in `deploy.bat` to guarantee 100% stability and prevent the known Explorer flashing/crash bugs on Windows 11 Build 26100 (24H2). You can still choose to manually compile and enable it inside the Windhawk UI if your build is compatible.
 
+### 4. 🪟 File Explorer Transparent Background (`local@zen-fileexplorer-transparent`)
+A lightweight Win32 subclassing module that makes the File Explorer folder background **fully transparent** - your desktop wallpaper shows through the file list area.
+* **Native Win32 + DWM**: Uses window subclassing and DWM composition attributes. No XAML Diagnostics dependency.
+* **Mica Backdrop**: Retains Windows 11 Mica effect so your wallpaper subtly shows through transparent areas.
+* **Zero Overhead**: Injected directly into `explorer.exe`. 0% CPU, ~0 MB RAM. No background processes.
+
 ---
 
 ## 💡 Why Windhawk C++ Native Hooks over TranslucentTB?
@@ -61,12 +67,12 @@ Download and install [Windhawk](https://windhawk.net) on your Windows 11 PC.
 ### Step 2: One-Key Local Registry & Mod Deployment
 1. Download this repository and extract it.
 2. Right-click **`deploy.bat`** and select **Run as Administrator** (以管理员身份运行).
-3. The script will automatically stop the Windhawk service, register the 3 premium local mods, enable local compilation, and restart Windhawk safely.
+3. The script will automatically stop the Windhawk service, register the 4 premium local mods, enable local compilation, and restart Windhawk safely.
 
 ### Step 3: Fast Native Compilation
-1. Open the **Windhawk** user interface. You will see 3 newly registered local mods in your home dashboard.
+1. Open the **Windhawk** user interface. You will see 4 newly registered local mods in your home dashboard.
 2. Click into **ZenDesktop: Taskbar Acrylic Styler** and click **Save / Compile** (保存并编译). The engine will compile the native C++ code in ~10 seconds.
-3. Repeat the compilation step for **ZenDesktop: Start Menu Acrylic Styler**.
+3. Repeat the compilation step for **ZenDesktop: Start Menu Acrylic Styler** and **ZenDesktop: File Explorer Transparent Background**.
 4. In the settings dropdown under **Theme**, choose your favorite transparency preset!
 
 ---
@@ -74,12 +80,13 @@ Download and install [Windhawk](https://windhawk.net) on your Windows 11 PC.
 ## 📁 Repository Structure
 ```
 ZenDesktop/
-├── local@zen-taskbar-acrylic.wh.cpp        # C++ Source Code (Taskbar)
-├── local@zen-startmenu-acrylic.wh.cpp      # C++ Source Code (Start Menu)
-├── local@zen-desktop-toggle-icons.wh.cpp    # C++ Source Code (Icon Toggle)
-├── deploy.bat                              # One-Key Admin Deployment Script
-├── Readme.txt                              # Compact Chinese User Guide
-└── README.md                               # GitHub Homepage
+├── local@zen-taskbar-acrylic.wh.cpp              # C++ Source Code (Taskbar)
+├── local@zen-startmenu-acrylic.wh.cpp            # C++ Source Code (Start Menu)
+├── local@zen-desktop-toggle-icons.wh.cpp          # C++ Source Code (Icon Toggle)
+├── local@zen-fileexplorer-transparent.wh.cpp      # C++ Source Code (File Explorer)
+├── deploy.bat                                    # One-Key Admin Deployment Script
+├── Readme.txt                                    # Compact Chinese User Guide
+└── README.md                                     # GitHub Homepage
 ```
 
 ---
@@ -95,12 +102,13 @@ ZenDesktop/
     * **极致去横线**：彻底消除全宽屏幕任务栏顶部的突兀渐变边框线，只在悬浮 Dock 卡片模式下保留高亮亮边，达成纯净无痕贴底的完美通透感。
     * **恢复原生双行日期**：清空所有对托盘时间与日期的样式劫持，完美还原 Win11 经典的上下双行（时间在上、日期在下）居右排版。
     * **消灭编译报错**：大扫除代码注释里所有导致 GBK 编码下编译失败的非 ASCII 字符（如 `═` 等），彻底铲除 `missing terminating '"'` 错误，实现 100% 顺畅本地秒编译。
+* **🪟 文件资源管理器全透明背景**（v2.8.0 新增）：让文件列表区域彻底透明化，桌面壁纸透过文件夹背景清晰可见。采用轻量 Win32 子类化 + DWM 组合方案，零 XAML Diagnostics 依赖，极致稳定高效。
 * **100% 稳定性保障**：默认禁用易引发 Windows 11 24H2 / Build 26100 系统黑屏/闪屏的双击隐藏图标插件，稳定性达工业级，免去后顾之忧。
 
 ### 🛠️ 快速开始
 1. 下载并安装 [Windhawk](https://windhawk.net) 引擎。
 2. 鼠标右键点击本仓库中的 **`deploy.bat`**，选择 **以管理员身份运行**。
-3. 打开 Windhawk 软件，进入 **ZenDesktop: Taskbar Acrylic Styler** 和 **ZenDesktop: Start Menu Acrylic Styler** 本地插件页，分别点击右上角的 **保存并编译**。
+3. 打开 Windhawk 软件，进入 **ZenDesktop: Taskbar Acrylic Styler**、**ZenDesktop: Start Menu Acrylic Styler** 和 **ZenDesktop: File Explorer Transparent Background** 本地插件页，分别点击右上角的 **保存并编译**。
 4. 编译完成后，在设置选项的 **Theme** 下拉菜单中挑选您喜爱的高级透明度与亚克力效果预设！
 
 ---
@@ -108,6 +116,6 @@ ZenDesktop/
 ## 📄 License
 This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details.
 
-Developed with ❤️ by **Lanbo**.
+Developed with ❤️ by **TP (TPGoFighting)**, based on ZenDesktop by **Lanbo**.
 
 Special thanks to **m417z** for the original Windhawk Taskbar Styler and Start Menu Styler mods which served as the codebase foundation for these styling modules.
