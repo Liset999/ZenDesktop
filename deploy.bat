@@ -91,11 +91,11 @@ echo.
 ::  Step 2: Stop Windhawk service
 :: ============================================================
 echo [2/7] Stopping Windhawk service...
+taskkill /f /im windhawk.exe >nul 2>&1
 sc query Windhawk 2>&1 | findstr /i "RUNNING" >nul 2>&1
 if %errorLevel%==0 (
     net stop Windhawk >nul 2>&1
 )
-taskkill /f /im windhawk.exe >nul 2>&1
 echo       [OK] Windhawk stopped
 echo.
 
