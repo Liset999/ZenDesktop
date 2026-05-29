@@ -192,7 +192,7 @@ if %WINDHAWK_IS_PORTABLE%==1 (
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Include"         /t REG_SZ    /d "ShellExperienceHost.exe|ShellHost.exe"        /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Exclude"         /t REG_SZ    /d ""                                             /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Architecture"    /t REG_SZ    /d "x86-64"                                       /f >nul 2>&1
-    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Version"         /t REG_SZ    /d "2.8.0"                                        /f >nul 2>&1
+    reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "Version"         /t REG_SZ    /d "3.0.0"                                        /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic" /v "LibraryFileName" /t REG_SZ    /d ""                                             /f >nul 2>&1
     reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic\Settings" /v "theme"  /t REG_SZ    /d "TranslucentShell"                             /f >nul 2>&1
 
@@ -232,7 +232,7 @@ echo [7/7] Starting Windhawk service...
 if %WINDHAWK_IS_PORTABLE%==1 (
     start "" "%WINDHAWK_DIR%windhawk.exe" >nul 2>&1
 ) else (
-    net start Windhawk
+    sc start Windhawk >nul 2>&1
 )
 echo       [OK] Windhawk started
 echo.

@@ -2,9 +2,9 @@
 // @id              zen-notificationcenter-acrylic
 // @name            ZenDesktop: Notification Center Acrylic Styler
 // @description     Premium acrylic/frosted glass notification center and quick settings. Based on m417z Notification Center Styler.
-// @version         2.8.0
-// @author          m417z
-// @github          https://github.com/m417z
+// @version         3.0.0
+// @author          m417z, Lanbo
+// @github          https://github.com/m417z, https://github.com/Liset999
 // @twitter         https://twitter.com/m417z
 // @homepage        https://m417z.com/
 // @include         ShellExperienceHost.exe
