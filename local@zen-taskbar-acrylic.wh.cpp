@@ -6799,6 +6799,28 @@ struct XamlBlurBrushParams {
     std::optional<float> noiseDensity;
     std::optional<winrt::Windows::UI::Color> fallbackColor;
     std::wstring fallbackThemeResourceKey;  // Empty if not from ThemeResource
+
+    bool operator==(const XamlBlurBrushParams& o) const {
+        auto colorEq = [](winrt::Windows::UI::Color a,
+                          winrt::Windows::UI::Color b) {
+            return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
+        };
+        auto optColorEq =
+            [&](const std::optional<winrt::Windows::UI::Color>& a,
+                const std::optional<winrt::Windows::UI::Color>& b) {
+                if (a.has_value() != b.has_value()) return false;
+                return !a.has_value() || colorEq(*a, *b);
+            };
+        return blurAmount == o.blurAmount && colorEq(tint, o.tint) &&
+               tintOpacity == o.tintOpacity &&
+               tintThemeResourceKey == o.tintThemeResourceKey &&
+               tintLuminosityOpacity == o.tintLuminosityOpacity &&
+               tintSaturation == o.tintSaturation &&
+               noiseOpacity == o.noiseOpacity &&
+               noiseDensity == o.noiseDensity &&
+               optColorEq(fallbackColor, o.fallbackColor) &&
+               fallbackThemeResourceKey == o.fallbackThemeResourceKey;
+    }
 };
 
 // Holds the raw rule body for a style whose value depends on `{{...}}`
@@ -6881,6 +6903,7 @@ struct ElementPropertyCustomizationState {
     // Names of style variables this property's value depends on. Populated
     // alongside `dynamicTemplate`; empty for static styles.
     std::vector<std::wstring> variableDependencies;
+    std::optional<XamlBlurBrushParams> lastBlurParams;
 };
 
 struct CapturePropertyCustomizationState {
@@ -8772,7 +8795,8 @@ void SetupImageBrushTracking(Media::ImageBrush const& brush,
 void SetOrClearValue(DependencyObject elementDo,
                      DependencyProperty property,
                      const PropertyOverrideValue& overrideValue,
-                     bool initialApply = false) {
+                     bool initialApply = false,
+                     std::optional<XamlBlurBrushParams>* blurCache = nullptr) {
     winrt::Windows::Foundation::IInspectable value;
     if (auto* inspectable =
             std::get_if<winrt::Windows::Foundation::IInspectable>(
@@ -8780,6 +8804,10 @@ void SetOrClearValue(DependencyObject elementDo,
         value = *inspectable;
     } else if (auto* blurBrushParams =
                    std::get_if<XamlBlurBrushParams>(&overrideValue)) {
+        if (blurCache && blurCache->has_value() &&
+            **blurCache == *blurBrushParams) {
+            return;
+        }
         if (auto uiElement = elementDo.try_as<UIElement>()) {
             value = winrt::make<XamlBlurBrush>(
                 uiElement, blurBrushParams->blurAmount, blurBrushParams->tint,
@@ -8789,6 +8817,9 @@ void SetOrClearValue(DependencyObject elementDo,
                 blurBrushParams->tintSaturation, blurBrushParams->noiseOpacity,
                 blurBrushParams->noiseDensity, blurBrushParams->fallbackColor,
                 winrt::hstring(blurBrushParams->fallbackThemeResourceKey));
+            if (blurCache) {
+                *blurCache = *blurBrushParams;
+            }
         } else {
             Wh_Log(L"Can't get UIElement for blur brush");
             return;
@@ -10463,7 +10494,7 @@ void PropagateStyleVariableChange(StyleVariableState* state,
 
             bool wasModifying = g_elementPropertyModifying;
             g_elementPropertyModifying = true;
-            SetOrClearValue(element, consumer.property, *resolved);
+            SetOrClearValue(element, consumer.property, *resolved, false, &propState.lastBlurParams);
             propState.lastAppliedValue =
                 ReadLocalValueWithWorkaround(element, consumer.property);
             g_elementPropertyModifying = wasModifying;
@@ -10726,7 +10757,8 @@ void ApplyCustomizationsForVisualStateGroup(
                     ReadLocalValueWithWorkaround(element, property);
                 propertyCustomizationState.customValue = *resolved;
                 SetOrClearValue(element, property, *resolved,
-                                /*initialApply=*/true);
+                                /*initialApply=*/true,
+                                &propertyCustomizationState.lastBlurParams);
                 propertyCustomizationState.lastAppliedValue =
                     ReadLocalValueWithWorkaround(element, property);
             }
@@ -10769,7 +10801,9 @@ void ApplyCustomizationsForVisualStateGroup(
 
                     g_elementPropertyModifying = true;
                     SetOrClearValue(element, property,
-                                    *propertyCustomizationState.customValue);
+                                    *propertyCustomizationState.customValue,
+                                    false,
+                                    &propertyCustomizationState.lastBlurParams);
                     propertyCustomizationState.lastAppliedValue =
                         ReadLocalValueWithWorkaround(element, property);
                     g_elementPropertyModifying = false;
@@ -10869,7 +10903,9 @@ void ApplyCustomizationsForVisualStateGroup(
 
                                 propertyCustomizationState.customValue =
                                     *resolved;
-                                SetOrClearValue(element, property, *resolved);
+                                SetOrClearValue(element, property, *resolved,
+                                                false,
+                                                &propertyCustomizationState.lastBlurParams);
                                 propertyCustomizationState.lastAppliedValue =
                                     ReadLocalValueWithWorkaround(element,
                                                                  property);
@@ -10897,6 +10933,7 @@ void ApplyCustomizationsForVisualStateGroup(
                             propertyCustomizationState.lastAppliedValue =
                                 nullptr;
 
+                            propertyCustomizationState.lastBlurParams.reset();
                             propertyCustomizationState.customValue.reset();
                         }
                     }
