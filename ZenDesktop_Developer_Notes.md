@@ -176,6 +176,21 @@
     -   利用 `std::atomic<DWORD>` 作为自增计数器。每次调用时递增并记录当前序列号，随后休眠 300ms。休眠结束后，检查全局计数器是否依然等于当前序列号。如果不等，说明在这 300ms 内又有新的设置更改触发，当前这次中间状态的变更直接 `return` 丢弃。
     -   只有在最后一次停止切换超过 300ms 时，才会真正触发代价昂贵的 `UninitializeSettingsAndTap()` 和后续的完全重载流程。这不仅杜绝了崩溃，也显著减轻了系统的瞬时渲染压力。
 
+### 2.18 Windhawk 编译缓存机制与一键部署脚本重编译失效问题（v3.5.0 经验）
+*   **问题场景**：开发者在一键部署脚本（`deploy.bat`）中升级替换了新的 C++ 源码文件（如 `.wh.cpp`），并成功复制到了 Windhawk 的 `ModsSource` 目录下并重启了 Windhawk 进程。然而，运行部署脚本后，即使对 `.wh.cpp` 进行了修改（如添加了 300ms 防抖机制等重大稳定性修复），系统的热重载和编译流程完全没有被触发，Windhawk 依旧顽固地加载并运行前一个版本的旧代码，导致新补丁无法生效。
+*   **深层根源**：
+    1.  **DLL 编译路径缓存**：Windhawk 拥有独立的模块管理机制，当一个 Mod 在本地完成编译后，其生成的物理 `.dll` 路径会被永久写入系统注册表中：
+        `HKLM\SOFTWARE\Windhawk\Engine\Mods\<mod-id>` 项下的 **`LibraryFileName`** 键（例如 `local@zen-taskbar-acrylic_3.4.0_441282.dll`）。
+    2.  **跳过源文件检查**：当 Windhawk 服务或主程序重启时，它会优先读取注册表中的 `LibraryFileName`。如果该键指向一个真实存在的 `.dll`，Windhawk **会无条件直接加载该 DLL，而根本不会去检查或比对 `ModsSource` 目录下的 `.wh.cpp` 是否已被修改**。
+    3.  **脚本简化导致的缓存残留**：在 v4.0.0 一键部署脚本简化重构期间，由于删除了清空注册表键值的步骤，旧的 `LibraryFileName` 指针在覆盖源码文件后仍残留在注册表中。这使得每次重启 Windhawk 时都直接静默加载了旧版 DLL 缓存，使得本地的源码覆盖部署实质上沦为了“无用功”。
+*   **解决方案**：
+    -   **动态 ID 提取与注册表缓存清零**：
+        1. 在 `deploy.bat` 的一键部署复制循环中，使用 Batch 的环境变量延迟扩展机制，通过截取语法 `set "MOD_NAME=%%~nf"` 与 `set "MOD_ID=!MOD_NAME:.wh=!"` 动态从文件名（如 `local@zen-taskbar-acrylic.wh.cpp`）中提取出标准 Mod ID（如 `local@zen-taskbar-acrylic`）。
+        2. 在源码文件成功复制到 `ModsSource` 目录后，立即执行 `reg add` 指令强制将 `HKLM\SOFTWARE\Windhawk\Engine\Mods\!MOD_ID!` 下的 `LibraryFileName` 键值重置为空字符串 `""`：
+           `reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\!MOD_ID!" /v "LibraryFileName" /t REG_SZ /d "" /f >nul 2>&1`
+        3. 重启 Windhawk 后，引擎检测到注册表中的编译链接为空，将**立刻唤起本地编译器对最新覆盖的 C++ 源文件进行全量热编译**，彻底打通了“源码修改 -> 脚本一键部署 -> 全自动重编译生效”的完美极简开发者闭环！
+
 ---
 *此文档由开发者手动维护，AI 辅助整理，旨在帮助开发者和后续维护者快速理解本项目的技术架构与踩坑细节。*
-*最后更新：v3.5.0（2026-05-30）*
+*最后更新：v3.5.0（2026-05-31）*
+
