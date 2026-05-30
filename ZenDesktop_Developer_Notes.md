@@ -168,8 +168,14 @@
     -   在 `.gitignore` 中彻底将 `*.zip` 以及 `*.exe` 文件列入忽略，确保只追踪精简的 C++ 源码、编译脚本和部署引导。
     -   最终的 release 二进制 ZIP 文件只在本地由脚本生成，并通过 GitHub 网页端 Releases 界面以 Releases 附件形式手动上传发布。
 
+### 2.17 连续切换设置导致的 Explorer 崩溃问题与防抖机制（v3.5.0 经验）
+*   **问题场景**：用户在 Windhawk UI 的下拉菜单中快速、连续地切换背景颜色等设置时，`explorer.exe` 会发生崩溃并被 Windows 自动重启。
+*   **深层根源**：任务栏等 Mod 在 `Wh_ModSettingsChanged()` 热重载机制中，会调用 `UninitializeForCurrentThread()` 卸载旧样式并立刻通过 `InitializeForCurrentThread()` 加载新样式。如果用户在几百毫秒内连续切换，高频的卸载/加载循环会导致 XAML 元素在还没完全恢复原状时又被再次强行卸载重置，导致 WinUI 内部状态机崩溃，引发了宿主进程（`explorer.exe`）的强制重启。
+*   **解决方案**：
+    -   在所有三个核心美化 Mod (`zen-taskbar-acrylic`, `zen-startmenu-acrylic`, `zen-notificationcenter-acrylic`) 的 `Wh_ModSettingsChanged()` 头部引入了**防抖 (Debounce) 机制**。
+    -   利用 `std::atomic<DWORD>` 作为自增计数器。每次调用时递增并记录当前序列号，随后休眠 300ms。休眠结束后，检查全局计数器是否依然等于当前序列号。如果不等，说明在这 300ms 内又有新的设置更改触发，当前这次中间状态的变更直接 `return` 丢弃。
+    -   只有在最后一次停止切换超过 300ms 时，才会真正触发代价昂贵的 `UninitializeSettingsAndTap()` 和后续的完全重载流程。这不仅杜绝了崩溃，也显著减轻了系统的瞬时渲染压力。
+
 ---
 *此文档由开发者手动维护，AI 辅助整理，旨在帮助开发者和后续维护者快速理解本项目的技术架构与踩坑细节。*
-*最后更新：v3.4.0（2026-05-30）*
-
-
+*最后更新：v3.5.0（2026-05-30）*
