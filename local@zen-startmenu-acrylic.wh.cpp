@@ -5593,6 +5593,18 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background@SearchBoxHover:=$Apple_AccentBackground",
         L"Background@NoFocus:=$Apple_ElementBackground",
         L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
+    ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid > Border", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid > Border#BorderElement", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartDocked.SearchBoxToggleButton > Grid > Border", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartDocked.SearchBoxToggleButton > Grid > Border#BorderElement", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
     // -- More pressed transforms --
     ThemeTargetStyles{L"Border@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Image", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
@@ -5864,6 +5876,18 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"Background@SearchBoxHover:=$Apple_AccentBackground",
         L"Background@NoFocus:=$Apple_ElementBackground",
         L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"}},
+    ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid > Border", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartMenu.SearchBoxToggleButton > Grid > Border#BorderElement", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartDocked.SearchBoxToggleButton > Grid > Border", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
+    ThemeTargetStyles{L"StartDocked.SearchBoxToggleButton > Grid > Border#BorderElement", {
+        L"Background=Transparent",
+        L"BorderBrush=Transparent"}},
     // -- More pressed transforms --
     ThemeTargetStyles{L"Border@CommonStates > Grid#DroppedFlickerWorkaroundWrapper > ContentPresenter > Grid > Grid#LogoContainer > Image", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
