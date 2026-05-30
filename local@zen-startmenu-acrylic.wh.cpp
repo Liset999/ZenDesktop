@@ -14635,6 +14635,19 @@ void Wh_ModUninit() {
 void Wh_ModSettingsChanged() {
     Wh_Log(L">");
 
+    // Debounce: coalesce rapid settings changes to avoid process instability.
+    static std::atomic<DWORD> s_settingsChangeSeq{0};
+    DWORD mySeq = ++s_settingsChangeSeq;
+
+    Sleep(300);
+
+    if (s_settingsChangeSeq.load() != mySeq) {
+        Wh_Log(L"Debounced — skipping intermediate settings change (%u)", mySeq);
+        return;
+    }
+
+    Wh_Log(L"Applying settings change (%u)", mySeq);
+
     if (GetDisableNewStartMenuLayout() != g_disableNewStartMenuLayout) {
         // Exit to have the new setting take effect. The process will be
         // relaunched automatically.
