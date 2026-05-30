@@ -2,7 +2,7 @@
 // @id              zen-taskbar-acrylic
 // @name            ZenDesktop: Taskbar Acrylic Styler
 // @description     Premium acrylic/frosted glass taskbar themes with custom blur presets. Based on m417z's Taskbar Styler.
-// @version         3.2.0
+// @version         2.7.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -435,145 +435,106 @@ from the **TranslucentTB** project.
 // ==WindhawkModSettings==
 /*
 - theme: "TranslucentTaskbar"
-  $name: "🎭 视觉风格 (Visual Style)"
+  $name: Theme
   $description: >-
-    选择任务栏的整体视觉风格。搭配下方的颜色和模糊度设置使用。
+    Themes are collections of styles. For details about the themes below, or for
+    information about submitting your own theme, refer to the relevant section
+    in the mod details.
   $options:
-  - "": "无 (None)"
-  - TranslucentTaskbar: "自定义玻璃 (Custom Glass)"
-  - WindowGlass: "圆角分段小组件布局 (Window Glass Layout)"
-  - TintedGlass: "着色玻璃经典布局 (Tinted Glass Layout)"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
-  - SimplyTransparent: "纯粹透明 (Simply Transparent)"
-  - TaskbarXII: "任务栏 XII (Taskbar XII)"
-  - Windows7: "Windows 7 风格 (Windows 7)"
-  - WinXP: "Windows XP 风格 (Windows XP)"
-  - LiquidGlass: "液态琉璃 (LiquidGlass)"
-  - LiquidGlass_variant_Alternate: "液态琉璃 - 备选 (LiquidGlass Alt)"
-  - AppleLiquidGlass_variant_Alternate: "液态玻璃 - 备选 (Liquid Glass Alt)"
-  - AppleLiquidGlassClassic_variant_Alternate: "液态经典 - 备选 (Liquid Classic Alt)"
-  - Borderless: "无边框 (Borderless)"
-  - DockLike: "Dock 风格 (DockLike)"
-  - Squircle: "圆角方块 (Squircle)"
-  - Bubbles: "气泡风格 (Bubbles)"
-  - Fluid: "流体风格 (Fluid)"
-  - Surface: "Surface 风格 (Surface)"
-  - Aeris: "Aeris 风格 (Aeris)"
-  - Plasma: "Plasma 风格 (Plasma)"
-  - WinVista: "Windows Vista 风格 (WinVista)"
-  - WinXP_variant_Zune: "Zune 风格 (WinXP Zune)"
-  - SunValley: "Sun Valley 风格 (SunValley)"
-  - 21996Taskbar: "Sun Valley 经典 (SunValley Legacy)"
-  - CleanSlate: "干净简约 (CleanSlate)"
-  - Lucent: "透明流光 (Lucent)"
-  - Lucent_variant_Light: "透明流光 - 浅色 (Lucent Light)"
-  - RosePine: "玫瑰松 (RosePine)"
-  - xdark: "极暗 (xdark)"
-  - WindowGlass_variant_Split: "窗口玻璃 - 分离 (WindowGlass Split)"
-  - WindowGlass_variant_FullLength: "窗口玻璃 - 全长 (WindowGlass Full)"
-  - Oversimplified&Accentuated: "极简强调 (Oversimplified)"
-  - Luminosity_variant_Dock: "光度 - Dock (Luminosity Dock)"
-  - Luminosity_variant_Classic: "光度 - 经典 (Luminosity Classic)"
-  - Luminosity_variant_Compact: "光度 - 紧凑 (Luminosity Compact)"
-  - LayerMicaUI: "层叠云母 (LayerMicaUI)"
-  - BottomDensy: "底部紧凑 (BottomDensy)"
-  - BottomDensy_variant_NoInd: "底部紧凑 - 无指示 (BottomDensy NoInd)"
-  - TaskbarToStatusbar: "状态栏化 (TaskbarToStatusbar)"
-  - UltraWideFriendly: "超宽屏适配 (UltraWideFriendly)"
-- bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
-  $options:
-    - Default: "主题默认 (Theme Default)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
-- blurPreset: 30
-  $name: "🔮 毛玻璃模糊度 (Blur)"
-  $description: >-
-    调节背景的模糊程度，数值越大越模糊。
-  $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
-- opacityPreset: 50
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节背景颜色的填充浓度，数值越大颜色越深。
-  $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
-- luminosityPreset: 100
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景的亮度与通透程度。
-  $options:
-    - 0: "暗淡无光 (Dark)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
-- textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。
-  $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
+  - "": None
+  - TranslucentTaskbar: TranslucentTaskbar
+  - TranslucentTaskbar_Clear: "TranslucentTaskbar (Clear - 100% Translucent)"
+  - TranslucentTaskbar_Clear_90: "TranslucentTaskbar (Clear - 90% Transparency)"
+  - TranslucentTaskbar_Clear_80: "TranslucentTaskbar (Clear - 80% Transparency)"
+  - TranslucentTaskbar_Clear_70: "TranslucentTaskbar (Clear - 70% Transparency)"
+  - TranslucentTaskbar_LightFog_High: "TranslucentTaskbar (Light Fog - High Translucent)"
+  - TranslucentTaskbar_LightFog: "TranslucentTaskbar (Light Fog - Standard)"
+  - TranslucentTaskbar_LightFog_Low: "TranslucentTaskbar (Light Fog - Low Translucent)"
+  - TranslucentTaskbar_Acrylic_High: "TranslucentTaskbar (Acrylic - High Translucent)"
+  - TranslucentTaskbar_Acrylic: "TranslucentTaskbar (Acrylic - Standard)"
+  - TranslucentTaskbar_Acrylic_Low: "TranslucentTaskbar (Acrylic - Low Translucent)"
+  - TranslucentTaskbar_Acrylic_90: "TranslucentTaskbar (Acrylic - 90% Opacity)"
+  - TranslucentTaskbar_Acrylic_80: "TranslucentTaskbar (Acrylic - 80% Opacity)"
+  - TranslucentTaskbar_DarkGlass_High: "TranslucentTaskbar (Dark Glass - High Translucent)"
+  - TranslucentTaskbar_DarkGlass: "TranslucentTaskbar (Dark Glass - Standard)"
+  - TranslucentTaskbar_DarkGlass_Low: "TranslucentTaskbar (Dark Glass - Low Translucent)"
+  - TranslucentTaskbar_DarkGlass_90: "TranslucentTaskbar (Dark Glass - 90% Opacity)"
+  - TranslucentTaskbar_DarkGlass_80: "TranslucentTaskbar (Dark Glass - 80% Opacity)"
+  - TranslucentTaskbar_FrostedWhite: "TranslucentTaskbar (Frosted White)"
+  - AppleLiquidGlass: AppleLiquidGlass
+  - AppleLiquidGlass_variant_Alternate: AppleLiquidGlass (Alternate)
+  - AppleLiquidGlassClassic: AppleLiquidGlass (Classic)
+  - AppleLiquidGlassClassic_variant_Alternate: AppleLiquidGlass (Classic Alternate)
+  - DockLike: DockLike
+  - SimplyTransparent: SimplyTransparent
+  - Squircle: Squircle
+  - Matter: Matter
+  - WinXP: WinXP
+  - WinXP_variant_Zune: WinXP (Zune)
+  - Bubbles: Bubbles
+  - RosePine: RosePine
+  - WinVista: WinVista
+  - CleanSlate: CleanSlate
+  - Lucent: Lucent (Accented Bar)
+  - Lucent_variant_Light: Lucent (Light Bar)
+  - SunValley: SunValley
+  - 21996Taskbar: SunValley (Legacy)
+  - BottomDensy: BottomDensy
+  - BottomDensy_variant_NoInd: BottomDensy (NoInd)
+  - TaskbarXII: TaskbarXII
+  - xdark: xdark
+  - Windows7: Windows7
+  - Aeris: Aeris
+  - Plasma: Plasma
+  - WindowGlass: WindowGlass
+  - WindowGlass_variant_Split: WindowGlass (Split)
+  - WindowGlass_variant_FullLength: WindowGlass (Full-Length)
+  - Surface: Surface
+  - Oversimplified&Accentuated: Oversimplified&Accentuated
+  - Luminosity_variant_Dock: Luminosity (Dock)
+  - Luminosity_variant_Classic: Luminosity (Classic)
+  - Luminosity_variant_Compact: Luminosity (Compact)
+  - LayerMicaUI: LayerMicaUI
+  - Fluid: Fluid
+  - TintedGlass: TintedGlass
+  - TaskbarToStatusbar: TaskbarToStatusbar
+  - UltraWideFriendly: UltraWideFriendly
+  - LiquidGlass: LiquidGlass
+  - LiquidGlass_variant_Alternate: LiquidGlass (Alternate)
+  - Borderless: Borderless
 - styleConstants: [""]
-  $name: "⚙️ Style constants (高级)"
+  $name: Style constants
   $description: >-
-    高级用户自定义样式常量，一般用户无需修改。
+    Some themes support style constants for customization, such as colors. Refer
+    to the theme page for available constants. For technical details, refer to
+    the mod description.
 - controlStyles:
   - - target: ""
       $name: Target
     - styles: [""]
       $name: Styles
-  $name: "⚙️ Control styles (高级)"
+  $name: Control styles
 - themeResourceVariables: [""]
-  $name: "⚙️ Resource variables (高级)"
+  $name: Resource variables
   $description: >-
-    高级用户自定义资源变量，一般用户无需修改。
+    Use "Key=Value" to override an existing resource with a new value.
+
+    Use "Key@Dark=Value" or "Key@Light=Value" to define theme-aware resources
+    that can be referenced with {ThemeResource Key} in styles.
+
+    The ":=" syntax can be used to set a XAML value. For details, refer to the
+    mod description.
 - xamlDiagnosticsHandling: alert
-  $name: "⚙️ XAML diagnostics (高级)"
+  $name: XAML diagnostics consumer handling
   $description: >-
-    控制与其他XAML诊断程序（如TranslucentTB）的冲突处理方式。
+    How to handle other programs that try to use XAML diagnostics. There can
+    only be one consumer at a time. Block will prevent other programs from using
+    it, which might break them. Allow will let them use it, which might break
+    this mod.
   $options:
-  - alert: "弹窗提示 (Alert)"
-  - block: "自动阻止 (Block)"
-  - allow: "允许共存 (Allow)"
+  - alert: Alert (prompt before blocking)
+  - block: Block other consumers
+  - allow: Allow other consumers
 */
 // ==/WindhawkModSettings==
 
@@ -5573,17 +5534,17 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
         L"HorizontalAlignment=Left"}},
 }, {
-    L"Apple_BorderThickness=1.8",
+    L"Apple_BorderThickness=2.0",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#04FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
     // 3D Refraction Prismatic Convex Mercury Border (v2.8.0 signature)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#E0FF3B30\" Offset=\"0.02\" /><GradientStop Color=\"#C0FF9500\" Offset=\"0.05\" /><GradientStop Color=\"#C034C759\" Offset=\"0.09\" /><GradientStop Color=\"#D0007AFF\" Offset=\"0.14\" /><GradientStop Color=\"#C0AF52DE\" Offset=\"0.2\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#05FFFFFF\" Offset=\"0.8\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.02\" /><GradientStop Color=\"#60FFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#06000000\" Offset=\"0.8\" /><GradientStop Color=\"#20000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#70FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#10000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
@@ -5757,17 +5718,17 @@ const Theme g_themeAppleLiquidGlass_variant_Alternate = {{
     ThemeTargetStyles{L"Grid#AugmentedEntryPointContentGrid", {
         L"HorizontalAlignment=Left"}},
 }, {
-    L"Apple_BorderThickness=1.8",
+    L"Apple_BorderThickness=2.0",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#04FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
     // 3D Refraction Prismatic Convex Mercury Border (v2.8.0 signature)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#E0FF3B30\" Offset=\"0.02\" /><GradientStop Color=\"#C0FF9500\" Offset=\"0.05\" /><GradientStop Color=\"#C034C759\" Offset=\"0.09\" /><GradientStop Color=\"#D0007AFF\" Offset=\"0.14\" /><GradientStop Color=\"#C0AF52DE\" Offset=\"0.2\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#05FFFFFF\" Offset=\"0.8\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.02\" /><GradientStop Color=\"#60FFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#06000000\" Offset=\"0.8\" /><GradientStop Color=\"#20000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#70FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#10000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
@@ -5934,20 +5895,20 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"HorizontalAlignment=Left"}},
 }, {
     // ------------------------------------------------------
-    // Style constants — v2.7.0 style (Classic Refraction)
+    // Style constants 鈥?v2.7.0 style (Classic Refraction)
     // ------------------------------------------------------
-    L"Apple_BorderThickness=1.2",
+    L"Apple_BorderThickness=1.8",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
     // Original hyper-transparent glass (low blur=2, no tint, low opacity)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-    // Taskbar: Convex 3D vertical gradient (top highlight → bottom shadow)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FF3B30\" Offset=\"0.1\" /><GradientStop Color=\"#12FF9500\" Offset=\"0.25\" /><GradientStop Color=\"#1534C759\" Offset=\"0.45\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.65\" /><GradientStop Color=\"#15AF52DE\" Offset=\"0.8\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#03FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    // Taskbar: Convex 3D vertical gradient (top highlight 鈫?bottom shadow)
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#F0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#A0FFFFFF\" Offset=\"0.03\" /><GradientStop Color=\"#50FFFFFF\" Offset=\"0.08\" /><GradientStop Color=\"#18FFFFFF\" Offset=\"0.18\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#05000000\" Offset=\"0.8\" /><GradientStop Color=\"#18000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
@@ -6122,20 +6083,20 @@ const Theme g_themeAppleLiquidGlass_variant_Classic_Alternate = {{
         L"HorizontalAlignment=Left"}},
 }, {
     // ------------------------------------------------------
-    // Style constants — v2.7.0 style (Classic Refraction)
+    // Style constants 鈥?v2.7.0 style (Classic Refraction)
     // ------------------------------------------------------
-    L"Apple_BorderThickness=1.2",
+    L"Apple_BorderThickness=1.8",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_ElementCornerRadius=10",
     // Original hyper-transparent glass (low blur=2, no tint, low opacity)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-    // Taskbar: Convex 3D vertical gradient (top highlight → bottom shadow)
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FF3B30\" Offset=\"0.1\" /><GradientStop Color=\"#12FF9500\" Offset=\"0.25\" /><GradientStop Color=\"#1534C759\" Offset=\"0.45\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.65\" /><GradientStop Color=\"#15AF52DE\" Offset=\"0.8\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#03FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    // Taskbar: Convex 3D vertical gradient (top highlight 鈫?bottom shadow)
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#F0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#A0FFFFFF\" Offset=\"0.03\" /><GradientStop Color=\"#50FFFFFF\" Offset=\"0.08\" /><GradientStop Color=\"#18FFFFFF\" Offset=\"0.18\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#05000000\" Offset=\"0.8\" /><GradientStop Color=\"#18000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
@@ -6799,6 +6760,28 @@ struct XamlBlurBrushParams {
     std::optional<float> noiseDensity;
     std::optional<winrt::Windows::UI::Color> fallbackColor;
     std::wstring fallbackThemeResourceKey;  // Empty if not from ThemeResource
+
+    bool operator==(const XamlBlurBrushParams& o) const {
+        auto colorEq = [](winrt::Windows::UI::Color a,
+                          winrt::Windows::UI::Color b) {
+            return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
+        };
+        auto optColorEq =
+            [&](const std::optional<winrt::Windows::UI::Color>& a,
+                const std::optional<winrt::Windows::UI::Color>& b) {
+                if (a.has_value() != b.has_value()) return false;
+                return !a.has_value() || colorEq(*a, *b);
+            };
+        return blurAmount == o.blurAmount && colorEq(tint, o.tint) &&
+               tintOpacity == o.tintOpacity &&
+               tintThemeResourceKey == o.tintThemeResourceKey &&
+               tintLuminosityOpacity == o.tintLuminosityOpacity &&
+               tintSaturation == o.tintSaturation &&
+               noiseOpacity == o.noiseOpacity &&
+               noiseDensity == o.noiseDensity &&
+               optColorEq(fallbackColor, o.fallbackColor) &&
+               fallbackThemeResourceKey == o.fallbackThemeResourceKey;
+    }
 };
 
 // Holds the raw rule body for a style whose value depends on `{{...}}`
@@ -6881,6 +6864,7 @@ struct ElementPropertyCustomizationState {
     // Names of style variables this property's value depends on. Populated
     // alongside `dynamicTemplate`; empty for static styles.
     std::vector<std::wstring> variableDependencies;
+    std::optional<XamlBlurBrushParams> lastBlurParams;
 };
 
 struct CapturePropertyCustomizationState {
@@ -8772,7 +8756,8 @@ void SetupImageBrushTracking(Media::ImageBrush const& brush,
 void SetOrClearValue(DependencyObject elementDo,
                      DependencyProperty property,
                      const PropertyOverrideValue& overrideValue,
-                     bool initialApply = false) {
+                     bool initialApply = false,
+                     std::optional<XamlBlurBrushParams>* blurCache = nullptr) {
     winrt::Windows::Foundation::IInspectable value;
     if (auto* inspectable =
             std::get_if<winrt::Windows::Foundation::IInspectable>(
@@ -8780,6 +8765,10 @@ void SetOrClearValue(DependencyObject elementDo,
         value = *inspectable;
     } else if (auto* blurBrushParams =
                    std::get_if<XamlBlurBrushParams>(&overrideValue)) {
+        if (blurCache && blurCache->has_value() &&
+            **blurCache == *blurBrushParams) {
+            return;
+        }
         if (auto uiElement = elementDo.try_as<UIElement>()) {
             value = winrt::make<XamlBlurBrush>(
                 uiElement, blurBrushParams->blurAmount, blurBrushParams->tint,
@@ -8789,6 +8778,9 @@ void SetOrClearValue(DependencyObject elementDo,
                 blurBrushParams->tintSaturation, blurBrushParams->noiseOpacity,
                 blurBrushParams->noiseDensity, blurBrushParams->fallbackColor,
                 winrt::hstring(blurBrushParams->fallbackThemeResourceKey));
+            if (blurCache) {
+                *blurCache = *blurBrushParams;
+            }
         } else {
             Wh_Log(L"Can't get UIElement for blur brush");
             return;
@@ -10463,7 +10455,7 @@ void PropagateStyleVariableChange(StyleVariableState* state,
 
             bool wasModifying = g_elementPropertyModifying;
             g_elementPropertyModifying = true;
-            SetOrClearValue(element, consumer.property, *resolved);
+            SetOrClearValue(element, consumer.property, *resolved, false, &propState.lastBlurParams);
             propState.lastAppliedValue =
                 ReadLocalValueWithWorkaround(element, consumer.property);
             g_elementPropertyModifying = wasModifying;
@@ -10726,7 +10718,7 @@ void ApplyCustomizationsForVisualStateGroup(
                     ReadLocalValueWithWorkaround(element, property);
                 propertyCustomizationState.customValue = *resolved;
                 SetOrClearValue(element, property, *resolved,
-                                /*initialApply=*/true);
+                                /*initialApply=*/true, &propertyCustomizationState.lastBlurParams);
                 propertyCustomizationState.lastAppliedValue =
                     ReadLocalValueWithWorkaround(element, property);
             }
@@ -10769,7 +10761,7 @@ void ApplyCustomizationsForVisualStateGroup(
 
                     g_elementPropertyModifying = true;
                     SetOrClearValue(element, property,
-                                    *propertyCustomizationState.customValue);
+                                    *propertyCustomizationState.customValue, false, &propertyCustomizationState.lastBlurParams);
                     propertyCustomizationState.lastAppliedValue =
                         ReadLocalValueWithWorkaround(element, property);
                     g_elementPropertyModifying = false;
@@ -10869,7 +10861,7 @@ void ApplyCustomizationsForVisualStateGroup(
 
                                 propertyCustomizationState.customValue =
                                     *resolved;
-                                SetOrClearValue(element, property, *resolved);
+                                SetOrClearValue(element, property, *resolved, false, &propertyCustomizationState.lastBlurParams);
                                 propertyCustomizationState.lastAppliedValue =
                                     ReadLocalValueWithWorkaround(element,
                                                                  property);
@@ -10897,6 +10889,7 @@ void ApplyCustomizationsForVisualStateGroup(
                             propertyCustomizationState.lastAppliedValue =
                                 nullptr;
 
+                            propertyCustomizationState.lastBlurParams.reset();
                             propertyCustomizationState.customValue.reset();
                         }
                     }
@@ -12041,7 +12034,6 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeAeris;
     } else if (wcscmp(themeName, L"Plasma") == 0) {
         theme = &g_themePlasma;
-
     } else if (wcscmp(themeName, L"WindowGlass") == 0) {
         theme = &g_themeWindowGlass;
     } else if (wcscmp(themeName, L"WindowGlass_variant_Split") == 0) {
@@ -12062,7 +12054,6 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLayerMicaUI;
     } else if (wcscmp(themeName, L"Fluid") == 0) {
         theme = &g_themeFluid;
-
     } else if (wcscmp(themeName, L"TintedGlass") == 0) {
         theme = &g_themeTintedGlass;
     } else if (wcscmp(themeName, L"TaskbarToStatusbar") == 0) {
@@ -12091,131 +12082,6 @@ void ProcessAllStylesFromSettings() {
             ? (theme ? theme->styleConstants : std::vector<PCWSTR>{})
             : overrideStyleConstants);
 
-    // Dynamic Brush Customization logic
-    PCWSTR bgColorMode = Wh_GetStringSetting(L"bgColorMode");
-    int blurVal = Wh_GetIntSetting(L"blurPreset");
-    int opVal = Wh_GetIntSetting(L"opacityPreset");
-    int lumVal = Wh_GetIntSetting(L"luminosityPreset");
-
-    std::wstring existingBrush = L"";
-    static const std::wstring kBgVarNames_extract[] = {
-        L"CommonBgBrush", L"Apple_Background", L"ZenBg", L"Background", L"ElementBackground",
-        L"base", L"overlay", L"overlay2", L"BackgroundBrush", L"bgBrush",
-    };
-    for (const auto& varName : kBgVarNames_extract) {
-        for (auto& sc : styleConstants) {
-            if (sc.first == varName) { existingBrush = sc.second; break; }
-        }
-        if (!existingBrush.empty()) break;
-    }
-
-    // Resolve variable references like $Glass or $Alt
-    std::wstring resolvedBrush = existingBrush;
-    int resolveDepth = 0;
-    while (resolvedBrush.starts_with(L"$") && resolveDepth < 5) {
-        std::wstring refVar = resolvedBrush.substr(1);
-        bool found = false;
-        for (const auto& sc : styleConstants) {
-            if (sc.first == refVar) {
-                resolvedBrush = sc.second;
-                found = true;
-                break;
-            }
-        }
-        if (!found) break;
-        resolveDepth++;
-    }
-
-    std::wstring tintColor = L"#25323232"; // Default fallback color
-    size_t colorPos = resolvedBrush.find(L"TintColor=\"");
-    if (colorPos != std::wstring::npos) {
-        size_t start = colorPos + 11;
-        size_t end = resolvedBrush.find(L"\"", start);
-        if (end != std::wstring::npos) {
-            tintColor = resolvedBrush.substr(start, end - start);
-        }
-    } else {
-        size_t colPos = resolvedBrush.find(L"Color=\"");
-        if (colPos != std::wstring::npos) {
-            size_t start = colPos + 7;
-            size_t end = resolvedBrush.find(L"\"", start);
-            if (end != std::wstring::npos) {
-                tintColor = resolvedBrush.substr(start, end - start);
-            }
-        }
-    }
-
-    std::wstring colorStr = L"";
-    const wchar_t* bgMode = bgColorMode ? bgColorMode : L"Default";
-
-    if (wcscmp(bgMode, L"Accent") == 0) { colorStr = L"{ThemeResource SystemAccentColor}";
-    } else if (wcscmp(bgMode, L"GlassWhite") == 0) { colorStr = L"#FFFFFF";
-    } else if (wcscmp(bgMode, L"MistGrey") == 0) { colorStr = L"#2E2E2E";
-    } else if (wcscmp(bgMode, L"DeepBlack") == 0) { colorStr = L"#0A0A0A";
-    } else if (wcscmp(bgMode, L"OceanBlue") == 0) { colorStr = L"#1A365D";
-    } else if (wcscmp(bgMode, L"AuroraCyan") == 0) { colorStr = L"#005C53";
-    } else if (wcscmp(bgMode, L"RosePink") == 0) { colorStr = L"#5B2C30";
-    } else if (wcscmp(bgMode, L"BordeauxRed") == 0) { colorStr = L"#4A0E17";
-    } else if (wcscmp(bgMode, L"ForestGreen") == 0) { colorStr = L"#1A3A2A";
-    } else if (wcscmp(bgMode, L"RoyalPurple") == 0) { colorStr = L"#3B1354";
-    } else if (wcscmp(bgMode, L"SunsetOrange") == 0) { colorStr = L"#8C3D00";
-    } else if (wcscmp(bgMode, L"ChampagneGold") == 0) { colorStr = L"#7A653F";
-    } else if (wcscmp(bgMode, L"MorandiSage") == 0) { colorStr = L"#4E5E50";
-    } else { colorStr = L""; }
-
-    std::wstring customBrush = L"";
-    
-    std::wstring blurStr = std::to_wstring(blurVal >= 0 ? blurVal : 30);
-    
-    wchar_t opBuf[16];
-    swprintf_s(opBuf, L"%.2f", (double)(opVal >= 0 ? opVal : 50) / 100.0);
-    std::wstring opacityStr = opBuf;
-
-    wchar_t lumBuf[16];
-    swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
-    std::wstring lumStr = lumBuf;
-
-    std::wstring finalColor = colorStr.empty() ? tintColor : colorStr;
-
-    if (blurVal == 0) {
-        if (finalColor.starts_with(L"{ThemeResource")) {
-            customBrush = L"<SolidColorBrush Color=\"" + finalColor + L"\" Opacity=\"" + opacityStr + L"\" />";
-        } else {
-            std::wstring cleanColor = finalColor;
-            if (finalColor.length() == 9 && finalColor[0] == L'#') {
-                cleanColor = L"#" + finalColor.substr(3); // strip alpha from #AARRGGBB to #RRGGBB
-            }
-            customBrush = L"<SolidColorBrush Color=\"" + cleanColor + L"\" Opacity=\"" + opacityStr + L"\" />";
-        }
-    } else {
-        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L"\" TintColor=\"" + finalColor + L"\" TintOpacity=\"" + opacityStr + L"\" TintLuminosityOpacity=\"" + lumStr + L"\" />";
-    }
-
-    if (!customBrush.empty()) {
-        bool replaced = false;
-        for (const auto& varName : kBgVarNames_extract) {
-            if (replaced) break;
-            for (auto& sc : styleConstants) {
-                if (sc.first == varName) {
-                    sc.second = customBrush;
-                    replaced = true;
-                    break;
-                }
-            }
-        }
-        if (!replaced) {
-            styleConstants.push_back({L"CommonBgBrush", customBrush});
-        }
-    }
-
-    if (blurVal == 0) {
-        try {
-            AddElementCustomizationRules(L"WindowsInternal.ComposableShell.Experiences.TextInput.Common.InputSwitcher > ContentControl > ContentPresenter > Grid", { L"Background=Transparent" });
-        } catch (...) {}
-    }
-
-    Wh_FreeStringSetting(bgColorMode);
-
     if (theme) {
         for (const auto& themeTargetStyle : theme->targetStyles) {
             try {
@@ -12234,43 +12100,6 @@ void ProcessAllStylesFromSettings() {
             }
         }
     }
-
-    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
-    if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
-        std::wstring newFgBrush;
-        if (wcscmp(textColorMode, L"white") == 0) {
-            newFgBrush = L"White";
-        } else if (wcscmp(textColorMode, L"dark") == 0) {
-            newFgBrush = L"Black";
-        } else if (wcscmp(textColorMode, L"system") == 0) {
-            newFgBrush = L"{ThemeResource SystemControlForegroundBaseHighBrush}";
-        } else if (wcscmp(textColorMode, L"red") == 0) {
-            newFgBrush = L"#FFFF3333";
-        } else if (wcscmp(textColorMode, L"green") == 0) {
-            newFgBrush = L"#FF33FF33";
-        } else if (wcscmp(textColorMode, L"blue") == 0) {
-            newFgBrush = L"#FF3399FF";
-        } else if (wcscmp(textColorMode, L"yellow") == 0) {
-            newFgBrush = L"#FFFFCC00";
-        } else if (wcscmp(textColorMode, L"orange") == 0) {
-            newFgBrush = L"#FFFF8800";
-        } else if (wcscmp(textColorMode, L"purple") == 0) {
-            newFgBrush = L"#FFCC66FF";
-        } else if (wcscmp(textColorMode, L"pink") == 0) {
-            newFgBrush = L"#FFFF66B2";
-        } else if (wcscmp(textColorMode, L"cyan") == 0) {
-            newFgBrush = L"#FF33FFFF";
-        }
-
-        if (!newFgBrush.empty()) {
-            std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
-            AddElementCustomizationRules(L"TextBlock", fgStyles);
-            AddElementCustomizationRules(L"FontIcon", fgStyles);
-            AddElementCustomizationRules(L"PathIcon", fgStyles);
-            AddElementCustomizationRules(L"ContentPresenter", fgStyles);
-        }
-    }
-    Wh_FreeStringSetting(textColorMode);
 
     for (int i = 0;; i++) {
         try {

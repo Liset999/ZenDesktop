@@ -2,7 +2,7 @@
 // @id              zen-startmenu-acrylic
 // @name            ZenDesktop: Start Menu Acrylic Styler
 // @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
-// @version         3.3.0
+// @version         2.7.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -377,151 +377,110 @@ from the **TranslucentTB** project.
 
 // ==WindhawkModSettings==
 /*
-- theme: "SimplyTransparent"
-  $name: "🎭 视觉风格 (Visual Style)"
+- theme: "TranslucentStartMenu"
+  $name: Theme
   $description: >-
-    选择开始菜单的整体视觉风格。搭配下方的颜色和模糊度设置使用。
+    Themes are collections of styles. For details about the themes below, or for
+    information about submitting your own theme, refer to the relevant section
+    in the mod details.
   $options:
-  - "": "无 (None)"
-  - SimplyTransparent: "自定义玻璃 (Custom Glass)"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
-  - LiquidGlass: "液态玻璃 - 原版 (Liquid Glass Original)"
-  - NoRecommendedSection: "无推荐区 (No Recommended Section)"
-  - SideBySide: "并排布局 (Side By Side)"
-  - SideBySide2: "并排布局 2 (Side By Side 2)"
-  - SideBySideMinimal: "并排极简 (Side By Side Minimal)"
-  - Down Aero: "下沉毛玻璃 (Down Aero)"
-  - Windows10: "Windows 10 经典 (Windows 10)"
-  - Windows10_variant_Minimal: "Windows 10 极简 (Windows 10 Minimal)"
-  - Windows10X: "Windows 10X"
-  - Windows11_Metro10: "Win11 Metro10"
-  - Windows11_Metro10Minimal: "Win11 Metro10 极简 (Metro10 Minimal)"
-  - Fluent2Inspired: "Fluent 2 风格 (Fluent 2 Inspired)"
-  - RosePine: "玫瑰松 (Rosé Pine)"
-  - Everblush: "常青红 (Everblush)"
-  - SunValley: "Sun Valley"
-  - 21996: "泄露版 21996 (Build 21996)"
-  - UniMenu: "统一菜单 (UniMenu)"
-  - LegacyFluent: "经典 Fluent (Legacy Fluent)"
-  - OnlySearch: "仅搜索 (Only Search)"
-  - WindowGlass: "窗口玻璃 (Window Glass)"
-  - Fluid: "流体 (Fluid)"
-  - Oversimplified&Accentuated: "极简强调 (Oversimplified & Accentuated)"
-  - TintedGlass: "着色玻璃 (Tinted Glass)"
-  - LayerMicaUI: "层叠云母 (Layer Mica UI)"
-  - Borderless: "无边框 (Borderless)"
-  - Command Center: "指挥中心 (Command Center)"
-- bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
-  $options:
-    - Default: "主题默认 (Theme Default)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
-- blurPreset: 30
-  $name: "🔮 毛玻璃模糊度 (Blur)"
-  $description: >-
-    调节背景的模糊程度，数值越大越模糊。
-  $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
-- opacityPreset: 50
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节背景颜色的填充浓度，数值越大颜色越深。
-  $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
-- luminosityPreset: 100
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景的亮度与通透程度。
-  $options:
-    - 0: "暗淡无光 (Dark)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+  - "": None
+  - TranslucentStartMenu: TranslucentStartMenu
+  - TranslucentStartMenu_Clear: "TranslucentStartMenu (Clear - 100% Translucent)"
+  - TranslucentStartMenu_Clear_90: "TranslucentStartMenu (Clear - 90% Transparency)"
+  - TranslucentStartMenu_Clear_80: "TranslucentStartMenu (Clear - 80% Transparency)"
+  - TranslucentStartMenu_Clear_70: "TranslucentStartMenu (Clear - 70% Transparency)"
+  - TranslucentStartMenu_LightFog_High: "TranslucentStartMenu (Light Fog - High Translucent)"
+  - TranslucentStartMenu_LightFog: "TranslucentStartMenu (Light Fog - Standard)"
+  - TranslucentStartMenu_LightFog_Low: "TranslucentStartMenu (Light Fog - Low Translucent)"
+  - TranslucentStartMenu_Acrylic_High: "TranslucentStartMenu (Acrylic - High Translucent)"
+  - TranslucentStartMenu_Acrylic: "TranslucentStartMenu (Acrylic - Standard)"
+  - TranslucentStartMenu_Acrylic_Low: "TranslucentStartMenu (Acrylic - Low Translucent)"
+  - TranslucentStartMenu_Acrylic_90: "TranslucentStartMenu (Acrylic - 90% Opacity)"
+  - TranslucentStartMenu_Acrylic_80: "TranslucentStartMenu (Acrylic - 80% Opacity)"
+  - TranslucentStartMenu_DarkGlass_High: "TranslucentStartMenu (Dark Glass - High Translucent)"
+  - TranslucentStartMenu_DarkGlass: "TranslucentStartMenu (Dark Glass - Standard)"
+  - TranslucentStartMenu_DarkGlass_Low: "TranslucentStartMenu (Dark Glass - Low Translucent)"
+  - TranslucentStartMenu_DarkGlass_90: "TranslucentStartMenu (Dark Glass - 90% Opacity)"
+  - TranslucentStartMenu_DarkGlass_80: "TranslucentStartMenu (Dark Glass - 80% Opacity)"
+  - TranslucentStartMenu_FrostedWhite: "TranslucentStartMenu (Frosted White)"
+  - AppleLiquidGlass: Apple Liquid Glass (for the redesigned Start menu)
+  - AppleLiquidGlassClassic: Apple Liquid Glass (Classic Refraction)
+  - NoRecommendedSection: NoRecommendedSection
+  - SideBySide: SideBySide
+  - SideBySide2: SideBySide2
+  - SideBySideMinimal: SideBySideMinimal
+  - Down Aero: Down Aero
+  - Windows10: Windows10
+  - Windows10_variant_Minimal: Windows10 (Minimal)
+  - Windows11_Metro10: Windows11_Metro10
+  - Fluent2Inspired: Fluent2Inspired
+  - RosePine: RosePine
+  - Windows11_Metro10Minimal: Windows11_Metro10Minimal
+  - Everblush: Everblush
+  - SunValley: SunValley
+  - 21996: SunValley (Legacy)
+  - UniMenu: UniMenu
+  - LegacyFluent: LegacyFluent
+  - OnlySearch: OnlySearch
+  - WindowGlass: WindowGlass (for the redesigned Start menu)
+  - Fluid: Fluid (for the redesigned Start menu)
+  - Oversimplified&Accentuated: Oversimplified&Accentuated
+  - LiquidGlass: LiquidGlass (for the redesigned Start menu)
+  - Windows10X: Windows10X
+  - TintedGlass: TintedGlass
+  - LayerMicaUI: LayerMicaUI (for the redesigned Start menu)
+  - Borderless: Borderless
+  - Command Center: Command Center (for the redesigned Start menu)
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
+  $name: Text Color Mode
   $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。
+    Customize the text color for translucent and transparent themes. Use "Force Dark Gray" or "System-aware" if text is unreadable on light backgrounds.
   $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
-- labelVisibility: show
-  $name: "👻 文字显示模式 (Label Visibility)"
-  $description: >-
-    控制开始菜单中应用和文件夹的文字显示方式。
-  $options:
-    - show: "显示文字 (Show Text)"
-    - hide: "隐藏文字 (Hide Text)"
-    - hover: "悬浮显示文字 (Hover to Show)"
+    - default: Default (Theme preset default)
+    - white: Force White text
+    - dark: Force Dark Gray text
+    - system: System-aware (White in Dark theme, Black in Light theme)
 - disableNewStartMenuLayout: ""
-  $name: "📐 开始菜单布局 (Layout)"
+  $name: Start menu layout
   $description: >-
-    控制开始菜单的布局方式。
+    Allows to disable the new Start menu layout which is incompatible with some
+    themes.
   $options:
-  - "": "系统默认 (Windows Default)"
-  - disableNewLayoutKeepPhoneLink: "经典布局 (Classic)"
-  - legacyClassicLayout: "旧版经典 (Legacy Classic)"
-  - forceNewLayout: "强制新布局 (Force New)"
+  - "": Windows default
+  - disableNewLayoutKeepPhoneLink: Classic layout
+  - legacyClassicLayout: Legacy classic layout (removed in 26100.8328)
+  - forceNewLayout: Force new layout (if available)
 - styleConstants: [""]
-  $name: "⚙️ Style constants (高级)"
+  $name: Style constants
   $description: >-
-    高级用户自定义样式常量，一般用户无需修改。
+    Some themes support style constants for customization, such as colors. Refer
+    to the theme page for available constants. For technical details, refer to
+    the mod description.
 - controlStyles:
   - - target: ""
       $name: Target
     - styles: [""]
       $name: Styles
-  $name: "⚙️ Control styles (高级)"
+  $name: Control styles
 - themeResourceVariables: [""]
-  $name: "⚙️ Resource variables (高级)"
+  $name: Resource variables
   $description: >-
-    高级用户自定义资源变量，一般用户无需修改。
+    Use "Key=Value" to override an existing resource with a new value.
+
+    Use "Key@Dark=Value" or "Key@Light=Value" to define theme-aware resources
+    that can be referenced with {ThemeResource Key} in styles.
+
+    The ":=" syntax can be used to set a XAML value. For details, refer to the
+    mod description.
 - webContentStyles:
   - - target: ""
       $name: Target
     - styles: [""]
       $name: Styles
-  $name: "⚙️ Search WebView styles (高级)"
+  $name: Search WebView styles
 - webContentCustomJs: ""
-  $name: "⚙️ Search WebView JS (高级)"
+  $name: Search WebView custom JavaScript code
 */
 // ==/WindhawkModSettings==
 
@@ -5372,9 +5331,9 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
         L"CornerRadius=20",
-        L"BorderThickness=1.8,1.8,0.8,0.8",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
-        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
+        L"BorderThickness=2.2,2.2,1.0,1.0",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#F0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#80FFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#30FFFFFF\" Offset=\"0.18\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#08000000\" Offset=\"0.7\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#0CFFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00000000\" Offset=\"0.85\" /><GradientStop Color=\"#06000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
     // -- Main glass body (hyper-transparent + chromatic dispersion border) --
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$Apple_Background",
@@ -5396,11 +5355,9 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Background:=$Apple_Background",
         L"BorderThickness=0",
         L"CornerRadius=$Apple_InnerCornerRadius"}},
-    // -- Make LayerBorder transparent but keep it visible to fill corner gaps --
+    // -- Kill the gray frosted square that causes corner artifacts --
     ThemeTargetStyles{L"Border#LayerBorder", {
-        L"Background=Transparent",
-        L"BorderThickness=0",
-        L"CornerRadius=0"}},
+        L"Visibility=Collapsed"}},
     // -- Pinned tile backgrounds --
     ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid > Border#BackgroundBorder", {
         L"Background@Normal:=$Apple_ElementTileBG",
@@ -5431,11 +5388,11 @@ const Theme g_themeAppleLiquidGlass = {{
         L"CornerRadius=$Apple_ElementCornerRadius"}},
     // -- Smooth transitions (breathing feel) --
     ThemeTargetStyles{L"Grid#LayoutRoot", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     ThemeTargetStyles{L"Border#BackgroundBorder", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     ThemeTargetStyles{L"Border#BackgroundElement", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     // -- Header button --
     ThemeTargetStyles{L"Button#Header > Border@CommonStates", {
         L"BorderThickness=$Apple_ElementBorderThickness",
@@ -5613,20 +5570,20 @@ const Theme g_themeAppleLiquidGlass = {{
     // ------------------------------------------------------
     // Style constants - v2 refraction upgrade
     // ------------------------------------------------------
-    L"Apple_BorderThickness=1.6",
+    L"Apple_BorderThickness=2.0",
     L"Apple_ElementBorderThickness=0.6,0.6,0.6,1.2",
     L"Apple_CornerRadius=20",
     L"Apple_InnerCornerRadius=18",
     L"Apple_ElementCornerRadius=10",
     // Refraction glass body (moderate blur = "bent light" distortion, NOT frosted)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" TintSaturation=\"2.2\" FallbackColor=\"#08FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.06\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.08\" />",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#04FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
     // Chromatic dispersion border - DOUBLED alpha for visibility
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#DDFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#30FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#28FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#3034C759\" Offset=\"0.48\" /><GradientStop Color=\"#35007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#30AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#FFFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.02\" /><GradientStop Color=\"#60FFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#06000000\" Offset=\"0.8\" /><GradientStop Color=\"#20000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     // Element border - stronger top highlight + bottom shadow
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#70FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#10000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     // Tile backgrounds - slightly more visible for readability
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.05\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.12\" />",
@@ -5643,9 +5600,9 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
         L"CornerRadius=20",
-        L"BorderThickness=1.8,1.8,0.8,0.8",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
-        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
+        L"BorderThickness=2.2,2.2,1.0,1.0",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#F0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#80FFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#30FFFFFF\" Offset=\"0.18\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#08000000\" Offset=\"0.7\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#0CFFFFFF\" Offset=\"0.06\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00000000\" Offset=\"0.85\" /><GradientStop Color=\"#06000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
     // -- Main glass body (hyper-transparent + chromatic dispersion border) --
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$Apple_Background",
@@ -5667,11 +5624,9 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"Background:=$Apple_Background",
         L"BorderThickness=0",
         L"CornerRadius=$Apple_InnerCornerRadius"}},
-    // -- Make LayerBorder transparent but keep it visible to fill corner gaps --
+    // -- Kill the gray frosted square that causes corner artifacts --
     ThemeTargetStyles{L"Border#LayerBorder", {
-        L"Background=Transparent",
-        L"BorderThickness=0",
-        L"CornerRadius=0"}},
+        L"Visibility=Collapsed"}},
     // -- Pinned tile backgrounds --
     ThemeTargetStyles{L"Border#ContentBorder@CommonStates > Grid > Border#BackgroundBorder", {
         L"Background@Normal:=$Apple_ElementTileBG",
@@ -5702,11 +5657,11 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"CornerRadius=$Apple_ElementCornerRadius"}},
     // -- Smooth transitions (breathing feel) --
     ThemeTargetStyles{L"Grid#LayoutRoot", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     ThemeTargetStyles{L"Border#BackgroundBorder", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     ThemeTargetStyles{L"Border#BackgroundElement", {
-        L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.167\" />"}},
+        L"BackgroundTransition:="}},
     // -- Header button --
     ThemeTargetStyles{L"Button#Header > Border@CommonStates", {
         L"BorderThickness=$Apple_ElementBorderThickness",
@@ -5884,20 +5839,20 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     // ------------------------------------------------------
     // Style constants - v2.7.0 style (Classic Refraction)
     // ------------------------------------------------------
-    L"Apple_BorderThickness=1.2",
+    L"Apple_BorderThickness=1.8",
     L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
     L"Apple_CornerRadius=20",
     L"Apple_InnerCornerRadius=18",
     L"Apple_ElementCornerRadius=10",
     // Original hyper-transparent glass (low blur=2, no tint, low opacity)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" FallbackColor=\"#03FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"1\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"1\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.02\" TintLuminosityOpacity=\"0.0\" TintSaturation=\"1.0\" />",
     // Chromatic dispersion border
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.15\" /><GradientStop Color=\"#15FF9500\" Offset=\"0.3\" /><GradientStop Color=\"#1834C759\" Offset=\"0.5\" /><GradientStop Color=\"#1A007AFF\" Offset=\"0.7\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#50000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#F0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#A0FFFFFF\" Offset=\"0.03\" /><GradientStop Color=\"#50FFFFFF\" Offset=\"0.08\" /><GradientStop Color=\"#18FFFFFF\" Offset=\"0.18\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#05000000\" Offset=\"0.8\" /><GradientStop Color=\"#18000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     // Element border
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.3\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>",
     // Tile backgrounds
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
@@ -7909,6 +7864,28 @@ struct XamlBlurBrushParams {
     std::optional<float> noiseDensity;
     std::optional<winrt::Windows::UI::Color> fallbackColor;
     std::wstring fallbackThemeResourceKey;  // Empty if not from ThemeResource
+
+    bool operator==(const XamlBlurBrushParams& o) const {
+        auto colorEq = [](winrt::Windows::UI::Color a,
+                          winrt::Windows::UI::Color b) {
+            return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
+        };
+        auto optColorEq =
+            [&](const std::optional<winrt::Windows::UI::Color>& a,
+                const std::optional<winrt::Windows::UI::Color>& b) {
+                if (a.has_value() != b.has_value()) return false;
+                return !a.has_value() || colorEq(*a, *b);
+            };
+        return blurAmount == o.blurAmount && colorEq(tint, o.tint) &&
+               tintOpacity == o.tintOpacity &&
+               tintThemeResourceKey == o.tintThemeResourceKey &&
+               tintLuminosityOpacity == o.tintLuminosityOpacity &&
+               tintSaturation == o.tintSaturation &&
+               noiseOpacity == o.noiseOpacity &&
+               noiseDensity == o.noiseDensity &&
+               optColorEq(fallbackColor, o.fallbackColor) &&
+               fallbackThemeResourceKey == o.fallbackThemeResourceKey;
+    }
 };
 
 // Holds the raw rule body for a style whose value depends on `{{...}}`
@@ -7990,6 +7967,7 @@ struct ElementPropertyCustomizationState {
     // Names of style variables this property's value depends on. Populated
     // alongside `dynamicTemplate`; empty for static styles.
     std::vector<std::wstring> variableDependencies;
+    std::optional<XamlBlurBrushParams> lastBlurParams;
 };
 
 struct CapturePropertyCustomizationState {
@@ -9872,7 +9850,8 @@ void SetupImageBrushTracking(Media::ImageBrush const& brush,
 void SetOrClearValue(DependencyObject elementDo,
                      DependencyProperty property,
                      const PropertyOverrideValue& overrideValue,
-                     bool initialApply = false) {
+                     bool initialApply = false,
+                     std::optional<XamlBlurBrushParams>* blurCache = nullptr) {
     winrt::Windows::Foundation::IInspectable value;
     if (auto* inspectable =
             std::get_if<winrt::Windows::Foundation::IInspectable>(
@@ -9880,6 +9859,10 @@ void SetOrClearValue(DependencyObject elementDo,
         value = *inspectable;
     } else if (auto* blurBrushParams =
                    std::get_if<XamlBlurBrushParams>(&overrideValue)) {
+        if (blurCache && blurCache->has_value() &&
+            **blurCache == *blurBrushParams) {
+            return;
+        }
         if (auto uiElement = elementDo.try_as<UIElement>()) {
             value = winrt::make<XamlBlurBrush>(
                 uiElement, blurBrushParams->blurAmount, blurBrushParams->tint,
@@ -9889,6 +9872,9 @@ void SetOrClearValue(DependencyObject elementDo,
                 blurBrushParams->tintSaturation, blurBrushParams->noiseOpacity,
                 blurBrushParams->noiseDensity, blurBrushParams->fallbackColor,
                 winrt::hstring(blurBrushParams->fallbackThemeResourceKey));
+            if (blurCache) {
+                *blurCache = *blurBrushParams;
+            }
         } else {
             Wh_Log(L"Can't get UIElement for blur brush");
             return;
@@ -11629,7 +11615,9 @@ void PropagateStyleVariableChange(const std::wstring& varName) {
 
             bool wasModifying = g_elementPropertyModifying;
             g_elementPropertyModifying = true;
-            SetOrClearValue(element, consumer.property, *resolved);
+            SetOrClearValue(element, consumer.property, *resolved,
+                            false,
+                            &propState.lastBlurParams);
             propState.lastAppliedValue =
                 ReadLocalValueWithWorkaround(element, consumer.property);
             g_elementPropertyModifying = wasModifying;
@@ -11889,7 +11877,8 @@ void ApplyCustomizationsForVisualStateGroup(
                     ReadLocalValueWithWorkaround(element, property);
                 propertyCustomizationState.customValue = *resolved;
                 SetOrClearValue(element, property, *resolved,
-                                /*initialApply=*/true);
+                                /*initialApply=*/true,
+                                &propertyCustomizationState.lastBlurParams);
                 propertyCustomizationState.lastAppliedValue =
                     ReadLocalValueWithWorkaround(element, property);
             }
@@ -11932,7 +11921,9 @@ void ApplyCustomizationsForVisualStateGroup(
 
                     g_elementPropertyModifying = true;
                     SetOrClearValue(element, property,
-                                    *propertyCustomizationState.customValue);
+                                    *propertyCustomizationState.customValue,
+                                    false,
+                                    &propertyCustomizationState.lastBlurParams);
                     propertyCustomizationState.lastAppliedValue =
                         ReadLocalValueWithWorkaround(element, property);
                     g_elementPropertyModifying = false;
@@ -12032,7 +12023,9 @@ void ApplyCustomizationsForVisualStateGroup(
 
                                 propertyCustomizationState.customValue =
                                     *resolved;
-                                SetOrClearValue(element, property, *resolved);
+                                SetOrClearValue(element, property, *resolved,
+                                                false,
+                                                &propertyCustomizationState.lastBlurParams);
                                 propertyCustomizationState.lastAppliedValue =
                                     ReadLocalValueWithWorkaround(element,
                                                                  property);
@@ -12059,7 +12052,7 @@ void ApplyCustomizationsForVisualStateGroup(
                             }
                             propertyCustomizationState.lastAppliedValue =
                                 nullptr;
-
+                            propertyCustomizationState.lastBlurParams.reset();
                             propertyCustomizationState.customValue.reset();
                         }
                     }
@@ -13326,7 +13319,7 @@ void ProcessAllStylesFromSettings() {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
-    } else if (wcscmp(themeName, L"TranslucentStartMenu_Clear") == 0 || wcscmp(themeName, L"SimplyTransparent") == 0) {
+    } else if (wcscmp(themeName, L"TranslucentStartMenu_Clear") == 0) {
         theme = g_isRedesignedStartMenu
                     ? &g_themeTranslucentStartMenu
                     : &g_themeTranslucentStartMenu_variant_ClassicStartMenu;
@@ -13537,111 +13530,46 @@ void ProcessAllStylesFromSettings() {
             ? (theme ? theme->styleConstants : std::vector<PCWSTR>{})
             : overrideStyleConstants);
 
-    // Dynamic Brush Customization logic
-    PCWSTR bgColorMode = Wh_GetStringSetting(L"bgColorMode");
-    int blurVal = Wh_GetIntSetting(L"blurPreset");
-    int opVal = Wh_GetIntSetting(L"opacityPreset");
-    int lumVal = Wh_GetIntSetting(L"luminosityPreset");
-
-    std::wstring existingBrush = L"";
-    static const std::wstring kBgVarNames_extract[] = {
-        L"CommonBgBrush", L"Apple_Background", L"ZenBg", L"Background", L"ElementBackground",
-        L"base", L"overlay", L"overlay2", L"BackgroundBrush", L"bgBrush",
-    };
-    for (const auto& varName : kBgVarNames_extract) {
-        for (auto& sc : styleConstants) {
-            if (sc.first == varName) { existingBrush = sc.second; break; }
+    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
+    if (textColorMode && *textColorMode) {
+        std::wstring newFgBrush;
+        if (wcscmp(textColorMode, L"white") == 0) {
+            newFgBrush = L"White";
+        } else if (wcscmp(textColorMode, L"dark") == 0) {
+            newFgBrush = L"#CC000000";
+        } else if (wcscmp(textColorMode, L"system") == 0) {
+            newFgBrush = L"{ThemeResource SystemControlForegroundBaseHighBrush}";
         }
-        if (!existingBrush.empty()) break;
-    }
 
-    std::wstring colorStr = L"";
-    const wchar_t* bgMode = bgColorMode ? bgColorMode : L"Default";
-
-    if (wcscmp(bgMode, L"Accent") == 0) { colorStr = L"{ThemeResource SystemAccentColor}";
-    } else if (wcscmp(bgMode, L"GlassWhite") == 0) { colorStr = L"#FFFFFF";
-    } else if (wcscmp(bgMode, L"MistGrey") == 0) { colorStr = L"#2E2E2E";
-    } else if (wcscmp(bgMode, L"DeepBlack") == 0) { colorStr = L"#0A0A0A";
-    } else if (wcscmp(bgMode, L"OceanBlue") == 0) { colorStr = L"#1A365D";
-    } else if (wcscmp(bgMode, L"AuroraCyan") == 0) { colorStr = L"#005C53";
-    } else if (wcscmp(bgMode, L"RosePink") == 0) { colorStr = L"#5B2C30";
-    } else if (wcscmp(bgMode, L"BordeauxRed") == 0) { colorStr = L"#4A0E17";
-    } else if (wcscmp(bgMode, L"ForestGreen") == 0) { colorStr = L"#1A3A2A";
-    } else if (wcscmp(bgMode, L"RoyalPurple") == 0) { colorStr = L"#3B1354";
-    } else if (wcscmp(bgMode, L"SunsetOrange") == 0) { colorStr = L"#8C3D00";
-    } else if (wcscmp(bgMode, L"ChampagneGold") == 0) { colorStr = L"#7A653F";
-    } else if (wcscmp(bgMode, L"MorandiSage") == 0) { colorStr = L"#4E5E50";
-    } else { colorStr = L""; }
-
-    std::wstring customBrush = L"";
-    
-    std::wstring blurStr = std::to_wstring(blurVal >= 0 ? blurVal : 30);
-    
-    wchar_t opBuf[16];
-    swprintf_s(opBuf, L"%.2f", (double)(opVal >= 0 ? opVal : 50) / 100.0);
-    std::wstring opacityStr = opBuf;
-
-    wchar_t lumBuf[16];
-    swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
-    std::wstring lumStr = lumBuf;
-
-    if (wcscmp(bgMode, L"Default") == 0) {
-        if (!existingBrush.empty()) {
-            customBrush = existingBrush;
-            
-            size_t blurPos = customBrush.find(L"BlurAmount=\"");
-            if (blurPos != std::wstring::npos) {
-                size_t start = blurPos + 12;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, blurStr);
-            }
-            
-            size_t opPos = customBrush.find(L"TintOpacity=\"");
-            if (opPos != std::wstring::npos) {
-                size_t start = opPos + 13;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, opacityStr);
-            }
-            
-            size_t lumPos = customBrush.find(L"TintLuminosityOpacity=\"");
-            if (lumPos != std::wstring::npos) {
-                size_t start = lumPos + 23;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, lumStr);
-            } else {
-                size_t insertPos = customBrush.rfind(L"/>");
-                if (insertPos != std::wstring::npos) {
-                    customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
-                } else {
-                    insertPos = customBrush.rfind(L">");
-                    if (insertPos != std::wstring::npos) {
-                        customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
+        if (!newFgBrush.empty()) {
+            // Override ALL theme foreground variables so textColorMode works
+            // universally regardless of which theme is active.
+            static const std::wstring kFgVarNames[] = {
+                L"CommonFgBrush",        // TintedGlass, Windows10X, LayerMicaUI, etc.
+                L"Apple_ForegroundBrush", // Apple Liquid Glass
+            };
+            for (const auto& varName : kFgVarNames) {
+                bool found = false;
+                for (auto& sc : styleConstants) {
+                    if (sc.first == varName) {
+                        sc.second = newFgBrush;
+                        found = true;
+                        break;
                     }
                 }
-            }
-        }
-    } else if (!colorStr.empty()) {
-        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L"\" TintColor=\"" + colorStr + L"\" TintOpacity=\"" + opacityStr + L"\" TintLuminosityOpacity=\"" + lumStr + L"\" />";
-    }
-
-    if (!customBrush.empty()) {
-        bool replaced = false;
-        for (const auto& varName : kBgVarNames_extract) {
-            if (replaced) break;
-            for (auto& sc : styleConstants) {
-                if (sc.first == varName) {
-                    sc.second = customBrush;
-                    replaced = true;
-                    break;
+                if (!found) {
+                    StyleConstant newSc{varName, newFgBrush};
+                    auto insertIndex = std::lower_bound(
+                        styleConstants.begin(), styleConstants.end(), newSc,
+                        [](const StyleConstant& a, const StyleConstant& b) {
+                            return a.first.size() > b.first.size();
+                        });
+                    styleConstants.insert(insertIndex, std::move(newSc));
                 }
             }
         }
-        if (!replaced) {
-            styleConstants.push_back({L"CommonBgBrush", customBrush});
-        }
     }
-
-    Wh_FreeStringSetting(bgColorMode);
+    Wh_FreeStringSetting(textColorMode);
 
     if (theme) {
         for (const auto& themeTargetStyle : theme->targetStyles) {
@@ -13660,91 +13588,6 @@ void ProcessAllStylesFromSettings() {
                 Wh_Log(L"Error: %S", ex.what());
             }
         }
-    }
-
-    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
-    std::wstring newFgBrush;
-    if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
-        if (wcscmp(textColorMode, L"white") == 0) {
-            newFgBrush = L"White";
-        } else if (wcscmp(textColorMode, L"dark") == 0) {
-            newFgBrush = L"Black";
-        } else if (wcscmp(textColorMode, L"system") == 0) {
-            newFgBrush = L"{ThemeResource SystemControlForegroundBaseHighBrush}";
-        } else if (wcscmp(textColorMode, L"red") == 0) {
-            newFgBrush = L"#FFFF3333";
-        } else if (wcscmp(textColorMode, L"green") == 0) {
-            newFgBrush = L"#FF33FF33";
-        } else if (wcscmp(textColorMode, L"blue") == 0) {
-            newFgBrush = L"#FF3399FF";
-        } else if (wcscmp(textColorMode, L"yellow") == 0) {
-            newFgBrush = L"#FFFFCC00";
-        } else if (wcscmp(textColorMode, L"orange") == 0) {
-            newFgBrush = L"#FFFF8800";
-        } else if (wcscmp(textColorMode, L"purple") == 0) {
-            newFgBrush = L"#FFCC66FF";
-        } else if (wcscmp(textColorMode, L"pink") == 0) {
-            newFgBrush = L"#FFFF66B2";
-        } else if (wcscmp(textColorMode, L"cyan") == 0) {
-            newFgBrush = L"#FF33FFFF";
-        }
-    } else {
-        if (isCustomTheme) {
-            newFgBrush = ApplyStyleConstants(L"$CommonFgBrush", styleConstants);
-        }
-    }
-    Wh_FreeStringSetting(textColorMode);
-
-    PCWSTR labelVisibility = Wh_GetStringSetting(L"labelVisibility");
-    if (labelVisibility && wcscmp(labelVisibility, L"hide") == 0) {
-        std::vector<std::wstring> hideStyles = { L"Opacity=0" };
-        AddElementCustomizationRules(L"TextBlock#AppDisplayName", hideStyles);
-        AddElementCustomizationRules(L"Windows.UI.Xaml.Controls.TextBlock#AppDisplayName", hideStyles);
-        AddElementCustomizationRules(L"TextBlock#DisplayName", hideStyles);
-        AddElementCustomizationRules(L"Windows.UI.Xaml.Controls.TextBlock#DisplayName", hideStyles);
-    } else if (labelVisibility && wcscmp(labelVisibility, L"hover") == 0) {
-        std::vector<std::wstring> hoverOpacityStyles = {
-            L"Opacity@Normal=0",
-            L"Opacity@PointerOver=1",
-            L"Opacity@Pressed=1"
-        };
-        std::vector<std::wstring> targets = {
-            // TextBlock#AppDisplayName (Regular apps / Pinned items)
-            L"StartDocked.AppListViewItem > Grid@CommonStates > * > TextBlock#AppDisplayName",
-            L"GridViewItem > Border#ContentBorder@CommonStates > * > TextBlock#AppDisplayName",
-            L"ListViewItem > Grid#ContentBorder@CommonStates > * > TextBlock#AppDisplayName",
-            L"StartDocked.AllAppsGridListViewItem > Grid@CommonStates > * > TextBlock#AppDisplayName",
-
-            L"StartDocked.AppListViewItem > Grid@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#AppDisplayName",
-            L"GridViewItem > Border#ContentBorder@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#AppDisplayName",
-            L"ListViewItem > Grid#ContentBorder@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#AppDisplayName",
-            L"StartDocked.AllAppsGridListViewItem > Grid@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#AppDisplayName",
-
-            // TextBlock#DisplayName (Recommended files / suggestions)
-            L"StartDocked.AppListViewItem > Grid@CommonStates > * > TextBlock#DisplayName",
-            L"GridViewItem > Border#ContentBorder@CommonStates > * > TextBlock#DisplayName",
-            L"ListViewItem > Grid#ContentBorder@CommonStates > * > TextBlock#DisplayName",
-            L"StartDocked.AllAppsGridListViewItem > Grid@CommonStates > * > TextBlock#DisplayName",
-
-            L"StartDocked.AppListViewItem > Grid@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#DisplayName",
-            L"GridViewItem > Border#ContentBorder@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#DisplayName",
-            L"ListViewItem > Grid#ContentBorder@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#DisplayName",
-            L"StartDocked.AllAppsGridListViewItem > Grid@CommonStates > * > Windows.UI.Xaml.Controls.TextBlock#DisplayName"
-        };
-
-        for (const auto& t : targets) {
-            AddElementCustomizationRules(t, hoverOpacityStyles);
-        }
-    }
-    Wh_FreeStringSetting(labelVisibility);
-
-
-    if (!newFgBrush.empty()) {
-        std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
-        AddElementCustomizationRules(L"TextBlock", fgStyles);
-        AddElementCustomizationRules(L"FontIcon", fgStyles);
-        AddElementCustomizationRules(L"PathIcon", fgStyles);
-        AddElementCustomizationRules(L"ContentPresenter", fgStyles);
     }
 
     if (isCustomTheme) {
