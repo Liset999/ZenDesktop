@@ -142,9 +142,9 @@ echo       [OK] Windhawk stopped.
 echo.
 
 :: ============================================================
-::  Step 3: Copy mod files
+::  Step 3: Copy mod files & clear compiler cache
 :: ============================================================
-echo [3/4] Copying mod files...
+echo [3/4] Copying mod files and clearing compiler cache...
 
 set "FILES_COPIED=0"
 for %%f in (
@@ -158,6 +158,11 @@ for %%f in (
         if !errorlevel! equ 0 (
             echo       [OK] %%~f
             set /a FILES_COPIED+=1
+            :: Extract Mod ID from filename (remove .wh.cpp)
+            set "MOD_NAME=%%~nf"
+            set "MOD_ID=!MOD_NAME:.wh=!"
+            :: Clear compiled DLL path to force Windhawk to recompile on startup
+            reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\!MOD_ID!" /v "LibraryFileName" /t REG_SZ /d "" /f >nul 2>&1
         ) else (
             echo       [FAIL] %%~f
         )
