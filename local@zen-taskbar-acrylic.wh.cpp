@@ -10794,6 +10794,7 @@ void ApplyCustomizationsForVisualStateGroup(
                     if (localValue !=
                         propertyCustomizationState.lastAppliedValue) {
                         propertyCustomizationState.originalValue = localValue;
+                        propertyCustomizationState.lastBlurParams.reset();
                     }
 
                     Wh_Log(L"Re-applying style for %s",
