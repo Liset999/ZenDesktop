@@ -2,7 +2,7 @@
 // @id              zen-taskbar-acrylic
 // @name            ZenDesktop: Taskbar Acrylic Styler
 // @description     Premium acrylic/frosted glass taskbar themes with custom blur presets. Based on m417z's Taskbar Styler.
-// @version         3.0.0
+// @version         3.2.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -440,10 +440,9 @@ from the **TranslucentTB** project.
     选择任务栏的整体视觉风格。搭配下方的颜色和模糊度设置使用。
   $options:
   - "": "无 (None)"
-  - TranslucentTaskbar: "透明玻璃 (Transparent Glass)"
-  - Matter: "亚克力 (Acrylic)"
-  - WindowGlass: "白毛玻璃 (White Frosted Glass)"
-  - TintedGlass: "黑毛玻璃 (Dark Frosted Glass)"
+  - TranslucentTaskbar: "自定义玻璃 (Custom Glass)"
+  - WindowGlass: "圆角分段小组件布局 (Window Glass Layout)"
+  - TintedGlass: "着色玻璃经典布局 (Tinted Glass Layout)"
   - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
   - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
   - SimplyTransparent: "纯粹透明 (Simply Transparent)"
@@ -12042,6 +12041,7 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeAeris;
     } else if (wcscmp(themeName, L"Plasma") == 0) {
         theme = &g_themePlasma;
+
     } else if (wcscmp(themeName, L"WindowGlass") == 0) {
         theme = &g_themeWindowGlass;
     } else if (wcscmp(themeName, L"WindowGlass_variant_Split") == 0) {
@@ -12062,6 +12062,7 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLayerMicaUI;
     } else if (wcscmp(themeName, L"Fluid") == 0) {
         theme = &g_themeFluid;
+
     } else if (wcscmp(themeName, L"TintedGlass") == 0) {
         theme = &g_themeTintedGlass;
     } else if (wcscmp(themeName, L"TaskbarToStatusbar") == 0) {
@@ -12108,6 +12109,42 @@ void ProcessAllStylesFromSettings() {
         if (!existingBrush.empty()) break;
     }
 
+    // Resolve variable references like $Glass or $Alt
+    std::wstring resolvedBrush = existingBrush;
+    int resolveDepth = 0;
+    while (resolvedBrush.starts_with(L"$") && resolveDepth < 5) {
+        std::wstring refVar = resolvedBrush.substr(1);
+        bool found = false;
+        for (const auto& sc : styleConstants) {
+            if (sc.first == refVar) {
+                resolvedBrush = sc.second;
+                found = true;
+                break;
+            }
+        }
+        if (!found) break;
+        resolveDepth++;
+    }
+
+    std::wstring tintColor = L"#25323232"; // Default fallback color
+    size_t colorPos = resolvedBrush.find(L"TintColor=\"");
+    if (colorPos != std::wstring::npos) {
+        size_t start = colorPos + 11;
+        size_t end = resolvedBrush.find(L"\"", start);
+        if (end != std::wstring::npos) {
+            tintColor = resolvedBrush.substr(start, end - start);
+        }
+    } else {
+        size_t colPos = resolvedBrush.find(L"Color=\"");
+        if (colPos != std::wstring::npos) {
+            size_t start = colPos + 7;
+            size_t end = resolvedBrush.find(L"\"", start);
+            if (end != std::wstring::npos) {
+                tintColor = resolvedBrush.substr(start, end - start);
+            }
+        }
+    }
+
     std::wstring colorStr = L"";
     const wchar_t* bgMode = bgColorMode ? bgColorMode : L"Default";
 
@@ -12138,43 +12175,20 @@ void ProcessAllStylesFromSettings() {
     swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
     std::wstring lumStr = lumBuf;
 
-    if (wcscmp(bgMode, L"Default") == 0) {
-        if (!existingBrush.empty()) {
-            customBrush = existingBrush;
-            
-            size_t blurPos = customBrush.find(L"BlurAmount=\"");
-            if (blurPos != std::wstring::npos) {
-                size_t start = blurPos + 12;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, blurStr);
+    std::wstring finalColor = colorStr.empty() ? tintColor : colorStr;
+
+    if (blurVal == 0) {
+        if (finalColor.starts_with(L"{ThemeResource")) {
+            customBrush = L"<SolidColorBrush Color=\"" + finalColor + L" Opacity=\"" + opacityStr + L"\" />";
+        } else {
+            std::wstring cleanColor = finalColor;
+            if (finalColor.length() == 9 && finalColor[0] == L'#') {
+                cleanColor = L"#" + finalColor.substr(3); // strip alpha from #AARRGGBB to #RRGGBB
             }
-            
-            size_t opPos = customBrush.find(L"TintOpacity=\"");
-            if (opPos != std::wstring::npos) {
-                size_t start = opPos + 13;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, opacityStr);
-            }
-            
-            size_t lumPos = customBrush.find(L"TintLuminosityOpacity=\"");
-            if (lumPos != std::wstring::npos) {
-                size_t start = lumPos + 23;
-                size_t end = customBrush.find(L"\"", start);
-                if (end != std::wstring::npos) customBrush.replace(start, end - start, lumStr);
-            } else {
-                size_t insertPos = customBrush.rfind(L"/>");
-                if (insertPos != std::wstring::npos) {
-                    customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
-                } else {
-                    insertPos = customBrush.rfind(L">");
-                    if (insertPos != std::wstring::npos) {
-                        customBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + lumStr + L"\" ");
-                    }
-                }
-            }
+            customBrush = L"<SolidColorBrush Color=\"" + cleanColor + L" Opacity=\"" + opacityStr + L"\" />";
         }
-    } else if (!colorStr.empty()) {
-        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L"\" TintColor=\"" + colorStr + L"\" TintOpacity=\"" + opacityStr + L"\" TintLuminosityOpacity=\"" + lumStr + L"\" />";
+    } else {
+        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L" TintColor=\"" + finalColor + L" TintOpacity=\"" + opacityStr + L" TintLuminosityOpacity=\"" + lumStr + L"\" />";
     }
 
     if (!customBrush.empty()) {
@@ -12192,6 +12206,12 @@ void ProcessAllStylesFromSettings() {
         if (!replaced) {
             styleConstants.push_back({L"CommonBgBrush", customBrush});
         }
+    }
+
+    if (blurVal == 0) {
+        try {
+            AddElementCustomizationRules(L"WindowsInternal.ComposableShell.Experiences.TextInput.Common.InputSwitcher > ContentControl > ContentPresenter > Grid", { L"Background=Transparent" });
+        } catch (...) {}
     }
 
     Wh_FreeStringSetting(bgColorMode);

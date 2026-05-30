@@ -256,7 +256,7 @@ reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Log
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Include"         /t REG_SZ    /d "StartMenuExperienceHost.exe|SearchHost.exe|SearchApp.exe"          /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Exclude"         /t REG_SZ    /d ""                                                                  /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Architecture"    /t REG_SZ    /d "x86-64"                                                            /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version"         /t REG_SZ    /d "3.2.0"      /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "Version"         /t REG_SZ    /d "3.3.0"      /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic" /v "LibraryFileName" /t REG_SZ    /d ""           /f >nul 2>&1
 
 :: 4. Double-Click to Hide Desktop Icons
@@ -322,11 +322,11 @@ echo.
 :: ============================================================
 ::  Step 8: Complete and Client Notification
 :: ============================================================
-echo [8/8] ZenDesktop files successfully updated to 3.2.0!
+echo [8/8] ZenDesktop files successfully updated to 3.3.0!
 echo.
 color 0A
 echo  ============================================================
-echo    [SUCCESS] ZENDESKTOP 3.2.0 DEPLOYED SUCCESSFULLY!
+echo    [SUCCESS] ZENDESKTOP 3.3.0 DEPLOYED SUCCESSFULLY!
 echo  ============================================================
 echo.
 echo    The updated source codes have been atomically written.
