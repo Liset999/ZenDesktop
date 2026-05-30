@@ -2,6 +2,26 @@
 *.exe
 !deploy.bat
 
+# Ignore zip files
+*.zip
+
+# Ignore backup and build directories
+Backups/
+__pycache__/
+ZenDesktop_Backup_v2.7.0/
+ZenDesktop_OneKeyDeploy_v3.0.0_Online/
+
+# Ignore test scripts
+test*.ps1
+test*.cpp
+query
+diff.txt
+diff_v3.txt
+orig_header.txt
+notification_center_orig.wh.cpp
+notification_center_full.wh.cpp
+taskbar_orig.cpp
+
 # Ignore Windows system files
 Thumbs.db
 ehthumbs.db

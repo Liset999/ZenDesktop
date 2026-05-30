@@ -483,6 +483,10 @@ from the **TranslucentTB** project.
     - purple: "🟣 紫色 (Purple)"
     - pink: "🌸 粉色 (Pink)"
     - cyan: "💠 青色 (Cyan)"
+- hideLabelsUntilHover: false
+  $name: "👻 隐藏文字 (Hide Text Until Hover)"
+  $description: >-
+    启用后将隐藏应用和文件夹的文字，只有鼠标悬停时才会显示。
 - disableNewStartMenuLayout: ""
   $name: "📐 开始菜单布局 (Layout)"
   $description: >-
@@ -13655,8 +13659,8 @@ void ProcessAllStylesFromSettings() {
     }
 
     PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
+    std::wstring newFgBrush;
     if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
-        std::wstring newFgBrush;
         if (wcscmp(textColorMode, L"white") == 0) {
             newFgBrush = L"White";
         } else if (wcscmp(textColorMode, L"dark") == 0) {
@@ -13680,16 +13684,25 @@ void ProcessAllStylesFromSettings() {
         } else if (wcscmp(textColorMode, L"cyan") == 0) {
             newFgBrush = L"#FF33FFFF";
         }
-
-        if (!newFgBrush.empty()) {
-            std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
-            AddElementCustomizationRules(L"TextBlock", fgStyles);
-            AddElementCustomizationRules(L"FontIcon", fgStyles);
-            AddElementCustomizationRules(L"PathIcon", fgStyles);
-            AddElementCustomizationRules(L"ContentPresenter", fgStyles);
+    } else {
+        if (isCustomTheme) {
+            newFgBrush = ApplyStyleConstants(L"$CommonFgBrush", styleConstants);
         }
     }
     Wh_FreeStringSetting(textColorMode);
+
+    bool hideLabelsUntilHover = Wh_GetIntSetting(L"hideLabelsUntilHover");
+    if (hideLabelsUntilHover) {
+        newFgBrush = L"Transparent";
+    }
+
+    if (!newFgBrush.empty()) {
+        std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
+        AddElementCustomizationRules(L"TextBlock", fgStyles);
+        AddElementCustomizationRules(L"FontIcon", fgStyles);
+        AddElementCustomizationRules(L"PathIcon", fgStyles);
+        AddElementCustomizationRules(L"ContentPresenter", fgStyles);
+    }
 
     if (isCustomTheme) {
         try {
