@@ -144,14 +144,15 @@
     -   全面回退了 `local@zen-startmenu-acrylic.wh.cpp` 和 `local@zen-taskbar-acrylic.wh.cpp` 中被篡改的全部 Apple 玻璃主题常量、渐变色刷以及边界厚度设置，恢复其原本高模糊度（18/10）、高饱和度（2.0/2.2）以及棱镜色散边框的完美美学设计。
     -   100% 保留了本次新开发的 XamlBlurBrush 缓存匹配引擎，实现了“顶级液态折射画质”与“零延迟、无卡顿高帧率”的完美共存。
 
-### 2.14 开始菜单搜索栏常规态与活动态的视觉美学统一（v3.3.0 经验）
-*   **问题场景**：在 Apple 玻璃主题下，开始菜单未激活时（正常态），搜索框表现为刺眼的**纯白色实色方块**；而当点击文件夹打开时（活动态），搜索框却突然神奇地变成了**与背景融为一体的流光玻璃**。这种两极分化的不一致极大破坏了高级感。
+### 2.14 开始菜单搜索栏常规态与活动态 of 视觉美学统一（v3.3.0 经验，v3.4.0 拓展）
+*   **问题场景**：在 Apple 玻璃主题以及后续的**自定义玻璃 (SimplyTransparent) 与所有磨砂半透明主题**下，开始菜单未激活时（正常态），搜索框表现为刺眼的**纯白色实色方块**；而当点击文件夹打开时（活动态），搜索框却突然神奇地变成了**与背景融为一体的流光玻璃**。这种两极分化的不一致极大破坏了高级感。
 *   **深层根源**：
     1.  **内层控件模板遮挡**：搜索框底层虽然有我们定制的毛玻璃背景容器（`TaskbarSearchBackground`），但其内部的核心切换按钮（`SearchBoxToggleButton`）自带一个模板边框（`Border`）。在 Windows 默认浅色主题下，该 Border 被赋予了纯白实色，如同一膏药把底部的半透玻璃完全遮死。
     2.  **禁用状态机的“副作用变透”**：当点击文件夹展开时，开始菜单触发了全局模态。背后的搜索按钮被 Windows 强制切换到 **`Disabled` 状态**。根据 WinUI 的默认控件状态机，该按钮在 Disabled 时背景会置为 `Transparent`，结果“无意中”摘掉了这层白色膏药，让底部的玻璃图层重见天日。
-*   **解决方案**：
-    -   在 `local@zen-startmenu-acrylic.wh.cpp` 的标准与经典 Apple 主题中，直接将 `StartMenu.SearchBoxToggleButton` 和 `StartDocked.SearchBoxToggleButton` 下所有内部 `Border`（含 `BorderElement`）的 `Background` 和 `BorderBrush` 显式强制设为 `Transparent`。
-    -   这一改变彻底移除了常规状态下的实白遮挡，使搜索框在**任何状态**（无论是正常开启、悬停操作，还是点击文件夹）下都始终如一地展现高折射率的液态玻璃美感。
+*   **解决方案与拓展（v3.4.0 沉淀）**：
+    -   **初代修复**：在 `local@zen-startmenu-acrylic.wh.cpp` 的标准与经典 Apple 主题中，直接将 `StartMenu.SearchBoxToggleButton` 和 `StartDocked.SearchBoxToggleButton` 下所有内部 `Border`（含 `BorderElement`）的 `Background` 和 `BorderBrush` 显式强制设为 `Transparent`。
+    -   **全主题拓展**：由于自定义玻璃（SimplyTransparent）以及各种透明度磨砂主题（TranslucentStartMenu 系列预设）都是以基础的 `g_themeTranslucentStartMenu`（标准和经典版）为底图加载的，因此在 v3.4.0 中，我们将这一套透明覆写规则直接合入到了两个 `g_themeTranslucentStartMenu` 基础主题中，从而一次性修复了所有半透明主题的白框 Bug。
+    -   **最终效果**：这一重构彻底移除了常规状态下的实白遮挡，使搜索框在**所有玻璃/半透明主题**、在**任何运行状态**下，都始终如一地展现高折射率的液态玻璃美感。
 
 ### 2.15 任务栏高频 Composition 缓存 Bug 与稳健回退策略（v3.4.0 经验）
 *   **问题场景**：在集成 PR #4 的 `XamlBlurBrush` 高频属性缓存逻辑后，虽然开始菜单运行完美，但在特定 Windows 环境或多显示器切换、资源管理器高频刷新时，任务栏偶尔会出现重绘卡死或画刷丢失的视觉 Bug。
