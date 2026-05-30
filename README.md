@@ -128,4 +128,4 @@ Developed with ❤️ by **Lanbo**.
 
 Special thanks to **m417z** for the original Windhawk Taskbar Styler, Notification Center Styler, and Start Menu Styler mods which served as the codebase foundation for these styling modules.
 
-And a big shoutout to the contributor who submitted **Pull Request #4** for introducing the original high-performance XamlBlurBrush caching structures, which formed the basis of our buttery-smooth rendering engine!
+And a big shoutout to **ygzzfyh123** for submitting **Pull Request #4** and introducing the original high-performance XamlBlurBrush caching structures, which formed the basis of our buttery-smooth rendering engine!
