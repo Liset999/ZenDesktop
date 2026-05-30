@@ -13,9 +13,9 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v3.4.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v3.4.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v3.4.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v3.5.0.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v3.5.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v3.5.0_Online.zip': common_files
 }
 
 # Ensure we extract the offline installer first

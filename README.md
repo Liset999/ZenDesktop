@@ -14,21 +14,26 @@ Previously powered by TranslucentTB, this repository has been **completely rewri
 
 ## 🌟 Premium Features
 
-### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic`) [v3.3.0]
+### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic`) [v3.5.0]
 A native Windows 11 Taskbar beautification module offering fine-grained, premium transparency & blur presets:
 * **Clear**: 100% full transparency (only taskbar icons remain).
 * **Acrylic (High / Standard / Low)**: Real-time high-fidelity WinUI 3 acrylic glass effect.
 * **Apple Liquid Glass / Alternate**: Hyper-transparent 3D droplet glass with a subtle chromatic dispersion border (featuring diagonal red→orange→green→blue→purple gradient stops), Fresnel specular edge reflections, and a precise 2px corner radius compensation (perfectly matching floating macOS-like Dock layout).
+* **v3.5.0 Updates**: Implemented a 300ms counter-based debounce to `Wh_ModSettingsChanged` that filters out rapid settings switching, preventing explorer crash cycles.
+* **v3.4.0 Updates**: Rolled back high-frequency caching mechanisms for the Taskbar module to guarantee 100% stability across all multi-monitor and dynamic virtual desktop environments.
 * **v3.3.0 Updates**: Fixed a critical dynamic brush generation bug where malformed XAML (missing escape quotes) caused silent parsing failures, ensuring seamless transparency and blur updates under Custom Glass mode.
 
-### 2. 🔔 Notification Center Acrylic Styler (`local@zen-notificationcenter-acrylic`) [v3.3.0 NEW]
+### 2. 🔔 Notification Center Acrylic Styler (`local@zen-notificationcenter-acrylic`) [v3.5.0 NEW]
 A premium notification and action center acrylic glass styler co-created by **Lanbo** and **m417z**:
 * Brings high-fidelity real-time acrylic and frosted glass effects to the Windows 11 Notification Center, calendar panel, and Quick Settings/System Tray panels.
 * Perfectly synchronized with your desktop theme presets, retaining flawless WinUI shadows and smooth animations.
+* **v3.5.0 Updates**: Integrated a 300ms counter-based debounce to settings reload to enhance stability during rapid switching.
 * **v3.3.0 Updates**: Corrected XAML escape quotes for dynamic SolidColorBrush and WindhawkBlur structures to prevent quiet styling fallback issues.
 
-### 3. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`) [v3.3.0]
+### 3. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic`) [v3.5.0]
 Syncs the Start Menu panel seamlessly with your taskbar theme, rendering native acrylic blur overlays over both redesigned and classic Start menu layouts. Features **Apple Liquid Glass** preset with a clear liquid body and expanded folder plates.
+* **v3.5.0 Updates**: Added settings counter debounce mechanism to secure stability on configuration changes.
+* **v3.4.0 Premium Updates**: Extended search box transparency (`SearchBoxToggleButton` internal template borders) to custom glass and all semi-transparent themes, completely eliminating the ugly white background block in standard states.
 * **v3.3.0 Premium Updates**: Replaced the simple hide labels toggle with a premium 3-way **Label Visibility** choice (**Show Text**, **Hide Text**, and **Hover to Show**). The hover state dynamically controls the label opacity using WinUI's native Visual State Groups (`CommonStates`), resulting in perfectly smooth transitions without breaking your theme foreground colors or triggering layout shifting.
 
 ### 4. 🖱️ Double-Click to Toggle Icons (`local@zen-desktop-toggle-icons`) [v3.0.0 Reconstructed]
@@ -96,6 +101,11 @@ ZenDesktop/
 * **彻底告别乱码**：全面采用标准纯英及 ASCII 标签，完全杜绝 Windows 编码带来的乱码 Bug。
 * **极致性能**：利用进程级注入与 Hook 技术，不占用任何后台常驻进程，0% CPU 开销，近乎 0MB 内存占用。
 * **Apple Liquid Glass (苹果流体玻璃) 主题**：引入超写实拟真玻璃美学！完美的圆角对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）搭配五彩斑斓的虹彩边缘与 Fresnel spec 高光，超透且清晰。
+* **v3.5.0 核心稳定性防护与全局高频防抖 (2026/05/31)**：
+  - **全局 300ms 防抖机制**：在 `zen-taskbar-acrylic`, `zen-startmenu-acrylic` 和 `zen-notificationcenter-acrylic` 三个核心 Mod 的 `Wh_ModSettingsChanged` 入口处引入基于原子自增计数器的 300ms 延时重载防抖。完美杜绝了在 Windhawk UI 中快速连续调节设置（如更换主题或背景色）导致 Explorer / 资源管理器崩溃重启的顽疾，显著降低了系统的瞬时重绘压力。
+* **v3.4.0 搜索框视觉统一与任务栏稳定性回退 (2026/05/30)**：
+  - **搜索框透明统一**：将开始菜单搜索栏中 `SearchBoxToggleButton` 内部模板 Border 默认白色背景在常规态下强行设为 `Transparent`，完美拓展至自定义玻璃及所有磨砂半透明主题，实现全局一致的流光玻璃质感。
+  - **任务栏架构回退**：针对任务栏复杂的多显示器及高频系统重绘环境，将 `zen-taskbar-acrylic` 架构回退至性能与稳定性最均衡的传统版本，而开始菜单继续保留 `XamlBlurBrush` 高频属性缓存匹配，确保核心系统组件 100% 稳健运行。
 * **v3.3.0 开始菜单文字三阶显示与画刷修复 (2026/05/30)**：
   - **三阶文字模式**：将原有的简单隐藏开关升级为 **“显示文字”**、**“隐藏文字”**、**“悬浮显示文字”** 三阶下拉选项。悬浮状态下利用 WinUI 原生视觉状态机联动，实现优雅微动画过渡，无任何图标位移与排版抖动，且完美保留主题前景色。
   - **XAML 动态画刷修复**：彻底修复了任务栏与通知中心插件中因转义引号丢失导致 XAML 解析失败回退的 Bug，完美恢复“自定义玻璃”下的透明度与模糊度无缝调节。
