@@ -7,6 +7,7 @@ common_files = [
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
     'deploy.bat',
+    'deploy.ps1',
     'Readme.txt',
     'README.md',
     'restart_explorer.bat'
