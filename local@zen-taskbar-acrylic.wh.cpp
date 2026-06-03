@@ -2,7 +2,7 @@
 // @id              zen-taskbar-acrylic
 // @name            ZenDesktop: Taskbar Acrylic Styler
 // @description     Premium acrylic/frosted glass taskbar themes with custom blur presets. Based on m417z's Taskbar Styler.
-// @version         3.4.0
+// @version         3.5.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -535,6 +535,28 @@ from the **TranslucentTB** project.
     - 100: "标准通透 (Standard)"
     - 125: "高亮 (High)"
     - 150: "极致通透 (Ultra Bright)"
+- maximizedTaskbarLayer: true
+  $name: "🪟 最大化窗口任务栏状态层 (Maximized Window Layer)"
+  $description: >-
+    当前显示器存在最大化窗口时，为任务栏切换到更稳定的玻璃背景。
+- maximizedLayerOpacity: 72
+  $name: "🪟 最大化状态层浓度 (Layer Opacity)"
+  $description: >-
+    仅在最大化窗口任务栏状态层启用时生效。数值越大，底色越厚重。
+  $options:
+    - 40: "轻薄 (Light)"
+    - 55: "均衡 (Balanced)"
+    - 72: "稳态 (Stable)"
+    - 85: "厚重 (Dense)"
+- maximizedLayerBlur: 24
+  $name: "🪟 最大化状态层模糊 (Layer Blur)"
+  $description: >-
+    仅在最大化窗口任务栏状态层启用时生效。数值越大，越模糊。
+  $options:
+    - 0: "清透 (Clear)"
+    - 12: "轻微 (Subtle)"
+    - 24: "标准 (Standard)"
+    - 36: "磨砂 (Frosted)"
 - textColorMode: "default"
   $name: "🔤 文字颜色 (Text Color)"
   $description: >-
@@ -6666,6 +6688,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <list>
 #include <mutex>
@@ -6724,7 +6747,15 @@ enum class XamlDiagnosticsHandling {
 
 struct {
     XamlDiagnosticsHandling xamlDiagnosticsHandling;
+    bool maximizedTaskbarLayer;
+    int maximizedLayerOpacity;
+    int maximizedLayerBlur;
 } g_settings;
+
+std::atomic_bool g_taskbarMaximizedLayerActive{false};
+constexpr PCWSTR kTaskbarRuntimeBgBrushVariable = L"ZenTaskbarRuntimeBgBrush";
+thread_local std::wstring g_taskbarBaseCommonBgBrush;
+thread_local std::wstring g_taskbarMaximizedCommonBgBrush;
 
 // https://stackoverflow.com/a/51274008
 template <auto fn>
@@ -10499,6 +10530,32 @@ void SetStyleVariableIfChangedAndPropagate(StyleVariableState* state,
     PropagateStyleVariableChange(state, varName);
 }
 
+void SetTaskbarRuntimeBgBrushVariable(StyleVariableState* state) {
+    if (!state || g_taskbarBaseCommonBgBrush.empty()) {
+        return;
+    }
+
+    StyleVariableValue value;
+    value.stringForm =
+        g_taskbarMaximizedLayerActive.load() &&
+                !g_taskbarMaximizedCommonBgBrush.empty()
+            ? g_taskbarMaximizedCommonBgBrush
+            : g_taskbarBaseCommonBgBrush;
+    value.substitutable = true;
+
+    SetStyleVariableIfChangedAndPropagate(
+        state, kTaskbarRuntimeBgBrushVariable, std::move(value));
+}
+
+void RefreshTaskbarRuntimeBgBrushVariablesForCurrentThread() {
+    g_styleVariableState.remove_if(
+        [](StyleVariableState const& entry) { return !entry.xamlRoot.get(); });
+
+    for (auto& state : g_styleVariableState) {
+        SetTaskbarRuntimeBgBrushVariable(&state);
+    }
+}
+
 // True for layout-driven DPs whose updates do not fire
 // RegisterPropertyChangedCallback on UWP, so capture rules on those DPs need
 // `FrameworkElement.SizeChanged` as their notification source instead.
@@ -11086,6 +11143,7 @@ void ApplyCustomizations(InstanceHandle handle,
                winrt::get_class_name(element).c_str());
         return;
     }
+    SetTaskbarRuntimeBgBrushVariable(state);
 
     auto resolved = FindElementPropertyOverrides(element, fallbackClassName);
     if (resolved.overridesPerVSG.empty() && resolved.captures.empty()) {
@@ -11934,6 +11992,38 @@ std::optional<bool> IsOsFeatureEnabled(UINT32 featureId) {
     return std::nullopt;
 }
 
+int ClampPercent(int value, int fallback);
+int ClampBlurAmount(int value, int fallback);
+
+std::wstring BuildTaskbarCommonBgBrush(int blurVal,
+                                       int opacityVal,
+                                       const std::wstring& finalColor,
+                                       const std::wstring& luminosityOpacity) {
+    wchar_t opBuf[16];
+    swprintf_s(opBuf, L"%.2f", (double)opacityVal / 100.0);
+    std::wstring opacityStr = opBuf;
+
+    if (blurVal == 0) {
+        if (finalColor.starts_with(L"{ThemeResource")) {
+            return L"<SolidColorBrush Color=\"" + finalColor + L"\" Opacity=\"" +
+                   opacityStr + L"\" />";
+        }
+
+        std::wstring cleanColor = finalColor;
+        if (finalColor.length() == 9 && finalColor[0] == L'#') {
+            cleanColor = L"#" + finalColor.substr(3);
+        }
+
+        return L"<SolidColorBrush Color=\"" + cleanColor + L"\" Opacity=\"" +
+               opacityStr + L"\" />";
+    }
+
+    return L"<WindhawkBlur BlurAmount=\"" + std::to_wstring(blurVal) +
+           L"\" TintColor=\"" + finalColor + L"\" TintOpacity=\"" +
+           opacityStr + L"\" TintLuminosityOpacity=\"" +
+           luminosityOpacity + L"\" />";
+}
+
 void ProcessAllStylesFromSettings() {
     PCWSTR themeName = Wh_GetStringSetting(L"theme");
     const Theme* theme = nullptr;
@@ -12163,13 +12253,14 @@ void ProcessAllStylesFromSettings() {
     } else if (wcscmp(bgMode, L"MorandiSage") == 0) { colorStr = L"#4E5E50";
     } else { colorStr = L""; }
 
-    std::wstring customBrush = L"";
-    
-    std::wstring blurStr = std::to_wstring(blurVal >= 0 ? blurVal : 30);
-    
-    wchar_t opBuf[16];
-    swprintf_s(opBuf, L"%.2f", (double)(opVal >= 0 ? opVal : 50) / 100.0);
-    std::wstring opacityStr = opBuf;
+    int baseBlurVal = blurVal >= 0 ? blurVal : 30;
+    int baseOpVal = opVal >= 0 ? opVal : 50;
+    int maximizedBlurVal =
+        std::max(baseBlurVal,
+                 ClampBlurAmount(g_settings.maximizedLayerBlur, 24));
+    int maximizedOpVal =
+        std::max(baseOpVal,
+                 ClampPercent(g_settings.maximizedLayerOpacity, 72));
 
     wchar_t lumBuf[16];
     swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
@@ -12177,38 +12268,32 @@ void ProcessAllStylesFromSettings() {
 
     std::wstring finalColor = colorStr.empty() ? tintColor : colorStr;
 
-    if (blurVal == 0) {
-        if (finalColor.starts_with(L"{ThemeResource")) {
-            customBrush = L"<SolidColorBrush Color=\"" + finalColor + L"\" Opacity=\"" + opacityStr + L"\" />";
-        } else {
-            std::wstring cleanColor = finalColor;
-            if (finalColor.length() == 9 && finalColor[0] == L'#') {
-                cleanColor = L"#" + finalColor.substr(3); // strip alpha from #AARRGGBB to #RRGGBB
-            }
-            customBrush = L"<SolidColorBrush Color=\"" + cleanColor + L"\" Opacity=\"" + opacityStr + L"\" />";
-        }
-    } else {
-        customBrush = L"<WindhawkBlur BlurAmount=\"" + blurStr + L"\" TintColor=\"" + finalColor + L"\" TintOpacity=\"" + opacityStr + L"\" TintLuminosityOpacity=\"" + lumStr + L"\" />";
-    }
+    g_taskbarBaseCommonBgBrush =
+        BuildTaskbarCommonBgBrush(baseBlurVal, baseOpVal, finalColor, lumStr);
+    g_taskbarMaximizedCommonBgBrush =
+        BuildTaskbarCommonBgBrush(maximizedBlurVal, maximizedOpVal, finalColor,
+                                  lumStr);
 
-    if (!customBrush.empty()) {
+    std::wstring runtimeBrushVariable =
+        L"{{" + std::wstring(kTaskbarRuntimeBgBrushVariable) + L"}}";
+    if (!runtimeBrushVariable.empty()) {
         bool replaced = false;
         for (const auto& varName : kBgVarNames_extract) {
             if (replaced) break;
             for (auto& sc : styleConstants) {
                 if (sc.first == varName) {
-                    sc.second = customBrush;
+                    sc.second = runtimeBrushVariable;
                     replaced = true;
                     break;
                 }
             }
         }
         if (!replaced) {
-            styleConstants.push_back({L"CommonBgBrush", customBrush});
+            styleConstants.push_back({L"CommonBgBrush", runtimeBrushVariable});
         }
     }
 
-    if (blurVal == 0) {
+    if (baseBlurVal == 0) {
         try {
             AddElementCustomizationRules(L"WindowsInternal.ComposableShell.Experiences.TextInput.Common.InputSwitcher > ContentControl > ContentPresenter > Grid", { L"Background=Transparent" });
         } catch (...) {}
@@ -12761,6 +12846,202 @@ HWND GetTaskbarUiWnd() {
                         nullptr);
 }
 
+HWINEVENTHOOK g_taskbarForegroundEventHook;
+HWINEVENTHOOK g_taskbarLocationEventHook;
+
+std::vector<HWND> GetCurrentProcessTaskbarWnds() {
+    struct ENUM_WINDOWS_PARAM {
+        std::vector<HWND>* hWnds;
+    };
+
+    std::vector<HWND> hWnds;
+    ENUM_WINDOWS_PARAM param = {&hWnds};
+    EnumWindows(
+        [](HWND hWnd, LPARAM lParam) -> BOOL {
+            auto& param = *reinterpret_cast<ENUM_WINDOWS_PARAM*>(lParam);
+
+            DWORD dwProcessId = 0;
+            WCHAR className[64];
+            if (GetWindowThreadProcessId(hWnd, &dwProcessId) &&
+                dwProcessId == GetCurrentProcessId() &&
+                GetClassName(hWnd, className, ARRAYSIZE(className)) &&
+                (_wcsicmp(className, L"Shell_TrayWnd") == 0 ||
+                 _wcsicmp(className, L"Shell_SecondaryTrayWnd") == 0)) {
+                param.hWnds->push_back(hWnd);
+            }
+
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&param));
+
+    return hWnds;
+}
+
+bool IsIgnoredShellWindow(HWND hWnd) {
+    WCHAR className[64];
+    if (!GetClassName(hWnd, className, ARRAYSIZE(className))) {
+        return false;
+    }
+
+    return _wcsicmp(className, L"Shell_TrayWnd") == 0 ||
+           _wcsicmp(className, L"Shell_SecondaryTrayWnd") == 0 ||
+           _wcsicmp(className, L"Progman") == 0 ||
+           _wcsicmp(className, L"WorkerW") == 0 ||
+           _wcsicmp(className, L"Windows.UI.Composition.DesktopWindowContentBridge") == 0 ||
+           _wcsicmp(className, L"XamlExplorerHostIslandWindow") == 0 ||
+           _wcsicmp(className, L"Shell_InputSwitchTopLevelWindow") == 0;
+}
+
+bool IsMaximizedUserWindowOnMonitor(HWND hWnd, HMONITOR taskbarMonitor) {
+    if (!hWnd || !IsWindowVisible(hWnd) || IsIconic(hWnd) ||
+        GetWindow(hWnd, GW_OWNER) || IsIgnoredShellWindow(hWnd)) {
+        return false;
+    }
+
+    LONG_PTR exStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
+    if (exStyle & WS_EX_TOOLWINDOW) {
+        return false;
+    }
+
+    WINDOWPLACEMENT placement = {sizeof(placement)};
+    if (!GetWindowPlacement(hWnd, &placement) ||
+        placement.showCmd != SW_SHOWMAXIMIZED) {
+        return false;
+    }
+
+    HMONITOR windowMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    return windowMonitor && windowMonitor == taskbarMonitor;
+}
+
+bool IsTopmostMaximizedWindowOnMonitor(HMONITOR taskbarMonitor) {
+    struct ENUM_WINDOWS_PARAM {
+        HMONITOR taskbarMonitor;
+        bool found;
+    } param = {taskbarMonitor, false};
+
+    EnumWindows(
+        [](HWND hWnd, LPARAM lParam) -> BOOL {
+            auto& param = *reinterpret_cast<ENUM_WINDOWS_PARAM*>(lParam);
+            HWND hRoot = GetAncestor(hWnd, GA_ROOT);
+            if (!hRoot) {
+                hRoot = hWnd;
+            }
+
+            if (IsMaximizedUserWindowOnMonitor(hRoot, param.taskbarMonitor)) {
+                param.found = true;
+                return FALSE;
+            }
+
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&param));
+
+    return param.found;
+}
+
+void RefreshTaskbarRuntimeBgBrushVariablesForAllThreads() {
+    bool refreshed = false;
+
+    HWND hTaskbarUiWnd = GetTaskbarUiWnd();
+    if (hTaskbarUiWnd) {
+        RunFromWindowThread(
+            hTaskbarUiWnd,
+            [](PVOID) { RefreshTaskbarRuntimeBgBrushVariablesForCurrentThread(); },
+            nullptr);
+        refreshed = true;
+    }
+
+    for (auto hXamlHostWnd : GetXamlHostWnds()) {
+        RunFromWindowThread(
+            hXamlHostWnd,
+            [](PVOID) { RefreshTaskbarRuntimeBgBrushVariablesForCurrentThread(); },
+            nullptr);
+        refreshed = true;
+    }
+
+    if (!refreshed) {
+        Wh_Log(L"No taskbar XAML thread found for maximized layer refresh");
+    }
+}
+
+void RefreshTaskbarMaximizedLayerState() {
+    bool anyMaximizedLayerActive = false;
+
+    for (HWND hTaskbarWnd : GetCurrentProcessTaskbarWnds()) {
+        HMONITOR taskbarMonitor =
+            MonitorFromWindow(hTaskbarWnd, MONITOR_DEFAULTTONEAREST);
+        anyMaximizedLayerActive =
+            anyMaximizedLayerActive ||
+            IsTopmostMaximizedWindowOnMonitor(taskbarMonitor);
+    }
+
+    bool xamlLayerActive =
+        g_settings.maximizedTaskbarLayer && anyMaximizedLayerActive;
+    bool previousXamlLayerActive =
+        g_taskbarMaximizedLayerActive.exchange(xamlLayerActive);
+    if (previousXamlLayerActive != xamlLayerActive) {
+        Wh_Log(L"Maximized taskbar layer state: %d", xamlLayerActive);
+        RefreshTaskbarRuntimeBgBrushVariablesForAllThreads();
+    }
+}
+
+void CALLBACK TaskbarStateWinEventProc(HWINEVENTHOOK,
+                                       DWORD,
+                                       HWND,
+                                       LONG idObject,
+                                       LONG idChild,
+                                       DWORD,
+                                       DWORD) {
+    if (idObject != OBJID_WINDOW || idChild != CHILDID_SELF) {
+        return;
+    }
+
+    static DWORD s_lastRefreshTick = 0;
+    DWORD now = GetTickCount();
+    if (now - s_lastRefreshTick < 100) {
+        return;
+    }
+
+    s_lastRefreshTick = now;
+    RefreshTaskbarMaximizedLayerState();
+}
+
+void StopTaskbarStateHooks() {
+    if (g_taskbarForegroundEventHook) {
+        UnhookWinEvent(g_taskbarForegroundEventHook);
+        g_taskbarForegroundEventHook = nullptr;
+    }
+
+    if (g_taskbarLocationEventHook) {
+        UnhookWinEvent(g_taskbarLocationEventHook);
+        g_taskbarLocationEventHook = nullptr;
+    }
+
+    g_taskbarMaximizedLayerActive.store(false);
+    RefreshTaskbarRuntimeBgBrushVariablesForAllThreads();
+}
+
+void StartTaskbarStateHooks() {
+    if (!g_settings.maximizedTaskbarLayer) {
+        StopTaskbarStateHooks();
+        return;
+    }
+
+    if (!g_taskbarForegroundEventHook) {
+        g_taskbarForegroundEventHook = SetWinEventHook(
+            EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr,
+            TaskbarStateWinEventProc, 0, 0, WINEVENT_OUTOFCONTEXT);
+    }
+
+    if (!g_taskbarLocationEventHook) {
+        g_taskbarLocationEventHook = SetWinEventHook(
+            EVENT_OBJECT_LOCATIONCHANGE, EVENT_OBJECT_LOCATIONCHANGE, nullptr,
+            TaskbarStateWinEventProc, 0, 0, WINEVENT_OUTOFCONTEXT);
+    }
+
+    RefreshTaskbarMaximizedLayerState();
+}
+
 PTP_TIMER g_statsTimer;
 
 bool StartStatsTimer() {
@@ -12887,6 +13168,43 @@ void StopStatsTimer() {
     }
 }
 
+int ClampPercent(int value, int fallback) {
+    if (value < 0 || value > 100) {
+        return fallback;
+    }
+
+    return value;
+}
+
+int ClampBlurAmount(int value, int fallback) {
+    if (value < 0) {
+        return fallback;
+    }
+
+    if (value > 100) {
+        return 100;
+    }
+
+    return value;
+}
+
+int GetIntSettingOrDefault(PCWSTR key, int fallback) {
+    PCWSTR value = Wh_GetStringSetting(key);
+    if (!value || !*value) {
+        if (value) {
+            Wh_FreeStringSetting(value);
+        }
+        return fallback;
+    }
+
+    wchar_t* end = nullptr;
+    long parsed = wcstol(value, &end, 10);
+    bool parsedSuccessfully = end && end != value;
+    Wh_FreeStringSetting(value);
+
+    return parsedSuccessfully ? static_cast<int>(parsed) : fallback;
+}
+
 void LoadSettings() {
     PCWSTR xamlDiagnosticsHandling =
         Wh_GetStringSetting(L"xamlDiagnosticsHandling");
@@ -12897,6 +13215,13 @@ void LoadSettings() {
         g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAllow;
     }
     Wh_FreeStringSetting(xamlDiagnosticsHandling);
+
+    g_settings.maximizedTaskbarLayer =
+        GetIntSettingOrDefault(L"maximizedTaskbarLayer", 1) != 0;
+    g_settings.maximizedLayerOpacity =
+        ClampPercent(GetIntSettingOrDefault(L"maximizedLayerOpacity", 72), 72);
+    g_settings.maximizedLayerBlur =
+        ClampBlurAmount(GetIntSettingOrDefault(L"maximizedLayerBlur", 24), 24);
 }
 
 BOOL Wh_ModInit() {
@@ -12966,6 +13291,8 @@ void Wh_ModAfterInit() {
     if (initialize) {
         InitializeSettingsAndTap();
     }
+
+    StartTaskbarStateHooks();
 }
 
 void Wh_ModUninit() {
@@ -12983,6 +13310,7 @@ void Wh_ModUninit() {
     }
 
     StopStatsTimer();
+    StopTaskbarStateHooks();
 
     UninitializeSettingsAndTap();
 
@@ -13072,4 +13400,6 @@ void Wh_ModSettingsChanged() {
     if (initialize) {
         InitializeSettingsAndTap();
     }
+
+    StartTaskbarStateHooks();
 }
