@@ -2,7 +2,7 @@
 // @id              zen-notificationcenter-acrylic
 // @name            ZenDesktop: Notification Center Acrylic Styler
 // @description     Premium acrylic/frosted glass notification center and quick settings. Based on m417z Notification Center Styler.
-// @version         3.4.0
+// @version         3.5.0
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
 // @twitter         https://twitter.com/m417z
@@ -331,7 +331,9 @@ from the **TranslucentTB** project.
   - TranslucentShell: "自定义玻璃 (Custom Glass)"
   - WindowGlass: "白毛玻璃 - 经典 [Legacy]"
   - TintedGlass: "黑毛玻璃 - 经典 [Legacy]"
-  - LiquidGlass: "液态玻璃 (Liquid Glass)"
+  - LiquidGlass: "液态玻璃 - 原版 (Liquid Glass Original)"
+  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
+  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
 - bgColorMode: "Default"
   $name: "🎨 背景颜色 (Color Preset)"
   $description: >-
@@ -2057,9 +2059,20 @@ const Theme g_themeLiquidGlass = {{
     ThemeTargetStyles{L"Grid#ControlCenterRegion", {
         L"Background := $Background",
         L"CornerRadius = $CornerRadius",
-        L"BorderThickness = 0,0,0,0",
+        L"BorderThickness = $BorderThickness",
+        L"BorderBrush := $BorderBrush",
         L"Shadow :=",
         L"Margin = 0,0,0,-6"}},
+    ThemeTargetStyles{L"Grid#L1Grid", {
+        L"Background := $Background",
+        L"CornerRadius = $CornerRadius",
+        L"BorderThickness = $BorderThickness",
+        L"BorderBrush := $BorderBrush",
+        L"Shadow :="}},
+    ThemeTargetStyles{L"Grid#L1Grid > Border", {
+        L"Background := Transparent",
+        L"BorderBrush := Transparent",
+        L"BorderThickness = 0"}},
     ThemeTargetStyles{L"ContentPresenter#PageContent", {
         L"Background := Transparent",
         L"Shadow :="}},
@@ -2104,6 +2117,83 @@ const Theme g_themeLiquidGlass = {{
         L"CornerRadius = $ElementCornerRadius",
         L"Margin = 4,0,-4,0",
         L"BorderThickness = 0"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton", {
+        L"CornerRadius = $ElementCornerRadius"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton#ToggleButton", {
+        L"Background := $ElementBackground",
+        L"BorderBrush := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius",
+        L"FocusVisualPrimaryThickness = 0",
+        L"FocusVisualSecondaryThickness = 0"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton#SplitL2Button", {
+        L"Background := $ElementBackground",
+        L"BorderBrush := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius",
+        L"FocusVisualPrimaryThickness = 0",
+        L"FocusVisualSecondaryThickness = 0"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton > ContentPresenter#ContentPresenter@CommonStates", {
+        L"Background@Normal := $ElementBackground",
+        L"Background@PointerOver := $AccentBackground",
+        L"Background@Pressed := $ElementBackground2",
+        L"Background@Checked := $AccentBackground",
+        L"Background@CheckedPointerOver := $AccentBackground",
+        L"Background@CheckedPressed := $ElementBackground2",
+        L"BorderBrush@Normal := $ElementBorderBrush",
+        L"BorderBrush@PointerOver := $ElementBorderBrush",
+        L"BorderBrush@Pressed := $ElementBorderBrush",
+        L"BorderBrush@Checked := $ElementBorderBrush",
+        L"BorderBrush@CheckedPointerOver := $ElementBorderBrush",
+        L"BorderBrush@CheckedPressed := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius",
+        L"BackgroundTransition := <BrushTransition Duration=\"0:0:0.083\" />"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton#ToggleButton > Windows.UI.Xaml.Controls.ContentPresenter#ContentPresenter@CommonStates", {
+        L"Background@Normal := $ElementBackground",
+        L"Background@PointerOver := $AccentBackground",
+        L"Background@Pressed := $ElementBackground2",
+        L"Background@Checked := $AccentBackground",
+        L"Background@CheckedPointerOver := $AccentBackground",
+        L"Background@CheckedPressed := $ElementBackground2",
+        L"BorderBrush@Normal := $ElementBorderBrush",
+        L"BorderBrush@PointerOver := $ElementBorderBrush",
+        L"BorderBrush@Pressed := $ElementBorderBrush",
+        L"BorderBrush@Checked := $ElementBorderBrush",
+        L"BorderBrush@CheckedPointerOver := $ElementBorderBrush",
+        L"BorderBrush@CheckedPressed := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius",
+        L"BackgroundTransition := <BrushTransition Duration=\"0:0:0.083\" />"}},
+    ThemeTargetStyles{L"ControlCenter.PaginatedToggleButton#SplitL2Button > Windows.UI.Xaml.Controls.ContentPresenter#ContentPresenter@CommonStates", {
+        L"Background@Normal := $ElementBackground",
+        L"Background@PointerOver := $AccentBackground",
+        L"Background@Pressed := $ElementBackground2",
+        L"Background@Checked := $AccentBackground",
+        L"Background@CheckedPointerOver := $AccentBackground",
+        L"Background@CheckedPressed := $ElementBackground2",
+        L"BorderBrush@Normal := $ElementBorderBrush",
+        L"BorderBrush@PointerOver := $ElementBorderBrush",
+        L"BorderBrush@Pressed := $ElementBorderBrush",
+        L"BorderBrush@Checked := $ElementBorderBrush",
+        L"BorderBrush@CheckedPointerOver := $ElementBorderBrush",
+        L"BorderBrush@CheckedPressed := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius",
+        L"BackgroundTransition := <BrushTransition Duration=\"0:0:0.083\" />"}},
+    ThemeTargetStyles{L"ContentControl#SlidersGroup > Windows.UI.Xaml.Controls.ContentPresenter > Windows.UI.Xaml.Controls.GridView#RootGridView > Windows.UI.Xaml.Controls.Border > Windows.UI.Xaml.Controls.ScrollViewer#ScrollViewer > Windows.UI.Xaml.Controls.Border#Root > Windows.UI.Xaml.Controls.Grid", {
+        L"Background := $ElementBackground",
+        L"BorderBrush := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#FooterGrid", {
+        L"Background := $ElementBackground",
+        L"BorderBrush := $ElementBorderBrush",
+        L"BorderThickness = $ElementBorderThickness",
+        L"CornerRadius = $ElementCornerRadius"}},
+    ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid#FooterGrid > Windows.UI.Xaml.Controls.ItemsControl > Windows.UI.Xaml.Controls.ItemsPresenter > Windows.UI.Xaml.Controls.StackPanel > Windows.UI.Xaml.Controls.ContentPresenter > Windows.UI.Xaml.Controls.ItemsControl", {
+        L"Background := Transparent",
+        L"BorderBrush := Transparent"}},
     ThemeTargetStyles{L"Grid#NotificationCenterTopBanner", {
         L"Background := $ElementBackground",
         L"CornerRadius = $ElementCornerRadius",
@@ -2241,7 +2331,17 @@ const Theme g_themeLiquidGlass = {{
         L"BorderThickness = $ElementBorderThickness",
         L"BorderBrush := $ElementBorderBrush"}},
     ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid > Windows.UI.Xaml.Controls.Border#ItemOpaquePlating", {
-        L"Background := $ElementBackground2",
+        L"Background := $ElementBackground",
+        L"CornerRadius = $ElementCornerRadius",
+        L"BorderThickness = $ElementBorderThickness",
+        L"BorderBrush := $ElementBorderBrush"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleItemView > Windows.UI.Xaml.Controls.Grid#MainGrid > Windows.UI.Xaml.Controls.Grid#ItemGrid > Windows.UI.Xaml.Controls.Grid > Windows.UI.Xaml.Controls.Border#ItemOpaquePlating", {
+        L"Background := $ElementBackground",
+        L"CornerRadius = $ElementCornerRadius",
+        L"BorderThickness = $ElementBorderThickness",
+        L"BorderBrush := $ElementBorderBrush"}},
+    ThemeTargetStyles{L"ActionCenter.GroupView > Windows.UI.Xaml.Controls.Grid#GroupGrid", {
+        L"Background := $ElementBackground",
         L"CornerRadius = $ElementCornerRadius",
         L"BorderThickness = $ElementBorderThickness",
         L"BorderBrush := $ElementBorderBrush"}},
@@ -2270,6 +2370,7 @@ const Theme g_themeLiquidGlass = {{
         L"Height = 18"}},
     ThemeTargetStyles{L"ActionCenter.NotificationListViewItem", {
         L"Margin = 5,2,5,3",
+        L"CornerRadius = $ElementCornerRadius",
         L"BorderThickness = $ElementBorderThickness",
         L"BorderBrush := $ElementBorderBrush"}},
     ThemeTargetStyles{L"Windows.UI.Xaml.Controls.Grid[AutomationProperties.LocalizedLandmarkType = Footer]", {
@@ -2296,8 +2397,8 @@ const Theme g_themeLiquidGlass = {{
     L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50808080\" Offset=\"1\" /><GradientStop Color=\"#50606060\" Offset=\"0.15\" /></LinearGradientBrush>",
     L"BorderThickness=0.3,1,0.3,0.3",
     L"ElementBorderThickness=0.3,0.3,0.3,1",
-    L"CornerRadius = 12",
-    L"ElementCornerRadius = 8",
+    L"CornerRadius = 20",
+    L"ElementCornerRadius = 10",
 }};
 
 const Theme g_themeBetterControl11 = {{
@@ -8571,6 +8672,36 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeFluid;
     } else if (wcscmp(themeName, L"LiquidGlass") == 0) {
         theme = &g_themeLiquidGlass;
+    } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0) {
+        theme = &g_themeLiquidGlass;
+        overrideStyleConstants = {
+            L"transparent=Transparent",
+            L"Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
+            L"ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
+            L"AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
+            L"ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
+            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#66FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#22FF3B30\" Offset=\"0.03\" /><GradientStop Color=\"#18FF9500\" Offset=\"0.07\" /><GradientStop Color=\"#1834C759\" Offset=\"0.12\" /><GradientStop Color=\"#22007AFF\" Offset=\"0.18\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.25\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.82\" /><GradientStop Color=\"#24000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#24FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#12000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"BorderThickness=1.1",
+            L"ElementBorderThickness=0.2,0.2,0.2,0.5",
+            L"CornerRadius=20",
+            L"ElementCornerRadius=10",
+        };
+    } else if (wcscmp(themeName, L"AppleLiquidGlassClassic") == 0) {
+        theme = &g_themeLiquidGlass;
+        overrideStyleConstants = {
+            L"transparent=Transparent",
+            L"Background=<WindhawkBlur BlurAmount=\"24\" TintColor=\"#E8FFFFFF\" TintOpacity=\"0.18\" TintSaturation=\"1.7\" FallbackColor=\"#30FFFFFF\" />",
+            L"ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#D8FFFFFF\" TintOpacity=\"0.22\" />",
+            L"AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.18\" />",
+            L"ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#C8FFFFFF\" TintOpacity=\"0.12\" />",
+            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#85FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#22FFFFFF\" Offset=\"0.25\" /><GradientStop Color=\"#1834C759\" Offset=\"0.5\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.75\" /><GradientStop Color=\"#35000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#35FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#18000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"BorderThickness=1.1",
+            L"ElementBorderThickness=0.3,0.3,0.3,0.7",
+            L"CornerRadius=18",
+            L"ElementCornerRadius=10",
+        };
     } else if (wcscmp(themeName, L"BetterControl11") == 0) {
         theme = &g_themeBetterControl11;
     } else if (wcscmp(themeName, L"LayerMicaUI") == 0) {
