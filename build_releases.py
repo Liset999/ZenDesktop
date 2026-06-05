@@ -10,6 +10,7 @@ common_files = [
     'local@zen-explorer-context-menu.wh.cpp',
     'local@zen-explorer-system-menu.wh.cpp',
     'ZenDesktopCustomizer.py',
+    'run_customizer.bat',
     'deploy.bat',
     'deploy.ps1',
     'Readme.txt',
