@@ -6,6 +6,10 @@ common_files = [
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
+    'local@zen-fileexplorer-acrylic.wh.cpp',
+    'local@zen-explorer-context-menu.wh.cpp',
+    'local@zen-explorer-system-menu.wh.cpp',
+    'ZenDesktopCustomizer.py',
     'deploy.bat',
     'deploy.ps1',
     'Readme.txt',
@@ -14,9 +18,9 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v3.4.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v3.4.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v3.4.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v3.8.0.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v3.8.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v3.8.0_Online.zip': common_files
 }
 
 # Ensure we extract the offline installer first
