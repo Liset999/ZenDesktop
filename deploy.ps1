@@ -183,8 +183,95 @@ foreach ($file in $files) {
     Set-ItemProperty -Path $regPath -Name "Exclude" -Value "" -Type String
     Set-ItemProperty -Path $regPath -Name "Architecture" -Value $arch -Type String
     Set-ItemProperty -Path $regPath -Name "Version" -Value $version -Type String
-    Set-ItemProperty -Path $regPath -Name "LibraryFileName" -Value "" -Type String # Empty string triggers immediate recompile
-    
+    Set-ItemProperty -Path $regPath -Name "LibraryFileName" -Value "" -Type String # Empty string lets Windhawk compile from the platform/UI
+
+    if ($id -eq "local@zen-taskbar-acrylic") {
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+
+        $currentTheme = $null
+        try {
+            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
+        } catch {
+            $currentTheme = $null
+        }
+
+        if ([string]::IsNullOrWhiteSpace($currentTheme)) {
+            Write-Status "         [Settings] Repairing empty taskbar theme -> TranslucentTaskbar" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "TranslucentTaskbar" -Type String
+        }
+    }
+
+    if ($id -eq "local@zen-fileexplorer-acrylic") {
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+
+        $settings = Get-ItemProperty -Path $settingsPath -ErrorAction SilentlyContinue
+        $settingNames = @($settings.PSObject.Properties.Name)
+
+        if (-not ($settingNames -contains "zenCustomColorMode")) {
+            Set-ItemProperty -Path $settingsPath -Name "zenCustomColorMode" -Value "Default" -Type String
+        }
+        if (-not ($settingNames -contains "zenCustomTintOpacity")) {
+            Set-ItemProperty -Path $settingsPath -Name "zenCustomTintOpacity" -Value 0 -Type DWord
+        }
+        if (-not ($settingNames -contains "zenWholeWindowAlpha")) {
+            Set-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha" -Value 0 -Type DWord
+        } else {
+            $val = (Get-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha").zenWholeWindowAlpha
+            if ($val -gt 50) {
+                $newVal = 100 - $val
+                Set-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha" -Value $newVal -Type DWord
+            }
+        }
+
+        $currentTheme = $null
+        try {
+            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
+        } catch {
+            $currentTheme = $null
+        }
+
+        if ([string]::IsNullOrWhiteSpace($currentTheme) -or
+            $currentTheme -eq "WindowGlass" -or
+            $currentTheme -eq "CustomLiquidGlass" -or
+            $currentTheme -eq "Mica" -or
+            $currentTheme -eq "MicaAlt" -or
+            $currentTheme -eq "MicaBar" -or
+            $currentTheme -eq "NoCommandBar" -or
+            $currentTheme -eq "Minimal Explorer11" -or
+            $currentTheme -eq "Tabless" -or
+            $currentTheme -eq "AddressSearchOnly" -or
+            $currentTheme -eq "Matter" -or
+            $currentTheme -eq "TintedGlass") {
+            Write-Status "         [Settings] Defaulting File Explorer -> CustomGlass (去文留图)" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "CustomGlass" -Type String
+        }
+    }
+
+    if ($id -eq "local@zen-explorer-context-menu") {
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+
+        $currentMode = $null
+        try {
+            $currentMode = (Get-ItemProperty -Path $settingsPath -Name "contextMenuMode" -ErrorAction SilentlyContinue).contextMenuMode
+        } catch {
+            $currentMode = $null
+        }
+
+        if ([string]::IsNullOrWhiteSpace($currentMode)) {
+            Write-Status "         [Settings] Defaulting Explorer context menu -> Windows11" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "contextMenuMode" -Value "Windows11" -Type String
+        }
+    }
+
     # Initialize ModsWritable runtime key
     $regWritablePath = "HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\$id"
     if (-not (Test-Path $regWritablePath)) {
@@ -216,7 +303,8 @@ Write-Status "   [SUCCESS] ZenDesktop deployed successfully!" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  1. Wait 10-20 seconds for the Windhawk service to automatically compile all 4 mods."
-Write-Host "  2. Open the Windhawk UI to verify all mods appear under 'Installed Mods' as active."
-Write-Host "  3. If visual styles do not instantly update, restart Windows Explorer."
+Write-Host "  1. Open the Windhawk UI and compile/save the changed mods from the platform."
+Write-Host "  2. Verify all mods appear under 'Installed Mods' as active."
+Write-Host "  3. If visual styles do not instantly update after compiling, restart Windows Explorer."
+Write-Host "  4. Explorer Context Menu Selector defaults to Windows 11 mode; choose ClassicFull in its settings only if you want the classic menu."
 Write-Host ""
