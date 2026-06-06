@@ -1,8 +1,8 @@
 ========================================================================
-             ZenDesktop Premium One-Key Deploy Package v4.0
+             ZenDesktop Premium One-Key Deploy Package v4.0.0
 ========================================================================
 
-欢迎使用 ZenDesktop 极简桌面美化套件 v4.0！本套件包含以下四个本地插件与一个外部透明增强程序：
+欢迎使用 ZenDesktop 极简桌面美化套件 v4.0.0！本套件包含以下四个本地插件与一个外部透明增强程序：
 1. ZenDesktop: Taskbar Acrylic Styler (精细化亚克力任务栏，支持多档透明度调节)
 2. ZenDesktop: Notification Center Acrylic Styler (精细化亚克力通知中心，Lanbo & m417z 联手共创)
 3. ZenDesktop: Start Menu Acrylic Styler (精细化亚克力开始菜单，支持多档透明度调节)
@@ -14,7 +14,7 @@
 本套件作者 Lanbo 专门为此设计和编写了“ZenDesktop 视觉控制中心”前端图形化配置页面 (ZenDesktopCustomizer.py)，使得用户可以更简单、更方便、更直观地一键启用、注销和调整所有的透明及玻璃美化效果。
 
 ========================================================================
-✨ v4.0 重磅更新说明：
+✨ v4.0.0 重磅更新说明：
 ========================================================================
 * 🆕 【资源管理器透明程序整合与前端控制面板】
   - 弃用了原有不稳定的 Windhawk 资源管理器透明 Mod，改为集成成熟的外部程序 ExplorerBlurMica (原作者: Maplespe)。

@@ -4,7 +4,7 @@
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium v4.0** is a high-performance desktop styling suite for Windows 11. It blends 4 native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, unified under a bespoke Python GUI frontend panel for real-time customizations with **zero background process bloat, zero UI lag, and 0% CPU overhead**.
+**ZenDesktop Premium v4.0.0** is a high-performance desktop styling suite for Windows 11. It blends 4 native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, unified under a bespoke Python GUI frontend panel for real-time customizations with **zero background process bloat, zero UI lag, and 0% CPU overhead**.
 
 [简体中文](#-简体中文) | [English](#-english-features)
 
@@ -68,7 +68,7 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 
 ## 🇨🇳 简体中文
 
-### 💎 v4.0 核心更新与优势
+### 💎 v4.0.0 核心更新与优势
 * **四合一 Mod + 资源管理器透明程序**：弃用了以前不稳定的 C++ 资源管理器插件，替换为更成熟稳定的外部程序 **ExplorerBlurMica** (原作者: **Maplespe**)。
 * **前端控制中心 (ZenDesktop Customizer)**：由 Lanbo 编写的前端面板，支持一键注册/注销 ExplorerBlurMica、打开高级编辑器以及调节其他 Windhawk 插件参数。
 * **双击隐藏状态保存**：改进了桌面图标隐藏 Mod，使其在重启系统或 Explorer 后依然可以记住并保持隐藏状态。
