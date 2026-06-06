@@ -7,8 +7,6 @@ common_files = [
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
     'local@zen-fileexplorer-acrylic.wh.cpp',
-    'local@zen-explorer-context-menu.wh.cpp',
-    'local@zen-explorer-system-menu.wh.cpp',
     'ZenDesktopCustomizer.py',
     'run_customizer.bat',
     'deploy.bat',
