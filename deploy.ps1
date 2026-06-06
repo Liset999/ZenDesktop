@@ -1,6 +1,6 @@
 # ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v4.0.0 - Dynamic Metadata & UI Cache Regeneration
+#  Refined v4.0 - Dynamic Metadata & UI Cache Regeneration
 # ============================================================
 $ErrorActionPreference = 'Stop'
 
@@ -10,7 +10,7 @@ function Write-Status ($text, $color = "Cyan") {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v4.0.0" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v4.0" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges

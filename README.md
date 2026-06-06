@@ -68,7 +68,7 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 
 ## 🇨🇳 简体中文
 
-### 💎 v4.0.0 核心更新与优势
+### 💎 v4.0 核心更新与优势
 * **四合一 Mod + 资源管理器透明程序**：弃用了以前不稳定的 C++ 资源管理器插件，替换为更成熟稳定的外部程序 **ExplorerBlurMica** (原作者: **Maplespe**)。
 * **前端控制中心 (ZenDesktop Customizer)**：由 Lanbo 编写的前端面板，支持一键注册/注销 ExplorerBlurMica、打开高级编辑器以及调节其他 Windhawk 插件参数。
 * **双击隐藏状态保存**：改进了桌面图标隐藏 Mod，使其在重启系统或 Explorer 后依然可以记住并保持隐藏状态。
