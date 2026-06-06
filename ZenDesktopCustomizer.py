@@ -35,8 +35,7 @@ class ZenCustomizerApp(ctk.CTk):
         self.mods = {
             "Taskbar": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic\Settings",
             "StartMenu": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic\Settings",
-            "NotificationCenter": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic\Settings",
-            "FileExplorer": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-fileexplorer-acrylic\Settings"
+            "NotificationCenter": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic\Settings"
         }
 
         self.setting_keys = {
@@ -57,13 +56,7 @@ class ZenCustomizerApp(ctk.CTk):
                 "blur": "blurPreset",
                 "opacity": "opacityPreset",
                 "luminosity": "luminosityPreset",
-            },
-            "FileExplorer": {
-                "color": "zenCustomColorMode",
-                "blur": "zenCustomBlurAmount",
-                "opacity": "zenCustomTintOpacity",
-                "luminosity": "zenCustomTintLuminosityOpacity",
-            },
+            }
         }
 
         self.setting_defaults = {
@@ -84,13 +77,7 @@ class ZenCustomizerApp(ctk.CTk):
                 "blur": 30,
                 "opacity": 50,
                 "luminosity": 100,
-            },
-            "FileExplorer": {
-                "color": "Default",
-                "blur": 18,
-                "opacity": 0,
-                "luminosity": 0,
-            },
+            }
         }
         
         # Color Options Mapping (English values in settings -> Chinese display names)
@@ -112,39 +99,6 @@ class ZenCustomizerApp(ctk.CTk):
         }
         self.color_options_en_to_cn = {v: k for k, v in self.color_options_cn_to_en.items()}
 
-        self.file_explorer_theme_options_cn_to_en = {
-            "去文留图": "CustomGlass",
-            "原版全透": "Translucent Explorer11",
-            "窗口玻璃": "WindowGlass",
-            "无图留文": "LiquidGlass",
-            "云母工具栏": "MicaBar",
-            "染色玻璃": "TintedGlass",
-            "关闭样式": "",
-        }
-        self.file_explorer_theme_options_en_to_cn = {
-            v: k for k, v in self.file_explorer_theme_options_cn_to_en.items()
-        }
-
-        self.file_explorer_effect_options_cn_to_en = {
-            "跟随主题默认": "",
-            "亚克力": "acrylic",
-            "云母": "mica",
-            "云母变体": "micaAlt",
-            "Windows 默认": "default",
-            "关闭通透": "none",
-        }
-        self.file_explorer_effect_options_en_to_cn = {
-            v: k for k, v in self.file_explorer_effect_options_cn_to_en.items()
-        }
-
-        self.file_explorer_coverage_options_cn_to_en = {
-            "整个窗口": "entireWindow",
-            "仅窗口框架": "",
-        }
-        self.file_explorer_coverage_options_en_to_cn = {
-            v: k for k, v in self.file_explorer_coverage_options_cn_to_en.items()
-        }
-        
         self.create_widgets()
         self.load_all_settings()
         
@@ -250,70 +204,84 @@ class ZenCustomizerApp(ctk.CTk):
         return dropdown
 
     def build_file_explorer_tab(self, parent_tab):
-        theme_dropdown = self.build_select_row(
-            parent_tab,
-            "资源管理器视觉风格 (Explorer Visual Style):",
-            list(self.file_explorer_theme_options_cn_to_en.keys()),
-            self.on_file_explorer_theme_changed
-        )
-        setattr(self, "dropdown_theme_FileExplorer", theme_dropdown)
+        # Title/Description for ExplorerBlurMica
+        info_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
+        info_frame.pack(fill="x", pady=15, padx=20)
 
-        coverage_dropdown = self.build_select_row(
-            parent_tab,
-            "透明范围 (Transparency Range):",
-            list(self.file_explorer_coverage_options_cn_to_en.keys()),
-            self.on_file_explorer_coverage_changed
-        )
-        setattr(self, "dropdown_coverage_FileExplorer", coverage_dropdown)
-
-        effect_dropdown = self.build_select_row(
-            parent_tab,
-            "窗口背景通透效果 (Backdrop Effect):",
-            list(self.file_explorer_effect_options_cn_to_en.keys()),
-            self.on_file_explorer_effect_changed
-        )
-        setattr(self, "dropdown_effect_FileExplorer", effect_dropdown)
-
-        divider = ctk.CTkFrame(parent_tab, height=2, fg_color="#333333")
-        divider.pack(fill="x", pady=6, padx=15)
-
-        self.build_tab("FileExplorer", parent_tab)
-
-        alpha_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        alpha_frame.pack(fill="x", pady=10, padx=15)
-
-        alpha_title_frame = ctk.CTkFrame(alpha_frame, fg_color="transparent")
-        alpha_title_frame.pack(fill="x")
-
-        lbl_alpha_title = ctk.CTkLabel(
-            alpha_title_frame,
-            text="整窗前景透明度 (Window Transparency):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
+        lbl_title = ctk.CTkLabel(
+            info_frame,
+            text="文件资源管理器透明 (ExplorerBlurMica)",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=15, weight="bold"),
+            text_color="#00D2FF",
             anchor="w"
         )
-        lbl_alpha_title.pack(side="left")
+        lbl_title.pack(fill="x", pady=2)
 
-        lbl_alpha_val = ctk.CTkLabel(
-            alpha_title_frame,
-            text="0%",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#00D2FF"
+        lbl_author = ctk.CTkLabel(
+            info_frame,
+            text="原作者: Maplespe (GitHub: Maplespe/ExplorerBlurMica)",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
+            text_color="#AAAAAA",
+            anchor="w"
         )
-        lbl_alpha_val.pack(side="right")
-        setattr(self, "lbl_window_alpha_val_FileExplorer", lbl_alpha_val)
+        lbl_author.pack(fill="x", pady=2)
 
-        alpha_slider = ctk.CTkSlider(
-            alpha_frame,
-            from_=0,
-            to=50,
-            number_of_steps=50,
-            progress_color="#00D2FF",
-            button_color="#00B2DF",
-            button_hover_color="#0092BF",
-            command=self.on_file_explorer_window_alpha_slider
+        lbl_desc = ctk.CTkLabel(
+            info_frame,
+            text="集成外部优秀的资源管理器背景透明/模糊增强程序。\n注意：此程序非本套件原创，本套件仅提供前端图形化快捷操作入口。",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
+            text_color="#CCCCCC",
+            justify="left",
+            anchor="w"
         )
-        alpha_slider.pack(fill="x", pady=6)
-        setattr(self, "window_alpha_slider_FileExplorer", alpha_slider)
+        lbl_desc.pack(fill="x", pady=6)
+
+        # Divider
+        divider = ctk.CTkFrame(parent_tab, height=2, fg_color="#333333")
+        divider.pack(fill="x", pady=10, padx=20)
+
+        # Buttons Frame
+        btn_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=15, padx=20)
+
+        # Button 1: Register / Enable
+        btn_register = ctk.CTkButton(
+            btn_frame,
+            text="注册/启用透明效果 (Register & Enable)",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
+            fg_color="#00D2FF",
+            hover_color="#00B2DF",
+            text_color="#000000",
+            height=40,
+            command=self.on_register_explorer_blur_mica
+        )
+        btn_register.pack(fill="x", pady=8)
+
+        # Button 2: Open Advanced Config Editor
+        btn_config = ctk.CTkButton(
+            btn_frame,
+            text="打开高级透明配置 (Configure ExplorerBlurMica)",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
+            fg_color="#2A2A2A",
+            hover_color="#3A3A3A",
+            border_width=1,
+            border_color="#555555",
+            height=40,
+            command=self.on_open_explorer_blur_mica_config
+        )
+        btn_config.pack(fill="x", pady=8)
+
+        # Button 3: Uninstall / Disable
+        btn_uninstall = ctk.CTkButton(
+            btn_frame,
+            text="注销/停用透明效果 (Uninstall & Disable)",
+            font=ctk.CTkFont(family="Microsoft YaHei", size=13),
+            fg_color="#A31C1C",
+            hover_color="#C22727",
+            height=35,
+            command=self.on_uninstall_explorer_blur_mica
+        )
+        btn_uninstall.pack(fill="x", pady=15)
 
     def build_tab(self, mod_key, parent_tab):
         # 1. Background Color Preset Dropdown
@@ -489,36 +457,6 @@ class ZenCustomizerApp(ctk.CTk):
             keys = self.setting_keys[mod_key]
             defaults = self.setting_defaults[mod_key]
 
-            if mod_key == "FileExplorer":
-                theme = self.get_reg_value(path, "theme", "CustomGlass")
-                theme_cn = self.file_explorer_theme_options_en_to_cn.get(
-                    theme, "去文留图"
-                )
-                self.dropdown_theme_FileExplorer.set(theme_cn)
-
-                coverage = self.get_reg_value(
-                    path, "backgroundTranslucentEffectRegion", "entireWindow"
-                )
-                coverage_cn = self.file_explorer_coverage_options_en_to_cn.get(
-                    coverage, "整个窗口"
-                )
-                self.dropdown_coverage_FileExplorer.set(coverage_cn)
-
-                effect = self.get_reg_value(path, "backgroundTranslucentEffect", "acrylic")
-                effect_cn = self.file_explorer_effect_options_en_to_cn.get(
-                    effect, "亚克力"
-                )
-                self.dropdown_effect_FileExplorer.set(effect_cn)
-
-                window_alpha = self.get_reg_value(path, "zenWholeWindowAlpha", 0)
-                if window_alpha > 50:
-                    window_alpha = 100 - window_alpha
-                    self.set_reg_value(path, "zenWholeWindowAlpha", window_alpha, is_dword=True)
-                self.window_alpha_slider_FileExplorer.set(window_alpha)
-                self.lbl_window_alpha_val_FileExplorer.configure(
-                    text=f"{int(window_alpha)}%"
-                )
-
             # 1. Color Preset
             color_preset = self.get_reg_value(path, keys["color"], defaults["color"])
             cn_preset = self.color_options_en_to_cn.get(color_preset, "主题默认")
@@ -543,40 +481,46 @@ class ZenCustomizerApp(ctk.CTk):
 
     # Live Event Handlers
     def ensure_file_explorer_diy_theme(self, mod_key):
-        if mod_key != "FileExplorer":
-            return
+        return
 
-        path = self.mods["FileExplorer"]
-        current_theme = self.get_reg_value(path, "theme", "CustomGlass")
-        if current_theme != "CustomGlass":
-            self.set_reg_value(path, "theme", "CustomGlass")
-            self.dropdown_theme_FileExplorer.set("去文留图")
+    def on_register_explorer_blur_mica(self):
+        import os
+        try:
+            import ctypes
+            script_path = os.path.abspath(os.path.join("ExplorerBlurMica", "register.cmd"))
+            if os.path.exists(script_path):
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", "cmd.exe", f"/c \"{script_path}\"", None, 1)
+                print("Requesting elevated register.cmd execution...")
+            else:
+                print("register.cmd not found at:", script_path)
+        except Exception as e:
+            print(f"Failed to register ExplorerBlurMica: {e}")
 
-    def on_file_explorer_theme_changed(self, value_cn):
-        value_en = self.file_explorer_theme_options_cn_to_en[value_cn]
-        path = self.mods["FileExplorer"]
-        self.set_reg_value(path, "theme", value_en)
-        print(f"File Explorer visual style changed to {value_en}")
+    def on_uninstall_explorer_blur_mica(self):
+        import os
+        try:
+            import ctypes
+            script_path = os.path.abspath(os.path.join("ExplorerBlurMica", "uninstall.cmd"))
+            if os.path.exists(script_path):
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", "cmd.exe", f"/c \"{script_path}\"", None, 1)
+                print("Requesting elevated uninstall.cmd execution...")
+            else:
+                print("uninstall.cmd not found at:", script_path)
+        except Exception as e:
+            print(f"Failed to uninstall ExplorerBlurMica: {e}")
 
-    def on_file_explorer_effect_changed(self, value_cn):
-        value_en = self.file_explorer_effect_options_cn_to_en[value_cn]
-        path = self.mods["FileExplorer"]
-        self.set_reg_value(path, "backgroundTranslucentEffect", value_en)
-        print(f"File Explorer backdrop effect changed to {value_en or 'theme default'}")
-
-    def on_file_explorer_coverage_changed(self, value_cn):
-        value_en = self.file_explorer_coverage_options_cn_to_en[value_cn]
-        path = self.mods["FileExplorer"]
-        self.set_reg_value(path, "backgroundTranslucentEffectRegion", value_en)
-        print(f"File Explorer transparency range changed to {value_en}")
-
-    def on_file_explorer_window_alpha_slider(self, value):
-        alpha_pct = int(value)
-        path = self.mods["FileExplorer"]
-        self.ensure_file_explorer_diy_theme("FileExplorer")
-        self.lbl_window_alpha_val_FileExplorer.configure(text=f"{alpha_pct}%")
-        self.set_reg_value(path, "zenWholeWindowAlpha", alpha_pct, is_dword=True)
-        print(f"File Explorer whole-window alpha updated to {alpha_pct}")
+    def on_open_explorer_blur_mica_config(self):
+        import os
+        import subprocess
+        try:
+            editor_path = os.path.abspath(os.path.join("ExplorerBlurMica", "config-editor-wpf.exe"))
+            if os.path.exists(editor_path):
+                subprocess.Popen(editor_path, cwd=os.path.abspath("ExplorerBlurMica"))
+                print("Launched ExplorerBlurMica configuration editor.")
+            else:
+                print("Configuration editor not found at:", editor_path)
+        except Exception as e:
+            print(f"Failed to open config editor: {e}")
 
     def on_color_preset_changed(self, mod_key, value_cn):
         value_en = self.color_options_cn_to_en[value_cn]
@@ -630,18 +574,13 @@ class ZenCustomizerApp(ctk.CTk):
         op_preset = self.get_reg_value(tb_path, "opacityPreset", 50)
         lum_preset = self.get_reg_value(tb_path, "luminosityPreset", 100)
         
-        for name in ["StartMenu", "NotificationCenter", "FileExplorer"]:
+        for name in ["StartMenu", "NotificationCenter"]:
             path = self.mods[name]
             keys = self.setting_keys[name]
             self.set_reg_value(path, keys["color"], color_preset)
             self.set_reg_value(path, keys["blur"], blur_preset, is_dword=True)
             self.set_reg_value(path, keys["opacity"], op_preset, is_dword=True)
             self.set_reg_value(path, keys["luminosity"], lum_preset, is_dword=True)
-            if name == "FileExplorer":
-                self.set_reg_value(path, "theme", "CustomGlass")
-                self.set_reg_value(path, "backgroundTranslucentEffectRegion", "entireWindow")
-                self.set_reg_value(path, "backgroundTranslucentEffect", "acrylic")
-                self.set_reg_value(path, "zenWholeWindowAlpha", 0, is_dword=True)
             
         # Reload in UI
         self.load_all_settings()

@@ -1,68 +1,75 @@
 ========================================================================
-             ZenDesktop Premium One-Key Deploy Package v3.4.0
+             ZenDesktop Premium One-Key Deploy Package v4.0
 ========================================================================
 
-欢迎使用 ZenDesktop 极简桌面美化套件！本套件包含以下四个本地插件：
+欢迎使用 ZenDesktop 极简桌面美化套件 v4.0！本套件包含以下四个本地插件与一个外部透明增强程序：
 1. ZenDesktop: Taskbar Acrylic Styler (精细化亚克力任务栏，支持多档透明度调节)
 2. ZenDesktop: Notification Center Acrylic Styler (精细化亚克力通知中心，Lanbo & m417z 联手共创)
 3. ZenDesktop: Start Menu Acrylic Styler (精细化亚克力开始菜单，支持多档透明度调节)
-4. ZenDesktop: Double Click to Hide Icons (双击桌面空白处智能隐藏/显示图标)
+4. ZenDesktop: Desktop Icon Toggle and Auto-Hide (双击切换图标，并可在重启后仍然保持隐藏状态)
+5. ExplorerBlurMica: 资源管理器透明 (由 Maplespe 开发的优秀外部程序，支持 Blur/Acrylic/Mica 效果)
+
+★ 特别说明：
+资源管理器透明程序 (ExplorerBlurMica) 并非本套件原创，其原作者为 GitHub 上的 Maplespe。
+本套件作者 Lanbo 专门为此设计和编写了“ZenDesktop 视觉控制中心”前端图形化配置页面 (ZenDesktopCustomizer.py)，使得用户可以更简单、更方便、更直观地一键启用、注销和调整所有的透明及玻璃美化效果。
 
 ========================================================================
-✨ v3.0.0 重磅更新：
+✨ v4.0 重磅更新说明：
 ========================================================================
-* 🆕 【亚克力通知中心重磅回归 (v3.0.0)】
-  - 携手 Windhawk 官方作者 m417z 深度共创 `local@zen-notificationcenter-acrylic.wh.cpp`。
-  - 完美适配 Windows 11 通知中心与操作中心，提供沉浸式高阶亚克力与毛玻璃透射效果。
-* 🆕 【桌面双击隐藏功能颠覆性重构】
-  - 【异步消息管道】：改用 `PostMessageW` 异步分发机制，彻底消除 Win32 消息循环导致的资源管理器（Explorer）假死挂起。
-  - 【全屏窗口守护】：当有游戏、视频或其他程序处于全屏状态时，自动屏蔽双击和隐藏判定，彻底杜绝误触。
-  - 【无延迟物理坐标拦截】：在隐藏桌面图标时瞬间记录物理光标坐标，完美过滤 `SysListView32` 隐藏时触发的系统级模拟 `WM_MOUSEMOVE` 闪烁。
-  - 【动态双击检测】：智能检测窗口的 `CS_DBLCLKS` 属性，不干涉任何有特殊双击逻辑的系统和第三方窗口。
-  - 【强健生命周期校验】：模块卸载时通过安全句柄多重校验机制，平滑销毁 subclass 子类化钩子，100% 避免因钩子悬空造成的资源管理器闪烁/崩溃。
-* 🆕 【一键部署脚本强健化重写】
-  - 调整停止服务的执行顺序，先强行 taskkill 终止 `windhawk.exe`，再 net stop 停止服务，彻底解决 Windhawk 服务因 Explorer 挂接而导致的 net stop 永久卡死问题。
-  - 自动重置 `LibraryFileName` 键值，确保每次部署都能强制 Windhawk 重新进行本地秒级编译，完美解决代码更新后加载旧缓存的问题。
-* 🆕 【Apple Liquid Glass 苹果晶莹流体玻璃主题】
-  - 拥有完美的 2px 圆角补偿对齐系统（外圆角 20px，内圆角 18px，子元素圆角 10px）。
-  - 五彩斑斓的斜向虹彩边缘（Linear 渐变，融合苹果官方红/橙/绿/蓝/紫五彩光泽），以及 3D Fresnel Specular 高光反射面。
-  - 极致清澈透明，去除任何浓重乳白色雾化感，背景及壁纸字字清晰、通透度爆表！
-* 🆕 【文字颜色模式 (Text Color Mode)】
-  - 彻底解决全透明/高透模式下，文字在白色背景（如浏览器、文件夹）前看不清的痛点！支持 Default / Force White / Force Dark Gray / System-aware 四种高反差对比选项。
+* 🆕 【资源管理器透明程序整合与前端控制面板】
+  - 弃用了原有不稳定的 Windhawk 资源管理器透明 Mod，改为集成成熟的外部程序 ExplorerBlurMica (原作者: Maplespe)。
+  - 在前端控制面板中新增了资源管理器透明的一键注册/启用、高级配置打开、一键注销/停用功能，极大降低了用户的使用门槛。
+* 🆕 【桌面双击隐藏重启保持状态】
+  - 改进了桌面图标隐藏插件，现在隐藏状态在系统重启或资源管理器重启后依然能完美保持。
+* 🆕 【前端 GUI 视觉调整与防抖集成】
+  - 内置了由 Lanbo 编写的 CustomTkinter 实时调色与个性化面板，所有设置实时保存，一键同步，性能极其优异。
 
 ========================================================================
-安装与部署指南（最简 2 步）：
+安装与部署指南（最简 3 步）：
 ========================================================================
 
-第一步：一键部署配置
+第一步：一键部署 Windhawk 插件
    鼠标右键点击 【deploy.bat】，选择【以管理员身份运行】 (Run as Administrator)。
    * 如果您的电脑上未安装 Windhawk，脚本会自动唤起安装程序，请按提示完成安装。
-   * 安装完成后，脚本会自动停止服务并极速导入全部 4 个本地美化 Mod 并完成配置。
+   * 脚本会自动停止服务并极速导入 4 个本地美化 Mod 并完成初始化配置。
 
-第二步：在 Windhawk 中激活与自定义
-   1. 打开 Windhawk 软件，您会看到 4 个本地插件正在后台自动编译（约 60 秒后编译完成并生效）。
-   2. 点击 Start Menu Acrylic Styler 插件的 Settings (设置) 按钮。
-   3. 在 "Text Color Mode" 下拉菜单中选择 【Force Dark Gray】（或 System-aware），点击 Save 保存。
-   4. 尽情享受丝滑、纯净、高可读性的全新亚克力桌面美化！
+第二步：在 Windhawk 中保存并编译
+   1. 打开 Windhawk 软件，您会看到 4 个已注册的本地插件（Taskbar, StartMenu, NotificationCenter, DesktopIconToggle）。
+   2. 依次进入各个插件的源码页面，点击右上角的【保存并编译】 (Save / Compile) 按钮。
+   3. 编译完成后，插件即刻被激活。
+
+第三步：使用视觉控制中心进行日常设置与资源管理器透明
+   1. 双击运行 【run_customizer.bat】 启动前端调色面板（首次运行会自动下载 customtkinter 依赖，请保持联网）。
+   2. 在“资源管理器”标签页中，点击【注册/启用透明效果】以开启窗口毛玻璃/亚克力背景（首次启用需要管理员授权）。
+   3. 点击【打开高级透明配置】可调用可视化编辑器调整资源管理器的模糊半径、颜色等。
+   4. 您还可以通过面板一键调整任务栏、开始菜单、通知中心的透明色、浓度、模糊等参数。
 
 ========================================================================
 文件说明：
 ========================================================================
-  windhawk_setup.exe                     - Windhawk 官方安装包（支持在线/离线，已安全内置本地编译器）
+  windhawk_setup.exe                     - Windhawk 官方在线安装包
+  windhawk_setup_offline.exe             - Windhawk 官方离线安装包 (仅离线包提供)
   deploy.bat                             - 一键自适应智能部署脚本（以管理员身份运行）
-  local@zen-taskbar-acrylic.wh.cpp             - 任务栏亚克力插件源码
-  local@zen-notificationcenter-acrylic.wh.cpp   - 通知中心亚克力插件源码 (NEW)
-  local@zen-startmenu-acrylic.wh.cpp           - 开始菜单亚克力插件源码
-  local@zen-desktop-toggle-icons.wh.cpp         - 双击隐藏图标插件源码
+  deploy.ps1                             - 部署脚本核心逻辑
+  ZenDesktopCustomizer.py                - 视觉控制中心前端面板 (由 Lanbo 编写)
+  run_customizer.bat                     - 视觉控制中心快捷启动入口
+  ExplorerBlurMica/                      - 资源管理器透明程序目录 (原作者: Maplespe)
+    ├─ ExplorerBlurMica.dll              - 透明效果核心 DLL 动态链接库
+    ├─ config-editor-wpf.exe            - 可视化透明设置编辑器
+    ├─ register.cmd                      - 注册并启用透明的脚本
+    └─ uninstall.cmd                     - 注销并还原透明的脚本
+  local@zen-taskbar-acrylic.wh.cpp       - 任务栏亚克力插件源码
+  local@zen-notificationcenter-acrylic.wh.cpp - 通知中心亚克力插件源码
+  local@zen-startmenu-acrylic.wh.cpp     - 开始菜单亚克力插件源码
+  local@zen-desktop-toggle-icons.wh.cpp   - 桌面图标切换与隐藏插件源码
   Readme.txt                             - 本说明文件
-========================================================================
-设计美学 & 优势：
-* 纯本地化编译，完全脱离官方服务器下载限制，即插即用。
-* 彻底解决 Windows 系统下的编码乱码 bug，所有选项整洁优雅。
-* 完美继承 Windows 11 原生亚克力（Acrylic）与毛玻璃微动特效，内存和 CPU 几乎 0 开销。
+  README.md                              - 仓库主页文件
 
+========================================================================
 特别鸣谢：
-1. 感谢原作者 m417z 创作的 Windhawk 任务栏、通知中心与开始菜单美化 Mod，为这些美化模块奠定了基础。
-2. 特别感谢 **ygzzfyh123** (提交 Pull Request #4)，他引入了最初的高性能 XamlBlurBrush 缓存机制，为我们丝滑的渲染引擎奠定了坚实的基础！
+========================================================================
+1. 感谢原作者 Maplespe 创作的开源项目 ExplorerBlurMica，为资源管理器提供极致的亚克力与 Mica 效果。
+2. 感谢 Windhawk 官方作者 m417z 创作的 Windhawk 各基础 Mod。
+3. 感谢 aubymori 创作的 Classic window behavior 基础 Mod。
 ========================================================================
 © 2026 Lanbo. All rights reserved.

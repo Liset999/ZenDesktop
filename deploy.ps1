@@ -204,54 +204,7 @@ foreach ($file in $files) {
         }
     }
 
-    if ($id -eq "local@zen-fileexplorer-acrylic") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
 
-        $settings = Get-ItemProperty -Path $settingsPath -ErrorAction SilentlyContinue
-        $settingNames = @($settings.PSObject.Properties.Name)
-
-        if (-not ($settingNames -contains "zenCustomColorMode")) {
-            Set-ItemProperty -Path $settingsPath -Name "zenCustomColorMode" -Value "Default" -Type String
-        }
-        if (-not ($settingNames -contains "zenCustomTintOpacity")) {
-            Set-ItemProperty -Path $settingsPath -Name "zenCustomTintOpacity" -Value 0 -Type DWord
-        }
-        if (-not ($settingNames -contains "zenWholeWindowAlpha")) {
-            Set-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha" -Value 0 -Type DWord
-        } else {
-            $val = (Get-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha").zenWholeWindowAlpha
-            if ($val -gt 50) {
-                $newVal = 100 - $val
-                Set-ItemProperty -Path $settingsPath -Name "zenWholeWindowAlpha" -Value $newVal -Type DWord
-            }
-        }
-
-        $currentTheme = $null
-        try {
-            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
-        } catch {
-            $currentTheme = $null
-        }
-
-        if ([string]::IsNullOrWhiteSpace($currentTheme) -or
-            $currentTheme -eq "WindowGlass" -or
-            $currentTheme -eq "CustomLiquidGlass" -or
-            $currentTheme -eq "Mica" -or
-            $currentTheme -eq "MicaAlt" -or
-            $currentTheme -eq "MicaBar" -or
-            $currentTheme -eq "NoCommandBar" -or
-            $currentTheme -eq "Minimal Explorer11" -or
-            $currentTheme -eq "Tabless" -or
-            $currentTheme -eq "AddressSearchOnly" -or
-            $currentTheme -eq "Matter" -or
-            $currentTheme -eq "TintedGlass") {
-            Write-Status "         [Settings] Defaulting File Explorer -> CustomGlass (去文留图)" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "CustomGlass" -Type String
-        }
-    }
 
     if ($id -eq "local@zen-explorer-context-menu") {
         $settingsPath = Join-Path $regPath "Settings"
