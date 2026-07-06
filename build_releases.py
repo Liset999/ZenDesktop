@@ -8,6 +8,8 @@ common_files = [
     'local@zen-desktop-toggle-icons.wh.cpp',
     'local@zen-stage-manager.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
+    'local@start-menu-size.wh.cpp',
+    'local@taskbar-background-helper.wh.cpp',
     'ExplorerBlurMica',
     'ZenDesktopCustomizer.py',
     'run_customizer.bat',
