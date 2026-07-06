@@ -38,6 +38,7 @@ std::mutex g_stagesMutex;
 UINT g_uShellHookMsg = 0;
 
 #define WM_APPBAR_CALLBACK (WM_USER + 101)
+#define WM_INITIALIZE_WINDOWS (WM_USER + 102)
 
 struct ACCENT_POLICY {
     int AccentState;
@@ -148,10 +149,11 @@ bool IsAppWindow(HWND hwnd) {
     
     // Class check to skip desktop and system components
     wchar_t className[256];
-    GetClassName(hwnd, className, 256);
-    if (wcscmp(className, L"Progman") == 0 || wcscmp(className, L"WorkerW") == 0 ||
-        wcscmp(className, L"Shell_TrayWnd") == 0 || wcscmp(className, L"Shell_SecondaryTrayWnd") == 0) {
-        return false;
+    if (GetClassName(hwnd, className, 256) > 0) {
+        if (wcscmp(className, L"Progman") == 0 || wcscmp(className, L"WorkerW") == 0 ||
+            wcscmp(className, L"Shell_TrayWnd") == 0 || wcscmp(className, L"Shell_SecondaryTrayWnd") == 0) {
+            return false;
+        }
     }
     
     // Must have some window text
@@ -275,6 +277,28 @@ void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
     g_stages.push_back(newStage);
 }
 
+void ActivateWindowInStage(HWND hwnd, const std::wstring& processName) {
+    HICON hIcon = GetWindowIcon(hwnd);
+    bool found = false;
+    {
+        std::lock_guard<std::mutex> lock(g_stagesMutex);
+        for (auto& stage : g_stages) {
+            auto it = std::find(stage.hwnds.begin(), stage.hwnds.end(), hwnd);
+            if (it != stage.hwnds.end()) {
+                stage.hwnds.erase(it);
+                stage.hwnds.push_back(hwnd);
+                stage.hIcon = hIcon;
+                found = true;
+                break;
+            }
+        }
+    }
+    
+    if (!found) {
+        AddWindowToStage(hwnd, processName);
+    }
+}
+
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
     if (IsAppWindow(hwnd)) {
         std::wstring processName = GetProcessName(hwnd);
@@ -354,6 +378,7 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 if (IsAppWindow(targetHwnd)) {
                     std::wstring processName = GetProcessName(targetHwnd);
                     Wh_Log(L"HSHELL_WINDOWACTIVATED: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                    ActivateWindowInStage(targetHwnd, processName);
                 }
                 break;
             }
@@ -369,6 +394,11 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             g_uShellHookMsg = RegisterWindowMessage(L"SHELLHOOK");
             RegisterShellHookWindow(hwnd);
             
+            PostMessage(hwnd, WM_INITIALIZE_WINDOWS, 0, 0);
+            return 0;
+        }
+
+        case WM_INITIALIZE_WINDOWS: {
             InitializeExistingWindows();
             return 0;
         }
