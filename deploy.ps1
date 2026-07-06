@@ -233,12 +233,14 @@ foreach ($file in $files) {
         }
     }
 
-    if ($id -eq "local@start-menu-size") {
+    if ($id -eq "local@zen-startmenu-acrylic") {
         $settingsPath = Join-Path $regPath "Settings"
         if (-not (Test-Path $settingsPath)) {
             New-Item -Path $settingsPath -Force | Out-Null
         }
 
+        # Sizing settings merged from the retired local@start-menu-size mod.
+        # A default of 0 means "use Windows / theme default" - users override via Windhawk UI.
         $defaults = @{
             "width" = 0
             "height" = 0
@@ -254,46 +256,8 @@ foreach ($file in $files) {
                 $val = $null
             }
             if ($val -eq $null) {
-                Write-Status "         [Settings] Defaulting Start Menu Size $key -> $($defaults[$key])" "Yellow"
+                Write-Status "         [Settings] Defaulting StartMenu Acrylic $key -> $($defaults[$key])" "Yellow"
                 Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
-            }
-        }
-    }
-
-    if ($id -eq "local@taskbar-background-helper") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        # Sub-keys for structured settings like color.red, styleForDarkMode.color.red, etc.
-        # Windhawk stores structured settings under flat registry paths or sub-registry-keys.
-        # For simplicity and robust default behavior, we set key settings:
-        $defaults = @{
-            "backgroundStyle" = "blur"
-            "color.red" = 0
-            "color.green" = 0
-            "color.blue" = 0
-            "color.accentColor" = 0
-            "color.transparency" = 255
-            "onlyWhenMaximized" = 0
-            "styleForDarkMode.use" = 0
-        }
-
-        foreach ($key in $defaults.Keys) {
-            $val = $null
-            try {
-                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
-            } catch {
-                $val = $null
-            }
-            if ($val -eq $null) {
-                Write-Status "         [Settings] Defaulting Taskbar Background Helper $key -> $($defaults[$key])" "Yellow"
-                if ($defaults[$key] -is [string]) {
-                    Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type String
-                } else {
-                    Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
-                }
             }
         }
     }
