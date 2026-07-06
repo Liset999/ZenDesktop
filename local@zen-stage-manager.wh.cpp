@@ -1,5 +1,5 @@
 // ==WindhawkMod==
-// @id           windows-stage-manager
+// @id           zen-stage-manager
 // @name         Stage Manager for Windows
 // @description  Replicates macOS Stage Manager workspace grouping and sidebar on Windows.
 // @version      0.1
@@ -14,8 +14,8 @@
 #include <vector>
 
 HWND g_hwndSidebar = NULL;
+// Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
-bool g_bExitThread = false;
 
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
@@ -41,11 +41,23 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
         NULL, NULL, wc.hInstance, NULL
     );
 
+    if (g_hwndSidebar == NULL) {
+        UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
+        return 0;
+    }
+
     MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
+    BOOL bRet;
+    while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0) {
+        if (bRet == -1) {
+            // handle error or exit
+            break;
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
     return 0;
 }
 
