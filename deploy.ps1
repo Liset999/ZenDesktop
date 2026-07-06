@@ -206,25 +206,6 @@ foreach ($file in $files) {
 
 
 
-    if ($id -eq "local@zen-explorer-context-menu") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        $currentMode = $null
-        try {
-            $currentMode = (Get-ItemProperty -Path $settingsPath -Name "contextMenuMode" -ErrorAction SilentlyContinue).contextMenuMode
-        } catch {
-            $currentMode = $null
-        }
-
-        if ([string]::IsNullOrWhiteSpace($currentMode)) {
-            Write-Status "         [Settings] Defaulting Explorer context menu -> Windows11" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "contextMenuMode" -Value "Windows11" -Type String
-        }
-    }
-
     if ($id -eq "local@zen-stage-manager") {
         $settingsPath = Join-Path $regPath "Settings"
         if (-not (Test-Path $settingsPath)) {
