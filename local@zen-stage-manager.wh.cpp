@@ -22,12 +22,87 @@ std::atomic<bool> g_bInitSuccess{ false };
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
 
+#define WM_APPBAR_CALLBACK (WM_USER + 101)
+
+struct ACCENT_POLICY {
+    int AccentState;
+    int AccentFlags;
+    int GradientColor;
+    int AnimationId;
+};
+
+struct WINDOWCOMPOSITIONATTRIBDATA {
+    int Attrib;
+    PVOID pvData;
+    int cbData;
+};
+
+typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
+
+void SetAcrylicEffect(HWND hwnd) {
+    HMODULE hUser = GetModuleHandle(L"user32.dll");
+    if (hUser) {
+        pfnSetWindowCompositionAttribute SetWindowCompositionAttribute =
+            (pfnSetWindowCompositionAttribute)GetProcAddress(hUser, "SetWindowCompositionAttribute");
+        if (SetWindowCompositionAttribute) {
+            ACCENT_POLICY accent = { 3, 2, 0x00FFFFFF, 0 }; // ACCENT_ENABLE_BLURBEHIND / Acrylic
+            WINDOWCOMPOSITIONATTRIBDATA data = { 19, &accent, sizeof(accent) }; // WCA_ACCENT_POLICY
+            SetWindowCompositionAttribute(hwnd, &data);
+        }
+    }
+}
+
+void PositionAppBar(HWND hwnd) {
+    APPBARDATA abd = { sizeof(abd) };
+    abd.hWnd = hwnd;
+    abd.uEdge = ABE_LEFT; // Default left docking
+    abd.rc.left = 0;
+    abd.rc.top = 0;
+    abd.rc.right = 80;
+    abd.rc.bottom = GetSystemMetrics(SM_CYSCREEN);
+
+    SHAppBarMessage(ABM_QUERYPOS, &abd);
+    SHAppBarMessage(ABM_SETPOS, &abd);
+
+    MoveWindow(hwnd, abd.rc.left, abd.rc.top,
+               abd.rc.right - abd.rc.left,
+               abd.rc.bottom - abd.rc.top, TRUE);
+}
+
+void RegisterAppBar(HWND hwnd) {
+    APPBARDATA abd = { sizeof(abd) };
+    abd.hWnd = hwnd;
+    abd.uCallbackMessage = WM_APPBAR_CALLBACK;
+    SHAppBarMessage(ABM_NEW, &abd);
+
+    PositionAppBar(hwnd);
+}
+
+void UnregisterAppBar(HWND hwnd) {
+    APPBARDATA abd = { sizeof(abd) };
+    abd.hWnd = hwnd;
+    SHAppBarMessage(ABM_REMOVE, &abd);
+}
+
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
+        case WM_CREATE:
+            RegisterAppBar(hwnd);
+            SetAcrylicEffect(hwnd);
+            return 0;
+
         case WM_DESTROY:
+            UnregisterAppBar(hwnd);
             g_hwndSidebar.store(NULL);
             PostQuitMessage(0);
             return 0;
+
+        case WM_APPBAR_CALLBACK:
+            if (wp == ABN_POSCHANGED) {
+                PositionAppBar(hwnd);
+                return 0;
+            }
+            break;
     }
     return DefWindowProc(hwnd, msg, wp, lp);
 }
