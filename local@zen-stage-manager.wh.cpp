@@ -4,7 +4,7 @@
 // @description  Replicates macOS Stage Manager workspace grouping and sidebar on Windows.
 // @version      0.1
 // @author       ZenDesktop Developer
-// @compilerOptions -ldwmapi -lshell32 -luser32 -lgdi32
+// @compilerOptions -ldwmapi -lshell32 -luser32 -lgdi32 -ld2d1 -lwindowscodecs -lole32
 // @include      explorer.exe
 // ==/WindhawkMod==
 
@@ -17,6 +17,8 @@
 #include <string>
 #include <mutex>
 #include <algorithm>
+#include <d2d1.h>
+#include <wincodec.h>
 
 std::atomic<HWND> g_hwndSidebar{ NULL };
 std::atomic<bool> g_bInitDone{ false };
@@ -36,6 +38,214 @@ struct WindowStage {
 std::vector<WindowStage> g_stages;
 std::mutex g_stagesMutex;
 UINT g_uShellHookMsg = 0;
+
+std::vector<HTHUMBNAIL> g_activeThumbnails;
+
+ID2D1Factory* g_pD2DFactory = nullptr;
+ID2D1HwndRenderTarget* g_pRenderTarget = nullptr;
+ID2D1SolidColorBrush* g_pCardBgBrush = nullptr;
+ID2D1SolidColorBrush* g_pCardOutlineBrush = nullptr;
+ID2D1SolidColorBrush* g_pShadowBrush = nullptr;
+ID2D1SolidColorBrush* g_pBadgeBgBrush = nullptr;
+IWICImagingFactory* g_pWICFactory = nullptr;
+
+void ClearThumbnails() {
+    for (HTHUMBNAIL hThumb : g_activeThumbnails) {
+        DwmUnregisterThumbnail(hThumb);
+    }
+    g_activeThumbnails.clear();
+}
+
+void UpdateThumbnails(HWND hwndSidebar) {
+    ClearThumbnails();
+    
+    std::lock_guard<std::mutex> lock(g_stagesMutex);
+    int yOffset = 20;
+    for (size_t i = 0; i < g_stages.size() && i < 5; ++i) {
+        if (g_stages[i].hwnds.empty()) continue;
+        HWND target = g_stages[i].hwnds.back(); // Top window
+        
+        HTHUMBNAIL hThumb = nullptr;
+        if (SUCCEEDED(DwmRegisterThumbnail(hwndSidebar, target, &hThumb))) {
+            DWM_THUMBNAIL_PROPERTIES dpr = { 0 };
+            dpr.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY;
+            dpr.fVisible = TRUE;
+            dpr.opacity = 240;
+            
+            size_t winCount = g_stages[i].hwnds.size();
+            if (winCount > 1) {
+                dpr.rcDestination = RECT{ 16, yOffset + 6, 68, yOffset + 48 };
+            } else {
+                dpr.rcDestination = RECT{ 12, yOffset + 2, 68, yOffset + 48 };
+            }
+            
+            DwmUpdateThumbnailProperties(hThumb, &dpr);
+            g_activeThumbnails.push_back(hThumb);
+        }
+        yOffset += 80;
+    }
+}
+
+void DiscardDeviceResources() {
+    if (g_pRenderTarget) { g_pRenderTarget->Release(); g_pRenderTarget = nullptr; }
+    if (g_pCardBgBrush) { g_pCardBgBrush->Release(); g_pCardBgBrush = nullptr; }
+    if (g_pCardOutlineBrush) { g_pCardOutlineBrush->Release(); g_pCardOutlineBrush = nullptr; }
+    if (g_pShadowBrush) { g_pShadowBrush->Release(); g_pShadowBrush = nullptr; }
+    if (g_pBadgeBgBrush) { g_pBadgeBgBrush->Release(); g_pBadgeBgBrush = nullptr; }
+}
+
+void InitD2DAndWIC() {
+    if (!g_pD2DFactory) {
+        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+    }
+    if (!g_pWICFactory) {
+        CoCreateInstance(
+            CLSID_WICImagingFactory,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&g_pWICFactory)
+        );
+    }
+}
+
+void CleanupD2DAndWIC() {
+    DiscardDeviceResources();
+    if (g_pD2DFactory) { g_pD2DFactory->Release(); g_pD2DFactory = nullptr; }
+    if (g_pWICFactory) { g_pWICFactory->Release(); g_pWICFactory = nullptr; }
+}
+
+HRESULT CreateDeviceResources(HWND hwnd) {
+    HRESULT hr = S_OK;
+    if (!g_pRenderTarget) {
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+        hr = g_pD2DFactory->CreateHwndRenderTarget(
+            D2D1::RenderTargetProperties(
+                D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+            ),
+            D2D1::HwndRenderTargetProperties(hwnd, size),
+            &g_pRenderTarget
+        );
+        if (SUCCEEDED(hr)) {
+            hr = g_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(D2D1::ColorF::White, 0.15f),
+                &g_pCardBgBrush
+            );
+            if (SUCCEEDED(hr)) {
+                hr = g_pRenderTarget->CreateSolidColorBrush(
+                    D2D1::ColorF(D2D1::ColorF::White, 0.35f),
+                    &g_pCardOutlineBrush
+                );
+            }
+            if (SUCCEEDED(hr)) {
+                hr = g_pRenderTarget->CreateSolidColorBrush(
+                    D2D1::ColorF(D2D1::ColorF::Black, 0.25f),
+                    &g_pShadowBrush
+                );
+            }
+        }
+    }
+    return hr;
+}
+
+void DrawHIcon(ID2D1HwndRenderTarget* pRT, HICON hIcon, float x, float y, float width, float height) {
+    if (!hIcon || !g_pWICFactory) return;
+    
+    IWICBitmap* pWICBitmap = nullptr;
+    HRESULT hr = g_pWICFactory->CreateBitmapFromHICON(hIcon, &pWICBitmap);
+    if (SUCCEEDED(hr)) {
+        ID2D1Bitmap* pD2D1Bitmap = nullptr;
+        hr = pRT->CreateBitmapFromWicBitmap(pWICBitmap, nullptr, &pD2D1Bitmap);
+        if (SUCCEEDED(hr)) {
+            D2D1_RECT_F rect = D2D1::RectF(x, y, x + width, y + height);
+            pRT->DrawBitmap(pD2D1Bitmap, rect);
+            pD2D1Bitmap->Release();
+        }
+        pWICBitmap->Release();
+    }
+}
+
+void OnPaint(HWND hwnd) {
+    InitD2DAndWIC();
+    HRESULT hr = CreateDeviceResources(hwnd);
+    if (SUCCEEDED(hr)) {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        g_pRenderTarget->BeginDraw();
+        
+        g_pRenderTarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+        
+        if (!g_pBadgeBgBrush && g_pRenderTarget) {
+            g_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(0.1f, 0.1f, 0.1f, 0.85f),
+                &g_pBadgeBgBrush
+            );
+        }
+        
+        std::lock_guard<std::mutex> lock(g_stagesMutex);
+        int yOffset = 20;
+        for (size_t i = 0; i < g_stages.size() && i < 5; ++i) {
+            if (g_stages[i].hwnds.empty()) continue;
+            
+            size_t winCount = g_stages[i].hwnds.size();
+            
+            if (winCount > 1) {
+                if (winCount >= 3) {
+                    D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
+                        D2D1::RectF(10.0f, static_cast<float>(yOffset), 66.0f, static_cast<float>(yOffset + 46)),
+                        6.0f, 6.0f
+                    );
+                    g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
+                    g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.0f);
+                }
+                D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
+                    D2D1::RectF(12.0f, static_cast<float>(yOffset + 2), 68.0f, static_cast<float>(yOffset + 48)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
+                g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.0f);
+                
+                D2D1_ROUNDED_RECT frontRrect = D2D1::RoundedRect(
+                    D2D1::RectF(14.0f, static_cast<float>(yOffset + 4), 70.0f, static_cast<float>(yOffset + 50)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&frontRrect, g_pCardBgBrush);
+                g_pRenderTarget->DrawRoundedRectangle(&frontRrect, g_pCardOutlineBrush, 1.5f);
+            } else {
+                D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
+                    D2D1::RectF(10.0f, static_cast<float>(yOffset), 70.0f, static_cast<float>(yOffset + 50)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
+                g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.5f);
+            }
+            
+            D2D1_ELLIPSE badge = D2D1::Ellipse(
+                D2D1::Point2F(14.0f, static_cast<float>(yOffset + 4)),
+                11.0f,
+                11.0f
+            );
+            if (g_pBadgeBgBrush) {
+                g_pRenderTarget->FillEllipse(&badge, g_pBadgeBgBrush);
+            }
+            g_pRenderTarget->DrawEllipse(&badge, g_pCardOutlineBrush, 1.0f);
+            
+            if (g_stages[i].hIcon) {
+                DrawHIcon(g_pRenderTarget, g_stages[i].hIcon, 6.0f, static_cast<float>(yOffset - 4), 16.0f, 16.0f);
+            }
+            
+            yOffset += 80;
+        }
+        
+        hr = g_pRenderTarget->EndDraw();
+        if (hr == D2DERR_RECREATE_TARGET) {
+            DiscardDeviceResources();
+        }
+        EndPaint(hwnd, &ps);
+    }
+}
 
 #define WM_APPBAR_CALLBACK (WM_USER + 101)
 #define WM_INITIALIZE_WINDOWS (WM_USER + 102)
@@ -387,6 +597,8 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     std::wstring processName = GetProcessName(targetHwnd);
                     AddWindowToStage(targetHwnd, processName);
                     Wh_Log(L"HSHELL_WINDOWCREATED: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                    UpdateThumbnails(hwnd);
+                    InvalidateRect(hwnd, NULL, TRUE);
                 }
                 break;
             }
@@ -395,6 +607,8 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     std::wstring processName = GetProcessName(targetHwnd);
                     AddWindowToStage(targetHwnd, processName);
                     Wh_Log(L"HSHELL_REDRAW: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                    UpdateThumbnails(hwnd);
+                    InvalidateRect(hwnd, NULL, TRUE);
                 }
                 break;
             }
@@ -437,6 +651,8 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                         }
                     }
                 }
+                UpdateThumbnails(hwnd);
+                InvalidateRect(hwnd, NULL, TRUE);
                 break;
             }
             case HSHELL_WINDOWACTIVATED: {
@@ -444,6 +660,8 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     std::wstring processName = GetProcessName(targetHwnd);
                     Wh_Log(L"HSHELL_WINDOWACTIVATED: HWND=%p, Process=%s", targetHwnd, processName.c_str());
                     ActivateWindowInStage(targetHwnd, processName);
+                    UpdateThumbnails(hwnd);
+                    InvalidateRect(hwnd, NULL, TRUE);
                 }
                 break;
             }
@@ -465,10 +683,30 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 
         case WM_INITIALIZE_WINDOWS: {
             InitializeExistingWindows();
+            UpdateThumbnails(hwnd);
+            InvalidateRect(hwnd, NULL, TRUE);
+            return 0;
+        }
+
+        case WM_SIZE: {
+            if (g_pRenderTarget) {
+                RECT rc;
+                GetClientRect(hwnd, &rc);
+                D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+                g_pRenderTarget->Resize(size);
+            }
+            InvalidateRect(hwnd, NULL, TRUE);
+            return 0;
+        }
+
+        case WM_PAINT: {
+            OnPaint(hwnd);
             return 0;
         }
 
         case WM_DESTROY: {
+            ClearThumbnails();
+            CleanupD2DAndWIC();
             DeregisterShellHookWindow(hwnd);
             UnregisterAppBar(hwnd);
             
@@ -493,6 +731,8 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 DWORD WINAPI UIThreadProc(LPVOID lpParam) {
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = SidebarWndProc;
     wc.hInstance = GetModuleHandle(NULL);
@@ -500,12 +740,14 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
     UnregisterClass(wc.lpszClassName, wc.hInstance);
     if (!RegisterClass(&wc)) {
         g_bInitDone.store(true);
+        CoUninitialize();
         return 0;
     }
 
     if (g_bExitRequest.load()) {
         g_bInitDone.store(true);
         UnregisterClass(wc.lpszClassName, wc.hInstance);
+        CoUninitialize();
         return 0;
     }
 
@@ -525,12 +767,14 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
         }
         g_bInitDone.store(true);
         UnregisterClass(wc.lpszClassName, wc.hInstance);
+        CoUninitialize();
         return 0;
     }
 
     if (hwnd == NULL) {
         g_bInitDone.store(true);
         UnregisterClass(wc.lpszClassName, wc.hInstance);
+        CoUninitialize();
         return 0;
     }
 
@@ -552,6 +796,7 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
         DestroyWindow(hwndRemaining);
     }
     UnregisterClass(wc.lpszClassName, wc.hInstance);
+    CoUninitialize();
     return 0;
 }
 
