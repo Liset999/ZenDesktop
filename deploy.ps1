@@ -254,6 +254,33 @@ foreach ($file in $files) {
         }
     }
 
+    if ($id -eq "local@macos-minimize-animation") {
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+
+        $defaults = @{
+            "duration_ms" = 450
+            "open_animation" = 1
+            "launch_animation" = 0
+            "multi_monitor" = 0
+        }
+
+        foreach ($key in $defaults.Keys) {
+            $val = $null
+            try {
+                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
+            } catch {
+                $val = $null
+            }
+            if ($val -eq $null) {
+                Write-Status "         [Settings] Defaulting macOS Genie $key -> $($defaults[$key])" "Yellow"
+                Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
+            }
+        }
+    }
+
     # Initialize ModsWritable runtime key
     $regWritablePath = "HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\$id"
     if (-not (Test-Path $regWritablePath)) {
