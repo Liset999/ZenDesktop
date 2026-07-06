@@ -6813,12 +6813,9 @@ enum class XamlDiagnosticsHandling {
 static constexpr DWORD EVENT_SYSTEM_PEEKSTART = 0x0021;
 static constexpr DWORD EVENT_SYSTEM_PEEKEND = 0x0022;
 
-#if defined(__MINGW32__)
-// Missing in MinGW headers.
-DECLARE_HANDLE(CO_MTA_USAGE_COOKIE);
-WINOLEAPI CoIncrementMTAUsage(CO_MTA_USAGE_COOKIE* pCookie);
-WINOLEAPI CoDecrementMTAUsage(CO_MTA_USAGE_COOKIE Cookie);
-#endif
+// CO_MTA_USAGE_COOKIE, CoIncrementMTAUsage, CoDecrementMTAUsage are declared
+// in Windhawk's MinGW combaseapi.h. Do not redeclare here — it causes
+// "redefinition of 'CO_MTA_USAGE_COOKIE__'" errors.
 
 enum class BackgroundStyle {
     blur,
@@ -14469,7 +14466,7 @@ BOOL Wh_ModInit() {
             (SetWindowCompositionAttribute_t)GetProcAddress(
                 user32Module, "SetWindowCompositionAttribute");
         if (pSetWindowCompositionAttribute) {
-            WindhawkUtils::Wh_SetFunctionHookT(
+            WindhawkUtils::SetFunctionHook(
                 pSetWindowCompositionAttribute,
                 SetWindowCompositionAttribute_Hook,
                 &SetWindowCompositionAttribute_Original);
