@@ -16,10 +16,13 @@
 HWND g_hwndSidebar = NULL;
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
+// Event handle to synchronize sidebar window initialization.
+HANDLE g_hInitEvent = NULL;
 
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_DESTROY:
+            g_hwndSidebar = NULL;
             PostQuitMessage(0);
             break;
     }
@@ -40,6 +43,10 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
         0, 0, 80, GetSystemMetrics(SM_CYSCREEN),
         NULL, NULL, wc.hInstance, NULL
     );
+
+    if (g_hInitEvent) {
+        SetEvent(g_hInitEvent);
+    }
 
     if (g_hwndSidebar == NULL) {
         UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
@@ -63,7 +70,25 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
 
 BOOL Wh_ModInit() {
     Wh_Log(L"Stage Manager Initializing");
+
+    g_hInitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
     g_hUIThread = CreateThread(NULL, 0, UIThreadProc, NULL, 0, NULL);
+    if (g_hUIThread == NULL) {
+        Wh_Log(L"Failed to create UI thread");
+        if (g_hInitEvent) {
+            CloseHandle(g_hInitEvent);
+            g_hInitEvent = NULL;
+        }
+        return FALSE;
+    }
+
+    if (g_hInitEvent) {
+        WaitForSingleObject(g_hInitEvent, 1000);
+        CloseHandle(g_hInitEvent);
+        g_hInitEvent = NULL;
+    }
+
     return TRUE;
 }
 
