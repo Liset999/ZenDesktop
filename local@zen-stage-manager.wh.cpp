@@ -17,6 +17,7 @@
 std::atomic<HWND> g_hwndSidebar{ NULL };
 std::atomic<bool> g_bInitDone{ false };
 std::atomic<bool> g_bExitRequest{ false };
+std::atomic<bool> g_bInitSuccess{ false };
 
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
@@ -26,7 +27,7 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_DESTROY:
             g_hwndSidebar.store(NULL);
             PostQuitMessage(0);
-            break;
+            return 0;
     }
     return DefWindowProc(hwnd, msg, wp, lp);
 }
@@ -36,11 +37,10 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
     wc.lpfnWndProc = SidebarWndProc;
     wc.hInstance = GetModuleHandle(NULL);
     wc.lpszClassName = L"ZenStageManagerClass";
+    UnregisterClass(wc.lpszClassName, wc.hInstance);
     if (!RegisterClass(&wc)) {
-        if (GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-            g_bInitDone.store(true);
-            return 0;
-        }
+        g_bInitDone.store(true);
+        return 0;
     }
 
     if (g_bExitRequest.load()) {
@@ -74,6 +74,7 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
         return 0;
     }
 
+    g_bInitSuccess.store(true);
     g_bInitDone.store(true);
 
     MSG msg;
@@ -100,6 +101,7 @@ BOOL Wh_ModInit() {
     g_hwndSidebar.store(NULL);
     g_bInitDone.store(false);
     g_bExitRequest.store(false);
+    g_bInitSuccess.store(false);
 
     g_hUIThread = CreateThread(NULL, 0, UIThreadProc, NULL, 0, NULL);
     if (g_hUIThread == NULL) {
@@ -112,6 +114,27 @@ BOOL Wh_ModInit() {
             break;
         }
         Sleep(5);
+    }
+
+    if (!(g_bInitDone.load() && g_bInitSuccess.load())) {
+        Wh_Log(L"Initialization failed or timed out");
+        g_bExitRequest.store(true);
+
+        HWND hwnd = g_hwndSidebar.load();
+        if (hwnd) {
+            PostMessage(hwnd, WM_CLOSE, 0, 0);
+        }
+
+        if (g_hUIThread) {
+            PostThreadMessage(GetThreadId(g_hUIThread), WM_QUIT, 0, 0);
+            DWORD waitResult = WaitForSingleObject(g_hUIThread, 3000);
+            if (waitResult == WAIT_TIMEOUT) {
+                Wh_Log(L"Warning: UI thread did not exit within 3 seconds during init failure cleanup.");
+            }
+            CloseHandle(g_hUIThread);
+            g_hUIThread = NULL;
+        }
+        return FALSE;
     }
 
     return TRUE;
@@ -128,6 +151,7 @@ void Wh_ModUninit() {
     }
 
     if (g_hUIThread) {
+        PostThreadMessage(GetThreadId(g_hUIThread), WM_QUIT, 0, 0);
         DWORD waitResult = WaitForSingleObject(g_hUIThread, 3000);
         if (waitResult == WAIT_TIMEOUT) {
             Wh_Log(L"Warning: UI thread did not exit within 3 seconds.");
