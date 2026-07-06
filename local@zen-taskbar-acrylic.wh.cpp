@@ -605,15 +605,15 @@ from the **TranslucentTB** project.
     - blur: "模糊 (Blur)"
     - acrylicBlur: "亚克力模糊 (Acrylic Blur)"
     - color: "纯色 (Custom Color)"
-- color.red: 0
+- helperColorRed: 0
   $name: "🧊 辅助颜色：红 (Helper Color: Red)"
-- color.green: 0
+- helperColorGreen: 0
   $name: "🧊 辅助颜色：绿 (Helper Color: Green)"
-- color.blue: 0
+- helperColorBlue: 0
   $name: "🧊 辅助颜色：蓝 (Helper Color: Blue)"
-- color.accentColor: false
+- helperColorAccent: false
   $name: "🧊 辅助颜色：使用系统主题色 (Helper Color: Use Accent)"
-- color.transparency: 255
+- helperColorTransparency: 255
   $name: "🧊 辅助颜色：透明度 (Helper Color: Transparency 0-255)"
 - onlyWhenMaximized: false
   $name: "🧊 辅助：仅窗口最大化时应用 (Helper: Only When Maximized)"
@@ -623,21 +623,21 @@ from the **TranslucentTB** project.
   $name: "🧊 辅助：排除的程序列表 (Helper: Excluded Programs)"
   $description: >-
     在此列表中的程序（如特定全屏游戏或应用）的最大化状态不会触发任务栏背景变化。
-- styleForDarkMode.use: false
+- darkModeStyleUse: false
   $name: "🧊 辅助：使用独立深色模式样式 (Helper: Custom Dark Mode Style)"
-- styleForDarkMode.backgroundStyle: blur
+- darkModeBackgroundStyle: blur
   $name: "🧊 辅助：深色模式背景风格 (Helper: Dark Mode Background Style)"
   $options:
     - blur: "模糊 (Blur)"
     - acrylicBlur: "亚克力模糊 (Acrylic Blur)"
     - color: "纯色 (Custom Color)"
-- styleForDarkMode.color.red: 0
+- darkModeColorRed: 0
   $name: "🧊 辅助：深色模式颜色 红 (Helper Dark Mode Color: Red)"
-- styleForDarkMode.color.green: 0
+- darkModeColorGreen: 0
   $name: "🧊 辅助：深色模式颜色 绿 (Helper Dark Mode Color: Green)"
-- styleForDarkMode.color.blue: 0
+- darkModeColorBlue: 0
   $name: "🧊 辅助：深色模式颜色 蓝 (Helper Dark Mode Color: Blue)"
-- styleForDarkMode.color.transparency: 255
+- darkModeColorTransparency: 255
   $name: "🧊 辅助：深色模式颜色 透明度 (Helper Dark Mode Color: Transparency)"
 */
 // ==/WindhawkModSettings==
@@ -14364,11 +14364,11 @@ void LoadSettings() {
     }
     Wh_FreeStringSetting(helperBackgroundStyle);
 
-    int helperRed = Wh_GetIntSetting(L"color.red");
-    int helperGreen = Wh_GetIntSetting(L"color.green");
-    int helperBlue = Wh_GetIntSetting(L"color.blue");
-    bool helperAccentColor = Wh_GetIntSetting(L"color.accentColor");
-    int helperTransparency = Wh_GetIntSetting(L"color.transparency");
+    int helperRed = Wh_GetIntSetting(L"helperColorRed");
+    int helperGreen = Wh_GetIntSetting(L"helperColorGreen");
+    int helperBlue = Wh_GetIntSetting(L"helperColorBlue");
+    bool helperAccentColor = Wh_GetIntSetting(L"helperColorAccent");
+    int helperTransparency = Wh_GetIntSetting(L"helperColorTransparency");
 
     g_settings.helperStyle.color =
         (COLORREF)((BYTE)helperRed | ((WORD)((BYTE)helperGreen) << 8) |
@@ -14401,11 +14401,11 @@ void LoadSettings() {
         }
     }
 
-    if (Wh_GetIntSetting(L"styleForDarkMode.use")) {
+    if (Wh_GetIntSetting(L"darkModeStyleUse")) {
         TaskbarStyle darkStyle;
 
         PCWSTR darkBackgroundStyle =
-            Wh_GetStringSetting(L"styleForDarkMode.backgroundStyle");
+            Wh_GetStringSetting(L"darkModeBackgroundStyle");
         darkStyle.backgroundStyle = BackgroundStyle::blur;
         if (wcscmp(darkBackgroundStyle, L"acrylicBlur") == 0) {
             darkStyle.backgroundStyle = BackgroundStyle::acrylicBlur;
@@ -14414,11 +14414,11 @@ void LoadSettings() {
         }
         Wh_FreeStringSetting(darkBackgroundStyle);
 
-        int darkRed = Wh_GetIntSetting(L"styleForDarkMode.color.red");
-        int darkGreen = Wh_GetIntSetting(L"styleForDarkMode.color.green");
-        int darkBlue = Wh_GetIntSetting(L"styleForDarkMode.color.blue");
+        int darkRed = Wh_GetIntSetting(L"darkModeColorRed");
+        int darkGreen = Wh_GetIntSetting(L"darkModeColorGreen");
+        int darkBlue = Wh_GetIntSetting(L"darkModeColorBlue");
         int darkTransparency =
-            Wh_GetIntSetting(L"styleForDarkMode.color.transparency");
+            Wh_GetIntSetting(L"darkModeColorTransparency");
 
         darkStyle.color =
             (COLORREF)((BYTE)darkRed | ((WORD)((BYTE)darkGreen) << 8) |
