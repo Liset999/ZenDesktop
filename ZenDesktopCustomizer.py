@@ -35,8 +35,7 @@ class ZenCustomizerApp(ctk.CTk):
         self.mods = {
             "Taskbar": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-taskbar-acrylic\Settings",
             "StartMenu": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-startmenu-acrylic\Settings",
-            "NotificationCenter": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic\Settings",
-            "StageManager": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-stage-manager\Settings"
+            "NotificationCenter": r"SOFTWARE\Windhawk\Engine\Mods\local@zen-notificationcenter-acrylic\Settings"
         }
 
         self.setting_keys = {
@@ -137,19 +136,16 @@ class ZenCustomizerApp(ctk.CTk):
         self.tabview.pack(pady=10, fill="both", expand=True, padx=20)
         
         self.tabs = {}
-        for name in ["Taskbar", "StartMenu", "NotificationCenter", "StageManager", "FileExplorer"]:
+        for name in ["Taskbar", "StartMenu", "NotificationCenter", "FileExplorer"]:
             tab_title = {
                 "Taskbar": "任务栏 (Taskbar)",
                 "StartMenu": "开始菜单 (Start Menu)",
                 "NotificationCenter": "通知中心 (Notification Center)",
-                "StageManager": "台前调度 (Stage Manager)",
                 "FileExplorer": "资源管理器 (Explorer)"
             }[name]
             self.tabs[name] = self.tabview.add(tab_title)
             if name == "FileExplorer":
                 self.build_file_explorer_tab(self.tabs[name])
-            elif name == "StageManager":
-                self.build_stage_manager_tab(self.tabs[name])
             else:
                 self.build_tab(name, self.tabs[name])
             
@@ -287,197 +283,7 @@ class ZenCustomizerApp(ctk.CTk):
         )
         btn_uninstall.pack(fill="x", pady=15)
 
-    def build_stage_manager_tab(self, parent_tab):
-        info_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        info_frame.pack(fill="x", pady=15, padx=20)
 
-        lbl_title = ctk.CTkLabel(
-            info_frame,
-            text="台前调度 (Stage Manager)",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=15, weight="bold"),
-            text_color="#00D2FF",
-            anchor="w"
-        )
-        lbl_title.pack(fill="x", pady=2)
-
-        lbl_desc = ctk.CTkLabel(
-            info_frame,
-            text="macOS 风格的窗口工作台管理，自动按应用分组，侧边栏实时预览，一键切换工作区。",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            text_color="#CCCCCC",
-            justify="left",
-            anchor="w"
-        )
-        lbl_desc.pack(fill="x", pady=6)
-
-        divider = ctk.CTkFrame(parent_tab, height=2, fg_color="#333333")
-        divider.pack(fill="x", pady=10, padx=20)
-
-        edge_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        edge_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_edge = ctk.CTkLabel(
-            edge_frame,
-            text="侧边栏停靠位置 (Sidebar Position):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_edge.pack(fill="x")
-
-        self.dropdown_StageManager_edge = ctk.CTkOptionMenu(
-            edge_frame,
-            values=["左侧 (Left)", "右侧 (Right)"],
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            dropdown_font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            fg_color="#2D2D2D",
-            button_color="#3D3D3D",
-            button_hover_color="#4D4D4D",
-            height=32,
-            command=self.on_sm_edge_changed
-        )
-        self.dropdown_StageManager_edge.pack(fill="x", pady=6)
-
-        width_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        width_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_width = ctk.CTkLabel(
-            width_frame,
-            text="侧边栏宽度 (Sidebar Width):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_width.pack(fill="x")
-
-        self.slider_StageManager_width = ctk.CTkSlider(
-            width_frame,
-            from_=60,
-            to=160,
-            number_of_steps=100,
-            fg_color="#333333",
-            progress_color="#00D2FF",
-            button_color="#00D2FF",
-            button_hover_color="#00B2DF",
-            command=lambda v: self.on_sm_width_slider(v)
-        )
-        self.slider_StageManager_width.pack(fill="x", pady=6)
-
-        self.lbl_sm_width_val = ctk.CTkLabel(
-            width_frame,
-            text="80 px",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            text_color="#AAAAAA"
-        )
-        self.lbl_sm_width_val.pack(anchor="e")
-
-        opacity_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        opacity_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_opacity = ctk.CTkLabel(
-            opacity_frame,
-            text="亚克力透明度 (Acrylic Opacity):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_opacity.pack(fill="x")
-
-        self.slider_StageManager_opacity = ctk.CTkSlider(
-            opacity_frame,
-            from_=0,
-            to=255,
-            number_of_steps=255,
-            fg_color="#333333",
-            progress_color="#00D2FF",
-            button_color="#00D2FF",
-            button_hover_color="#00B2DF",
-            command=lambda v: self.on_sm_opacity_slider(v)
-        )
-        self.slider_StageManager_opacity.pack(fill="x", pady=6)
-
-        self.lbl_sm_opacity_val = ctk.CTkLabel(
-            opacity_frame,
-            text="180 / 255",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            text_color="#AAAAAA"
-        )
-        self.lbl_sm_opacity_val.pack(anchor="e")
-
-        stages_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        stages_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_stages = ctk.CTkLabel(
-            stages_frame,
-            text="最多显示舞台数 (Max Visible Stages):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_stages.pack(fill="x")
-
-        self.slider_StageManager_maxstages = ctk.CTkSlider(
-            stages_frame,
-            from_=1,
-            to=10,
-            number_of_steps=9,
-            fg_color="#333333",
-            progress_color="#00D2FF",
-            button_color="#00D2FF",
-            button_hover_color="#00B2DF",
-            command=lambda v: self.on_sm_maxstages_slider(v)
-        )
-        self.slider_StageManager_maxstages.pack(fill="x", pady=6)
-
-        self.lbl_sm_maxstages_val = ctk.CTkLabel(
-            stages_frame,
-            text="5",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            text_color="#AAAAAA"
-        )
-        self.lbl_sm_maxstages_val.pack(anchor="e")
-
-        toggle_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        toggle_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_hotkey = ctk.CTkLabel(
-            toggle_frame,
-            text="Win+G 合并热键 (Grouping Hotkey):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_hotkey.pack(fill="x")
-
-        self.switch_StageManager_hotkey = ctk.CTkSwitch(
-            toggle_frame,
-            text="启用 (Enabled)",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            fg_color="#00D2FF",
-            progress_color="#00D2FF",
-            button_color="#FFFFFF",
-            button_hover_color="#EEEEEE",
-            command=self.on_sm_hotkey_toggle
-        )
-        self.switch_StageManager_hotkey.pack(anchor="w", pady=6)
-
-        anim_frame = ctk.CTkFrame(parent_tab, fg_color="transparent")
-        anim_frame.pack(fill="x", pady=10, padx=15)
-
-        lbl_anim = ctk.CTkLabel(
-            anim_frame,
-            text="切换时禁用窗口动画 (Disable Animations):",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=13, weight="bold"),
-            anchor="w"
-        )
-        lbl_anim.pack(fill="x")
-
-        self.switch_StageManager_anim = ctk.CTkSwitch(
-            anim_frame,
-            text="启用 (Enabled)",
-            font=ctk.CTkFont(family="Microsoft YaHei", size=12),
-            fg_color="#00D2FF",
-            progress_color="#00D2FF",
-            button_color="#FFFFFF",
-            button_hover_color="#EEEEEE",
-            command=self.on_sm_anim_toggle
-        )
-        self.switch_StageManager_anim.pack(anchor="w", pady=6)
 
     def build_tab(self, mod_key, parent_tab):
         # 1. Background Color Preset Dropdown
@@ -679,72 +485,7 @@ class ZenCustomizerApp(ctk.CTk):
                 getattr(self, f"lum_slider_{mod_key}").set(lum_preset)
                 getattr(self, f"lbl_lum_val_{mod_key}").configure(text=f"{int(lum_preset)}%")
 
-        self.load_stage_manager_settings()
 
-    def load_stage_manager_settings(self):
-        path = self.mods["StageManager"]
-
-        edge = self.get_reg_value(path, "sidebarEdge", 0)
-        edge_labels = ["左侧 (Left)", "右侧 (Right)"]
-        self.dropdown_StageManager_edge.set(edge_labels[edge if 0 <= edge <= 1 else 0])
-
-        width = self.get_reg_value(path, "sidebarWidth", 80)
-        self.slider_StageManager_width.set(width)
-        self.lbl_sm_width_val.configure(text=f"{int(width)} px")
-
-        opacity = self.get_reg_value(path, "acrylicOpacity", 180)
-        self.slider_StageManager_opacity.set(opacity)
-        self.lbl_sm_opacity_val.configure(text=f"{int(opacity)} / 255")
-
-        max_stages = self.get_reg_value(path, "maxVisibleStages", 5)
-        self.slider_StageManager_maxstages.set(max_stages)
-        self.lbl_sm_maxstages_val.configure(text=str(int(max_stages)))
-
-        hotkey = self.get_reg_value(path, "enableHotkey", 1)
-        if hotkey:
-            self.switch_StageManager_hotkey.select()
-        else:
-            self.switch_StageManager_hotkey.deselect()
-
-        anim = self.get_reg_value(path, "animationDisabled", 1)
-        if anim:
-            self.switch_StageManager_anim.select()
-        else:
-            self.switch_StageManager_anim.deselect()
-
-    def on_sm_edge_changed(self, value):
-        edge_map = {"左侧 (Left)": 0, "右侧 (Right)": 1}
-        edge_val = edge_map.get(value, 0)
-        self.set_reg_value(self.mods["StageManager"], "sidebarEdge", edge_val, is_dword=True)
-        print(f"Stage Manager sidebar edge changed to {edge_val}")
-
-    def on_sm_width_slider(self, value):
-        width_val = int(value)
-        self.lbl_sm_width_val.configure(text=f"{width_val} px")
-        self.set_reg_value(self.mods["StageManager"], "sidebarWidth", width_val, is_dword=True)
-        print(f"Stage Manager sidebar width changed to {width_val}")
-
-    def on_sm_opacity_slider(self, value):
-        opacity_val = int(value)
-        self.lbl_sm_opacity_val.configure(text=f"{opacity_val} / 255")
-        self.set_reg_value(self.mods["StageManager"], "acrylicOpacity", opacity_val, is_dword=True)
-        print(f"Stage Manager acrylic opacity changed to {opacity_val}")
-
-    def on_sm_maxstages_slider(self, value):
-        max_val = int(value)
-        self.lbl_sm_maxstages_val.configure(text=str(max_val))
-        self.set_reg_value(self.mods["StageManager"], "maxVisibleStages", max_val, is_dword=True)
-        print(f"Stage Manager max visible stages changed to {max_val}")
-
-    def on_sm_hotkey_toggle(self):
-        is_on = self.switch_StageManager_hotkey.get()
-        self.set_reg_value(self.mods["StageManager"], "enableHotkey", 1 if is_on else 0, is_dword=True)
-        print(f"Stage Manager hotkey {'enabled' if is_on else 'disabled'}")
-
-    def on_sm_anim_toggle(self):
-        is_on = self.switch_StageManager_anim.get()
-        self.set_reg_value(self.mods["StageManager"], "animationDisabled", 1 if is_on else 0, is_dword=True)
-        print(f"Stage Manager animation {'disabled' if is_on else 'enabled'}")
 
     # Live Event Handlers
     def ensure_file_explorer_diy_theme(self, mod_key):

@@ -6,7 +6,6 @@ common_files = [
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
-    'local@zen-stage-manager.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
     'local@start-menu-size.wh.cpp',
     'local@taskbar-background-helper.wh.cpp',
