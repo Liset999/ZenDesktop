@@ -324,37 +324,33 @@ static bool IsFadeTargetingHidden(HWND hwndDefView)
 
 static void StartFade(HWND hwndDefView, HWND hwndListView, bool targetVisible, bool persistOnComplete)
 {
-    // Capture current alpha for a smooth mid-fade restart before we tear down
-    // the existing fade state.
     BYTE startAlpha;
     DWORD existingStart = HandleToUlong(GetPropW(hwndDefView, L"ZenFadeStart"));
     if (existingStart != 0) {
         startAlpha = (BYTE)HandleToUlong(GetPropW(hwndDefView, L"ZenFadeCurrentAlpha"));
     } else {
         startAlpha = targetVisible ? 0 : 255;
-        // First fade on this window: ensure WS_EX_LAYERED is set on the ListView.
-        LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
-        if ((exStyle & WS_EX_LAYERED) == 0) {
-            SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
-        }
     }
 
-    // Kill any in-progress fade and clear its properties (per concurrency rule).
     KillFadeTimer(hwndDefView);
 
-    // Re-ensure WS_EX_LAYERED is set (a prior fade-to-show completion removes
-    // it, so a subsequent fade must re-add it).
+    // Keep WS_EX_LAYERED on the ListView for the entire lifetime of the mod
+    // (we no longer remove it after fade-to-show).  This avoids a DWM redraw
+    // flicker ("black flash") caused by toggling the layered style on/off.
     LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
     if ((exStyle & WS_EX_LAYERED) == 0) {
+        // Set alpha first so that when the layered style takes effect the
+        // window already has the correct transparency — no intermediate
+        // fully-opaque / uninitialized frame is visible.
+        SetLayeredWindowAttributes(hwndListView, 0, startAlpha, LWA_ALPHA);
         SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+    } else {
+        SetLayeredWindowAttributes(hwndListView, 0, startAlpha, LWA_ALPHA);
     }
 
-    // Ensure the ListView is visible during the fade (we only truly hide it on
-    // fade-out completion). ShowWindow is idempotent so this is safe.
     if (!IsWindowVisible(hwndListView)) {
         ShowWindow(hwndListView, SW_SHOW);
     }
-    SetLayeredWindowAttributes(hwndListView, 0, startAlpha, LWA_ALPHA);
 
     // Adjust the recorded fadeStart so the WM_TIMER progress formula
     // (newAlpha = 255*progress for show, 255*(1-progress) for hide) yields the
@@ -510,8 +506,8 @@ static void UnsubclassWindows()
             DWORD pid = 0;
             // Verify window validity and process ownership before restoring visibility
             if (IsWindow(lv) && GetWindowThreadProcessId(lv, &pid) && pid == GetCurrentProcessId()) {
-                // Remove WS_EX_LAYERED if a fade left it on, so the desktop
-                // returns to its default fully-opaque rendering state.
+                // On mod unload, remove WS_EX_LAYERED to restore the desktop
+                // ListView to its original non-layered state.
                 LONG_PTR exStyle = GetWindowLongPtrW(lv, GWL_EXSTYLE);
                 if (exStyle & WS_EX_LAYERED) {
                     SetWindowLongPtrW(lv, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
@@ -761,15 +757,10 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
                 // Fade-out complete: fully hide the ListView.
                 ShowWindow(hwndListView, SW_HIDE);
             } else {
-                // Fade-in complete: set final alpha to 255, THEN remove
-                // WS_EX_LAYERED and force a frame change to apply the style.
+                // Fade-in complete: set final alpha to 255.
+                // We keep WS_EX_LAYERED so the next fade does not need to
+                // re-toggle the style (which causes a DWM black flash).
                 SetLayeredWindowAttributes(hwndListView, 0, 255, LWA_ALPHA);
-                LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
-                if (exStyle & WS_EX_LAYERED) {
-                    SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
-                    SetWindowPos(hwndListView, nullptr, 0, 0, 0, 0,
-                                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-                }
             }
 
             // Persist registry state if the caller requested it (manual-toggle
