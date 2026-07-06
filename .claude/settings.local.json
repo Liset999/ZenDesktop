@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\windhawk_setup.exe\")",
+      "Bash(ls -la \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\\")",
+      "Bash(powershell *)",
+      "Bash(ls *)",
+      "Bash(taskkill /F /IM windhawk.exe)",
+      "Bash(taskkill /F /IM windhawk-x64-helper.exe)",
+      "Bash(cmd /c \"taskkill /F /IM windhawk.exe\")",
+      "Bash(cmd /c \"taskkill /F /IM windhawk-x64-helper.exe\")",
+      "Bash(mkdir -p \"/tmp/windhawk_lite\")",
+      "Bash(cp -r \"/d/Tools/Windhawk/Engine\" \"/d/Tools/Windhawk/UI\" \"/tmp/windhawk_lite/\")",
+      "Bash(cp \"/d/Tools/Windhawk/windhawk.exe\" \"/d/Tools/Windhawk/windhawk-x64-helper.exe\" \"/d/Tools/Windhawk/windhawk.ini\" \"/d/Tools/Windhawk/command-line.txt\" \"/tmp/windhawk_lite/\")",
+      "Read(//c/ProgramData/Windhawk/**)",
+      "Bash(cp -r \"/c/ProgramData/Windhawk/Engine/Mods\" \"/d/Tools/Windhawk/Engine/Mods\")",
+      "Bash(cp -r \"/c/ProgramData/Windhawk/ModsSource\" \"/d/Tools/Windhawk/ModsSource\")",
+      "Bash(cp -r \"/d/Tools/Windhawk/Engine\" \"/d/Tools/Windhawk/UI\" \"/d/Tools/Windhawk/ModsSource\" \"/tmp/zendesk_lite/\")",
+      "Bash(cp \"/d/Tools/Windhawk/windhawk.exe\" \"/d/Tools/Windhawk/windhawk-x64-helper.exe\" \"/d/Tools/Windhawk/windhawk.ini\" \"/d/Tools/Windhawk/command-line.txt\" \"/d/Tools/Windhawk/deploy.bat\" \"/d/Tools/Windhawk/local@\"*.wh.cpp \"/tmp/zendesk_lite/\")",
+      "Bash(net session *)",
+      "Bash(cmd *)",
+      "Bash(cat \"D:\\\\\\\\Tools\\\\\\\\Windhawk\\\\\\\\deploy_test.log\")",
+      "Bash(find /c -maxdepth 3 -name \"windhawk.exe\" -type f)",
+      "Bash(find /d -maxdepth 3 -name \"windhawk.exe\" -type f)",
+      "Bash(find \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\AppData\" -maxdepth 3 -type d)",
+      "Bash(find \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\AppData\" -maxdepth 2 -name \"*.ini\" -o -name \"settings.ini\" -o -name \"*.json\")",
+      "Bash(start \"\" \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\windhawk.exe\" -tray-only)",
+      "Bash(cat \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\AppData\\\\\\\\userprofile.json\")",
+      "Bash(find \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\AppData\\\\\\\\Engine\\\\\\\\ModsWritable\" -type f)",
+      "Bash(find \"D:\\\\\\\\Repository\\\\\\\\ZenDesktop_OneKeyDeploy\\\\\\\\Windhawk\\\\\\\\AppData\\\\\\\\UIData\\\\\\\\user-data\" -maxdepth 2 -name \"*.json\" -type f)",
+      "WebSearch",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
