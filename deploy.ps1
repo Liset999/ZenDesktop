@@ -244,8 +244,6 @@ foreach ($file in $files) {
         $defaults = @{
             "width" = 0
             "height" = 0
-            "searchWidth" = 0
-            "searchHeight" = 0
         }
 
         foreach ($key in $defaults.Keys) {
