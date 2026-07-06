@@ -47,6 +47,16 @@ This mod focuses on desktop icons. If you want a similar inactivity effect for t
   $name:zh-CN: 任意输入时恢复图标
   $description: "When icons were auto-hidden, any mouse or keyboard input instantly restores them. Does NOT affect manually hidden icons."
   $description:zh-CN: "图标由自动隐藏触发时，任意鼠标或键盘输入都会恢复图标；不影响手动隐藏的图标。"
+- enableFadeAnimation: true
+  $name: Enable Fade Animation
+  $name:zh-CN: 启用淡入淡出动画
+  $description: "Smoothly fade desktop icons in and out instead of instantly showing/hiding."
+  $description:zh-CN: "平滑淡入淡出桌面图标，而不是瞬间显示/隐藏。"
+- fadeDurationMs: 250
+  $name: Fade Duration (ms)
+  $name:zh-CN: 淡入淡出持续时间（毫秒）
+  $description: "Duration of the fade animation in milliseconds. Range: 50–1000."
+  $description:zh-CN: "淡入淡出动画的持续时间（毫秒），范围为 50 到 1000。"
 */
 // ==/WindhawkModSettings==
 
@@ -57,8 +67,10 @@ This mod focuses on desktop icons. If you want a similar inactivity effect for t
 #include <windhawk_utils.h>
 
 #define TIMER_AUTOHIDE             1001
+#define TIMER_FADE                 1002
 #define TIMER_RESTORE_POLL_MS       500
 #define TIMER_FULLSCREEN_RECHECK_MS 1000
+#define FADE_TIMER_INTERVAL_MS      16
 
 static UINT g_msgRefreshTimer = 0;
 static UINT g_msgManualToggle = 0;
@@ -72,6 +84,13 @@ LRESULT CALLBACK DesktopListViewSubclassProc(HWND, UINT, WPARAM, LPARAM, DWORD_P
 LRESULT CALLBACK DesktopShellViewSubclassProc(HWND, UINT, WPARAM, LPARAM, DWORD_PTR);
 BOOL    CALLBACK EnumWindowsProc(HWND, LPARAM);
 
+// Fade animation helpers (defined later, used by toggle/auto-hide/auto-restore)
+static void CleanupFadeProperties(HWND hwndDefView);
+static void KillFadeTimer(HWND hwndDefView);
+static void StartFade(HWND hwndDefView, HWND hwndListView, bool targetVisible, bool persistOnComplete);
+static bool IsFadeTargetingVisible(HWND hwndDefView);
+static bool IsFadeTargetingHidden(HWND hwndDefView);
+
 using CreateWindowExW_t = decltype(&CreateWindowExW);
 CreateWindowExW_t Real_CreateWindowExW;
 
@@ -82,6 +101,8 @@ struct Settings {
     bool enableAutoHide;
     int  autoHideDelay;       // seconds, clamped 3–60
     bool showIconsOnAnyInput; // restore on any input after auto-hide
+    bool enableFadeAnimation; // fade animation on/off
+    int  fadeDurationMs;      // ms, clamped 50–1000
 } g_settings;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -94,9 +115,14 @@ static void LoadSettings()
     if (g_settings.autoHideDelay < 3)  g_settings.autoHideDelay = 3;
     if (g_settings.autoHideDelay > 60) g_settings.autoHideDelay = 60;
     g_settings.showIconsOnAnyInput = Wh_GetIntSetting(L"showIconsOnAnyInput") != 0;
+    g_settings.enableFadeAnimation  = Wh_GetIntSetting(L"enableFadeAnimation") != 0;
+    g_settings.fadeDurationMs       = Wh_GetIntSetting(L"fadeDurationMs");
+    if (g_settings.fadeDurationMs < 50)   g_settings.fadeDurationMs = 50;
+    if (g_settings.fadeDurationMs > 1000) g_settings.fadeDurationMs = 1000;
 
-    Wh_Log(L"[ZenDesktop] Settings loaded: enableAutoHide=%d, autoHideDelay=%d, showIconsOnAnyInput=%d",
-           (int)g_settings.enableAutoHide, g_settings.autoHideDelay, (int)g_settings.showIconsOnAnyInput);
+    Wh_Log(L"[ZenDesktop] Settings loaded: enableAutoHide=%d, autoHideDelay=%d, showIconsOnAnyInput=%d, enableFadeAnimation=%d, fadeDurationMs=%d",
+           (int)g_settings.enableAutoHide, g_settings.autoHideDelay, (int)g_settings.showIconsOnAnyInput,
+           (int)g_settings.enableFadeAnimation, g_settings.fadeDurationMs);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -210,6 +236,13 @@ static bool IsFullscreenWindowActive()
 //
 // "ZenAutoHiddenAt" window property (stores GetTickCount) distinguishes
 // auto-hidden from manually-hidden state.
+//
+// Fade animation:
+//   When g_settings.enableFadeAnimation is true, the show/hide is performed via
+//   a layered-window alpha fade driven by TIMER_FADE on the SHELLDLL_DefView
+//   window. Window properties (ZenFade*) track the in-progress fade. The
+//   "logical" visibility (used by auto-hide/restore decisions) is determined by
+//   IsFadeTargetingVisible/Hidden which account for in-flight fades.
 // ─────────────────────────────────────────────────────────────────────────────
 static bool GetPersistedHideState()
 {
@@ -233,15 +266,148 @@ static void SetPersistedHideState(bool hide)
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Fade animation helpers
+//
+// Window properties stored on SHELLDLL_DefView (consistent with existing
+// ZenTimerInit/ZenAutoHiddenAt/ZenMouseX/ZenMouseY):
+//   ZenFadeStart             (DWORD tick when fade started)
+//   ZenFadeTargetAlpha       (BYTE target alpha: 0 hide, 255 show)
+//   ZenFadeCurrentAlpha      (BYTE current alpha during fade)
+//   ZenFadeTargetVisible     (DWORD 1=show, 0=hide)
+//   ZenFadePersistOnComplete (DWORD 1=persist registry state on completion)
+//
+// StartFade must be called on the UI thread (SetTimer requirement). The
+// existing PostMessage pattern (g_msgManualToggle/AutoHide/AutoRestore) ensures
+// callers are already on the DefView's window thread.
+// ─────────────────────────────────────────────────────────────────────────────
+static void CleanupFadeProperties(HWND hwndDefView)
+{
+    RemovePropW(hwndDefView, L"ZenFadeStart");
+    RemovePropW(hwndDefView, L"ZenFadeTargetAlpha");
+    RemovePropW(hwndDefView, L"ZenFadeCurrentAlpha");
+    RemovePropW(hwndDefView, L"ZenFadeTargetVisible");
+    RemovePropW(hwndDefView, L"ZenFadePersistOnComplete");
+}
+
+static void KillFadeTimer(HWND hwndDefView)
+{
+    KillTimer(hwndDefView, TIMER_FADE);
+    CleanupFadeProperties(hwndDefView);
+}
+
+// Returns true if the current logical target state is "visible" — either no
+// fade is in progress and the ListView is visible, or a fade is in flight
+// targeting visible. Used to decide whether auto-hide should trigger.
+static bool IsFadeTargetingVisible(HWND hwndDefView)
+{
+    DWORD existingFade = HandleToUlong(GetPropW(hwndDefView, L"ZenFadeStart"));
+    if (existingFade != 0) {
+        return HandleToUlong(GetPropW(hwndDefView, L"ZenFadeTargetVisible")) != 0;
+    }
+    HWND hwndListView = FindWindowExW(hwndDefView, NULL, L"SysListView32", NULL);
+    return hwndListView && IsWindowVisible(hwndListView) != 0;
+}
+
+// Returns true if the current logical target state is "hidden" — either no
+// fade is in progress and the ListView is hidden, or a fade is in flight
+// targeting hidden. Used to decide whether auto-restore should trigger.
+static bool IsFadeTargetingHidden(HWND hwndDefView)
+{
+    DWORD existingFade = HandleToUlong(GetPropW(hwndDefView, L"ZenFadeStart"));
+    if (existingFade != 0) {
+        return HandleToUlong(GetPropW(hwndDefView, L"ZenFadeTargetVisible")) == 0;
+    }
+    HWND hwndListView = FindWindowExW(hwndDefView, NULL, L"SysListView32", NULL);
+    return hwndListView && IsWindowVisible(hwndListView) == 0;
+}
+
+static void StartFade(HWND hwndDefView, HWND hwndListView, bool targetVisible, bool persistOnComplete)
+{
+    // Capture current alpha for a smooth mid-fade restart before we tear down
+    // the existing fade state.
+    BYTE startAlpha;
+    DWORD existingStart = HandleToUlong(GetPropW(hwndDefView, L"ZenFadeStart"));
+    if (existingStart != 0) {
+        startAlpha = (BYTE)HandleToUlong(GetPropW(hwndDefView, L"ZenFadeCurrentAlpha"));
+    } else {
+        startAlpha = targetVisible ? 0 : 255;
+        // First fade on this window: ensure WS_EX_LAYERED is set on the ListView.
+        LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
+        if ((exStyle & WS_EX_LAYERED) == 0) {
+            SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+        }
+    }
+
+    // Kill any in-progress fade and clear its properties (per concurrency rule).
+    KillFadeTimer(hwndDefView);
+
+    // Re-ensure WS_EX_LAYERED is set (a prior fade-to-show completion removes
+    // it, so a subsequent fade must re-add it).
+    LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
+    if ((exStyle & WS_EX_LAYERED) == 0) {
+        SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+    }
+
+    // Ensure the ListView is visible during the fade (we only truly hide it on
+    // fade-out completion). ShowWindow is idempotent so this is safe.
+    if (!IsWindowVisible(hwndListView)) {
+        ShowWindow(hwndListView, SW_SHOW);
+    }
+    SetLayeredWindowAttributes(hwndListView, 0, startAlpha, LWA_ALPHA);
+
+    // Adjust the recorded fadeStart so the WM_TIMER progress formula
+    // (newAlpha = 255*progress for show, 255*(1-progress) for hide) yields the
+    // current startAlpha at the first tick. This keeps mid-fade restarts smooth
+    // without changing the per-tick calculation.
+    DWORD now = GetTickCount();
+    DWORD duration = (DWORD)g_settings.fadeDurationMs;
+    if (duration == 0) duration = 1;
+    DWORD effectiveElapsed;
+    if (targetVisible) {
+        // newAlpha = 255 * progress; want newAlpha == startAlpha at start
+        effectiveElapsed = (DWORD)((double)startAlpha / 255.0 * (double)duration);
+    } else {
+        // newAlpha = 255 * (1 - progress); want newAlpha == startAlpha at start
+        effectiveElapsed = (DWORD)((double)(255 - startAlpha) / 255.0 * (double)duration);
+    }
+    DWORD fadeStart = (now >= effectiveElapsed) ? (now - effectiveElapsed) : now;
+
+    BYTE targetAlpha = targetVisible ? 255 : 0;
+    SetPropW(hwndDefView, L"ZenFadeStart", UlongToHandle(fadeStart));
+    SetPropW(hwndDefView, L"ZenFadeTargetAlpha", UlongToHandle((DWORD)targetAlpha));
+    SetPropW(hwndDefView, L"ZenFadeCurrentAlpha", UlongToHandle((DWORD)startAlpha));
+    SetPropW(hwndDefView, L"ZenFadeTargetVisible", UlongToHandle(targetVisible ? 1 : 0));
+    SetPropW(hwndDefView, L"ZenFadePersistOnComplete", UlongToHandle(persistOnComplete ? 1 : 0));
+
+    SetTimer(hwndDefView, TIMER_FADE, FADE_TIMER_INTERVAL_MS, NULL);
+}
+
 static void ManualToggleIcons(HWND hwndShellView)
 {
     HWND hwndListView = FindWindowExW(hwndShellView, NULL, L"SysListView32", NULL);
     if (hwndListView) {
         bool isVisible = IsWindowVisible(hwndListView) != 0;
         bool newVisible = !isVisible;
-        ShowWindow(hwndListView, newVisible ? SW_SHOW : SW_HIDE);
-        SetPersistedHideState(!newVisible);
-        Wh_Log(L"[ZenDesktop] ManualToggle: %s", newVisible ? L"SHOW" : L"HIDE");
+
+        // If a fade is in flight, flip the in-flight target so rapid toggles
+        // behave intuitively (toggle reverses the current fade direction).
+        DWORD existingFade = HandleToUlong(GetPropW(hwndShellView, L"ZenFadeStart"));
+        if (existingFade != 0) {
+            bool currentTargetVisible = HandleToUlong(GetPropW(hwndShellView, L"ZenFadeTargetVisible")) != 0;
+            newVisible = !currentTargetVisible;
+        }
+
+        if (g_settings.enableFadeAnimation) {
+            // Registry persistence is deferred to fade completion
+            // (ZenFadePersistOnComplete) to match the final visible state.
+            StartFade(hwndShellView, hwndListView, newVisible, /*persistOnComplete=*/true);
+            Wh_Log(L"[ZenDesktop] ManualToggle (fade): %s", newVisible ? L"SHOW" : L"HIDE");
+        } else {
+            ShowWindow(hwndListView, newVisible ? SW_SHOW : SW_HIDE);
+            SetPersistedHideState(!newVisible);
+            Wh_Log(L"[ZenDesktop] ManualToggle: %s", newVisible ? L"SHOW" : L"HIDE");
+        }
     } else {
         // Fallback: use the native shell toggle if ListView handle is missing
         PostMessageW(hwndShellView, WM_COMMAND, 0x7402, 0);
@@ -257,13 +423,18 @@ static void ManualToggleIcons(HWND hwndShellView)
 static void AutoHideIcons(HWND hwndShellView)
 {
     HWND hwndListView = FindWindowExW(hwndShellView, NULL, L"SysListView32", NULL);
-    if (hwndListView && IsWindowVisible(hwndListView)) {
-        ShowWindow(hwndListView, SW_HIDE);
+    if (hwndListView && IsFadeTargetingVisible(hwndShellView)) {
+        if (g_settings.enableFadeAnimation) {
+            // Auto-hide does not persist to registry (consistent with existing logic)
+            StartFade(hwndShellView, hwndListView, /*targetVisible=*/false, /*persistOnComplete=*/false);
+        } else {
+            ShowWindow(hwndListView, SW_HIDE);
+        }
         DWORD now = GetTickCount();
         // Avoid storing 0 (which means "not set"); extremely unlikely but be safe
         if (now == 0) now = 1;
         SetPropW(hwndShellView, L"ZenAutoHiddenAt", UlongToHandle(now));
-        
+
         // Store current physical mouse coordinates for zero-latency coordinate guard
         POINT pt = {};
         GetCursorPos(&pt);
@@ -278,8 +449,12 @@ static void AutoHideIcons(HWND hwndShellView)
 static void AutoRestoreIcons(HWND hwndShellView)
 {
     HWND hwndListView = FindWindowExW(hwndShellView, NULL, L"SysListView32", NULL);
-    if (hwndListView && !IsWindowVisible(hwndListView)) {
-        ShowWindow(hwndListView, SW_SHOW);
+    if (hwndListView && IsFadeTargetingHidden(hwndShellView)) {
+        if (g_settings.enableFadeAnimation) {
+            StartFade(hwndShellView, hwndListView, /*targetVisible=*/true, /*persistOnComplete=*/false);
+        } else {
+            ShowWindow(hwndListView, SW_SHOW);
+        }
         Wh_Log(L"[ZenDesktop] AutoRestore: icons restored");
     }
     RemovePropW(hwndShellView, L"ZenAutoHiddenAt");
@@ -324,6 +499,7 @@ static void UnsubclassWindows()
     auto Cleanup = [](HWND hwndShell) {
         if (!hwndShell) return;
         KillTimer(hwndShell, TIMER_AUTOHIDE);
+        KillFadeTimer(hwndShell);
         RemovePropW(hwndShell, L"ZenTimerInit");
         RemovePropW(hwndShell, L"ZenAutoHiddenAt");
         RemovePropW(hwndShell, L"ZenMouseX");
@@ -334,6 +510,14 @@ static void UnsubclassWindows()
             DWORD pid = 0;
             // Verify window validity and process ownership before restoring visibility
             if (IsWindow(lv) && GetWindowThreadProcessId(lv, &pid) && pid == GetCurrentProcessId()) {
+                // Remove WS_EX_LAYERED if a fade left it on, so the desktop
+                // returns to its default fully-opaque rendering state.
+                LONG_PTR exStyle = GetWindowLongPtrW(lv, GWL_EXSTYLE);
+                if (exStyle & WS_EX_LAYERED) {
+                    SetWindowLongPtrW(lv, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
+                    SetWindowPos(lv, nullptr, 0, 0, 0, 0,
+                                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+                }
                 if (!IsWindowVisible(lv)) {
                     ShowWindow(lv, SW_SHOW);
                     Wh_Log(L"[ZenDesktop] Cleanup: restored SysListView32 visibility");
@@ -531,6 +715,73 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
         }
 
         ScheduleAutoHideTimer(hWnd);
+        return 0;
+    }
+
+    // ── Fade animation timer tick ────────────────────────────────────────────
+    if (uMsg == WM_TIMER && wParam == TIMER_FADE) {
+        HWND hwndListView = FindWindowExW(hWnd, NULL, L"SysListView32", NULL);
+        DWORD fadeStart = HandleToUlong(GetPropW(hWnd, L"ZenFadeStart"));
+        if (!hwndListView || fadeStart == 0) {
+            // Stale timer or ListView vanished — clean up and stop.
+            KillFadeTimer(hWnd);
+            return 0;
+        }
+
+        bool targetVisible = HandleToUlong(GetPropW(hWnd, L"ZenFadeTargetVisible")) != 0;
+
+        DWORD now = GetTickCount();
+        DWORD elapsed = now - fadeStart;
+        DWORD duration = (DWORD)g_settings.fadeDurationMs;
+        if (duration == 0) duration = 1;
+
+        double progress;
+        if (elapsed >= duration) {
+            progress = 1.0;
+        } else {
+            progress = (double)elapsed / (double)duration;
+        }
+
+        BYTE newAlpha;
+        if (targetVisible) {
+            newAlpha = (BYTE)(255.0 * progress);
+        } else {
+            newAlpha = (BYTE)(255.0 * (1.0 - progress));
+        }
+
+        SetLayeredWindowAttributes(hwndListView, 0, newAlpha, LWA_ALPHA);
+        SetPropW(hWnd, L"ZenFadeCurrentAlpha", UlongToHandle((DWORD)newAlpha));
+
+        if (progress >= 1.0) {
+            // IMPORTANT: kill the timer BEFORE ShowWindow(SW_HIDE) so no stray
+            // WM_TIMER can arrive after the window is hidden.
+            KillTimer(hWnd, TIMER_FADE);
+
+            if (!targetVisible) {
+                // Fade-out complete: fully hide the ListView.
+                ShowWindow(hwndListView, SW_HIDE);
+            } else {
+                // Fade-in complete: set final alpha to 255, THEN remove
+                // WS_EX_LAYERED and force a frame change to apply the style.
+                SetLayeredWindowAttributes(hwndListView, 0, 255, LWA_ALPHA);
+                LONG_PTR exStyle = GetWindowLongPtrW(hwndListView, GWL_EXSTYLE);
+                if (exStyle & WS_EX_LAYERED) {
+                    SetWindowLongPtrW(hwndListView, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
+                    SetWindowPos(hwndListView, nullptr, 0, 0, 0, 0,
+                                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+                }
+            }
+
+            // Persist registry state if the caller requested it (manual-toggle
+            // path only — auto-hide/auto-restore do not persist, consistent with
+            // the pre-fade logic).
+            if (HandleToUlong(GetPropW(hWnd, L"ZenFadePersistOnComplete")) != 0) {
+                SetPersistedHideState(!targetVisible);
+            }
+
+            CleanupFadeProperties(hWnd);
+        }
+
         return 0;
     }
 
