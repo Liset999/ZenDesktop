@@ -500,6 +500,26 @@ from the **TranslucentTB** project.
   - disableNewLayoutKeepPhoneLink: "经典布局 (Classic)"
   - legacyClassicLayout: "旧版经典 (Legacy Classic)"
   - forceNewLayout: "强制新布局 (Force New)"
+- width: 0
+  $name: "📐 开始菜单宽度 (Start Menu Width, px)"
+  $description: >-
+    设置开始菜单的自定义宽度（像素）。0 = 系统默认。
+    Set a custom width for the Start menu in pixels. 0 = system default.
+- height: 0
+  $name: "📐 开始菜单高度 (Start Menu Height, px)"
+  $description: >-
+    设置开始菜单的自定义高度（像素）。0 = 系统默认。
+    Set a custom height for the Start menu in pixels. 0 = system default.
+- searchWidth: 0
+  $name: "📐 搜索窗口宽度 (Search Menu Width, px)"
+  $description: >-
+    设置搜索窗口的自定义宽度（像素）。-1 = 系统默认，0 = 与开始菜单相同。
+    Set a custom width for the search menu in pixels. -1 = system default, 0 = same as Start menu.
+- searchHeight: 0
+  $name: "📐 搜索窗口高度 (Search Menu Height, px)"
+  $description: >-
+    设置搜索窗口的自定义高度（像素）。-1 = 系统默认，0 = 与开始菜单相同。
+    Set a custom height for the search menu in pixels. -1 = system default, 0 = same as Start menu.
 - styleConstants: [""]
   $name: "⚙️ Style constants (高级)"
   $description: >-
@@ -14470,6 +14490,522 @@ DisableNewStartMenuLayout GetDisableNewStartMenuLayout() {
     return disableNewStartMenuLayout;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Start Menu custom sizing (merged from local@start-menu-size)
+//
+// Only the StartMenu target sizing logic is retained here. The Explorer-side
+// sizing hooks (twinui.pcshell.dll symbol hooks) were dropped per project
+// decision: explorer.exe is NOT in the @include list.
+////////////////////////////////////////////////////////////////////////////////
+
+std::atomic<bool> g_unloading;
+
+struct {
+    int width;
+    int height;
+    int searchWidth;
+    int searchHeight;
+} g_sizeSettings;
+
+void LoadSizeSettings() {
+    g_sizeSettings.width = Wh_GetIntSetting(L"width");
+    g_sizeSettings.height = Wh_GetIntSetting(L"height");
+    g_sizeSettings.searchWidth = Wh_GetIntSetting(L"searchWidth");
+    g_sizeSettings.searchHeight = Wh_GetIntSetting(L"searchHeight");
+}
+
+namespace StartMenuUI {
+
+struct OriginalWidthParams {
+    std::optional<double> width;
+    std::optional<double> minWidth;
+    std::optional<double> maxWidth;
+};
+
+struct OriginalHeightParams {
+    std::optional<double> height;
+    std::optional<double> minHeight;
+    std::optional<double> maxHeight;
+};
+
+bool g_applyStylePending;
+winrt::event_token g_layoutUpdatedToken;
+winrt::event_token g_visibilityChangedToken;
+
+// Classic start menu: single element for both width and height.
+std::optional<OriginalWidthParams> g_originalClassicWidth;
+std::optional<OriginalWidthParams> g_originalClassicRootGridWidth;
+std::optional<OriginalHeightParams> g_originalClassicHeight;
+
+// Redesigned start menu: mainMenu for width, frameRoot for height and margin.
+std::optional<OriginalWidthParams> g_originalMainMenuWidth;
+std::optional<OriginalHeightParams> g_originalFrameRootHeight;
+std::optional<Thickness> g_originalFrameRootMargin;
+
+void ApplyStyle();
+
+// Templated child enumeration avoids std::function and inline lambdas. The
+// matcher is a small named functor type, instantiated at the call site.
+template <typename Matcher>
+FrameworkElement EnumChildElements(FrameworkElement element, Matcher matcher) {
+    int childrenCount = Media::VisualTreeHelper::GetChildrenCount(element);
+
+    for (int i = 0; i < childrenCount; i++) {
+        auto child = Media::VisualTreeHelper::GetChild(element, i)
+                         .try_as<FrameworkElement>();
+        if (!child) {
+            Wh_Log(L"Failed to get child %d of %d", i + 1, childrenCount);
+            continue;
+        }
+
+        if (matcher(child)) {
+            return child;
+        }
+    }
+
+    return nullptr;
+}
+
+struct FindChildByNameMatcher {
+    PCWSTR name;
+    bool operator()(FrameworkElement child) const {
+        return child.Name() == name;
+    }
+};
+
+FrameworkElement FindChildByName(FrameworkElement element, PCWSTR name) {
+    return EnumChildElements(element, FindChildByNameMatcher{name});
+}
+
+struct FindChildByClassNameMatcher {
+    PCWSTR className;
+    bool operator()(FrameworkElement child) const {
+        return winrt::get_class_name(child) == className;
+    }
+};
+
+FrameworkElement FindChildByClassName(FrameworkElement element,
+                                      PCWSTR className) {
+    return EnumChildElements(element, FindChildByClassNameMatcher{className});
+}
+
+void SaveWidth(FrameworkElement element, OriginalWidthParams& out) {
+    double width = element.Width();
+    out.width = std::isnan(width) ? std::nullopt : std::optional(width);
+
+    double minWidth = element.MinWidth();
+    out.minWidth = minWidth == 0 ? std::nullopt : std::optional(minWidth);
+
+    double maxWidth = element.MaxWidth();
+    out.maxWidth =
+        std::isinf(maxWidth) ? std::nullopt : std::optional(maxWidth);
+}
+
+void RestoreWidth(FrameworkElement element,
+                  const OriginalWidthParams& original) {
+    auto dep = element.as<DependencyObject>();
+
+    if (original.width) {
+        element.Width(*original.width);
+    } else {
+        dep.ClearValue(FrameworkElement::WidthProperty());
+    }
+
+    if (original.minWidth) {
+        element.MinWidth(*original.minWidth);
+    } else {
+        dep.ClearValue(FrameworkElement::MinWidthProperty());
+    }
+
+    if (original.maxWidth) {
+        element.MaxWidth(*original.maxWidth);
+    } else {
+        dep.ClearValue(FrameworkElement::MaxWidthProperty());
+    }
+}
+
+void SaveHeight(FrameworkElement element, OriginalHeightParams& out) {
+    double height = element.Height();
+    out.height = std::isnan(height) ? std::nullopt : std::optional(height);
+
+    double minHeight = element.MinHeight();
+    out.minHeight = minHeight == 0 ? std::nullopt : std::optional(minHeight);
+
+    double maxHeight = element.MaxHeight();
+    out.maxHeight =
+        std::isinf(maxHeight) ? std::nullopt : std::optional(maxHeight);
+}
+
+void RestoreHeight(FrameworkElement element,
+                   const OriginalHeightParams& original) {
+    auto dep = element.as<DependencyObject>();
+
+    if (original.height) {
+        element.Height(*original.height);
+    } else {
+        dep.ClearValue(FrameworkElement::HeightProperty());
+    }
+
+    if (original.minHeight) {
+        element.MinHeight(*original.minHeight);
+    } else {
+        dep.ClearValue(FrameworkElement::MinHeightProperty());
+    }
+
+    if (original.maxHeight) {
+        element.MaxHeight(*original.maxHeight);
+    } else {
+        dep.ClearValue(FrameworkElement::MaxHeightProperty());
+    }
+}
+
+void ApplyStyleClassicStartMenu(FrameworkElement content) {
+    FrameworkElement startSizingFrame =
+        FindChildByClassName(content, L"StartDocked.StartSizingFrame");
+    if (!startSizingFrame) {
+        Wh_Log(L"Failed to find StartDocked.StartSizingFrame");
+        return;
+    }
+
+    // Navigate to RootGrid and RootContent to remove MinWidth constraints.
+    FrameworkElement rootGrid = nullptr;
+    FrameworkElement rootContent = nullptr;
+    bool isNewerVersion = false;
+
+    FrameworkElement child = startSizingFrame;
+    if ((child = FindChildByClassName(child,
+                                      L"StartDocked.StartSizingFramePanel")) &&
+        (child = FindChildByClassName(
+             child, L"Windows.UI.Xaml.Controls.ContentPresenter")) &&
+        (child =
+             FindChildByClassName(child, L"Windows.UI.Xaml.Controls.Frame")) &&
+        (child = FindChildByClassName(
+             child, L"Windows.UI.Xaml.Controls.ContentPresenter")) &&
+        (child = FindChildByClassName(child, L"StartDocked.LauncherFrame"))) {
+        // Newer versions have RootPanel > RootGrid > RootContent, older
+        // versions have RootGrid > RootContent.
+        FrameworkElement rootPanel = FindChildByName(child, L"RootPanel");
+        isNewerVersion = !!rootPanel;
+        rootGrid = FindChildByName(rootPanel ? rootPanel : child, L"RootGrid");
+        if (rootGrid) {
+            rootContent = FindChildByName(rootGrid, L"RootContent");
+        }
+    }
+
+    if (!rootContent) {
+        Wh_Log(L"Failed to find RootContent");
+    }
+
+    Wh_Log(L"Invalidating measure");
+    startSizingFrame.InvalidateMeasure();
+
+    Wh_Log(L"Setting size: %dx%d", g_sizeSettings.width, g_sizeSettings.height);
+
+    if (g_unloading) {
+        if (g_originalClassicWidth) {
+            RestoreWidth(startSizingFrame, *g_originalClassicWidth);
+            g_originalClassicWidth.reset();
+        }
+        if (g_originalClassicRootGridWidth) {
+            if (rootGrid) {
+                RestoreWidth(rootGrid, *g_originalClassicRootGridWidth);
+            }
+            g_originalClassicRootGridWidth.reset();
+        }
+        if (g_originalClassicHeight) {
+            RestoreHeight(startSizingFrame, *g_originalClassicHeight);
+            g_originalClassicHeight.reset();
+        }
+    } else {
+        // The settings define the outer window size. The classic start menu has
+        // a fixed padding of 12px on each edge between the window edge and
+        // startSizingFrame (the Canvas is full-screen).
+        constexpr double kPadding = 12 * 2;
+
+        if (g_sizeSettings.width > 0) {
+            if (!g_originalClassicWidth) {
+                g_originalClassicWidth.emplace();
+                SaveWidth(startSizingFrame, *g_originalClassicWidth);
+            }
+            double width = std::fmax(
+                static_cast<double>(g_sizeSettings.width) - kPadding, 0);
+            startSizingFrame.Width(width);
+            startSizingFrame.MinWidth(width);
+            startSizingFrame.MaxWidth(width);
+
+            if (isNewerVersion && rootGrid) {
+                if (!g_originalClassicRootGridWidth) {
+                    g_originalClassicRootGridWidth.emplace();
+                    SaveWidth(rootGrid, *g_originalClassicRootGridWidth);
+                }
+                rootGrid.Width(width);
+                rootGrid.MinWidth(width);
+                rootGrid.MaxWidth(width);
+            }
+
+            if (rootContent) {
+                rootContent.as<DependencyObject>().ClearValue(
+                    FrameworkElement::MinWidthProperty());
+            }
+        } else if (g_originalClassicWidth) {
+            RestoreWidth(startSizingFrame, *g_originalClassicWidth);
+            g_originalClassicWidth.reset();
+            if (g_originalClassicRootGridWidth) {
+                if (rootGrid) {
+                    RestoreWidth(rootGrid, *g_originalClassicRootGridWidth);
+                }
+                g_originalClassicRootGridWidth.reset();
+            }
+        }
+
+        if (g_sizeSettings.height > 0) {
+            if (!g_originalClassicHeight) {
+                g_originalClassicHeight.emplace();
+                SaveHeight(startSizingFrame, *g_originalClassicHeight);
+            }
+            double height = std::fmax(
+                static_cast<double>(g_sizeSettings.height) - kPadding, 0);
+            startSizingFrame.Height(height);
+            startSizingFrame.MinHeight(height);
+            startSizingFrame.MaxHeight(height);
+        } else if (g_originalClassicHeight) {
+            RestoreHeight(startSizingFrame, *g_originalClassicHeight);
+            g_originalClassicHeight.reset();
+        }
+    }
+}
+
+void ApplyStyleRedesignedStartMenu(FrameworkElement content) {
+    // Navigate: FrameRoot > AnimationRoot > MainMenu.
+    FrameworkElement frameRoot = FindChildByName(content, L"FrameRoot");
+    if (!frameRoot) {
+        Wh_Log(L"Failed to find FrameRoot");
+        return;
+    }
+
+    FrameworkElement animationRoot =
+        FindChildByName(frameRoot, L"AnimationRoot");
+    if (!animationRoot) {
+        Wh_Log(L"Failed to find AnimationRoot");
+        return;
+    }
+
+    FrameworkElement mainMenu = FindChildByName(animationRoot, L"MainMenu");
+    if (!mainMenu) {
+        Wh_Log(L"Failed to find MainMenu");
+        return;
+    }
+
+    Wh_Log(L"Setting size: %dx%d", g_sizeSettings.width, g_sizeSettings.height);
+
+    if (g_unloading) {
+        if (g_originalMainMenuWidth) {
+            RestoreWidth(mainMenu, *g_originalMainMenuWidth);
+            g_originalMainMenuWidth.reset();
+        }
+        if (g_originalFrameRootHeight) {
+            RestoreHeight(frameRoot, *g_originalFrameRootHeight);
+            g_originalFrameRootHeight.reset();
+        }
+        if (g_originalFrameRootMargin) {
+            frameRoot.Margin(*g_originalFrameRootMargin);
+            g_originalFrameRootMargin.reset();
+        }
+    } else {
+        constexpr int kMinWidth = 270;
+
+        if (g_sizeSettings.width > 0) {
+            if (!g_originalMainMenuWidth) {
+                g_originalMainMenuWidth.emplace();
+                SaveWidth(mainMenu, *g_originalMainMenuWidth);
+            }
+
+            // The requested width is the overall visible width. MainMenu is
+            // nested inside frameRoot > AnimationRoot, so subtract any
+            // padding/margin between them to get the correct inner width.
+            double frameRootActualWidth = frameRoot.ActualWidth();
+            double mainMenuActualWidth = mainMenu.ActualWidth();
+            double padding = 0;
+            if (frameRootActualWidth > 0 && mainMenuActualWidth > 0) {
+                padding = frameRootActualWidth - mainMenuActualWidth;
+            }
+
+            double width = static_cast<double>(
+                std::fmax(g_sizeSettings.width, kMinWidth));
+            width = std::fmax(width - padding, kMinWidth);
+            mainMenu.Width(width);
+            mainMenu.MinWidth(width);
+            mainMenu.MaxWidth(width);
+        } else if (g_originalMainMenuWidth) {
+            RestoreWidth(mainMenu, *g_originalMainMenuWidth);
+            g_originalMainMenuWidth.reset();
+        }
+
+        if (g_sizeSettings.height > 0) {
+            if (!g_originalFrameRootHeight) {
+                g_originalFrameRootHeight.emplace();
+                SaveHeight(frameRoot, *g_originalFrameRootHeight);
+            }
+            double height = static_cast<double>(g_sizeSettings.height);
+            frameRoot.Height(height);
+            frameRoot.MinHeight(height);
+            frameRoot.MaxHeight(height);
+
+            if (!g_originalFrameRootMargin) {
+                g_originalFrameRootMargin = frameRoot.Margin();
+            }
+            frameRoot.Margin(Thickness{0, 0, 0, 0});
+        } else if (g_originalFrameRootHeight) {
+            RestoreHeight(frameRoot, *g_originalFrameRootHeight);
+            g_originalFrameRootHeight.reset();
+            if (g_originalFrameRootMargin) {
+                frameRoot.Margin(*g_originalFrameRootMargin);
+                g_originalFrameRootMargin.reset();
+            }
+        }
+    }
+}
+
+void ApplyStyle() {
+    Wh_Log(L"Applying Start menu size");
+
+    auto window = Window::Current();
+    FrameworkElement content = window.Content().as<FrameworkElement>();
+
+    winrt::hstring contentClassName = winrt::get_class_name(content);
+    Wh_Log(L"Start menu content class name: %s", contentClassName.c_str());
+
+    if (contentClassName == L"Windows.UI.Xaml.Controls.Canvas") {
+        ApplyStyleClassicStartMenu(content);
+    } else if (contentClassName == L"StartMenu.StartBlendedFlexFrame") {
+        ApplyStyleRedesignedStartMenu(content);
+    } else {
+        Wh_Log(L"Error: Unsupported Start menu content class name");
+    }
+}
+
+void OnVisibilityChanged(
+    winrt::Windows::Foundation::IInspectable const&,
+    winrt::Windows::UI::Core::VisibilityChangedEventArgs const& args) {
+    Wh_Log(L"Window visibility changed: %d", args.Visible());
+    if (args.Visible()) {
+        g_applyStylePending = true;
+    }
+}
+
+void OnLayoutUpdated(winrt::Windows::Foundation::IInspectable const&,
+                     winrt::Windows::Foundation::IInspectable const&) {
+    if (g_applyStylePending) {
+        g_applyStylePending = false;
+        ApplyStyle();
+    }
+}
+
+void Init() {
+    if (g_layoutUpdatedToken) {
+        return;
+    }
+
+    auto window = Window::Current();
+    if (!window) {
+        return;
+    }
+
+    if (!g_visibilityChangedToken) {
+        g_visibilityChangedToken =
+            window.VisibilityChanged(&OnVisibilityChanged);
+    }
+
+    auto contentUI = window.Content();
+    if (!contentUI) {
+        return;
+    }
+
+    auto content = contentUI.as<FrameworkElement>();
+    g_layoutUpdatedToken = content.LayoutUpdated(&OnLayoutUpdated);
+
+    ApplyStyle();
+}
+
+void Uninit() {
+    if (!g_layoutUpdatedToken) {
+        return;
+    }
+
+    auto window = Window::Current();
+    if (!window) {
+        return;
+    }
+
+    if (g_visibilityChangedToken) {
+        window.VisibilityChanged(g_visibilityChangedToken);
+        g_visibilityChangedToken = {};
+    }
+
+    auto contentUI = window.Content();
+    if (!contentUI) {
+        return;
+    }
+
+    auto content = contentUI.as<FrameworkElement>();
+    content.LayoutUpdated(g_layoutUpdatedToken);
+    g_layoutUpdatedToken = {};
+
+    ApplyStyle();
+}
+
+void SettingsChanged() {
+    ApplyStyle();
+}
+
+using RoGetActivationFactory_t = decltype(&RoGetActivationFactory);
+RoGetActivationFactory_t RoGetActivationFactory_Original;
+HRESULT WINAPI RoGetActivationFactory_Hook(HSTRING activatableClassId,
+                                           REFIID iid,
+                                           void** factory) {
+    thread_local static bool isInHook;
+
+    if (isInHook) {
+        return RoGetActivationFactory_Original(activatableClassId, iid,
+                                               factory);
+    }
+
+    isInHook = true;
+
+    if (wcscmp(WindowsGetStringRawBuffer(activatableClassId, nullptr),
+               L"Windows.UI.Xaml.Hosting.XamlIsland") == 0) {
+        try {
+            Init();
+        } catch (...) {
+            HRESULT hr = winrt::to_hresult();
+            Wh_Log(L"Error %08X", hr);
+        }
+    }
+
+    HRESULT ret =
+        RoGetActivationFactory_Original(activatableClassId, iid, factory);
+
+    isInHook = false;
+
+    return ret;
+}
+
+}  // namespace StartMenuUI
+
+// Named thunk functions used as RunFromWindowThread callbacks (no inline
+// lambdas in callbacks per project rules).
+static void WINAPI StartMenuSize_InitFromWindowThread(PVOID) {
+    StartMenuUI::Init();
+}
+
+static void WINAPI StartMenuSize_UninitFromWindowThread(PVOID) {
+    StartMenuUI::Uninit();
+}
+
+static void WINAPI StartMenuSize_SettingsChangedFromWindowThread(PVOID) {
+    StartMenuUI::SettingsChanged();
+}
+
 BOOL Wh_ModInit() {
     Wh_Log(L">");
 
@@ -14572,6 +15108,23 @@ BOOL Wh_ModInit() {
         StartStatsTimer();
     }
 
+    // Start Menu custom sizing: load settings and install the
+    // RoGetActivationFactory hook (StartMenu target only). The hook triggers
+    // StartMenuUI::Init() when Windows.UI.Xaml.Hosting.XamlIsland is activated.
+    LoadSizeSettings();
+
+    if (g_target == Target::StartMenu) {
+        HMODULE winrtModule =
+            GetModuleHandle(L"api-ms-win-core-winrt-l1-1-0.dll");
+        auto pRoGetActivationFactory =
+            (decltype(&RoGetActivationFactory))GetProcAddress(
+                winrtModule, "RoGetActivationFactory");
+        Wh_SetFunctionHook(
+            (void*)pRoGetActivationFactory,
+            (void*)StartMenuUI::RoGetActivationFactory_Hook,
+            (void**)&StartMenuUI::RoGetActivationFactory_Original);
+    }
+
     return TRUE;
 }
 
@@ -14583,6 +15136,31 @@ void Wh_ModAfterInit() {
         Wh_Log(L"Initializing - Found core window");
         RunFromWindowThread(
             hCoreWnd, [](PVOID) { InitializeSettingsAndTap(); }, nullptr);
+
+        // Start Menu custom sizing: attach LayoutUpdated/VisibilityChanged
+        // handlers on the CoreWindow thread (StartMenu target only).
+        if (g_target == Target::StartMenu) {
+            RunFromWindowThread(
+                hCoreWnd, StartMenuSize_InitFromWindowThread, nullptr);
+        }
+    }
+}
+
+void Wh_ModBeforeUninit() {
+    Wh_Log(L">");
+
+    // Start Menu custom sizing: signal unloading so ApplyStyle() restores
+    // original dimensions, then detach event handlers on the CoreWindow
+    // thread (StartMenu target only).
+    if (g_target == Target::StartMenu) {
+        g_unloading = true;
+
+        HWND hCoreWnd = GetCoreWnd();
+        if (hCoreWnd) {
+            Wh_Log(L"Uninitializing sizing - Found core window");
+            RunFromWindowThread(
+                hCoreWnd, StartMenuSize_UninitFromWindowThread, nullptr);
+        }
     }
 }
 
@@ -14654,6 +15232,9 @@ void Wh_ModSettingsChanged() {
         ExitProcess(0);
     }
 
+    // Reload sizing settings so ApplyStyle() picks up the new values.
+    LoadSizeSettings();
+
     if (g_visualTreeWatcher) {
         g_visualTreeWatcher->UnadviseVisualTreeChange();
         g_visualTreeWatcher = nullptr;
@@ -14669,5 +15250,13 @@ void Wh_ModSettingsChanged() {
                 InitializeSettingsAndTap();
             },
             nullptr);
+
+        // Start Menu custom sizing: re-apply size on the CoreWindow thread
+        // (StartMenu target only).
+        if (g_target == Target::StartMenu) {
+            RunFromWindowThread(
+                hCoreWnd,
+                StartMenuSize_SettingsChangedFromWindowThread, nullptr);
+        }
     }
 }
