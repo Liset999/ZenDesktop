@@ -225,6 +225,35 @@ foreach ($file in $files) {
         }
     }
 
+    if ($id -eq "local@zen-stage-manager") {
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+
+        $defaults = @{
+            "sidebarEdge" = 0
+            "sidebarWidth" = 80
+            "acrylicOpacity" = 180
+            "maxVisibleStages" = 5
+            "enableHotkey" = 1
+            "animationDisabled" = 1
+        }
+
+        foreach ($key in $defaults.Keys) {
+            $val = $null
+            try {
+                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
+            } catch {
+                $val = $null
+            }
+            if ($val -eq $null) {
+                Write-Status "         [Settings] Defaulting Stage Manager $key -> $($defaults[$key])" "Yellow"
+                Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
+            }
+        }
+    }
+
     # Initialize ModsWritable runtime key
     $regWritablePath = "HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\$id"
     if (-not (Test-Path $regWritablePath)) {
