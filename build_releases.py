@@ -6,6 +6,7 @@ common_files = [
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
+    'local@zen-stage-manager.wh.cpp',
     'ExplorerBlurMica',
     'ZenDesktopCustomizer.py',
     'run_customizer.bat',
