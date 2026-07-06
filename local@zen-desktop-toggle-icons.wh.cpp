@@ -329,7 +329,11 @@ static void StartFade(HWND hwndDefView, HWND hwndListView, bool targetVisible, b
     if (existingStart != 0) {
         startAlpha = (BYTE)HandleToUlong(GetPropW(hwndDefView, L"ZenFadeCurrentAlpha"));
     } else {
-        startAlpha = targetVisible ? 0 : 255;
+        // Fade-out: start from 255 (fully visible) and go to 0
+        // Fade-in: start at 255 and show immediately (no gradual fade-in)
+        // This avoids the "black background" artifact where the ListView's
+        // internal background color appears during the fade-in transition.
+        startAlpha = 255;
     }
 
     KillFadeTimer(hwndDefView);
@@ -350,6 +354,17 @@ static void StartFade(HWND hwndDefView, HWND hwndListView, bool targetVisible, b
 
     if (!IsWindowVisible(hwndListView)) {
         ShowWindow(hwndListView, SW_SHOW);
+    }
+
+    // Fade-in optimization: if showing icons, set alpha=255 immediately and
+    // skip the timer-based animation.  The fade-out (hide) still animates.
+    if (targetVisible && existingStart == 0) {
+        SetLayeredWindowAttributes(hwndListView, 0, 255, LWA_ALPHA);
+        if (persistOnComplete) {
+            SetPersistedHideState(false);
+        }
+        Wh_Log(L"[ZenDesktop] Fade-in (immediate): SHOW");
+        return;
     }
 
     // Adjust the recorded fadeStart so the WM_TIMER progress formula
