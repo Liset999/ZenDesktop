@@ -15,10 +15,11 @@
 #include <atomic>
 
 std::atomic<HWND> g_hwndSidebar{ NULL };
+std::atomic<bool> g_bInitDone{ false };
+std::atomic<bool> g_bExitRequest{ false };
+
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
-// Event handle to synchronize sidebar window initialization.
-HANDLE g_hInitEvent = NULL;
 
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
@@ -31,12 +32,22 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 DWORD WINAPI UIThreadProc(LPVOID lpParam) {
-    HANDLE hInitEvent = (HANDLE)lpParam;
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = SidebarWndProc;
     wc.hInstance = GetModuleHandle(NULL);
     wc.lpszClassName = L"ZenStageManagerClass";
-    RegisterClass(&wc);
+    if (!RegisterClass(&wc)) {
+        if (GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+            g_bInitDone.store(true);
+            return 0;
+        }
+    }
+
+    if (g_bExitRequest.load()) {
+        g_bInitDone.store(true);
+        UnregisterClass(wc.lpszClassName, wc.hInstance);
+        return 0;
+    }
 
     HWND hwnd = CreateWindowEx(
         WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
@@ -47,49 +58,60 @@ DWORD WINAPI UIThreadProc(LPVOID lpParam) {
     );
     g_hwndSidebar.store(hwnd);
 
-    if (hInitEvent) {
-        SetEvent(hInitEvent);
-    }
-
-    if (g_hwndSidebar.load() == NULL) {
-        UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
+    if (g_bExitRequest.load()) {
+        HWND hwndToDestroy = g_hwndSidebar.exchange(NULL);
+        if (hwndToDestroy) {
+            DestroyWindow(hwndToDestroy);
+        }
+        g_bInitDone.store(true);
+        UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 0;
     }
+
+    if (hwnd == NULL) {
+        g_bInitDone.store(true);
+        UnregisterClass(wc.lpszClassName, wc.hInstance);
+        return 0;
+    }
+
+    g_bInitDone.store(true);
 
     MSG msg;
     BOOL bRet;
     while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0) {
         if (bRet == -1) {
-            // handle error or exit
             break;
         }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
-    UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
+    HWND hwndRemaining = g_hwndSidebar.exchange(NULL);
+    if (hwndRemaining && IsWindow(hwndRemaining)) {
+        DestroyWindow(hwndRemaining);
+    }
+    UnregisterClass(wc.lpszClassName, wc.hInstance);
     return 0;
 }
 
 BOOL Wh_ModInit() {
     Wh_Log(L"Stage Manager Initializing");
 
-    g_hInitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    g_hwndSidebar.store(NULL);
+    g_bInitDone.store(false);
+    g_bExitRequest.store(false);
 
-    g_hUIThread = CreateThread(NULL, 0, UIThreadProc, g_hInitEvent, 0, NULL);
+    g_hUIThread = CreateThread(NULL, 0, UIThreadProc, NULL, 0, NULL);
     if (g_hUIThread == NULL) {
         Wh_Log(L"Failed to create UI thread");
-        if (g_hInitEvent) {
-            CloseHandle(g_hInitEvent);
-            g_hInitEvent = NULL;
-        }
         return FALSE;
     }
 
-    if (g_hInitEvent) {
-        WaitForSingleObject(g_hInitEvent, 1000);
-        CloseHandle(g_hInitEvent);
-        g_hInitEvent = NULL;
+    for (int i = 0; i < 200; ++i) {
+        if (g_bInitDone.load()) {
+            break;
+        }
+        Sleep(5);
     }
 
     return TRUE;
@@ -97,15 +119,20 @@ BOOL Wh_ModInit() {
 
 void Wh_ModUninit() {
     Wh_Log(L"Stage Manager Uninitializing");
+
+    g_bExitRequest.store(true);
+
     HWND hwnd = g_hwndSidebar.load();
     if (hwnd) {
         PostMessage(hwnd, WM_CLOSE, 0, 0);
     }
+
     if (g_hUIThread) {
-        DWORD waitResult = WaitForSingleObject(g_hUIThread, 5000);
+        DWORD waitResult = WaitForSingleObject(g_hUIThread, 3000);
         if (waitResult == WAIT_TIMEOUT) {
-            TerminateThread(g_hUIThread, 0);
+            Wh_Log(L"Warning: UI thread did not exit within 3 seconds.");
         }
         CloseHandle(g_hUIThread);
+        g_hUIThread = NULL;
     }
 }
