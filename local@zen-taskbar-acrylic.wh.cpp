@@ -500,17 +500,17 @@ from the **TranslucentTB** project.
     - SunsetOrange: "落日熔橙 (Sunset Orange)"
     - ChampagneGold: "香槟金黄 (Champagne Gold)"
     - MorandiSage: "莫兰迪绿 (Morandi Sage)"
-- blurPreset: 30
+- blurPreset: "30"
   $name: "🔮 毛玻璃模糊度 (Blur)"
   $description: >-
     调节背景的模糊程度，数值越大越模糊。
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - "0": "不模糊 (Clear)"
+    - "10": "微弱毛玻璃 (Subtle)"
+    - "20": "中度毛玻璃 (Standard)"
+    - "30": "高阶亚克力 (Deep Acrylic)"
+    - "45": "重度磨砂 (Heavy Frosted)"
+    - "60": "终极磨砂 (Max Blur)"
 - opacityPreset: 50
   $name: "💧 背景填充浓度 (Opacity)"
   $description: >-
@@ -596,11 +596,15 @@ from the **TranslucentTB** project.
   - alert: "弹窗提示 (Alert)"
   - block: "自动阻止 (Block)"
   - allow: "允许共存 (Allow)"
+- helperEnabled: false
+  $name: "🧊 任务栏背景辅助：启用 (Helper: Enable)"
+  $description: >-
+    启用任务栏背景辅助功能。关闭时保持原 ZenDesktop Taskbar Acrylic Styler 的行为，
+    不应用任何额外背景样式。开启后才会根据下方设置影响任务栏背景。
 - backgroundStyle: blur
   $name: "🧊 任务栏背景辅助：背景风格 (Helper Background Style)"
   $description: >-
     任务栏背景辅助模式。可选：blur (模糊), acrylicBlur (亚克力模糊), color (纯色)。
-    仅在该辅助功能被启用时生效（例如开启「仅有窗口最大化时应用」）。
   $options:
     - blur: "模糊 (Blur)"
     - acrylicBlur: "亚克力模糊 (Acrylic Blur)"
@@ -619,7 +623,7 @@ from the **TranslucentTB** project.
   $name: "🧊 辅助：仅窗口最大化时应用 (Helper: Only When Maximized)"
   $description: >-
     仅当该显示器上有最大化或全屏窗口时才应用背景样式，否则保持透明。
-- excludedPrograms: []
+- excludedPrograms: [""]
   $name: "🧊 辅助：排除的程序列表 (Helper: Excluded Programs)"
   $description: >-
     在此列表中的程序（如特定全屏游戏或应用）的最大化状态不会触发任务栏背景变化。
@@ -6911,6 +6915,7 @@ struct {
     int maximizedLayerBlur;
 
     // Helper settings (merged from local@taskbar-background-helper).
+    bool helperEnabled;
     TaskbarStyle helperStyle;
     bool onlyWhenMaximized;
     std::unordered_set<std::wstring> excludedPrograms;
@@ -13504,6 +13509,10 @@ void UpdateTaskbarStyleForMonitor(HMONITOR monitor, bool hasMaximized) {
 }
 
 BOOL ApplyTaskbarStyleForWindow(HWND hWnd) {
+    if (!g_settings.helperEnabled) {
+        return FALSE;
+    }
+
     if (!g_settings.onlyWhenMaximized) {
         return SetTaskbarStyle(hWnd);
     }
@@ -13519,6 +13528,10 @@ BOOL ApplyTaskbarStyleForWindow(HWND hWnd) {
 
 // Updates all taskbars based on current special view mode and maximized state.
 void UpdateAllTaskbarStyles() {
+    if (!g_settings.helperEnabled) {
+        return;
+    }
+
     std::unordered_set<HWND> secondaryTaskbarWindows;
     HWND hTaskbarWnd = FindTaskbarWindows(&secondaryTaskbarWindows);
     if (!hTaskbarWnd) {
@@ -14355,6 +14368,8 @@ void LoadSettings() {
         ClampBlurAmount(GetIntSettingOrDefault(L"maximizedLayerBlur", 24), 24);
 
     // Helper settings (merged from local@taskbar-background-helper).
+    g_settings.helperEnabled = Wh_GetIntSetting(L"helperEnabled");
+
     PCWSTR helperBackgroundStyle = Wh_GetStringSetting(L"backgroundStyle");
     g_settings.helperStyle.backgroundStyle = BackgroundStyle::blur;
     if (wcscmp(helperBackgroundStyle, L"acrylicBlur") == 0) {
@@ -14595,12 +14610,14 @@ void Wh_ModUninit() {
 
     std::unordered_set<HWND> helperSecondaryTaskbarWindows;
     HWND hHelperTaskbarWnd = FindTaskbarWindows(&helperSecondaryTaskbarWindows);
-    if (hHelperTaskbarWnd) {
+    if (hHelperTaskbarWnd && g_settings.helperEnabled) {
         ResetTaskbarStyle(hHelperTaskbarWnd);
     }
 
-    for (HWND hSecondaryWnd : helperSecondaryTaskbarWindows) {
-        ResetTaskbarStyle(hSecondaryWnd);
+    if (g_settings.helperEnabled) {
+        for (HWND hSecondaryWnd : helperSecondaryTaskbarWindows) {
+            ResetTaskbarStyle(hSecondaryWnd);
+        }
     }
 }
 
@@ -14673,5 +14690,19 @@ void Wh_ModSettingsChanged() {
         }
     }
 
-    UpdateAllTaskbarStyles();
+    if (g_settings.helperEnabled) {
+        UpdateAllTaskbarStyles();
+    } else {
+        // Helper was disabled (or stayed disabled): reset any composition styles
+        // it may have previously applied so the XAML-based acrylic styling regains
+        // control.
+        std::unordered_set<HWND> secondaryTaskbarWindows;
+        HWND hTaskbarWnd = FindTaskbarWindows(&secondaryTaskbarWindows);
+        if (hTaskbarWnd) {
+            ResetTaskbarStyle(hTaskbarWnd);
+        }
+        for (HWND hSecondaryWnd : secondaryTaskbarWindows) {
+            ResetTaskbarStyle(hSecondaryWnd);
+        }
+    }
 }
