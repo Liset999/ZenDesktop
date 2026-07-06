@@ -13,6 +13,9 @@
 #include <shellapi.h>
 #include <vector>
 #include <atomic>
+#include <string>
+#include <mutex>
+#include <algorithm>
 
 std::atomic<HWND> g_hwndSidebar{ NULL };
 std::atomic<bool> g_bInitDone{ false };
@@ -21,6 +24,17 @@ std::atomic<bool> g_bInitSuccess{ false };
 
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
+
+struct WindowStage {
+    std::vector<HWND> hwnds;
+    std::wstring processName;
+    HICON hIcon;
+    bool isCustom;
+};
+
+std::vector<WindowStage> g_stages;
+std::mutex g_stagesMutex;
+UINT g_uShellHookMsg = 0;
 
 #define WM_APPBAR_CALLBACK (WM_USER + 101)
 
@@ -84,18 +98,190 @@ void UnregisterAppBar(HWND hwnd) {
     SHAppBarMessage(ABM_REMOVE, &abd);
 }
 
+HICON GetWindowIcon(HWND hwnd) {
+    HICON hIcon = NULL;
+    DWORD_PTR dwResult = 0;
+    
+    // 1. Try to get the small icon set explicitly for the window
+    if (SendMessageTimeout(hwnd, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG | SMTO_NORMAL, 100, &dwResult)) {
+        hIcon = (HICON)dwResult;
+    }
+    
+    // 2. Try the big icon
+    if (!hIcon) {
+        if (SendMessageTimeout(hwnd, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG | SMTO_NORMAL, 100, &dwResult)) {
+            hIcon = (HICON)dwResult;
+        }
+    }
+    
+    // 3. Try to get the small class icon
+    if (!hIcon) {
+        hIcon = (HICON)GetClassLongPtr(hwnd, GCLP_HICONSM);
+    }
+    
+    // 4. Try to get the big class icon
+    if (!hIcon) {
+        hIcon = (HICON)GetClassLongPtr(hwnd, GCLP_HICON);
+    }
+    
+    // 5. Fallback to default application icon
+    if (!hIcon) {
+        hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    }
+    
+    return hIcon;
+}
+
+bool IsAppWindow(HWND hwnd) {
+    if (hwnd == g_hwndSidebar.load()) return false;
+    if (!IsWindowVisible(hwnd)) return false;
+    
+    // Exclude tool windows and windows with owners that don't have WS_EX_APPWINDOW
+    LONG exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+    if (exStyle & WS_EX_TOOLWINDOW) return false;
+    
+    HWND owner = GetWindow(hwnd, GW_OWNER);
+    if (owner != NULL && !(exStyle & WS_EX_APPWINDOW)) {
+        return false;
+    }
+    
+    // Class check to skip desktop and system components
+    wchar_t className[256];
+    GetClassName(hwnd, className, 256);
+    if (wcscmp(className, L"Progman") == 0 || wcscmp(className, L"WorkerW") == 0 ||
+        wcscmp(className, L"Shell_TrayWnd") == 0 || wcscmp(className, L"Shell_SecondaryTrayWnd") == 0) {
+        return false;
+    }
+    
+    // Must have some window text
+    wchar_t windowText[256];
+    GetWindowText(hwnd, windowText, 256);
+    if (wcslen(windowText) == 0) return false;
+
+    return true;
+}
+
+std::wstring GetProcessName(HWND hwnd) {
+    DWORD processId = 0;
+    GetWindowThreadProcessId(hwnd, &processId);
+    std::wstring processName = L"Unknown";
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+    if (hProcess) {
+        wchar_t path[MAX_PATH];
+        DWORD size = MAX_PATH;
+        if (QueryFullProcessImageNameW(hProcess, 0, path, &size)) {
+            wchar_t* filename = wcsrchr(path, L'\\');
+            processName = filename ? (filename + 1) : path;
+        }
+        CloseHandle(hProcess);
+    }
+    return processName;
+}
+
+void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
+    std::lock_guard<std::mutex> lock(g_stagesMutex);
+    
+    // Check if the window is already in some stage to avoid duplicates
+    for (const auto& stage : g_stages) {
+        if (std::find(stage.hwnds.begin(), stage.hwnds.end(), hwnd) != stage.hwnds.end()) {
+            return;
+        }
+    }
+    
+    for (auto& stage : g_stages) {
+        if (!stage.isCustom && _wcsicmp(stage.processName.c_str(), processName.c_str()) == 0) {
+            stage.hwnds.push_back(hwnd);
+            return;
+        }
+    }
+    
+    WindowStage newStage;
+    newStage.hwnds.push_back(hwnd);
+    newStage.processName = processName;
+    newStage.hIcon = GetWindowIcon(hwnd);
+    newStage.isCustom = false;
+    g_stages.push_back(newStage);
+}
+
+BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+    if (IsAppWindow(hwnd)) {
+        std::wstring processName = GetProcessName(hwnd);
+        AddWindowToStage(hwnd, processName);
+    }
+    return TRUE;
+}
+
+void InitializeExistingWindows() {
+    EnumWindows(EnumWindowsProc, 0);
+}
+
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (g_uShellHookMsg != 0 && msg == g_uShellHookMsg) {
+        WPARAM event = wp & 0x7FFF;
+        HWND targetHwnd = (HWND)lp;
+        
+        switch (event) {
+            case HSHELL_WINDOWCREATED: {
+                if (IsAppWindow(targetHwnd)) {
+                    std::wstring processName = GetProcessName(targetHwnd);
+                    AddWindowToStage(targetHwnd, processName);
+                    Wh_Log(L"HSHELL_WINDOWCREATED: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                }
+                break;
+            }
+            case HSHELL_WINDOWDESTROYED: {
+                std::lock_guard<std::mutex> lock(g_stagesMutex);
+                for (auto it = g_stages.begin(); it != g_stages.end(); ) {
+                    auto& stage = *it;
+                    auto hwndIt = std::find(stage.hwnds.begin(), stage.hwnds.end(), targetHwnd);
+                    if (hwndIt != stage.hwnds.end()) {
+                        stage.hwnds.erase(hwndIt);
+                        Wh_Log(L"HSHELL_WINDOWDESTROYED: HWND=%p, Process=%s", targetHwnd, stage.processName.c_str());
+                    }
+                    if (stage.hwnds.empty()) {
+                        it = g_stages.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+                break;
+            }
+            case HSHELL_WINDOWACTIVATED: {
+                if (IsAppWindow(targetHwnd)) {
+                    std::wstring processName = GetProcessName(targetHwnd);
+                    Wh_Log(L"HSHELL_WINDOWACTIVATED: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                }
+                break;
+            }
+        }
+        return 0;
+    }
+    
     switch (msg) {
-        case WM_CREATE:
+        case WM_CREATE: {
             RegisterAppBar(hwnd);
             SetAcrylicEffect(hwnd);
+            
+            g_uShellHookMsg = RegisterWindowMessage(L"SHELLHOOK");
+            RegisterShellHookWindow(hwnd);
+            
+            InitializeExistingWindows();
             return 0;
+        }
 
-        case WM_DESTROY:
+        case WM_DESTROY: {
+            DeregisterShellHookWindow(hwnd);
             UnregisterAppBar(hwnd);
+            
+            {
+                std::lock_guard<std::mutex> lock(g_stagesMutex);
+                g_stages.clear();
+            }
+            
             g_hwndSidebar.store(NULL);
             PostQuitMessage(0);
             return 0;
+        }
 
         case WM_APPBAR_CALLBACK:
             if (wp == ABN_POSCHANGED) {
