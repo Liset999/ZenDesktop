@@ -33,6 +33,7 @@ struct WindowStage {
     std::wstring processName;
     HICON hIcon;
     bool isCustom;
+    ID2D1Bitmap* pD2DBitmap = nullptr;
 };
 
 std::vector<WindowStage> g_stages;
@@ -86,9 +87,10 @@ void UpdateThumbnails(HWND hwndSidebar) {
         HTHUMBNAIL hThumb = nullptr;
         if (SUCCEEDED(DwmRegisterThumbnail(hwndSidebar, e.target, &hThumb))) {
             DWM_THUMBNAIL_PROPERTIES dpr = { 0 };
-            dpr.dwFlags  = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY;
+            dpr.dwFlags  = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY | DWM_TNP_SOURCECLIENTAREAONLY;
             dpr.fVisible = TRUE;
             dpr.opacity  = 240;
+            dpr.fSourceClientAreaOnly = TRUE;
 
             if (e.winCount > 1) {
                 dpr.rcDestination = RECT{ 16, e.yOffset + 6, 68, e.yOffset + 48 };
@@ -103,6 +105,13 @@ void UpdateThumbnails(HWND hwndSidebar) {
 }
 
 void DiscardDeviceResources() {
+    // Release per-stage cached bitmaps
+    {
+        std::lock_guard<std::mutex> lock(g_stagesMutex);
+        for (auto& stage : g_stages) {
+            if (stage.pD2DBitmap) { stage.pD2DBitmap->Release(); stage.pD2DBitmap = nullptr; }
+        }
+    }
     if (g_pRenderTarget) { g_pRenderTarget->Release(); g_pRenderTarget = nullptr; }
     if (g_pCardBgBrush) { g_pCardBgBrush->Release(); g_pCardBgBrush = nullptr; }
     if (g_pCardOutlineBrush) { g_pCardOutlineBrush->Release(); g_pCardOutlineBrush = nullptr; }
@@ -112,7 +121,11 @@ void DiscardDeviceResources() {
 
 void InitD2DAndWIC() {
     if (!g_pD2DFactory) {
-        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+        HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+        if (FAILED(hr)) {
+            Wh_Log(L"D2D1CreateFactory failed: 0x%08X", hr);
+            return;
+        }
     }
     if (!g_pWICFactory) {
         CoCreateInstance(
@@ -122,6 +135,21 @@ void InitD2DAndWIC() {
             IID_PPV_ARGS(&g_pWICFactory)
         );
     }
+}
+
+// Helper: create or update the cached D2D bitmap for a stage's icon.
+// Must be called on the UI/render-target thread.
+HRESULT CreateOrUpdateStageBitmap(WindowStage& stage, ID2D1HwndRenderTarget* pRT) {
+    if (!stage.hIcon || !g_pWICFactory || !pRT) return E_INVALIDARG;
+    // Release existing cached bitmap first
+    if (stage.pD2DBitmap) { stage.pD2DBitmap->Release(); stage.pD2DBitmap = nullptr; }
+    IWICBitmap* pWICBitmap = nullptr;
+    HRESULT hr = g_pWICFactory->CreateBitmapFromHICON(stage.hIcon, &pWICBitmap);
+    if (SUCCEEDED(hr)) {
+        hr = pRT->CreateBitmapFromWicBitmap(pWICBitmap, nullptr, &stage.pD2DBitmap);
+        pWICBitmap->Release();
+    }
+    return hr;
 }
 
 void CleanupD2DAndWIC() {
@@ -172,27 +200,16 @@ HRESULT CreateDeviceResources(HWND hwnd) {
     return hr;
 }
 
-void DrawHIcon(ID2D1HwndRenderTarget* pRT, HICON hIcon, float x, float y, float width, float height) {
-    if (!hIcon || !g_pWICFactory) return;
-    
-    IWICBitmap* pWICBitmap = nullptr;
-    HRESULT hr = g_pWICFactory->CreateBitmapFromHICON(hIcon, &pWICBitmap);
-    if (SUCCEEDED(hr)) {
-        ID2D1Bitmap* pD2D1Bitmap = nullptr;
-        hr = pRT->CreateBitmapFromWicBitmap(pWICBitmap, nullptr, &pD2D1Bitmap);
-        if (SUCCEEDED(hr)) {
-            D2D1_RECT_F rect = D2D1::RectF(x, y, x + width, y + height);
-            pRT->DrawBitmap(pD2D1Bitmap, rect);
-            pD2D1Bitmap->Release();
-        }
-        pWICBitmap->Release();
-    }
+// Draw a pre-cached D2D bitmap at the specified position/size.
+void DrawHIcon(ID2D1HwndRenderTarget* pRT, ID2D1Bitmap* pBitmap, float x, float y, float width, float height) {
+    if (!pBitmap || !pRT) return;
+    D2D1_RECT_F rect = D2D1::RectF(x, y, x + width, y + height);
+    pRT->DrawBitmap(pBitmap, rect);
 }
 
 void OnPaint(HWND hwnd) {
     PAINTSTRUCT ps;
     BeginPaint(hwnd, &ps);
-    InitD2DAndWIC();
     HRESULT hr = CreateDeviceResources(hwnd);
     if (SUCCEEDED(hr)) {
         g_pRenderTarget->BeginDraw();
@@ -208,6 +225,13 @@ void OnPaint(HWND hwnd) {
 
             if (winCount > 1) {
                 if (winCount >= 3) {
+                    // Shadow for back card (3+ windows)
+                    D2D1_ROUNDED_RECT shadowRrect0 = D2D1::RoundedRect(
+                        D2D1::RectF(12.0f, static_cast<float>(yOffset + 2), 68.0f, static_cast<float>(yOffset + 48)),
+                        6.0f, 6.0f
+                    );
+                    g_pRenderTarget->FillRoundedRectangle(&shadowRrect0, g_pShadowBrush);
+
                     D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
                         D2D1::RectF(10.0f, static_cast<float>(yOffset), 66.0f, static_cast<float>(yOffset + 46)),
                         6.0f, 6.0f
@@ -215,12 +239,26 @@ void OnPaint(HWND hwnd) {
                     g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
                     g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.0f);
                 }
+                // Shadow for middle card
+                D2D1_ROUNDED_RECT shadowRrect1 = D2D1::RoundedRect(
+                    D2D1::RectF(14.0f, static_cast<float>(yOffset + 4), 70.0f, static_cast<float>(yOffset + 50)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&shadowRrect1, g_pShadowBrush);
+
                 D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
                     D2D1::RectF(12.0f, static_cast<float>(yOffset + 2), 68.0f, static_cast<float>(yOffset + 48)),
                     6.0f, 6.0f
                 );
                 g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
                 g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.0f);
+
+                // Shadow for front card
+                D2D1_ROUNDED_RECT shadowFront = D2D1::RoundedRect(
+                    D2D1::RectF(16.0f, static_cast<float>(yOffset + 6), 72.0f, static_cast<float>(yOffset + 52)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&shadowFront, g_pShadowBrush);
 
                 D2D1_ROUNDED_RECT frontRrect = D2D1::RoundedRect(
                     D2D1::RectF(14.0f, static_cast<float>(yOffset + 4), 70.0f, static_cast<float>(yOffset + 50)),
@@ -229,6 +267,13 @@ void OnPaint(HWND hwnd) {
                 g_pRenderTarget->FillRoundedRectangle(&frontRrect, g_pCardBgBrush);
                 g_pRenderTarget->DrawRoundedRectangle(&frontRrect, g_pCardOutlineBrush, 1.5f);
             } else {
+                // Shadow for single-window card
+                D2D1_ROUNDED_RECT shadowRrect = D2D1::RoundedRect(
+                    D2D1::RectF(12.0f, static_cast<float>(yOffset + 2), 72.0f, static_cast<float>(yOffset + 52)),
+                    6.0f, 6.0f
+                );
+                g_pRenderTarget->FillRoundedRectangle(&shadowRrect, g_pShadowBrush);
+
                 D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
                     D2D1::RectF(10.0f, static_cast<float>(yOffset), 70.0f, static_cast<float>(yOffset + 50)),
                     6.0f, 6.0f
@@ -237,8 +282,9 @@ void OnPaint(HWND hwnd) {
                 g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.5f);
             }
 
+            // Badge: center at (14, yOffset + 4 + 11) so the badge top is at yOffset + 4
             D2D1_ELLIPSE badge = D2D1::Ellipse(
-                D2D1::Point2F(14.0f, static_cast<float>(yOffset + 4)),
+                D2D1::Point2F(14.0f, static_cast<float>(yOffset + 4 + 11)),
                 11.0f,
                 11.0f
             );
@@ -247,8 +293,8 @@ void OnPaint(HWND hwnd) {
             }
             g_pRenderTarget->DrawEllipse(&badge, g_pCardOutlineBrush, 1.0f);
 
-            if (g_stages[i].hIcon) {
-                DrawHIcon(g_pRenderTarget, g_stages[i].hIcon, 6.0f, static_cast<float>(yOffset - 4), 16.0f, 16.0f);
+            if (g_stages[i].pD2DBitmap) {
+                DrawHIcon(g_pRenderTarget, g_stages[i].pD2DBitmap, 3.0f, static_cast<float>(yOffset + 4), 22.0f, 22.0f);
             }
 
             yOffset += 80;
@@ -499,6 +545,7 @@ void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
                 if (!stage.isCustom && _wcsicmp(stage.processName.c_str(), processName.c_str()) == 0) {
                     stage.hwnds.push_back(hwnd);
                     stage.hIcon = hIcon;
+                    if (g_pRenderTarget) CreateOrUpdateStageBitmap(stage, g_pRenderTarget);
                     addedToExisting = true;
                     break;
                 }
@@ -511,6 +558,8 @@ void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
                 newStage.hIcon = hIcon;
                 newStage.isCustom = false;
                 g_stages.push_back(newStage);
+                // Create bitmap for newly added stage (last element)
+                if (g_pRenderTarget) CreateOrUpdateStageBitmap(g_stages.back(), g_pRenderTarget);
             }
         }
     }
@@ -522,6 +571,7 @@ void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
             if (_wcsicmp(stage.processName.c_str(), oldStageProcessName.c_str()) == 0 &&
                 !stage.hwnds.empty() && stage.hwnds.back() == oldStageNewTop) {
                 stage.hIcon = hOldStageIcon;
+                if (g_pRenderTarget) CreateOrUpdateStageBitmap(stage, g_pRenderTarget);
                 break;
             }
         }
@@ -563,6 +613,7 @@ void ActivateWindowInStage(HWND hwnd, const std::wstring& processName) {
                     it->hwnds.erase(hwndIt);
                     it->hwnds.push_back(hwnd);
                     it->hIcon = hIcon;
+                    if (g_pRenderTarget) CreateOrUpdateStageBitmap(*it, g_pRenderTarget);
                     found = true;
                     break;
                 }
@@ -579,6 +630,7 @@ void ActivateWindowInStage(HWND hwnd, const std::wstring& processName) {
             if (_wcsicmp(stage.processName.c_str(), oldStageProcessName.c_str()) == 0 &&
                 !stage.hwnds.empty() && stage.hwnds.back() == oldStageNewTop) {
                 stage.hIcon = hOldStageIcon;
+                if (g_pRenderTarget) CreateOrUpdateStageBitmap(stage, g_pRenderTarget);
                 break;
             }
         }
@@ -662,6 +714,7 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                         if (_wcsicmp(stage.processName.c_str(), stageProcessName.c_str()) == 0 &&
                             !stage.hwnds.empty() && stage.hwnds.back() == newTopHwnd) {
                             stage.hIcon = hNewIcon;
+                            if (g_pRenderTarget) CreateOrUpdateStageBitmap(stage, g_pRenderTarget);
                             break;
                         }
                     }
@@ -686,6 +739,7 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     
     switch (msg) {
         case WM_CREATE: {
+            InitD2DAndWIC();
             RegisterAppBar(hwnd);
             SetAcrylicEffect(hwnd);
             
