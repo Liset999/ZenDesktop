@@ -510,16 +510,6 @@ from the **TranslucentTB** project.
   $description: >-
     设置开始菜单的自定义高度（像素）。0 = 系统默认。
     Set a custom height for the Start menu in pixels. 0 = system default.
-- searchWidth: 0
-  $name: "📐 搜索窗口宽度 (Search Menu Width, px)"
-  $description: >-
-    设置搜索窗口的自定义宽度（像素）。-1 = 系统默认，0 = 与开始菜单相同。
-    Set a custom width for the search menu in pixels. -1 = system default, 0 = same as Start menu.
-- searchHeight: 0
-  $name: "📐 搜索窗口高度 (Search Menu Height, px)"
-  $description: >-
-    设置搜索窗口的自定义高度（像素）。-1 = 系统默认，0 = 与开始菜单相同。
-    Set a custom height for the search menu in pixels. -1 = system default, 0 = same as Start menu.
 - styleConstants: [""]
   $name: "⚙️ Style constants (高级)"
   $description: >-
@@ -14094,6 +14084,22 @@ bool RunFromWindowThreadViaPostMessage(HWND hWnd,
     return true;
 }
 
+// Named thunk functions used as RunFromWindowThread /
+// RunFromWindowThreadViaPostMessage callbacks (no inline lambdas in callbacks
+// per project rules). Mirrors the StartMenuSize_*FromWindowThread pattern.
+static void WINAPI Acrylic_InitializeSettingsAndTapFromWindowThread(PVOID) {
+    InitializeSettingsAndTap();
+}
+
+static void WINAPI Acrylic_UninitializeSettingsAndTapFromWindowThread(PVOID) {
+    UninitializeSettingsAndTap();
+}
+
+static void WINAPI Acrylic_SettingsChangedFromWindowThread(PVOID) {
+    UninitializeSettingsAndTap();
+    InitializeSettingsAndTap();
+}
+
 void OnWindowCreated(HWND hWnd, LPCWSTR lpClassName, PCSTR funcName) {
     BOOL bTextualClassName = ((ULONG_PTR)lpClassName & ~(ULONG_PTR)0xffff) != 0;
 
@@ -14114,7 +14120,8 @@ void OnWindowCreated(HWND hWnd, LPCWSTR lpClassName, PCSTR funcName) {
                        (DWORD)(ULONG_PTR)hWnd, funcName);
                 // Initializing at this point is too early and doesn't work.
                 RunFromWindowThreadViaPostMessage(
-                    hWnd, [](PVOID) { InitializeSettingsAndTap(); }, nullptr);
+                    hWnd, Acrylic_InitializeSettingsAndTapFromWindowThread,
+                    nullptr);
             }
             break;
     }
@@ -14503,15 +14510,11 @@ std::atomic<bool> g_unloading;
 struct {
     int width;
     int height;
-    int searchWidth;
-    int searchHeight;
 } g_sizeSettings;
 
 void LoadSizeSettings() {
     g_sizeSettings.width = Wh_GetIntSetting(L"width");
     g_sizeSettings.height = Wh_GetIntSetting(L"height");
-    g_sizeSettings.searchWidth = Wh_GetIntSetting(L"searchWidth");
-    g_sizeSettings.searchHeight = Wh_GetIntSetting(L"searchHeight");
 }
 
 namespace StartMenuUI {
@@ -15135,7 +15138,8 @@ void Wh_ModAfterInit() {
     if (hCoreWnd) {
         Wh_Log(L"Initializing - Found core window");
         RunFromWindowThread(
-            hCoreWnd, [](PVOID) { InitializeSettingsAndTap(); }, nullptr);
+            hCoreWnd, Acrylic_InitializeSettingsAndTapFromWindowThread,
+            nullptr);
 
         // Start Menu custom sizing: attach LayoutUpdated/VisibilityChanged
         // handlers on the CoreWindow thread (StartMenu target only).
@@ -15187,7 +15191,8 @@ void Wh_ModUninit() {
     if (hCoreWnd) {
         Wh_Log(L"Uninitializing - Found core window");
         RunFromWindowThread(
-            hCoreWnd, [](PVOID) { UninitializeSettingsAndTap(); }, nullptr);
+            hCoreWnd, Acrylic_UninitializeSettingsAndTapFromWindowThread,
+            nullptr);
     }
 
     // Unregister global network status change handler.
@@ -15244,12 +15249,7 @@ void Wh_ModSettingsChanged() {
     if (hCoreWnd) {
         Wh_Log(L"Reinitializing - Found core window");
         RunFromWindowThread(
-            hCoreWnd,
-            [](PVOID) {
-                UninitializeSettingsAndTap();
-                InitializeSettingsAndTap();
-            },
-            nullptr);
+            hCoreWnd, Acrylic_SettingsChangedFromWindowThread, nullptr);
 
         // Start Menu custom sizing: re-apply size on the CoreWindow thread
         // (StartMenu target only).
