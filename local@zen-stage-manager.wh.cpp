@@ -56,33 +56,49 @@ void ClearThumbnails() {
     g_activeThumbnails.clear();
 }
 
+struct ThumbnailEntry {
+    HWND target;
+    int  yOffset;
+    size_t winCount;
+};
+
 void UpdateThumbnails(HWND hwndSidebar) {
     ClearThumbnails();
-    
-    std::lock_guard<std::mutex> lock(g_stagesMutex);
-    int yOffset = 20;
-    for (size_t i = 0; i < g_stages.size() && i < 5; ++i) {
-        if (g_stages[i].hwnds.empty()) continue;
-        HWND target = g_stages[i].hwnds.back(); // Top window
-        
+
+    // Collect stage data under the mutex, then release before calling DWM APIs.
+    std::vector<ThumbnailEntry> entries;
+    {
+        std::lock_guard<std::mutex> lock(g_stagesMutex);
+        int yOffset = 20;
+        for (size_t i = 0; i < g_stages.size() && i < 5; ++i) {
+            if (g_stages[i].hwnds.empty()) continue;
+            ThumbnailEntry e;
+            e.target   = g_stages[i].hwnds.back(); // Top window
+            e.yOffset  = yOffset;
+            e.winCount = g_stages[i].hwnds.size();
+            entries.push_back(e);
+            yOffset += 80;
+        }
+    } // mutex released here
+
+    // Perform all DWM API calls outside the lock.
+    for (const auto& e : entries) {
         HTHUMBNAIL hThumb = nullptr;
-        if (SUCCEEDED(DwmRegisterThumbnail(hwndSidebar, target, &hThumb))) {
+        if (SUCCEEDED(DwmRegisterThumbnail(hwndSidebar, e.target, &hThumb))) {
             DWM_THUMBNAIL_PROPERTIES dpr = { 0 };
-            dpr.dwFlags = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY;
+            dpr.dwFlags  = DWM_TNP_RECTDESTINATION | DWM_TNP_VISIBLE | DWM_TNP_OPACITY;
             dpr.fVisible = TRUE;
-            dpr.opacity = 240;
-            
-            size_t winCount = g_stages[i].hwnds.size();
-            if (winCount > 1) {
-                dpr.rcDestination = RECT{ 16, yOffset + 6, 68, yOffset + 48 };
+            dpr.opacity  = 240;
+
+            if (e.winCount > 1) {
+                dpr.rcDestination = RECT{ 16, e.yOffset + 6, 68, e.yOffset + 48 };
             } else {
-                dpr.rcDestination = RECT{ 12, yOffset + 2, 68, yOffset + 48 };
+                dpr.rcDestination = RECT{ 12, e.yOffset + 2, 68, e.yOffset + 48 };
             }
-            
+
             DwmUpdateThumbnailProperties(hThumb, &dpr);
             g_activeThumbnails.push_back(hThumb);
         }
-        yOffset += 80;
     }
 }
 
@@ -145,6 +161,12 @@ HRESULT CreateDeviceResources(HWND hwnd) {
                     &g_pShadowBrush
                 );
             }
+            if (SUCCEEDED(hr)) {
+                hr = g_pRenderTarget->CreateSolidColorBrush(
+                    D2D1::ColorF(0.1f, 0.1f, 0.1f, 0.85f),
+                    &g_pBadgeBgBrush
+                );
+            }
         }
     }
     return hr;
@@ -168,29 +190,22 @@ void DrawHIcon(ID2D1HwndRenderTarget* pRT, HICON hIcon, float x, float y, float 
 }
 
 void OnPaint(HWND hwnd) {
+    PAINTSTRUCT ps;
+    BeginPaint(hwnd, &ps);
     InitD2DAndWIC();
     HRESULT hr = CreateDeviceResources(hwnd);
     if (SUCCEEDED(hr)) {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
         g_pRenderTarget->BeginDraw();
-        
+
         g_pRenderTarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
-        
-        if (!g_pBadgeBgBrush && g_pRenderTarget) {
-            g_pRenderTarget->CreateSolidColorBrush(
-                D2D1::ColorF(0.1f, 0.1f, 0.1f, 0.85f),
-                &g_pBadgeBgBrush
-            );
-        }
-        
+
         std::lock_guard<std::mutex> lock(g_stagesMutex);
         int yOffset = 20;
         for (size_t i = 0; i < g_stages.size() && i < 5; ++i) {
             if (g_stages[i].hwnds.empty()) continue;
-            
+
             size_t winCount = g_stages[i].hwnds.size();
-            
+
             if (winCount > 1) {
                 if (winCount >= 3) {
                     D2D1_ROUNDED_RECT rrect = D2D1::RoundedRect(
@@ -206,7 +221,7 @@ void OnPaint(HWND hwnd) {
                 );
                 g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
                 g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.0f);
-                
+
                 D2D1_ROUNDED_RECT frontRrect = D2D1::RoundedRect(
                     D2D1::RectF(14.0f, static_cast<float>(yOffset + 4), 70.0f, static_cast<float>(yOffset + 50)),
                     6.0f, 6.0f
@@ -221,7 +236,7 @@ void OnPaint(HWND hwnd) {
                 g_pRenderTarget->FillRoundedRectangle(&rrect, g_pCardBgBrush);
                 g_pRenderTarget->DrawRoundedRectangle(&rrect, g_pCardOutlineBrush, 1.5f);
             }
-            
+
             D2D1_ELLIPSE badge = D2D1::Ellipse(
                 D2D1::Point2F(14.0f, static_cast<float>(yOffset + 4)),
                 11.0f,
@@ -231,20 +246,20 @@ void OnPaint(HWND hwnd) {
                 g_pRenderTarget->FillEllipse(&badge, g_pBadgeBgBrush);
             }
             g_pRenderTarget->DrawEllipse(&badge, g_pCardOutlineBrush, 1.0f);
-            
+
             if (g_stages[i].hIcon) {
                 DrawHIcon(g_pRenderTarget, g_stages[i].hIcon, 6.0f, static_cast<float>(yOffset - 4), 16.0f, 16.0f);
             }
-            
+
             yOffset += 80;
         }
-        
+
         hr = g_pRenderTarget->EndDraw();
         if (hr == D2DERR_RECREATE_TARGET) {
             DiscardDeviceResources();
         }
-        EndPaint(hwnd, &ps);
     }
+    EndPaint(hwnd, &ps);
 }
 
 #define WM_APPBAR_CALLBACK (WM_USER + 101)
