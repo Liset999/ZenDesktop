@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <dwmapi.h>
 #include <shellapi.h>
+#include <tlhelp32.h>
 #include <vector>
 #include <atomic>
 #include <string>
@@ -161,9 +162,7 @@ bool IsAppWindow(HWND hwnd) {
     return true;
 }
 
-std::wstring GetProcessName(HWND hwnd) {
-    DWORD processId = 0;
-    GetWindowThreadProcessId(hwnd, &processId);
+std::wstring GetProcessNameByPid(DWORD processId) {
     std::wstring processName = L"Unknown";
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
     if (hProcess) {
@@ -174,6 +173,54 @@ std::wstring GetProcessName(HWND hwnd) {
             processName = filename ? (filename + 1) : path;
         }
         CloseHandle(hProcess);
+    } else {
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (hSnapshot != INVALID_HANDLE_VALUE) {
+            PROCESSENTRY32W pe32;
+            pe32.dwSize = sizeof(PROCESSENTRY32W);
+            if (Process32FirstW(hSnapshot, &pe32)) {
+                do {
+                    if (pe32.th32ProcessID == processId) {
+                        processName = pe32.szExeFile;
+                        break;
+                    }
+                } while (Process32NextW(hSnapshot, &pe32));
+            }
+            CloseHandle(hSnapshot);
+        }
+    }
+    return processName;
+}
+
+struct UwpEnumData {
+    DWORD pid;
+    HWND hwndFound;
+};
+
+BOOL CALLBACK EnumUwpChildProc(HWND hwnd, LPARAM lParam) {
+    wchar_t className[256];
+    if (GetClassName(hwnd, className, 256)) {
+        if (wcscmp(className, L"Windows.UI.Core.CoreWindow") == 0) {
+            UwpEnumData* data = (UwpEnumData*)lParam;
+            GetWindowThreadProcessId(hwnd, &data->pid);
+            data->hwndFound = hwnd;
+            return FALSE; // Stop enumeration
+        }
+    }
+    return TRUE;
+}
+
+std::wstring GetProcessName(HWND hwnd) {
+    DWORD processId = 0;
+    GetWindowThreadProcessId(hwnd, &processId);
+    std::wstring processName = GetProcessNameByPid(processId);
+    
+    if (_wcsicmp(processName.c_str(), L"ApplicationFrameHost.exe") == 0) {
+        UwpEnumData data = { 0, NULL };
+        EnumChildWindows(hwnd, EnumUwpChildProc, (LPARAM)&data);
+        if (data.hwndFound && data.pid != 0) {
+            processName = GetProcessNameByPid(data.pid);
+        }
     }
     return processName;
 }
@@ -229,6 +276,14 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 }
                 break;
             }
+            case HSHELL_REDRAW: {
+                if (IsAppWindow(targetHwnd)) {
+                    std::wstring processName = GetProcessName(targetHwnd);
+                    AddWindowToStage(targetHwnd, processName);
+                    Wh_Log(L"HSHELL_REDRAW: HWND=%p, Process=%s", targetHwnd, processName.c_str());
+                }
+                break;
+            }
             case HSHELL_WINDOWDESTROYED: {
                 std::lock_guard<std::mutex> lock(g_stagesMutex);
                 for (auto it = g_stages.begin(); it != g_stages.end(); ) {
@@ -237,6 +292,9 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     if (hwndIt != stage.hwnds.end()) {
                         stage.hwnds.erase(hwndIt);
                         Wh_Log(L"HSHELL_WINDOWDESTROYED: HWND=%p, Process=%s", targetHwnd, stage.processName.c_str());
+                        if (!stage.hwnds.empty()) {
+                            stage.hIcon = GetWindowIcon(stage.hwnds.back());
+                        }
                     }
                     if (stage.hwnds.empty()) {
                         it = g_stages.erase(it);
