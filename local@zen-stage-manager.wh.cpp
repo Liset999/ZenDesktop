@@ -12,8 +12,9 @@
 #include <dwmapi.h>
 #include <shellapi.h>
 #include <vector>
+#include <atomic>
 
-HWND g_hwndSidebar = NULL;
+std::atomic<HWND> g_hwndSidebar{ NULL };
 // Thread handle for the UI window thread.
 HANDLE g_hUIThread = NULL;
 // Event handle to synchronize sidebar window initialization.
@@ -22,7 +23,7 @@ HANDLE g_hInitEvent = NULL;
 LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_DESTROY:
-            g_hwndSidebar = NULL;
+            g_hwndSidebar.store(NULL);
             PostQuitMessage(0);
             break;
     }
@@ -30,25 +31,27 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 DWORD WINAPI UIThreadProc(LPVOID lpParam) {
+    HANDLE hInitEvent = (HANDLE)lpParam;
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = SidebarWndProc;
     wc.hInstance = GetModuleHandle(NULL);
     wc.lpszClassName = L"ZenStageManagerClass";
     RegisterClass(&wc);
 
-    g_hwndSidebar = CreateWindowEx(
+    HWND hwnd = CreateWindowEx(
         WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
         wc.lpszClassName, L"ZenStageManager",
         WS_POPUP | WS_VISIBLE,
         0, 0, 80, GetSystemMetrics(SM_CYSCREEN),
         NULL, NULL, wc.hInstance, NULL
     );
+    g_hwndSidebar.store(hwnd);
 
-    if (g_hInitEvent) {
-        SetEvent(g_hInitEvent);
+    if (hInitEvent) {
+        SetEvent(hInitEvent);
     }
 
-    if (g_hwndSidebar == NULL) {
+    if (g_hwndSidebar.load() == NULL) {
         UnregisterClass(L"ZenStageManagerClass", GetModuleHandle(NULL));
         return 0;
     }
@@ -73,7 +76,7 @@ BOOL Wh_ModInit() {
 
     g_hInitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    g_hUIThread = CreateThread(NULL, 0, UIThreadProc, NULL, 0, NULL);
+    g_hUIThread = CreateThread(NULL, 0, UIThreadProc, g_hInitEvent, 0, NULL);
     if (g_hUIThread == NULL) {
         Wh_Log(L"Failed to create UI thread");
         if (g_hInitEvent) {
@@ -94,11 +97,15 @@ BOOL Wh_ModInit() {
 
 void Wh_ModUninit() {
     Wh_Log(L"Stage Manager Uninitializing");
-    if (g_hwndSidebar) {
-        PostMessage(g_hwndSidebar, WM_CLOSE, 0, 0);
+    HWND hwnd = g_hwndSidebar.load();
+    if (hwnd) {
+        PostMessage(hwnd, WM_CLOSE, 0, 0);
     }
     if (g_hUIThread) {
-        WaitForSingleObject(g_hUIThread, 1000);
+        DWORD waitResult = WaitForSingleObject(g_hUIThread, 5000);
+        if (waitResult == WAIT_TIMEOUT) {
+            TerminateThread(g_hUIThread, 0);
+        }
         CloseHandle(g_hUIThread);
     }
 }
