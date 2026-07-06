@@ -4,7 +4,7 @@
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium v4.0.0** is a high-performance desktop styling suite for Windows 11. It blends 4 native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, unified under a bespoke Python GUI frontend panel for real-time customizations with **zero background process bloat, zero UI lag, and 0% CPU overhead**.
+**ZenDesktop Premium v4.0.0** is a high-performance desktop styling suite for Windows 11. It blends 4 native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, with all real-time customizations handled natively via the Windhawk UI **with zero background process bloat, zero UI lag, and 0% CPU overhead**.
 
 [简体中文](#-简体中文) | [English](#-english-features)
 
@@ -37,10 +37,6 @@ A process-native desktop subclassing module. **Double-click empty desktop space 
 * Adds exquisite visual effects like Blur, Acrylic, and Mica to Windows 10/11 File Explorer.
 * Visual customization via config editor and registered as a native shell extension DLL (`regsvr32`).
 
-### 6. 🎛️ ZenDesktop Customizer (`ZenDesktopCustomizer.py` - Frontend Panel)
-* Developed by **Lanbo**, this CustomTkinter GUI wrapper provides a unified dashboard to configure taskbar, start menu, and notification center options.
-* Integrates quick actions for ExplorerBlurMica (Register/Enable, Configure Visuals, and Uninstall/Disable) via elevated actions.
-
 ---
 
 ## 📥 Installation & Deployment Guide
@@ -59,10 +55,10 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 1. Open the **Windhawk** user interface. You will see 4 newly registered local mods in your home dashboard.
 2. Click into each mod and click **Save / Compile** (保存并编译). The engine will compile the native C++ code in ~10 seconds.
 
-### Step 4: Run Visual Control Center
-1. Launch **`run_customizer.bat`** to start the frontend configuration GUI.
-2. Go to the **资源管理器 (Explorer)** tab, click **注册/启用透明效果 (Register & Enable)** to apply File Explorer blur.
-3. Use other tabs to customize Taskbar, Start Menu, and Notification Center styles.
+### Step 4: Configure via Windhawk UI
+1. In the **Windhawk** UI, open each mod's **Settings** page to customize Taskbar, Start Menu, Notification Center, and Desktop Icon options.
+2. To enable File Explorer transparency, run **`ExplorerBlurMica\register.cmd`** as Administrator.
+3. To configure File Explorer visuals, launch **`ExplorerBlurMica\config-editor-wpf.exe`**.
 
 ---
 
@@ -70,7 +66,7 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 
 ### 💎 v4.0.0 核心更新与优势
 * **四合一 Mod + 资源管理器透明程序**：弃用了以前不稳定的 C++ 资源管理器插件，替换为更成熟稳定的外部程序 **ExplorerBlurMica** (原作者: **Maplespe**)。
-* **前端控制中心 (ZenDesktop Customizer)**：由 Lanbo 编写的前端面板，支持一键注册/注销 ExplorerBlurMica、打开高级编辑器以及调节其他 Windhawk 插件参数。
+* **Windhawk UI 集中调参**：所有美化插件的参数（透明色、浓度、模糊等）均通过 Windhawk 设置页直接调节；ExplorerBlurMica 的注册/注销则通过其目录下的 register.cmd / uninstall.cmd 完成。
 * **双击隐藏状态保存**：改进了桌面图标隐藏 Mod，使其在重启系统或 Explorer 后依然可以记住并保持隐藏状态。
 * **纯本地化编译**：脱离官方云服务器连接限制，即插即用，完美解决国内连不上网的困境。
 * **极致性能**：利用进程级注入与 Hook 技术，不占用任何后台常驻进程，0% CPU 开销，近乎 0MB 内存占用。
@@ -78,8 +74,8 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 ### 🛠️ 快速开始
 1. 运行 **`deploy.bat`**（管理员身份）自动配置 Windhawk 并注册 4 个本地插件。
 2. 在 Windhawk 界面中，依次进入 4 个插件（任务栏、开始菜单、通知中心、双击隐藏图标）的源码页面，点击右上角的 **保存并编译**。
-3. 双击 **`run_customizer.bat`** 启动视觉控制中心。
-4. 在“资源管理器”标签页中点击 **注册/启用透明效果** (Register & Enable) 以应用资源管理器毛玻璃。
+3. 在 Windhawk 界面中，进入各插件（任务栏、开始菜单、通知中心、双击隐藏图标）的设置页面，调节透明色、浓度、模糊等参数。
+4. 如需启用资源管理器透明，以管理员身份运行 **`ExplorerBlurMica\register.cmd`**；如需调整其参数，运行 `ExplorerBlurMica\config-editor-wpf.exe`。
 
 ---
 

@@ -27,8 +27,6 @@
 ### 部署与工具脚本
 *   **`deploy.bat`**
     *   **作用**：**一键部署脚本**。它是用户的入口，负责检查管理员权限，将 Mod 源码复制到 Windhawk 的 `Data\\Scripts` 目录，并通过注册表 (`HKLM\\SOFTWARE\\Windhawk\\Engine\\Mods`) 自动将 Mod 状态设置为 `Disabled=0`，最后唤起 Windhawk 并重启资源管理器。
-*   **`ZenDesktopCustomizer.py`**
-    *   **作用**：提供一个可视化的 UI 工具（基于 Python 构建），允许用户快速微调各组件的参数（如透明度、模糊强度），而无需直接修改 C++ 源码。
 *   **`restart_explorer.bat`**
     *   **作用**：用于安全平滑地重启 Windows 资源管理器（先结束进程，再重新启动）。
 *   **`create_nc_mod.py`** / **`overwrite_nc_mod.py`** / **`patch_date_and_line.py`**
