@@ -226,18 +226,43 @@ std::wstring GetProcessName(HWND hwnd) {
 }
 
 void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
+    HICON hIcon = GetWindowIcon(hwnd);
     std::lock_guard<std::mutex> lock(g_stagesMutex);
     
-    // Check if the window is already in some stage to avoid duplicates
-    for (const auto& stage : g_stages) {
-        if (std::find(stage.hwnds.begin(), stage.hwnds.end(), hwnd) != stage.hwnds.end()) {
-            return;
+    // Check if the window is already in some stage
+    bool alreadyInStage = false;
+    for (auto it = g_stages.begin(); it != g_stages.end(); ) {
+        auto hwndIt = std::find(it->hwnds.begin(), it->hwnds.end(), hwnd);
+        if (hwndIt != it->hwnds.end()) {
+            // Check UWP migration condition
+            if (_wcsicmp(it->processName.c_str(), L"ApplicationFrameHost.exe") == 0 &&
+                _wcsicmp(it->processName.c_str(), processName.c_str()) != 0) {
+                
+                it->hwnds.erase(hwndIt);
+                if (it->hwnds.empty()) {
+                    it = g_stages.erase(it);
+                } else {
+                    ++it;
+                }
+                alreadyInStage = false;
+                break;
+            } else {
+                alreadyInStage = true;
+                break;
+            }
+        } else {
+            ++it;
         }
+    }
+    
+    if (alreadyInStage) {
+        return;
     }
     
     for (auto& stage : g_stages) {
         if (!stage.isCustom && _wcsicmp(stage.processName.c_str(), processName.c_str()) == 0) {
             stage.hwnds.push_back(hwnd);
+            stage.hIcon = hIcon;
             return;
         }
     }
@@ -245,7 +270,7 @@ void AddWindowToStage(HWND hwnd, const std::wstring& processName) {
     WindowStage newStage;
     newStage.hwnds.push_back(hwnd);
     newStage.processName = processName;
-    newStage.hIcon = GetWindowIcon(hwnd);
+    newStage.hIcon = hIcon;
     newStage.isCustom = false;
     g_stages.push_back(newStage);
 }
@@ -285,21 +310,42 @@ LRESULT CALLBACK SidebarWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 break;
             }
             case HSHELL_WINDOWDESTROYED: {
-                std::lock_guard<std::mutex> lock(g_stagesMutex);
-                for (auto it = g_stages.begin(); it != g_stages.end(); ) {
-                    auto& stage = *it;
-                    auto hwndIt = std::find(stage.hwnds.begin(), stage.hwnds.end(), targetHwnd);
-                    if (hwndIt != stage.hwnds.end()) {
-                        stage.hwnds.erase(hwndIt);
-                        Wh_Log(L"HSHELL_WINDOWDESTROYED: HWND=%p, Process=%s", targetHwnd, stage.processName.c_str());
-                        if (!stage.hwnds.empty()) {
-                            stage.hIcon = GetWindowIcon(stage.hwnds.back());
+                HWND newTopHwnd = NULL;
+                std::wstring stageProcessName;
+                bool needIconUpdate = false;
+
+                {
+                    std::lock_guard<std::mutex> lock(g_stagesMutex);
+                    for (auto it = g_stages.begin(); it != g_stages.end(); ) {
+                        auto& stage = *it;
+                        auto hwndIt = std::find(stage.hwnds.begin(), stage.hwnds.end(), targetHwnd);
+                        if (hwndIt != stage.hwnds.end()) {
+                            stage.hwnds.erase(hwndIt);
+                            Wh_Log(L"HSHELL_WINDOWDESTROYED: HWND=%p, Process=%s", targetHwnd, stage.processName.c_str());
+                            if (!stage.hwnds.empty()) {
+                                newTopHwnd = stage.hwnds.back();
+                                stageProcessName = stage.processName;
+                                needIconUpdate = true;
+                            }
+                        }
+                        if (stage.hwnds.empty()) {
+                            it = g_stages.erase(it);
+                        } else {
+                            ++it;
                         }
                     }
-                    if (stage.hwnds.empty()) {
-                        it = g_stages.erase(it);
-                    } else {
-                        ++it;
+                }
+
+                if (needIconUpdate && newTopHwnd != NULL) {
+                    HICON hNewIcon = GetWindowIcon(newTopHwnd);
+                    
+                    std::lock_guard<std::mutex> lock(g_stagesMutex);
+                    for (auto& stage : g_stages) {
+                        if (_wcsicmp(stage.processName.c_str(), stageProcessName.c_str()) == 0 &&
+                            !stage.hwnds.empty() && stage.hwnds.back() == newTopHwnd) {
+                            stage.hIcon = hNewIcon;
+                            break;
+                        }
                     }
                 }
                 break;
