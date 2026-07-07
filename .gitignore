@@ -40,3 +40,6 @@ ExplorerBlurMica_Source/
 .trae/
 sync-aiskills.ps1
 sync-skills.ps1
+
+# Ignore generated packages
+ZenDesktop_Mods_v4.0.0/
