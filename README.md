@@ -10,6 +10,28 @@
 
 ---
 
+## 🚀 Latest Performance & UI Tuning Updates / 最新性能与界面调优更新
+
+### 🌐 English
+* **Visual Tree Hot-Path Optimization**: Removed all verbose synchronous debug logging (`Wh_Log`) from the XAML event callbacks in all three active mods (`local@zen-notificationcenter-acrylic`, `local@zen-startmenu-acrylic`, `local@zen-taskbar-acrylic`). This completely eliminates UI rendering freezes and lag when opening the Start Menu, Notification Center (Win+A), or Taskbar.
+* **Taskbar Mod Streamlining**: Completely removed the redundant maximized window detection logic and its associated settings (`maximizedTaskbarLayer`, etc.) from the Taskbar mod. This functionality is now fully offloaded to the independent `taskbar-background-helper` mod, keeping the main Taskbar mod clean and focused.
+* **Start Menu Folder Style Fixes**:
+  * Moved the folder customization settings immediately below "开始菜单高度" (Start Menu Height) in the settings panel.
+  * Corrected the styling target to specific visual containers (`StartMenu.FolderModal > Grid > Border` and `StartMenu.ExpandedFolderList > Grid > Border`) to prevent background overriding.
+  * Fixed the "Follow Main" preset bug, allowing folder-specific parameters to correctly override the cloned main background brush.
+* **Explorer Transparency legibility Tuning**: Adjusted `ExplorerBlurMica`'s light mode transparency configuration to a high-contrast frosted white glass overlay (`a=185` in `config.ini`). This ensures black folder text is 100% readable in Windows Light Mode while retaining a beautiful, Apple-like frosted glass look.
+
+### 🇨🇳 中文
+* **XAML 渲染热路径优化**：清除了三大核心 Mod（通知中心、开始菜单、任务栏）中 `OnVisualTreeChange` 回调函数中的所有同步调试日志（`Wh_Log`），彻底解决了打开 Win+A 控制台、开始菜单或任务栏时的瞬间卡顿和空白框延迟渲染问题。
+* **任务栏 Mod 瘦身与架构解耦**：彻底移除了任务栏 Mod 中多余的最大化检测代码与选项，将其完全交由独立的 `taskbar-background-helper` 辅助 Mod 负责，保持主任务栏 Mod 的纯净。
+* **开始菜单文件夹自定义修复**：
+  * 将文件夹自定义选项在设置面板中上移至“开始菜单高度”正下方，方便用户配置。
+  * 修正了文件夹背景色的应用目标容器，解决了自定义文件夹背景被主背景覆盖的问题。
+  * 修复了“跟随主面板”选项下文件夹模糊度、浓度及亮度设置失效的 Bug。
+* **资源管理器浅色可读性微调**：将 `ExplorerBlurMica` 浅色模式下的背景不透明度调整为 **`185`（乳白冰砂玻璃）**，既保留了通透的壁纸质感，又为黑色文字提供了足够的白底对比度，完美解决浅色模式下文字看不清、失去焦点闪白的硬伤。
+
+---
+
 ## 🌟 English Features
 
 ### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic`)
