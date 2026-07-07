@@ -2,7 +2,7 @@
 // @id              zen-desktop-toggle-icons
 // @name            ZenDesktop: Desktop Icon Toggle and Auto-Hide
 // @description     Native C++ Windhawk mod to hide/show desktop icons by double-clicking, with optional inactivity-based auto-hide and restore.
-// @version         3.4.0
+// @version         4.0.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @include         explorer.exe
