@@ -588,6 +588,7 @@ from the **TranslucentTB** project.
 #include <xamlom.h>
 
 #include <atomic>
+#include <thread>
 #include <vector>
 
 #undef GetCurrentTime
@@ -7914,6 +7915,15 @@ Target g_target;
 
 bool g_isRedesignedStartMenu;
 
+// ── Explorer restart resilience ──────────────────────────────────────────
+static HWND      g_hTaskbarCreatedWnd   = nullptr;
+static HANDLE    g_hTaskbarCreatedThread = nullptr;
+static UINT      g_uTaskbarCreatedMsg    = 0;
+
+static DWORD WINAPI TaskbarCreatedWindowThread(LPVOID lpParam);
+static void  CleanupTaskbarCreatedWindow();
+// ─────────────────────────────────────────────────────────────────────────
+
 // https://stackoverflow.com/a/51274008
 template <auto fn>
 struct deleter_from_fn {
@@ -13919,6 +13929,19 @@ void ProcessAllStylesFromSettings() {
         AddElementCustomizationRules(L"TextBlock#DisplayName", hideStyles);
         AddElementCustomizationRules(L"Windows.UI.Xaml.Controls.TextBlock#DisplayName", hideStyles);
     } else if (labelVisibility && wcscmp(labelVisibility, L"hover") == 0) {
+        // Baseline: always apply Opacity=0 to bare TextBlock targets first.
+        // These act as a safety net when the state-specific targets below fail
+        // to match (e.g. if the Grid@CommonStates visual state group hasn't
+        // been initialised when the element first enters the tree).  In the
+        // normal case where the state-specific targets DO match, their rules
+        // are added later and therefore take precedence during reverse
+        // iteration in FindElementPropertyOverrides, providing full hover‑to‑show.
+        std::vector<std::wstring> baselineStyles = { L"Opacity=0" };
+        AddElementCustomizationRules(L"TextBlock#AppDisplayName", baselineStyles);
+        AddElementCustomizationRules(L"Windows.UI.Xaml.Controls.TextBlock#AppDisplayName", baselineStyles);
+        AddElementCustomizationRules(L"TextBlock#DisplayName", baselineStyles);
+        AddElementCustomizationRules(L"Windows.UI.Xaml.Controls.TextBlock#DisplayName", baselineStyles);
+
         std::vector<std::wstring> hoverOpacityStyles = {
             L"Opacity@Normal=0",
             L"Opacity@PointerOver=1",
@@ -15258,6 +15281,11 @@ BOOL Wh_ModInit() {
             (void*)pRoGetActivationFactory,
             (void*)StartMenuUI::RoGetActivationFactory_Hook,
             (void**)&StartMenuUI::RoGetActivationFactory_Original);
+
+        // ── Start TaskbarCreated listener ────────────────────────────────────
+        g_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
+        g_hTaskbarCreatedThread = CreateThread(
+            nullptr, 0, TaskbarCreatedWindowThread, nullptr, 0, nullptr);
     }
 
     return TRUE;
@@ -15297,6 +15325,9 @@ void Wh_ModBeforeUninit() {
             RunFromWindowThread(
                 hCoreWnd, StartMenuSize_UninitFromWindowThread, nullptr);
         }
+
+        // ── Stop TaskbarCreated listener ─────────────────────────────────────
+        CleanupTaskbarCreatedWindow();
     }
 }
 
@@ -15390,5 +15421,133 @@ void Wh_ModSettingsChanged() {
                 hCoreWnd,
                 StartMenuSize_SettingsChangedFromWindowThread, nullptr);
         }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Explorer restart resilience: TaskbarCreated listener
+// ═══════════════════════════════════════════════════════════════════════════
+
+// When explorer.exe restarts after a crash, Windows broadcasts a
+// "TaskbarCreated" message to all top-level windows.  We catch that
+// message in a hidden helper window and then trigger a full mod
+// re-initialisation on the CoreWindow's UI thread — exactly the same
+// sequence as when the user manually disables and re-enables the mod
+// inside Windhawk.  This avoids the 8000FFFF (E_UNEXPECTED) failures
+// that happen when the DWM rendering pipeline is still unstable.
+
+static void WINAPI TriggerFullReinitFromWindowThread(PVOID) {
+    Wh_Log(L"Reinit: tearing down existing state");
+
+    // Unadvise the visual tree watcher before clearing state so we
+    // don't get spurious callbacks during teardown.
+    if (g_visualTreeWatcher) {
+        g_visualTreeWatcher->UnadviseVisualTreeChange();
+        g_visualTreeWatcher = nullptr;
+    }
+
+    UninitializeSettingsAndTap();
+
+    // Small delay to let DWM finish stabilising its pipeline.
+    // Without this, re-injection can still hit 8000FFFF.
+    Sleep(500);
+
+    InitializeSettingsAndTap();
+    Wh_Log(L"Reinit: complete");
+}
+
+static void TriggerFullReinit() {
+    Wh_Log(L"WM_TASKBARCREATED received — triggering full reinit");
+
+    // When explorer.exe crashes / restarts, the CoreWindow may not exist yet.
+    // Poll for up to 5 seconds (10 × 500ms) before giving up.
+    HWND hCoreWnd = nullptr;
+    for (int attempt = 0; attempt < 10; ++attempt) {
+        hCoreWnd = GetCoreWnd();
+        if (hCoreWnd) {
+            break;
+        }
+        Wh_Log(L"Reinit: CoreWindow not ready yet, attempt %d/10", attempt + 1);
+        Sleep(500);
+    }
+
+    if (!hCoreWnd) {
+        Wh_Log(L"Reinit skipped: CoreWindow never appeared");
+        return;
+    }
+
+    RunFromWindowThread(hCoreWnd, TriggerFullReinitFromWindowThread, nullptr);
+}
+
+static LRESULT CALLBACK TaskbarCreatedWndProc(
+    HWND   hWnd,
+    UINT   uMsg,
+    WPARAM wParam,
+    LPARAM lParam) {
+    if (uMsg == g_uTaskbarCreatedMsg && g_uTaskbarCreatedMsg != 0) {
+        TriggerFullReinit();
+        return 0;
+    }
+
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+static DWORD WINAPI TaskbarCreatedWindowThread(LPVOID /*lpParam*/) {
+    // Register a minimal window class.
+    constexpr LPCWSTR kClassName = L"ZenStartMenuAcrylic_TaskbarCreatedMsgWnd";
+
+    WNDCLASSEXW wc = {};
+    wc.cbSize        = sizeof(wc);
+    wc.lpfnWndProc   = TaskbarCreatedWndProc;
+    wc.hInstance     = GetCurrentModuleHandle();
+    wc.lpszClassName = kClassName;
+
+    if (!RegisterClassExW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+        Wh_Log(L"RegisterClassExW failed: %u", GetLastError());
+        return 1;
+    }
+
+    // Create a hidden top-level window.  A message-only window (HWND_MESSAGE)
+    // does NOT receive broadcast messages, which means it would never see the
+    // registered "TaskbarCreated" message that the shell sends via
+    // SendMessage(HWND_BROADCAST, ...).
+    g_hTaskbarCreatedWnd = CreateWindowExW(
+        WS_EX_TOOLWINDOW, kClassName, L"", WS_POPUP,
+        0, 0, 0, 0,
+        nullptr, nullptr, GetCurrentModuleHandle(), nullptr);
+
+    if (!g_hTaskbarCreatedWnd) {
+        Wh_Log(L"CreateWindowExW(message-only) failed: %u", GetLastError());
+        return 1;
+    }
+
+    Wh_Log(L"TaskbarCreated listener window created (hwnd=%08X)",
+           (DWORD)(ULONG_PTR)g_hTaskbarCreatedWnd);
+
+    // Classic message pump.
+    MSG msg;
+    while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+
+    return 0;
+}
+
+static void CleanupTaskbarCreatedWindow() {
+    if (g_hTaskbarCreatedWnd) {
+        Wh_Log(L"Destroying TaskbarCreated listener window");
+        PostMessageW(g_hTaskbarCreatedWnd, WM_QUIT, 0, 0);
+        g_hTaskbarCreatedWnd = nullptr;
+    }
+
+    if (g_hTaskbarCreatedThread) {
+        // Give the thread up to 2 seconds to exit gracefully.
+        if (WaitForSingleObject(g_hTaskbarCreatedThread, 2000) == WAIT_TIMEOUT) {
+            Wh_Log(L"TaskbarCreated thread did not exit in time, terminating");
+            TerminateThread(g_hTaskbarCreatedThread, 0);
+        }
+        CloseHandle(g_hTaskbarCreatedThread);
+        g_hTaskbarCreatedThread = nullptr;
     }
 }
