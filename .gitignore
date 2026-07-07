@@ -43,3 +43,14 @@ sync-skills.ps1
 
 # Ignore generated packages
 ZenDesktop_OneKeyDeploy_v4.0.0/
+
+# Ignore local editor configs and credentials
+.claude/
+.specify/
+别人的ai配置.md
+
+# Ignore generated outputs and local documents
+generated/
+docs/superpowers/
+ZenDesktop_OneKeyDeploy_v3.3.0_Online/
+ZenDesktop_OneKeyDeploy_v3.4.0_Online/
