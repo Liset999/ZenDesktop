@@ -379,7 +379,7 @@ from the **TranslucentTB** project.
 - luminosityPreset: 100
   $name: "☀️ 亮度通透度 (Luminosity)"
   $description: >-
-    调节背景的亮度与通透程度。
+    调节背景的亮度与通透程度，数值越大背景越黑。
   $options:
     - 0: "暗淡无光 (Dark)"
     - 25: "弱饱和 (Low)"
@@ -3431,27 +3431,7 @@ void VisualTreeWatcher::UnadviseVisualTreeChange()
 
 HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation, VisualElement element, VisualMutationType mutationType) try
 {
-    Wh_Log(L"========================================");
-
-    switch (mutationType)
-    {
-    case Add:
-        Wh_Log(L"Mutation type: Add");
-        break;
-
-    case Remove:
-        Wh_Log(L"Mutation type: Remove");
-        break;
-
-    default:
-        Wh_Log(L"Mutation type: %d", static_cast<int>(mutationType));
-        break;
-    }
-
-    Wh_Log(L"Element type: %s", element.Type);
-
     if (!g_initializedForThread) {
-        Wh_Log(L"Not initialized for thread %u", GetCurrentThreadId());
         return S_OK;
     }
 
@@ -3461,12 +3441,7 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation, VisualElement
         auto frameworkElement = inspectable.try_as<wux::FrameworkElement>();
         if (frameworkElement)
         {
-            Wh_Log(L"FrameworkElement name: %s", frameworkElement.Name().c_str());
             ApplyCustomizations(element.Handle, frameworkElement, element.Type);
-        }
-        else
-        {
-            Wh_Log(L"Skipping non-FrameworkElement");
         }
     }
     else if (mutationType == Remove)
