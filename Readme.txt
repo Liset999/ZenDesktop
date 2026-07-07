@@ -2,12 +2,14 @@
              ZenDesktop Premium One-Key Deploy Package v4.0.0
 ========================================================================
 
-欢迎使用 ZenDesktop 极简桌面美化套件 v4.0.0！本套件包含以下四个本地插件与一个外部透明增强程序：
+欢迎使用 ZenDesktop 极简桌面美化套件 v4.0.0！本套件包含以下六个本地插件与一个外部透明增强程序：
 1. ZenDesktop: Taskbar Acrylic Styler (精细化亚克力任务栏，支持多档透明度调节)
 2. ZenDesktop: Notification Center Acrylic Styler (精细化亚克力通知中心，Lanbo & m417z 联手共创)
-3. ZenDesktop: Start Menu Acrylic Styler (精细化亚克力开始菜单，支持多档透明度调节)
+3. ZenDesktop: Start Menu Acrylic Styler (精细化亚克力开始菜单，支持多档透明度调节，且内置尺寸自定义与文件夹独立调节)
 4. ZenDesktop: Desktop Icon Toggle and Auto-Hide (双击切换图标，并可在重启后仍然保持隐藏状态)
-5. ExplorerBlurMica: 资源管理器透明 (由 Maplespe 开发的优秀外部程序，支持 Blur/Acrylic/Mica 效果)
+5. ZenDesktop: Taskbar Background Helper (最大化任务栏辅助，在最大化时智能切换任务栏为深色/模糊/亚克力)
+6. ZenDesktop: MacOS Minimize Animation (macOS 极简切换与窗口最小化 Genie 神奇效果动画)
+7. ExplorerBlurMica: 资源管理器透明 (由 Maplespe 开发的优秀外部程序，支持 Blur/Acrylic/Mica 效果)
 
 ★ 特别说明：
 资源管理器透明程序 (ExplorerBlurMica) 并非本套件原创，其原作者为 GitHub 上的 Maplespe。
@@ -16,13 +18,18 @@
 ========================================================================
 ✨ v4.0.0 重磅更新说明：
 ========================================================================
-* 🆕 【资源管理器透明程序整合与前端控制面板】
-  - 弃用了原有不稳定的 Windhawk 资源管理器透明 Mod，改为集成成熟的外部程序 ExplorerBlurMica (原作者: Maplespe)。
-  - 在前端控制面板中新增了资源管理器透明的一键注册/启用、高级配置打开、一键注销/停用功能，极大降低了用户的使用门槛。
-* 🆕 【桌面双击隐藏重启保持状态】
-  - 改进了桌面图标隐藏插件，现在隐藏状态在系统重启或资源管理器重启后依然能完美保持。
-* 🆕 【前端 GUI 视觉调整与防抖集成】
-  - 内置了由 Lanbo 编写的 CustomTkinter 实时调色与个性化面板，所有设置实时保存，一键同步，性能极其优异。
+* 🆕 【开始菜单大小与文件夹独立自定义】
+  - 新增了开始菜单面板的宽度与高度自定义调节参数，用户可直接在 Mod 设置中自定义尺寸。
+  - 文件夹现在支持完全独立的透明度、背景色和模糊度调节，且修复了“跟随主面板”失效的 Bug。
+* 🆕 【系统级深度性能优化 (XAML 渲染热路径)】
+  - 清除了核心美化 Mod 中高频 UI 重绘事件的调试日志，大幅提升 XAML 渲染性能。
+  - 彻底解决了此前打开 Win+A 通知中心、开始菜单或任务栏时的选项缺失、加载延迟或瞬间空白白屏的卡顿问题。
+* 🆕 【资源管理器透明程序整合与配置前端】
+  - 集成 ExplorerBlurMica 用于资源管理器透明。由于 Windows 底层限制，无法实现完全 100% 透明（有模糊效果），且失去焦点时标题栏会回退为纯色。
+  - 特意配备了专属的可视化配置前端工具 (config-editor-wpf.exe)，方便用户一键注册、注销以及直观调节透明色与模糊半径。
+* 🆕 【引入两大全新辅助 Mod（最大化处理与 macOS 动画）】
+  - 引入了 `macos-minimize-animation`：实现媲美 Mac 的窗口神奇效果最小化与恢复动画，流畅度极佳。
+  - 引入了 `taskbar-background-helper`：解耦了原任务栏 Mod 内置的最大化检测，窗口最大化时任务栏可秒级切换为深色/模糊/亚克力，彻底解决了原先的响应延迟与性能瓶颈。
 
 ========================================================================
 安装与部署指南（最简 3 步）：
@@ -60,6 +67,8 @@
   local@zen-notificationcenter-acrylic.wh.cpp - 通知中心亚克力插件源码
   local@zen-startmenu-acrylic.wh.cpp     - 开始菜单亚克力插件源码
   local@zen-desktop-toggle-icons.wh.cpp   - 桌面图标切换与隐藏插件源码
+  local@macos-minimize-animation.wh.cpp   - macOS神奇效果最小化动画插件源码
+  local@taskbar-background-helper.wh.cpp  - 窗口最大化任务栏背景辅助插件源码
   Readme.txt                             - 本说明文件
   README.md                              - 仓库主页文件
 
