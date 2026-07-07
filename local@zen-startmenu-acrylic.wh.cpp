@@ -457,7 +457,7 @@ from the **TranslucentTB** project.
 - luminosityPreset: 100
   $name: "☀️ 亮度通透度 (Luminosity)"
   $description: >-
-    调节背景的亮度与通透程度。
+    调节背景的亮度与通透程度，数值越大背景越黑。
   $options:
     - 0: "暗淡无光 (Dark)"
     - 25: "弱饱和 (Low)"
@@ -491,15 +491,6 @@ from the **TranslucentTB** project.
     - show: "显示文字 (Show Text)"
     - hide: "隐藏文字 (Hide Text)"
     - hover: "悬浮显示文字 (Hover to Show)"
-- disableNewStartMenuLayout: ""
-  $name: "📐 开始菜单布局 (Layout)"
-  $description: >-
-    控制开始菜单的布局方式。
-  $options:
-  - "": "系统默认 (Windows Default)"
-  - disableNewLayoutKeepPhoneLink: "经典布局 (Classic)"
-  - legacyClassicLayout: "旧版经典 (Legacy Classic)"
-  - forceNewLayout: "强制新布局 (Force New)"
 - width: 0
   $name: "📐 开始菜单宽度 (Start Menu Width, px)"
   $description: >-
@@ -510,6 +501,65 @@ from the **TranslucentTB** project.
   $description: >-
     设置开始菜单的自定义高度（像素）。0 = 系统默认。
     Set a custom height for the Start menu in pixels. 0 = system default.
+- folderCustomEnabled: false
+  $name: "📂 自定义文件夹面板 (Custom Folder Panel)"
+  $description: >-
+    为开始菜单中展开的文件夹子面板设置独立的透明度和颜色。关闭时跟随主面板设置。
+    Set independent opacity and color for expanded folder panels in Start menu.
+- folderBgColorMode: "Default"
+  $name: "📂 文件夹背景颜色 (Folder Color)"
+  $description: >-
+    选择文件夹子面板的背景颜色基调。选择「跟随主面板」则使用上方的主背景设置。
+  $options:
+    - Default: "跟随主面板 (Follow Main)"
+    - Accent: "跟随系统强调色 (System Accent)"
+    - GlassWhite: "晶莹透白 (Glass White)"
+    - MistGrey: "迷雾墨灰 (Mist Grey)"
+    - DeepBlack: "深空极黑 (Space Black)"
+    - OceanBlue: "深海湛蓝 (Ocean Blue)"
+    - AuroraCyan: "极光幻青 (Aurora Cyan)"
+    - RosePink: "玫瑰幽粉 (Rose Pink)"
+    - BordeauxRed: "波尔多红 (Bordeaux Red)"
+    - ForestGreen: "森林黛绿 (Forest Green)"
+    - RoyalPurple: "皇家黛紫 (Royal Purple)"
+    - SunsetOrange: "落日熔橙 (Sunset Orange)"
+    - ChampagneGold: "香槟金黄 (Champagne Gold)"
+    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+- folderBlurPreset: 20
+  $name: "📂 文件夹模糊度 (Folder Blur)"
+  $description: >-
+    调节文件夹子面板的模糊程度。
+  $options:
+    - 0: "不模糊 (Clear)"
+    - 10: "微弱毛玻璃 (Subtle)"
+    - 20: "中度毛玻璃 (Standard)"
+    - 30: "高阶亚克力 (Deep Acrylic)"
+    - 45: "重度磨砂 (Heavy Frosted)"
+    - 60: "终极磨砂 (Max Blur)"
+- folderOpacityPreset: 40
+  $name: "📂 文件夹填充浓度 (Folder Opacity)"
+  $description: >-
+    调节文件夹子面板的背景颜色填充浓度。
+  $options:
+    - 0: "完全透明 (Ultra Glass)"
+    - 10: "极薄亚克力 (Thin)"
+    - 25: "浅透亚克力 (Light)"
+    - 40: "半透亚克力 (Standard)"
+    - 75: "重色亚克力 (Heavy)"
+    - 90: "厚实亚克力 (Solid)"
+    - 100: "完全不透明 (Opaque)"
+- folderLuminosityPreset: 100
+  $name: "📂 文件夹亮度通透度 (Folder Luminosity)"
+  $description: >-
+    调节文件夹子面板的亮度与通透程度，数值越大背景越黑。
+  $options:
+    - 0: "暗淡无光 (Dark)"
+    - 25: "弱饱和 (Low)"
+    - 50: "中饱和 (Medium)"
+    - 75: "偏亮 (Bright)"
+    - 100: "标准通透 (Standard)"
+    - 125: "高亮 (High)"
+    - 150: "极致通透 (Ultra Bright)"
 - styleConstants: [""]
   $name: "⚙️ Style constants (高级)"
   $description: >-
@@ -7577,37 +7627,13 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation, VisualElement
         return S_OK;
     }
 
-    Wh_Log(L"========================================");
-
-    switch (mutationType)
-    {
-    case Add:
-        Wh_Log(L"Mutation type: Add %llu", element.Handle);
-        break;
-
-    case Remove:
-        Wh_Log(L"Mutation type: Remove %llu", element.Handle);
-        break;
-
-    default:
-        Wh_Log(L"Mutation type: %d %llu", static_cast<int>(mutationType), element.Handle);
-        break;
-    }
-
-    Wh_Log(L"Element type: %s", element.Type);
-
     if (mutationType == Add)
     {
         const auto inspectable = FromHandle(element.Handle);
         auto frameworkElement = inspectable.try_as<wux::FrameworkElement>();
         if (frameworkElement)
         {
-            Wh_Log(L"FrameworkElement name: %s", frameworkElement.Name().c_str());
             ApplyCustomizations(element.Handle, frameworkElement, element.Type);
-        }
-        else
-        {
-            Wh_Log(L"Skipping non-FrameworkElement");
         }
     }
     else if (mutationType == Remove)
@@ -13752,6 +13778,106 @@ void ProcessAllStylesFromSettings() {
         }
     }
 
+    // Folder panel custom brush
+    bool folderCustomEnabled = Wh_GetIntSetting(L"folderCustomEnabled");
+    if (folderCustomEnabled) {
+        PCWSTR folderBgColorMode = Wh_GetStringSetting(L"folderBgColorMode");
+        int folderBlurVal = Wh_GetIntSetting(L"folderBlurPreset");
+        int folderOpVal = Wh_GetIntSetting(L"folderOpacityPreset");
+        int folderLumVal = Wh_GetIntSetting(L"folderLuminosityPreset");
+
+        const wchar_t* folderBgMode = folderBgColorMode ? folderBgColorMode : L"Default";
+
+        std::wstring folderColorStr = L"";
+        if (wcscmp(folderBgMode, L"Accent") == 0) { folderColorStr = L"{ThemeResource SystemAccentColor}";
+        } else if (wcscmp(folderBgMode, L"GlassWhite") == 0) { folderColorStr = L"#FFFFFF";
+        } else if (wcscmp(folderBgMode, L"MistGrey") == 0) { folderColorStr = L"#2E2E2E";
+        } else if (wcscmp(folderBgMode, L"DeepBlack") == 0) { folderColorStr = L"#0A0A0A";
+        } else if (wcscmp(folderBgMode, L"OceanBlue") == 0) { folderColorStr = L"#1A365D";
+        } else if (wcscmp(folderBgMode, L"AuroraCyan") == 0) { folderColorStr = L"#005C53";
+        } else if (wcscmp(folderBgMode, L"RosePink") == 0) { folderColorStr = L"#5B2C30";
+        } else if (wcscmp(folderBgMode, L"BordeauxRed") == 0) { folderColorStr = L"#4A0E17";
+        } else if (wcscmp(folderBgMode, L"ForestGreen") == 0) { folderColorStr = L"#1A3A2A";
+        } else if (wcscmp(folderBgMode, L"RoyalPurple") == 0) { folderColorStr = L"#3B1354";
+        } else if (wcscmp(folderBgMode, L"SunsetOrange") == 0) { folderColorStr = L"#8C3D00";
+        } else if (wcscmp(folderBgMode, L"ChampagneGold") == 0) { folderColorStr = L"#7A653F";
+        } else if (wcscmp(folderBgMode, L"MorandiSage") == 0) { folderColorStr = L"#4E5E50";
+        }
+
+        std::wstring folderBlurStr = std::to_wstring(folderBlurVal >= 0 ? folderBlurVal : 20);
+
+        wchar_t folderOpBuf[16];
+        swprintf_s(folderOpBuf, L"%.2f", (double)(folderOpVal >= 0 ? folderOpVal : 40) / 100.0);
+        std::wstring folderOpacityStr = folderOpBuf;
+
+        wchar_t folderLumBuf[16];
+        swprintf_s(folderLumBuf, L"%.2f", (double)(folderLumVal >= 0 ? folderLumVal : 100) / 100.0);
+        std::wstring folderLumStr = folderLumBuf;
+
+        std::wstring folderBrush = L"";
+
+        // 若选择“跟随主面板”模式，则先复制主面板背景笔刷，然后将其中的模糊度、不透明度和亮度参数替换为文件夹专属的独立设置，以确保即便颜色跟随，其底下的独立调节参数依然能生效。
+        if (wcscmp(folderBgMode, L"Default") == 0) {
+            if (!customBrush.empty()) {
+                folderBrush = customBrush;
+                
+                // 替换模糊度参数
+                size_t blurPos = folderBrush.find(L"BlurAmount=\"");
+                if (blurPos != std::wstring::npos) {
+                    size_t start = blurPos + 12;
+                    size_t end = folderBrush.find(L"\"", start);
+                    if (end != std::wstring::npos) folderBrush.replace(start, end - start, folderBlurStr);
+                }
+                
+                // 替换不透明度参数
+                size_t opPos = folderBrush.find(L"TintOpacity=\"");
+                if (opPos != std::wstring::npos) {
+                    size_t start = opPos + 13;
+                    size_t end = folderBrush.find(L"\"", start);
+                    if (end != std::wstring::npos) folderBrush.replace(start, end - start, folderOpacityStr);
+                }
+                
+                // 替换或插入亮度参数
+                size_t lumPos = folderBrush.find(L"TintLuminosityOpacity=\"");
+                if (lumPos != std::wstring::npos) {
+                    size_t start = lumPos + 23;
+                    size_t end = folderBrush.find(L"\"", start);
+                    if (end != std::wstring::npos) folderBrush.replace(start, end - start, folderLumStr);
+                } else {
+                    size_t insertPos = folderBrush.rfind(L"/>");
+                    if (insertPos != std::wstring::npos) {
+                        folderBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + folderLumStr + L"\" ");
+                    } else {
+                        insertPos = folderBrush.rfind(L">");
+                        if (insertPos != std::wstring::npos) {
+                            folderBrush.insert(insertPos, L" TintLuminosityOpacity=\"" + folderLumStr + L"\" ");
+                        }
+                    }
+                }
+            }
+        } else if (!folderColorStr.empty()) {
+            // 若选择其他特定颜色，则直接根据配置参数构建专门的文件夹 WindhawkBlur 笔刷。
+            folderBrush = L"<WindhawkBlur BlurAmount=\"" + folderBlurStr + L"\" TintColor=\"" + folderColorStr + L"\" TintOpacity=\"" + folderOpacityStr + L"\" TintLuminosityOpacity=\"" + folderLumStr + L"\" />";
+        }
+
+        if (!folderBrush.empty()) {
+            try {
+                std::vector<std::wstring> folderStyles = {
+                    L"Background:=" + folderBrush
+                };
+                AddElementCustomizationRules(L"StartMenu.FolderModal > Grid > Border", folderStyles);
+                AddElementCustomizationRules(L"StartMenu.ExpandedFolderList > Grid > Border", std::move(folderStyles));
+                Wh_Log(L"[ZenDesktop] Folder panel custom brush applied");
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"Folder brush error %08X", ex.code());
+            } catch (std::exception const& ex) {
+                Wh_Log(L"Folder brush error: %S", ex.what());
+            }
+        }
+
+        Wh_FreeStringSetting(folderBgColorMode);
+    }
+
     PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
     std::wstring newFgBrush;
     if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
@@ -13839,15 +13965,21 @@ void ProcessAllStylesFromSettings() {
 
     if (isCustomTheme) {
         try {
-            std::vector<std::wstring> styles1 = { L"Background:=$CommonBgBrush", L"BorderThickness=0" };
-            std::vector<std::wstring> resolvedStyles1;
-            for (const auto& s : styles1) resolvedStyles1.push_back(ApplyStyleConstants(s, styleConstants));
-            AddElementCustomizationRules(L"StartMenu.ExpandedFolderList > Grid > Border", std::move(resolvedStyles1));
-            
-            std::vector<std::wstring> styles2 = { L"Background:=$CommonBgBrush", L"BorderThickness=0" };
-            std::vector<std::wstring> resolvedStyles2;
-            for (const auto& s : styles2) resolvedStyles2.push_back(ApplyStyleConstants(s, styleConstants));
-            AddElementCustomizationRules(L"StartMenu.FolderModal > Grid > Border", std::move(resolvedStyles2));
+            if (!folderCustomEnabled) {
+                std::vector<std::wstring> styles1 = { L"Background:=$CommonBgBrush", L"BorderThickness=0" };
+                std::vector<std::wstring> resolvedStyles1;
+                for (const auto& s : styles1) resolvedStyles1.push_back(ApplyStyleConstants(s, styleConstants));
+                AddElementCustomizationRules(L"StartMenu.ExpandedFolderList > Grid > Border", std::move(resolvedStyles1));
+                
+                std::vector<std::wstring> styles2 = { L"Background:=$CommonBgBrush", L"BorderThickness=0" };
+                std::vector<std::wstring> resolvedStyles2;
+                for (const auto& s : styles2) resolvedStyles2.push_back(ApplyStyleConstants(s, styleConstants));
+                AddElementCustomizationRules(L"StartMenu.FolderModal > Grid > Border", std::move(resolvedStyles2));
+            } else {
+                std::vector<std::wstring> borderStyles = { L"BorderThickness=0" };
+                AddElementCustomizationRules(L"StartMenu.ExpandedFolderList > Grid > Border", borderStyles);
+                AddElementCustomizationRules(L"StartMenu.FolderModal > Grid > Border", std::move(borderStyles));
+            }
         } catch (...) {}
     }
 

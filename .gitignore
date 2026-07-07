@@ -32,3 +32,11 @@ Desktop.ini
 *.log
 copy_log.txt
 *.bak
+
+# Ignore local tool downloads/clones
+DWMBlurGlass/
+ExplorerBlurMica_Source/
+.agents/
+.trae/
+sync-aiskills.ps1
+sync-skills.ps1
