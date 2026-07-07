@@ -7,6 +7,7 @@ common_files = [
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
+    'local@taskbar-background-helper.wh.cpp',
     'ExplorerBlurMica',
     'deploy.bat',
     'deploy.ps1',

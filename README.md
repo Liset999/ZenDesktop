@@ -4,7 +4,7 @@
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium v4.0.0** is a high-performance desktop styling suite for Windows 11. It blends 4 native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, with all real-time customizations handled natively via the Windhawk UI **with zero background process bloat, zero UI lag, and 0% CPU overhead**.
+**ZenDesktop Premium v4.0.0** is a high-performance desktop styling suite for Windows 11. It blends native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, with all real-time customizations handled natively via the Windhawk UI **with zero background process bloat, zero UI lag, and 0% CPU overhead**.
 
 [简体中文](#-简体中文) | [English](#-english-features)
 
@@ -13,22 +13,22 @@
 ## 🚀 Latest Performance & UI Tuning Updates / 最新性能与界面调优更新
 
 ### 🌐 English
-* **Visual Tree Hot-Path Optimization**: Removed all verbose synchronous debug logging (`Wh_Log`) from the XAML event callbacks in all three active mods (`local@zen-notificationcenter-acrylic`, `local@zen-startmenu-acrylic`, `local@zen-taskbar-acrylic`). This completely eliminates UI rendering freezes and lag when opening the Start Menu, Notification Center (Win+A), or Taskbar.
-* **Taskbar Mod Streamlining**: Completely removed the redundant maximized window detection logic and its associated settings (`maximizedTaskbarLayer`, etc.) from the Taskbar mod. This functionality is now fully offloaded to the independent `taskbar-background-helper` mod, keeping the main Taskbar mod clean and focused.
-* **Start Menu Folder Style Fixes**:
-  * Moved the folder customization settings immediately below "开始菜单高度" (Start Menu Height) in the settings panel.
-  * Corrected the styling target to specific visual containers (`StartMenu.FolderModal > Grid > Border` and `StartMenu.ExpandedFolderList > Grid > Border`) to prevent background overriding.
-  * Fixed the "Follow Main" preset bug, allowing folder-specific parameters to correctly override the cloned main background brush.
-* **Explorer Transparency legibility Tuning**: Adjusted `ExplorerBlurMica`'s light mode transparency configuration to a high-contrast frosted white glass overlay (`a=185` in `config.ini`). This ensures black folder text is 100% readable in Windows Light Mode while retaining a beautiful, Apple-like frosted glass look.
+* **Start Menu Folder Independent Customization**: Folders now support separate background color, opacity, tint, and acrylic blur configs. Fixed preset override issues in "Follow Main Panel" mode.
+* **XAML Render Hot-Path & Stuttering Fix**: Removed synchronous debugging telemetry from the main rendering loops of the Start Menu, Taskbar, and Notification Center mods. This prevents UI stuttering, delays, and empty option blocks when opening the Quick Settings panel (Win+A) or Start Menu.
+* **Built-in Start Menu Custom Sizing**: Merged dimension settings directly into the Start Menu Acrylic Styler. Users can now adjust the width and height of the Start Menu panel natively.
+* **File Explorer Transparency & Visual Config Editor**: Integrated `ExplorerBlurMica`. Due to Windows OS restrictions, File Explorer cannot be made 100% fully transparent (always retains frosted blur) and the title bar reverts to a solid color when losing focus. Provided a custom-made WPF frontend (`config-editor-wpf.exe`) to easily configure visual parameters.
+* **New Companion Mods Support**:
+  * **macos-minimize-animation**: Renders high-fidelity, fluid macOS-style Genie window minimize/restore and transition animations.
+  * **taskbar-background-helper**: Automatically transitions the taskbar background to dark, blurred, or acrylic when a window is maximized. This replaces our old custom maximized window logic, solving previous performance bottlenecks.
 
 ### 🇨🇳 中文
-* **XAML 渲染热路径优化**：清除了三大核心 Mod（通知中心、开始菜单、任务栏）中 `OnVisualTreeChange` 回调函数中的所有同步调试日志（`Wh_Log`），彻底解决了打开 Win+A 控制台、开始菜单或任务栏时的瞬间卡顿和空白框延迟渲染问题。
-* **任务栏 Mod 瘦身与架构解耦**：彻底移除了任务栏 Mod 中多余的最大化检测代码与选项，将其完全交由独立的 `taskbar-background-helper` 辅助 Mod 负责，保持主任务栏 Mod 的纯净。
-* **开始菜单文件夹自定义修复**：
-  * 将文件夹自定义选项在设置面板中上移至“开始菜单高度”正下方，方便用户配置。
-  * 修正了文件夹背景色的应用目标容器，解决了自定义文件夹背景被主背景覆盖的问题。
-  * 修复了“跟随主面板”选项下文件夹模糊度、浓度及亮度设置失效的 Bug。
-* **资源管理器浅色可读性微调**：将 `ExplorerBlurMica` 浅色模式下的背景不透明度调整为 **`185`（乳白冰砂玻璃）**，既保留了通透的壁纸质感，又为黑色文字提供了足够的白底对比度，完美解决浅色模式下文字看不清、失去焦点闪白的硬伤。
+* **开始菜单文件夹独立样式自定义**：开始菜单内的文件夹现在支持独立调节背景颜色、透明度、浓度与毛玻璃模糊度；修复了开启“跟随主面板”选项时文件夹特定参数失效的 Bug。
+* **XAML 渲染热路径优化与卡顿修复**：清除了三大核心 Mod（开始菜单、任务栏、通知中心）中高频 UI 重绘事件的调试日志，大幅提升渲染性能，彻底解决了打开控制栏（Win+A 快捷设置）、开始菜单或任务栏时的选项缺失、加载延迟或瞬间空白白屏的卡顿问题。
+* **开始菜单支持自定义大小**：直接在开始菜单 Mod 设置中整合了宽度和高度的自定义功能，用户可根据屏幕分辨率和个人喜好自由缩放开始菜单面板。
+* **资源管理器透明化与专属配置前端**：集成了外部透明程序 `ExplorerBlurMica`。受 Windows 底层限制，资源管理器无法实现 100% 纯透明（会有模糊），且窗口失去焦点时标题栏会回退为纯色。为此配备了专属的参数调节前端（`config-editor-wpf.exe`），极大降低了用户调节模糊半径与颜色的门槛。
+* **引入两大全新辅助 Mod 支持**：
+  * **macos-minimize-animation**：切换与最小化程序时，实现媲美 macOS 的 Genie（神奇效果）动画，流畅度极佳。
+  * **taskbar-background-helper**：窗口最大化时任务栏可秒级切换为深色/模糊/亚克力。替换了原任务栏 Mod 内置的最大化检测逻辑，彻底解决了旧版的响应延迟与性能瓶颈。
 
 ---
 
@@ -59,6 +59,12 @@ A process-native desktop subclassing module. **Double-click empty desktop space 
 * Adds exquisite visual effects like Blur, Acrylic, and Mica to Windows 10/11 File Explorer.
 * Visual customization via config editor and registered as a native shell extension DLL (`regsvr32`).
 
+### 6. 🎨 macOS Genie Minimize Animation (`local@macos-minimize-animation`)
+* Brings the iconic macOS-style genie minimize and restore (open) animations to every window on Windows 11/10.
+
+### 7. 🎛️ Taskbar Background Helper (`local@taskbar-background-helper`)
+* Automatically turns the taskbar background to dark, blurred, or acrylic whenever a window is maximized, keeping the main Taskbar mod clean and high-performance.
+
 ---
 
 ## 📥 Installation & Deployment Guide
@@ -71,10 +77,10 @@ Install Windhawk on your Windows 11 PC using the provided setup.
 
 ### Step 2: One-Key Local Registry & Mod Deployment
 1. Right-click **`deploy.bat`** and select **Run as Administrator** (以管理员身份运行).
-2. The script will automatically stop the Windhawk service, register the 4 premium local mods, enable local compilation, reset compiler caching keys, and restart Windhawk safely.
+2. The script will automatically stop the Windhawk service, register the 6 premium local mods, enable local compilation, reset compiler caching keys, and restart Windhawk safely.
 
 ### Step 3: Fast Native Compilation
-1. Open the **Windhawk** user interface. You will see 4 newly registered local mods in your home dashboard.
+1. Open the **Windhawk** user interface. You will see 6 newly registered local mods in your home dashboard.
 2. Click into each mod and click **Save / Compile** (保存并编译). The engine will compile the native C++ code in ~10 seconds.
 
 ### Step 4: Configure via Windhawk UI
