@@ -35,7 +35,6 @@ copy_log.txt
 
 # Ignore local tool downloads/clones
 DWMBlurGlass/
-ExplorerBlurMica_Source/
 .agents/
 .trae/
 sync-aiskills.ps1
