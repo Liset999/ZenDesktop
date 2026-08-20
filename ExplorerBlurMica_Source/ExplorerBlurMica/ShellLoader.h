@@ -1,5 +1,5 @@
 /*
-* BHO×é¼þ¼ÓÔØÆ÷
+* BHOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 *
 * Author: Maple
 * date: 2022-1-31 Create
@@ -18,10 +18,11 @@ extern const std::wstring CLSID_SHELL_BHO_STR;
 extern const CLSID CLSID_SHELL_BHO;
 
 extern void OnWindowLoad();
+extern void ScheduleOnWindowLoad();
 extern void OnDocComplete(std::wstring, DWORD);
 
 /*
-* IDispatch ½Ó¿ÚÊµÏÖ ä¯ÀÀÆ÷ÊÂ¼þ
+* IDispatch ï¿½Ó¿ï¿½Êµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½
 */
 class CIDispatch : public IDispatch
 {
@@ -46,7 +47,7 @@ protected:
 };
 
 /*
-* Ò»¸ö»ù±¾µÄCOMä¯ÀÀÆ÷Àà Ö»ÊµÏÖ»ù±¾½Ó¿Ú
+* Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½COMï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ö»Êµï¿½Ö»ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½
 */
 class CObjectWithSite : public IObjectWithSite
 {
@@ -72,7 +73,7 @@ protected:
 };
 
 /*
-* Àà¹¤³§ ÓÃÀ´´¦Àíä¯ÀÀÆ÷ÀàµÄ´´½¨
+* ï¿½à¹¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½
 */
 class ClassFactory : public IClassFactory
 {

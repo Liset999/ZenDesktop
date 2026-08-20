@@ -1,5 +1,5 @@
 /*
-* BHO×é¼þ¼ÓÔØÆ÷
+* BHOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 *
 * Author: Maple
 * date: 2022-1-31 Create
@@ -10,7 +10,7 @@
 
 long g_cDllRef = 0;
 
-/*Èç¹ûÄúÐÞ¸ÄÁË´úÂë ÇëÊ¹ÓÃVSµÄGUID¹¤¾ßÉú³ÉÐÂµÄGUID£¡*/
+/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ï¿½Ë´ï¿½ï¿½ï¿½ ï¿½ï¿½Ê¹ï¿½ï¿½VSï¿½ï¿½GUIDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½GUIDï¿½ï¿½*/
 const std::wstring CLSID_SHELL_BHO_STR = L"{B44BD3C8-E597-4E08-AE43-246CE24698E7}";
 const CLSID CLSID_SHELL_BHO = { 0xb44bd3c8, 0xe597, 0x4e08, { 0xae, 0x43, 0x24, 0x6c, 0xe2, 0x46, 0x98, 0xe7 } };
 
@@ -91,7 +91,6 @@ STDMETHODIMP CIDispatch::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WOR
 
 CObjectWithSite::CObjectWithSite()
 {
-	OnWindowLoad();
 }
 
 CObjectWithSite::~CObjectWithSite()
@@ -147,6 +146,9 @@ STDMETHODIMP CObjectWithSite::SetSite(IUnknown* pUnkSite)
 	}
 
 	m_cpoint->Advise((IUnknown*)new CIDispatch(), &m_cookie);
+
+	// First CabinetWClass is still constructing here. Hook after a delay.
+	ScheduleOnWindowLoad();
 
 	return hr;
 }
@@ -239,31 +241,31 @@ STDAPI DllRegisterServer()
 	TCHAR dllpath[MAX_PATH];
 	GetModuleFileNameW(g_hModule, dllpath, MAX_PATH);
 
-	//´´½¨CLSID
+	//ï¿½ï¿½ï¿½ï¿½CLSID
 	std::wstring regpath = L"CLSID\\" + CLSID_SHELL_BHO_STR;
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, regpath.c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
 
-	//ÉèÖÃCOM×é¼þÃû³Æ
+	//ï¿½ï¿½ï¿½ï¿½COMï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	RegSetValueExW(hkey, NULL, 0, REG_SZ, (const BYTE*)L"ExplorerBlurMica BHO", 24 * sizeof(TCHAR));
 	RegCloseKey(hkey);
 
-	//´´½¨InProcServer32
+	//ï¿½ï¿½ï¿½ï¿½InProcServer32
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, (regpath + L"\\InProcServer32").c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
 
-	//ÉèÖÃdllÎ»ÖÃ
+	//ï¿½ï¿½ï¿½ï¿½dllÎ»ï¿½ï¿½
 	RegSetValueExW(hkey, NULL, 0, REG_SZ, (const BYTE*)dllpath, DWORD(wcslen(dllpath) + 1) * sizeof(wchar_t));
-	//ÉèÖÃÏß³ÌÄ£ÐÍ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½Ä£ï¿½ï¿½
 	RegSetValueExW(hkey, L"ThreadingModel", 0, REG_SZ, (const BYTE*)L"Apartment", 10 * sizeof(wchar_t));
 	RegCloseKey(hkey);
 
-	//×¢²áBHO×é¼þ
+	//×¢ï¿½ï¿½BHOï¿½ï¿½ï¿½
 	//if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
 	//	+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 	//	return SELFREG_E_CLASS;
 
-	////×¢²áÎÄ¼þ¶Ô»°¿ò
+	////×¢ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ô»ï¿½ï¿½ï¿½
 	//DWORD value = 255;
 	//RegSetValueExW(hkey, L"DriveMask", 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
 
@@ -273,7 +275,7 @@ STDAPI DllRegisterServer()
 		+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
 
-	//½ûÖ¹IEä¯ÀÀÆ÷¼ÓÔØ±¾×é¼þ
+	//ï¿½ï¿½Ö¹IEï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½
 	DWORD value = 1;
 	RegSetValueExW(hkey, L"NoInternetExplorer", 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
 	RegCloseKey(hkey);
@@ -282,12 +284,12 @@ STDAPI DllRegisterServer()
 
 STDAPI DllUnregisterServer()
 {
-	//É¾³ýBHO×é¼þ×¢²á
+	//É¾ï¿½ï¿½BHOï¿½ï¿½ï¿½×¢ï¿½ï¿½
 	RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\\)"
 		+ CLSID_SHELL_BHO_STR).c_str());
 	/*RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
 		+ CLSID_SHELL_BHO_STR).c_str());*/
-	//É¾³ýCOM×é¼þ×¢²á
+	//É¾ï¿½ï¿½COMï¿½ï¿½ï¿½×¢ï¿½ï¿½
 	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR + L"\\InProcServer32").c_str());
 	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR).c_str());
 	return S_OK;
