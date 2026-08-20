@@ -88,17 +88,39 @@ void OnWindowLoad()
         }
 
         //创建钩子 CreateHook
-        if (MH_Initialize() == MH_OK)
+        // MH_ERROR_ALREADY_INITIALIZED is OK: this copy of MinHook may
+        // already have been initialized on a previous window. Never
+        // MessageBox / FreeLibraryAndExitThread inside explorer.exe —
+        // that is what restarted Explorer on the first cabinet window
+        // after boot.
+        MH_STATUS mh = MH_Initialize();
+        if (mh == MH_OK || mh == MH_ERROR_ALREADY_INITIALIZED)
         {
             Hook::HookAttachAll();
             MH_EnableHook(MH_ALL_HOOKS);
         }
         else
         {
-            MessageBoxW(0, L"Failed to initialize disassembly!\nSuspected duplicate load extension", L"ExplorerBlurMica Error", MB_ICONERROR | MB_OK);
-            FreeLibraryAndExitThread(g_hModule, 0);
+            m_isInitHook = false;
+            return;
         }
     }
 
     RefreshConfig();
+}
+
+static HANDLE g_delayHookThread = nullptr;
+
+DWORD WINAPI DelayHookThreadProc(LPVOID)
+{
+    Sleep(800);
+    OnWindowLoad();
+    return 0;
+}
+
+void ScheduleOnWindowLoad()
+{
+    if (m_isInitHook || g_delayHookThread)
+        return;
+    g_delayHookThread = CreateThread(nullptr, 0, DelayHookThreadProc, nullptr, 0, nullptr);
 }

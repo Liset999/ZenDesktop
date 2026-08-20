@@ -22,6 +22,7 @@ jobs:
         uses: NuGet/setup-nuget@v2
 
       - name: Restore NuGet packages
+        continue-on-error: true
         run: nuget restore ExplorerBlurMica_Source/ExplorerBlurMica.sln
 
       - name: Build Solution

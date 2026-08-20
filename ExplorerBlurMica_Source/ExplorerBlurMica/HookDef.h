@@ -20,7 +20,6 @@ namespace Hook {
 
     inline void _HookError_()
     {
-        MessageBoxW(0, (L"Failed to create hook <" + std::to_wstring(hookIndex) + L">").c_str(), L"ExplorerBlurMica Error", MB_ICONERROR | MB_OK);
     }
 
     template<typename T>
