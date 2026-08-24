@@ -1,8 +1,10 @@
 // ==WindhawkMod==
 // @id              zen-startmenu-acrylic
-// @name            ZenDesktop: Start Menu Acrylic Styler
+// @name            ZenDesktop: 开始菜单美化
+// @name:zh-CN       ZenDesktop: 开始菜单美化
 // @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
-// @version         4.0.0
+// @description:zh-CN 为 Windows 11 开始菜单带来高质量亚克力与磨砂玻璃透明美化效果。
+// @version         4.1.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -22,7 +24,15 @@
 
 // ==WindhawkModReadme==
 /*
-# Windows 11 Start Menu Styler
+# ZenDesktop: Start Menu Acrylic Styler
+
+> ### 👨‍💻 开发者信息 & 关注支持
+> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
+> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
+> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
+>
+> **原作者**：m417z (Windows 11 Start Menu Styler)  
+> **定制修改说明**：由 Lanboo 基于 m417z 原版进行深度重构与二开。重构 HostBackdrop 渲染管道与卡片模糊层，集成全彩文字/图标对齐系统与全套中文配置选项。
 
 Customize the Start menu with themes contributed by others or create your own.
 
@@ -454,12 +464,13 @@ from the **TranslucentTB** project.
     - 75: "重色亚克力 (Heavy)"
     - 90: "厚实亚克力 (Solid)"
     - 100: "完全不透明 (Opaque)"
-- luminosityPreset: 100
+- luminosityPreset: 20
   $name: "☀️ 亮度通透度 (Luminosity)"
   $description: >-
     调节背景的亮度与通透程度，数值越大背景越黑。
   $options:
     - 0: "暗淡无光 (Dark)"
+    - 20: "通透 (Clear 20%)"
     - 25: "弱饱和 (Low)"
     - 50: "中饱和 (Medium)"
     - 75: "偏亮 (Bright)"
@@ -7922,6 +7933,8 @@ static UINT      g_uTaskbarCreatedMsg    = 0;
 
 static DWORD WINAPI TaskbarCreatedWindowThread(LPVOID lpParam);
 static void  CleanupTaskbarCreatedWindow();
+void ScheduleBootStyleReinit();
+void StopBootReinitTimer();
 // ─────────────────────────────────────────────────────────────────────────
 
 // https://stackoverflow.com/a/51274008
@@ -13708,7 +13721,7 @@ void ProcessAllStylesFromSettings() {
     std::wstring opacityStr = opBuf;
 
     wchar_t lumBuf[16];
-    swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 100) / 100.0);
+    swprintf_s(lumBuf, L"%.2f", (double)(lumVal >= 0 ? lumVal : 20) / 100.0);
     std::wstring lumStr = lumBuf;
 
     if (wcscmp(bgMode, L"Default") == 0) {
@@ -14127,6 +14140,7 @@ void InitializeSettingsAndTap() {
     HRESULT hr = InjectWindhawkTAP();
     if (FAILED(hr)) {
         Wh_Log(L"Error %08X", hr);
+        g_targetThreadId = 0;
     }
 }
 
@@ -15308,10 +15322,21 @@ void Wh_ModAfterInit() {
                 hCoreWnd, StartMenuSize_InitFromWindowThread, nullptr);
         }
     }
+
+    // ── Start TaskbarCreated listener for all targets (StartMenu & SearchHost)
+    if (!g_hTaskbarCreatedThread) {
+        g_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
+        g_hTaskbarCreatedThread = CreateThread(
+            nullptr, 0, TaskbarCreatedWindowThread, nullptr, 0, nullptr);
+    }
+
+    ScheduleBootStyleReinit();
 }
 
 void Wh_ModBeforeUninit() {
     Wh_Log(L">");
+
+    StopBootReinitTimer();
 
     // Start Menu custom sizing: signal unloading so ApplyStyle() restores
     // original dimensions, then detach event handlers on the CoreWindow
@@ -15325,10 +15350,10 @@ void Wh_ModBeforeUninit() {
             RunFromWindowThread(
                 hCoreWnd, StartMenuSize_UninitFromWindowThread, nullptr);
         }
-
-        // ── Stop TaskbarCreated listener ─────────────────────────────────────
-        CleanupTaskbarCreatedWindow();
     }
+
+    // ── Stop TaskbarCreated listener ─────────────────────────────────────
+    CleanupTaskbarCreatedWindow();
 }
 
 void Wh_ModUninit() {
@@ -15435,6 +15460,67 @@ void Wh_ModSettingsChanged() {
 // sequence as when the user manually disables and re-enables the mod
 // inside Windhawk.  This avoids the 8000FFFF (E_UNEXPECTED) failures
 // that happen when the DWM rendering pipeline is still unstable.
+
+PTP_TIMER g_bootReinitTimer = nullptr;
+
+void StopBootReinitTimer() {
+    if (g_bootReinitTimer) {
+        SetThreadpoolTimer(g_bootReinitTimer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(g_bootReinitTimer, TRUE);
+        CloseThreadpoolTimer(g_bootReinitTimer);
+        g_bootReinitTimer = nullptr;
+    }
+}
+
+void ScheduleBootStyleReinit() {
+    if (g_bootReinitTimer) {
+        return;
+    }
+
+    g_bootReinitTimer = CreateThreadpoolTimer(
+        [](PTP_CALLBACK_INSTANCE, PVOID, PTP_TIMER) {
+            if (g_targetThreadId.load() != 0) {
+                Wh_Log(L"Boot delayed retry: TAP already active on thread %u",
+                       g_targetThreadId.load());
+                return;
+            }
+
+            Wh_Log(L"Boot delayed retry: CoreWindow not yet initialized, retrying...");
+            HWND hCoreWnd = nullptr;
+            for (int attempt = 0; attempt < 10; ++attempt) {
+                hCoreWnd = GetCoreWnd();
+                if (hCoreWnd) {
+                    break;
+                }
+                Sleep(500);
+            }
+
+            if (hCoreWnd) {
+                Wh_Log(L"Boot delayed retry: Found core window %08X, injecting TAP",
+                       (DWORD)(ULONG_PTR)hCoreWnd);
+                RunFromWindowThread(
+                    hCoreWnd, Acrylic_InitializeSettingsAndTapFromWindowThread,
+                    nullptr);
+            } else {
+                Wh_Log(L"Boot delayed retry: CoreWindow still not found");
+            }
+        },
+        nullptr, nullptr);
+
+    if (!g_bootReinitTimer) {
+        return;
+    }
+
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += 2500ULL * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_bootReinitTimer, &ft, 0, 0);
+}
 
 static void WINAPI TriggerFullReinitFromWindowThread(PVOID) {
     Wh_Log(L"Reinit: tearing down existing state");

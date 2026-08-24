@@ -1,8 +1,10 @@
 // ==WindhawkMod==
 // @id              zen-notificationcenter-acrylic
-// @name            ZenDesktop: Notification Center Acrylic Styler
+// @name            ZenDesktop: 通知栏美化
+// @name:zh-CN       ZenDesktop: 通知栏美化
 // @description     Premium acrylic/frosted glass notification center and quick settings. Based on m417z Notification Center Styler.
-// @version         4.0.0
+// @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力/毛玻璃透明背景美化。
+// @version         4.1.0
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
 // @twitter         https://twitter.com/m417z
@@ -23,7 +25,15 @@
 
 // ==WindhawkModReadme==
 /*
-# Windows 11 Notification Center Styler
+# ZenDesktop: Notification Center Acrylic Styler
+
+> ### 👨‍💻 开发者信息 & 关注支持
+> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
+> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
+> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
+>
+> **原作者**：m417z (Notification Center Styler)  
+> **定制修改说明**：由 Lanboo 基于 m417z 原版进行深度重构与二开。重构毛玻璃画刷计算管道、新增 10 款视觉预设、12 种文字/图标颜色对齐与全中文配置。
 
 Customize the Notification Center and Action Center with themes contributed by
 others or create your own.
@@ -376,12 +386,13 @@ from the **TranslucentTB** project.
     - 75: "重色亚克力 (Heavy)"
     - 90: "厚实亚克力 (Solid)"
     - 100: "完全不透明 (Opaque)"
-- luminosityPreset: 100
+- luminosityPreset: 20
   $name: "☀️ 亮度通透度 (Luminosity)"
   $description: >-
     调节背景的亮度与通透程度，数值越大背景越黑。
   $options:
     - 0: "暗淡无光 (Dark)"
+    - 20: "通透 (Clear 20%)"
     - 25: "弱饱和 (Low)"
     - 50: "中饱和 (Medium)"
     - 75: "偏亮 (Bright)"
@@ -8775,7 +8786,7 @@ void ProcessAllStylesFromSettings() {
         wchar_t buf[16]; swprintf_s(buf, L"%.2f", (double)opVal / 100.0); opacityStr = buf; opModified = true;
     }
 
-    std::wstring lumStr = L"1.00";
+    std::wstring lumStr = L"0.20";
     bool lumModified = false;
     if (lumVal >= 0) {
         wchar_t buf[16]; swprintf_s(buf, L"%.2f", (double)lumVal / 100.0); lumStr = buf; lumModified = true;

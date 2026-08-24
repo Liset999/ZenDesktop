@@ -15,6 +15,14 @@ call :isAdmin
 if %errorlevel% == 0 (
     echo Applying effects
 	regsvr32 "%~dp0ExplorerBlurMica.dll"
+	REM config-editor-wpf.exe looks for these two CLSIDs, not Maplespe's BHO id.
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}" /ve /t REG_SZ /d "ExplorerBlurMica BHO" /f >nul
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}\InProcServer32" /ve /t REG_SZ /d "%~dp0ExplorerBlurMica.dll" /f >nul
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}\InProcServer32" /v ThreadingModel /t REG_SZ /d Apartment /f >nul
+	reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}" /v NoInternetExplorer /t REG_DWORD /d 1 /f >nul
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{887D3A6A-502E-4AF5-9CE6-D515E12AFE89}" /ve /t REG_SZ /d "ExplorerBlurMica BHO" /f >nul
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{887D3A6A-502E-4AF5-9CE6-D515E12AFE89}\InProcServer32" /ve /t REG_SZ /d "%~dp0ExplorerBlurMica.dll" /f >nul
+	reg add "HKLM\SOFTWARE\Classes\CLSID\{887D3A6A-502E-4AF5-9CE6-D515E12AFE89}\InProcServer32" /v ThreadingModel /t REG_SZ /d Apartment /f >nul
     echo.
 ) else (
 	echo Please run as Administrator
