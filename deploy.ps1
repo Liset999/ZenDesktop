@@ -243,6 +243,16 @@ foreach ($file in $files) {
             Write-Status "         [Settings] Initializing taskbar theme -> TranslucentTaskbar" "Yellow"
             Set-ItemProperty -Path $settingsPath -Name "theme" -Value "TranslucentTaskbar" -Type String
         }
+
+        $maxLayerVal = $null
+        try {
+            $maxLayerVal = (Get-ItemProperty -Path $settingsPath -Name "maximizedTaskbarLayer" -ErrorAction SilentlyContinue).maximizedTaskbarLayer
+        } catch {
+            $maxLayerVal = $null
+        }
+        if ($null -eq $maxLayerVal) {
+            Set-ItemProperty -Path $settingsPath -Name "maximizedTaskbarLayer" -Value 0 -Type DWord
+        }
     }
 
     if ($id -eq "local@macos-minimize-animation") {
