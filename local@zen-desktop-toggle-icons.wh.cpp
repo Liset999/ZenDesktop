@@ -1,8 +1,10 @@
 // ==WindhawkMod==
 // @id              zen-desktop-toggle-icons
-// @name            ZenDesktop: Desktop Icon Toggle and Auto-Hide
+// @name            ZenDesktop: 桌面双击隐藏图标
+// @name:zh-CN       ZenDesktop: 桌面双击隐藏图标
 // @description     Native C++ Windhawk mod to hide/show desktop icons by double-clicking, with optional inactivity-based auto-hide and restore.
-// @version         4.0.0
+// @description:zh-CN 双击桌面空白处快速显示/隐藏桌面图标，支持闲置自动隐藏与平滑淡入淡出。
+// @version         4.1.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -13,6 +15,14 @@
 // ==WindhawkModReadme==
 /*
 # ZenDesktop: Desktop Icon Toggle and Auto-Hide
+
+> ### 👨‍💻 开发者信息 & 关注支持
+> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
+> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
+> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
+>
+> **原作者**：Lanboo (ZenDesktop 原生开发)  
+> **功能说明**：原生 C++ 深度嵌入 Explorer 进程，支持双击桌面空白区域即时隐藏/显示桌面图标，并提供全局无操作空闲自动隐藏与智能输入唤醒。
 
 Have you ever wanted a clean, clutter-free desktop but found it annoying to right-click -> View -> Show desktop icons every time? 
 

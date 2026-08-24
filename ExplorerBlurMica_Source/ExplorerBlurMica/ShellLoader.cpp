@@ -14,6 +14,12 @@ long g_cDllRef = 0;
 const std::wstring CLSID_SHELL_BHO_STR = L"{B44BD3C8-E597-4E08-AE43-246CE24698E7}";
 const CLSID CLSID_SHELL_BHO = { 0xb44bd3c8, 0xe597, 0x4e08, { 0xae, 0x43, 0x24, 0x6c, 0xe2, 0x46, 0x98, 0xe7 } };
 
+// config-editor-wpf.exe looks for these two CLSIDs, not Maplespe's BHO id.
+static const std::wstring CLSID_EDITOR_A_STR = L"{BAE3934B-8A6A-4BFB-81BD-3FC599A1BAF3}";
+static const CLSID CLSID_EDITOR_A = { 0xbae3934b, 0x8a6a, 0x4bfb, { 0x81, 0xbd, 0x3f, 0xc5, 0x99, 0xa1, 0xba, 0xf3 } };
+static const std::wstring CLSID_EDITOR_B_STR = L"{887D3A6A-502E-4AF5-9CE6-D515E12AFE89}";
+static const CLSID CLSID_EDITOR_B = { 0x887d3a6a, 0x502e, 0x4af5, { 0x9c, 0xe6, 0xd5, 0x15, 0xe1, 0x2a, 0xfe, 0x89 } };
+
 #pragma region IDispatch
 
 CIDispatch::~CIDispatch()
@@ -224,7 +230,7 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppvOut)
 {
 	static ClassFactory factory;
 	*ppvOut = NULL;
-	if (rclsid == CLSID_SHELL_BHO) {
+	if (rclsid == CLSID_SHELL_BHO || rclsid == CLSID_EDITOR_A || rclsid == CLSID_EDITOR_B) {
 		return factory.QueryInterface(riid, ppvOut);
 	}
 	return CLASS_E_CLASSNOTAVAILABLE;
@@ -235,63 +241,68 @@ STDAPI DllCanUnloadNow(void)
 	return (g_cDllRef > 0) ? S_FALSE : S_OK;
 }
 
-STDAPI DllRegisterServer()
+static HRESULT RegisterInProcServer(const std::wstring& clsidStr, const wchar_t* dllpath)
 {
 	HKEY hkey = 0;
-	TCHAR dllpath[MAX_PATH];
-	GetModuleFileNameW(g_hModule, dllpath, MAX_PATH);
-
-	//����CLSID
-	std::wstring regpath = L"CLSID\\" + CLSID_SHELL_BHO_STR;
+	std::wstring regpath = L"CLSID\\" + clsidStr;
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, regpath.c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
-
-	//����COM�������
 	RegSetValueExW(hkey, NULL, 0, REG_SZ, (const BYTE*)L"ExplorerBlurMica BHO", 24 * sizeof(TCHAR));
 	RegCloseKey(hkey);
 
-	//����InProcServer32
 	if (RegCreateKeyExW(HKEY_CLASSES_ROOT, (regpath + L"\\InProcServer32").c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
-
-	//����dllλ��
 	RegSetValueExW(hkey, NULL, 0, REG_SZ, (const BYTE*)dllpath, DWORD(wcslen(dllpath) + 1) * sizeof(wchar_t));
-	//�����߳�ģ��
 	RegSetValueExW(hkey, L"ThreadingModel", 0, REG_SZ, (const BYTE*)L"Apartment", 10 * sizeof(wchar_t));
 	RegCloseKey(hkey);
+	return S_OK;
+}
 
-	//ע��BHO���
-	//if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
-	//	+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
-	//	return SELFREG_E_CLASS;
-
-	////ע���ļ��Ի���
-	//DWORD value = 255;
-	//RegSetValueExW(hkey, L"DriveMask", 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
-
-	//RegCloseKey(hkey);
-
-	if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\)"
-		+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
+static HRESULT RegisterBho(const std::wstring& clsidStr)
+{
+	HKEY hkey = 0;
+	if (RegCreateKeyExW(HKEY_LOCAL_MACHINE,
+		(LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\)" + clsidStr).c_str(),
+		0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
-
-	//��ֹIE��������ر����
 	DWORD value = 1;
 	RegSetValueExW(hkey, L"NoInternetExplorer", 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
 	RegCloseKey(hkey);
 	return S_OK;
 }
 
+static void UnregisterClsid(const std::wstring& clsidStr)
+{
+	RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\)" + clsidStr).c_str());
+	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + clsidStr + L"\\InProcServer32").c_str());
+	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + clsidStr).c_str());
+}
+
+STDAPI DllRegisterServer()
+{
+	TCHAR dllpath[MAX_PATH];
+	GetModuleFileNameW(g_hModule, dllpath, MAX_PATH);
+
+	if (FAILED(RegisterInProcServer(CLSID_SHELL_BHO_STR, dllpath)))
+		return SELFREG_E_CLASS;
+	if (FAILED(RegisterInProcServer(CLSID_EDITOR_A_STR, dllpath)))
+		return SELFREG_E_CLASS;
+	if (FAILED(RegisterInProcServer(CLSID_EDITOR_B_STR, dllpath)))
+		return SELFREG_E_CLASS;
+
+	if (FAILED(RegisterBho(CLSID_SHELL_BHO_STR)))
+		return SELFREG_E_CLASS;
+	if (FAILED(RegisterBho(CLSID_EDITOR_A_STR)))
+		return SELFREG_E_CLASS;
+
+	return S_OK;
+}
+
 STDAPI DllUnregisterServer()
 {
-	//ɾ��BHO���ע��
-	RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\\)"
-		+ CLSID_SHELL_BHO_STR).c_str());
-	/*RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
-		+ CLSID_SHELL_BHO_STR).c_str());*/
-	//ɾ��COM���ע��
-	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR + L"\\InProcServer32").c_str());
-	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR).c_str());
+	UnregisterClsid(CLSID_SHELL_BHO_STR);
+	UnregisterClsid(CLSID_EDITOR_A_STR);
+	UnregisterClsid(CLSID_EDITOR_B_STR);
 	return S_OK;
 }
 

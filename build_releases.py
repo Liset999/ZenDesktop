@@ -6,9 +6,8 @@ common_files = [
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
+    'local@windows-11-settings-styler-fork.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
-    'local@taskbar-background-helper.wh.cpp',
-    'ExplorerBlurMica',
     'deploy.bat',
     'deploy.ps1',
     'Readme.txt',
@@ -17,16 +16,10 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v4.0.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.0.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.0.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v4.1.0.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v4.1.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v4.1.0_Online.zip': common_files
 }
-
-# Ensure we extract the offline installer first
-if not os.path.exists('windhawk_setup_offline.exe'):
-    print("Extracting offline installer from previous archive...")
-    with zipfile.ZipFile('ZenDesktop_OneKeyDeploy_v2.7.0_Offline.zip') as old_zip:
-        old_zip.extract('windhawk_setup_offline.exe')
 
 for zip_name, file_list in releases.items():
     print(f"Creating {zip_name}...")
@@ -43,5 +36,6 @@ for zip_name, file_list in releases.items():
                     z.write(f)
                     print(f"  Added {f}")
             else:
-                print(f"  [ERROR] File not found: {f}")
-    print(f"Successfully created {zip_name}. Size: {os.path.getsize(zip_name)} bytes\n")
+                print(f"  [WARNING] File not found: {f}")
+    if os.path.exists(zip_name):
+        print(f"Successfully created {zip_name}. Size: {os.path.getsize(zip_name)} bytes\n")
