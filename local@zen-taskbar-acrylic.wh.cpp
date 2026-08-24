@@ -635,7 +635,7 @@ from the **TranslucentTB** project.
     - 30: "高阶亚克力 (Deep Acrylic)"
     - 45: "重度磨砂 (Heavy Frosted)"
     - 60: "终极磨砂 (Max Blur)"
-- maximizedTaskbarLayer: true
+- maximizedTaskbarLayer: false
   $name: "🪟 最大化窗口任务栏状态层 (Maximized Window Layer)"
   $description: >-
     当前显示器存在最大化窗口时，为任务栏切换到更厚实的玻璃背景。
@@ -6833,7 +6833,7 @@ enum class XamlDiagnosticsHandling {
 
 struct {
     XamlDiagnosticsHandling xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAlert;
-    bool maximizedTaskbarLayer = true;
+    bool maximizedTaskbarLayer = false;
     int maximizedLayerOpacity = 72;
     int maximizedLayerLuminosity = 100;
     int maximizedLayerBlur = 24;
@@ -13730,6 +13730,20 @@ int ClampBlurAmount(int value, int fallback) {
     return value;
 }
 
+bool GetBoolSettingOrDefault(PCWSTR key, bool fallback) {
+    PCWSTR value = Wh_GetStringSetting(key);
+    if (!value || !*value) {
+        if (value) {
+            Wh_FreeStringSetting(value);
+        }
+        return fallback;
+    }
+
+    bool isTrue = (wcscmp(value, L"1") == 0 || _wcsicmp(value, L"true") == 0);
+    Wh_FreeStringSetting(value);
+    return isTrue;
+}
+
 int GetIntSettingOrDefault(PCWSTR key, int fallback) {
     PCWSTR value = Wh_GetStringSetting(key);
     if (!value || !*value) {
@@ -13759,7 +13773,7 @@ void LoadSettings() {
     Wh_FreeStringSetting(xamlDiagnosticsHandling);
 
     g_settings.maximizedTaskbarLayer =
-        GetIntSettingOrDefault(L"maximizedTaskbarLayer", 1) != 0;
+        GetBoolSettingOrDefault(L"maximizedTaskbarLayer", false);
     g_settings.maximizedLayerOpacity =
         ClampPercent(GetIntSettingOrDefault(L"maximizedLayerOpacity", 72), 72);
     g_settings.maximizedLayerLuminosity =
