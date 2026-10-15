@@ -26,6 +26,8 @@
 - [ ] 最小化只有 mac 神灯动画，没有被做两次
 - [ ] 6 种关窗效果都切一遍，截图或录 GIF（顺便交 #10）
 
+- [ ] 按几次 Win+D 显示桌面，再最小化、还原几次：没有闪烁，动画没被做两次（Windows Animations 和 mac 动画钩的是同一组窗口函数）
+
 ## 第 4 轮：README
 - [ ] 照着 README 里那张表，能看懂 4 个 zip 该下哪个
 
@@ -48,6 +50,10 @@
 - [ ] 5.3 全关了还坏 → 不是 mod 的问题，查 开机自启的软件（TranslucentTB 之类也用 XAML 诊断）
 - [ ] 5.4 确认是 ExplorerBlurMica 后，装回去，二选一试：
   - [ ] A：任务栏 mod 设置「XAML diagnostics」= **自动阻止 (Block)**，重启两次 → 托盘应该好；看文件列表还透不透
+        两种文件管理器窗口都要看（2.0.1 同时用旧版 UWP XAML 和新版 WinUI 的 XAML 诊断）：
+        - [ ] 新版：直接打开「此电脑」/ 任务栏文件管理器（有标签页、新命令栏的那个）→ 命令栏、文件列表透不透，会不会崩
+        - [ ] 旧版：Win+R 输入 `control /name Microsoft.Folders` 或在旧控制面板里打开文件夹窗口 → 透不透，会不会崩
+  - [ ] B 之前：先备份 `ExplorerBlurMica/config.ini`（源码版是 1.0.7，从 2.0.1 降级，效果和配置写法可能不同）；换完检查文件管理器模糊效果是否还在
   - [ ] B：保持「允许共存 (Allow)」，换成 GitHub Actions 编的源码版（v4.2-draft 推上去后，Actions → Build ExplorerBlurMica DLL → 下载 `ExplorerBlurMica-DLL`，覆盖 `ExplorerBlurMica/ExplorerBlurMica.dll`，管理员跑 `register.cmd`；仓库里 427KB 那个是 7 月 6 日的 2.0.1 旧版）。源码版完全不用 XAML 诊断，不会跟任务栏抢；代价是 Win11 的 WinUI 文件列表/命令栏不会变透明。重启两次
         开机文件管理器还是打不开的话，在 `config.ini` 的 `[config]` 里把 `delayHookMs` 从 800 调到 2000 再试
 - [ ] 5.5 还是要手动重启 explorer 才行 → 装开机自检兜底：
