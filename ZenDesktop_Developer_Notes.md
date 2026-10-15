@@ -27,6 +27,8 @@
 * 4.1.2：开机重试 2.5s → 8s → 20s（不拆 TAP，只补没初始化的线程）；`[ZenDiag]` 日志记录谁在抢 XAML 诊断。
 * 可选兜底：`deploy.ps1 -StartupCheck check|restart|remove`，计划任务 `\ZenDesktop\StartupCheck`，每次开机最多重启一次 explorer，日志 `%LOCALAPPDATA%\ZenDesktop\startup-check.log`。
 * 二分步骤见 `TEST_v4.2.md` 第 5 轮。
+* **更正**：仓库 `ExplorerBlurMica_Source` 是 1.0 系，**全源码没有一处调用 `InitializeXamlDiagnosticsEx`**（也没有任何 XAML/WinUI 代码）。抢 XAML 诊断的只有仓库里那个 427KB 的 2.0.1 二进制（版本资源 2.0.1.0，`config.ini` 的 `clearWinUIBg` 就是它的 WinUI 透明功能），没有源码，改不了。所以源码版 = 不冲突，代价是 WinUI 文件列表不透明。
+* 源码版加固（dllmain.cpp）：hook 成功后 PIN 住 DLL；延迟线程持有模块引用；`delayHookMs` 可配（默认 800）；DllMain 里 `substr` 越界保护；`CurrentBuildNumber` 读取补结尾 0。Actions 现在也在 `v4.2-draft` push 时编。
 
 ### 这一轮已经改了的文件
 * `local@zen-taskbar-acrylic.wh.cpp` **4.0.0 → 4.1.1**
