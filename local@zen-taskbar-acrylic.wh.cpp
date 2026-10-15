@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 任务栏美化
 // @description     Premium acrylic/frosted glass taskbar themes with custom blur presets. Based on m417z's Taskbar Styler.
 // @description:zh-CN 为 Windows 11 任务栏提供多种亚克力、毛玻璃与透明背景定制风格。
-// @version         4.1.0
+// @version         4.1.2
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -691,10 +691,12 @@ from the **TranslucentTB** project.
   $name: "⚙️ Resource variables (高级)"
   $description: >-
     高级用户自定义资源变量，一般用户无需修改。
-- xamlDiagnosticsHandling: alert
+- xamlDiagnosticsHandling: allow
   $name: "⚙️ XAML diagnostics (高级)"
   $description: >-
-    控制与其他XAML诊断程序（如TranslucentTB）的冲突处理方式。
+    控制与其他XAML诊断程序（如 ExplorerBlurMica 2.x、TranslucentTB）的冲突处理方式。
+    ZenDesktop 默认「允许共存」：弹窗会卡住文件管理器窗口线程（开机第一次开不了文件管理器）。
+    托盘图标开机后不透明时，可改成「自动阻止」（代价：ExplorerBlurMica 的 WinUI 文件列表透明可能失效）。
   $options:
   - alert: "弹窗提示 (Alert)"
   - block: "自动阻止 (Block)"
@@ -6832,7 +6834,7 @@ enum class XamlDiagnosticsHandling {
 };
 
 struct {
-    XamlDiagnosticsHandling xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAlert;
+    XamlDiagnosticsHandling xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAllow;
     bool maximizedTaskbarLayer = false;
     int maximizedLayerOpacity = 72;
     int maximizedLayerLuminosity = 100;
@@ -13001,6 +13003,23 @@ InitializeXamlDiagnosticsEx_Hook(_In_ PCWSTR endPointName,
 
     bool blockCall = false;
 
+    // ZenDesktop: always log who else wants XAML diagnostics. If this line shows
+    // ExplorerBlurMica.dll and the tray turns native afterwards, that's the
+    // single-consumer conflict (windhawk-mods#1262 / #3720), not a hook timing bug.
+    {
+        WCHAR callerPath[MAX_PATH] = L"<unknown>";
+        HMODULE callerModule;
+        if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                              reinterpret_cast<LPCWSTR>(
+                                  __builtin_return_address(0)),
+                              &callerModule)) {
+            GetModuleFileName(callerModule, callerPath, ARRAYSIZE(callerPath));
+        }
+        Wh_Log(L"[ZenDiag] Other XAML diagnostics consumer: %s (handling=%d)",
+               callerPath, (int)g_settings.xamlDiagnosticsHandling);
+    }
+
     switch (g_settings.xamlDiagnosticsHandling) {
         case XamlDiagnosticsHandling::kAlert: {
             void* retAddress = __builtin_return_address(0);
@@ -13433,9 +13452,37 @@ void ReapplyTaskbarStyles(bool reloadSettings) {
 }
 
 PTP_TIMER g_bootReinitTimer = nullptr;
+// ZenDesktop 4.1.2: the tray XAML island can show up well after 2.5s on a slow
+// logon (startup apps, OneDrive, AV). Retry non-destructively a few times.
+constexpr ULONGLONG kBootRetryDelaysMs[] = {2500, 8000, 20000};
+int g_bootRetryIndex = 0;
+std::atomic<bool> g_bootRetryStopping{false};
+
+void ArmBootReinitTimer(ULONGLONG delayMs) {
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += delayMs * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_bootReinitTimer, &ft, 0, 0);
+}
+
+void ArmNextBootRetry() {
+    if (g_bootRetryStopping.load()) {
+        return;
+    }
+    if (++g_bootRetryIndex < (int)ARRAYSIZE(kBootRetryDelaysMs)) {
+        ArmBootReinitTimer(kBootRetryDelaysMs[g_bootRetryIndex] -
+                           kBootRetryDelaysMs[g_bootRetryIndex - 1]);
+    }
+}
 
 void StopBootReinitTimer() {
     if (g_bootReinitTimer) {
+        g_bootRetryStopping = true;
         SetThreadpoolTimer(g_bootReinitTimer, nullptr, 0, 0);
         WaitForThreadpoolTimerCallbacks(g_bootReinitTimer, TRUE);
         CloseThreadpoolTimer(g_bootReinitTimer);
@@ -13477,10 +13524,13 @@ void ScheduleBootStyleReinit() {
                         nullptr);
                 }
                 StartTaskbarStateHooks();
+                ArmNextBootRetry();
                 return;
             }
-            Wh_Log(L"Boot delayed TAP inject (was not initialized)");
+            Wh_Log(L"Boot delayed TAP inject (was not initialized, attempt %d)",
+                   g_bootRetryIndex + 1);
             ReapplyTaskbarStyles(false);
+            ArmNextBootRetry();
         },
         nullptr, nullptr);
     if (!g_bootReinitTimer) {
@@ -13488,15 +13538,9 @@ void ScheduleBootStyleReinit() {
         return;
     }
 
-    FILETIME ft;
-    GetSystemTimeAsFileTime(&ft);
-    ULARGE_INTEGER due;
-    due.LowPart = ft.dwLowDateTime;
-    due.HighPart = ft.dwHighDateTime;
-    due.QuadPart += 2500ULL * 10000ULL;
-    ft.dwLowDateTime = due.LowPart;
-    ft.dwHighDateTime = due.HighPart;
-    SetThreadpoolTimer(g_bootReinitTimer, &ft, 0, 0);
+    g_bootRetryIndex = 0;
+    g_bootRetryStopping = false;
+    ArmBootReinitTimer(kBootRetryDelaysMs[0]);
 }
 
 static HWND g_hTaskbarCreatedWnd = nullptr;
@@ -13764,8 +13808,14 @@ int GetIntSettingOrDefault(PCWSTR key, int fallback) {
 void LoadSettings() {
     PCWSTR xamlDiagnosticsHandling =
         Wh_GetStringSetting(L"xamlDiagnosticsHandling");
-    g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAlert;
-    if (wcscmp(xamlDiagnosticsHandling, L"block") == 0) {
+    // ZenDesktop: default is Allow. Alert shows a MessageBox on the thread that
+    // calls InitializeXamlDiagnosticsEx, which for ExplorerBlurMica 2.x is the
+    // first File Explorer window thread -> "File Explorer won't open after
+    // boot". Alert is still available but must be chosen explicitly.
+    g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAllow;
+    if (wcscmp(xamlDiagnosticsHandling, L"alert") == 0) {
+        g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAlert;
+    } else if (wcscmp(xamlDiagnosticsHandling, L"block") == 0) {
         g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kBlock;
     } else if (wcscmp(xamlDiagnosticsHandling, L"allow") == 0) {
         g_settings.xamlDiagnosticsHandling = XamlDiagnosticsHandling::kAllow;

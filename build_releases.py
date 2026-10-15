@@ -13,6 +13,7 @@ common_files = [
     'Readme.txt',
     'README.md',
     'restart_explorer.bat',
+    'tools/ZenDesktop-StartupCheck.ps1',  # optional, installed only with -StartupCheck
     # v4.2: optional mods (installed only on opt-in by deploy.ps1)
     'optional/local@wobbly-windows.wh.cpp',
     'optional/local@windows-animations.wh.cpp',

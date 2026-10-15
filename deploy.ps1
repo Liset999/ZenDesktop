@@ -5,8 +5,14 @@
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
 #   deploy.ps1 -Optional none
+# Optional startup self-check (scheduled task at logon, off by default):
+#   deploy.ps1 -StartupCheck check    # restart explorer once only if taskbar missing/hung/crashed
+#   deploy.ps1 -StartupCheck restart  # always restart explorer once per boot (manual workaround, automated)
+#   deploy.ps1 -StartupCheck remove   # uninstall the task
 param(
-    [string]$Optional = ""
+    [string]$Optional = "",
+    [ValidateSet("", "off", "check", "restart", "remove")]
+    [string]$StartupCheck = ""
 )
 $ErrorActionPreference = 'Stop'
 
@@ -294,6 +300,20 @@ foreach ($file in $files) {
         if ($null -eq $maxLayerVal) {
             Set-ItemProperty -Path $settingsPath -Name "maximizedTaskbarLayer" -Value 0 -Type DWord
         }
+
+        # 4.1.2: never leave XAML diagnostics on "alert" - the MessageBox blocks the
+        # first File Explorer window thread when ExplorerBlurMica 2.x asks for it.
+        # Keep an explicit "block" (user picked taskbar over Explorer blur).
+        $xdh = $null
+        try {
+            $xdh = (Get-ItemProperty -Path $settingsPath -Name "xamlDiagnosticsHandling" -ErrorAction SilentlyContinue).xamlDiagnosticsHandling
+        } catch {
+            $xdh = $null
+        }
+        if ([string]::IsNullOrWhiteSpace($xdh) -or $xdh -eq "alert") {
+            Write-Status "         [Settings] xamlDiagnosticsHandling -> allow (was: '$xdh')" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "xamlDiagnosticsHandling" -Value "allow" -Type String
+        }
     }
 
     if ($id -eq "local@macos-minimize-animation") {
@@ -503,6 +523,38 @@ if (Test-Path $blurRegister) {
     }
 } else {
     Write-Status "ExplorerBlurMica\register.cmd not found, skipping re-register." "Gray"
+}
+
+# 8. Optional startup self-check (scheduled task, current user, at logon).
+$zenTaskName = "StartupCheck"
+$zenTaskPath = "\ZenDesktop\"
+if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
+    if (Get-ScheduledTask -TaskName $zenTaskName -TaskPath $zenTaskPath -ErrorAction SilentlyContinue) {
+        Unregister-ScheduledTask -TaskName $zenTaskName -TaskPath $zenTaskPath -Confirm:$false
+        Write-Status "Startup self-check task removed." "Green"
+    }
+} elseif ($StartupCheck -eq "check" -or $StartupCheck -eq "restart") {
+    $checkSrc = Join-Path $PSScriptRoot "tools\ZenDesktop-StartupCheck.ps1"
+    if (Test-Path $checkSrc) {
+        try {
+            $checkDir = Join-Path $env:LOCALAPPDATA "ZenDesktop"
+            if (-not (Test-Path $checkDir)) { New-Item -ItemType Directory -Path $checkDir -Force | Out-Null }
+            $checkDst = Join-Path $checkDir "ZenDesktop-StartupCheck.ps1"
+            Copy-Item -Path $checkSrc -Destination $checkDst -Force
+            $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+            $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$checkDst`" -Mode $StartupCheck -DelaySec 15"
+            $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
+            $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
+            $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 2)
+            Register-ScheduledTask -TaskName $zenTaskName -TaskPath $zenTaskPath -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
+            Write-Status "Startup self-check installed (mode=$StartupCheck). Log: $checkDir\startup-check.log" "Green"
+            Write-Status "Remove: deploy.ps1 -StartupCheck remove  (or Task Scheduler > ZenDesktop > StartupCheck)" "Gray"
+        } catch {
+            Write-Status "Startup self-check install failed: $($_.Exception.Message)" "Red"
+        }
+    } else {
+        Write-Status "tools\ZenDesktop-StartupCheck.ps1 not found, skipping startup self-check." "Gray"
+    }
 }
 
 if ($dwmModSelected) {

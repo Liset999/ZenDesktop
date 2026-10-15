@@ -20,6 +20,14 @@
 | 开机第一次开文件管理器重启 Explorer | ExplorerBlurMica 是 COM BHO。`CObjectWithSite` 构造函数里立刻 `OnWindowLoad()` → `MH_Initialize` + hook。第一个 `CabinetWClass` 还在创建。失败路径弹 `MessageBox` 或 `FreeLibraryAndExitThread`，Explorer 被干掉。官方 README 自己也写「Reopen the Explorer window」。 |
 | v3.5.0 连续 max/min 崩 | WinEvent `EVENT_OBJECT_LOCATIONCHANGE` 回调里对 Explorer UI 线程 `SendMessage`（`RunFromWindowThread`）。笔记 2.35–2.39。涂色必须走 `ZenTaskbarRuntimeBgBrush` 局部刷新，禁止拆 TAP。Win32 `SetWindowCompositionAttribute` 在 Win11 XAML 任务栏上会涂成黑底（2.23–2.29），helper 的涂色不能搬过来，只能搬它的独立线程检测。 |
 
+### 2026-10-15 开机托盘不生效 + 文件管理器打不开（4.1.2，未在 Windows 实测）
+* **主嫌疑：XAML 诊断只有一个位置。** 任务栏 mod 用 `InitializeXamlDiagnosticsEx` 注 TAP；包里现在的 427KB ExplorerBlurMica 2.0.x 也调它（DLL 导入表里有）。第一次开文件管理器时 EBM 抢走位置，之后新出来的托盘图标就没人涂 → 托盘原生；关开 mod = 重新抢回来。上游：windhawk-mods#1262、#3720（2.0.1 才开始冲突，1.0.7 没有）。
+* **第二嫌疑：Alert 弹窗卡住文件管理器。** 我们的 fork 默认 `xamlDiagnosticsHandling: alert`，`MessageBox` 弹在 EBM 调用的线程上，也就是第一个 `CabinetWClass` 的线程 → 窗口出不来。4.1.2 默认改 `allow`，deploy 把空值/alert 改成 allow。
+* EBM 自己也有「开机第一次打开就崩」：Maplespe/ExplorerBlurMica#209（24H2，ucrtbase `0xc0000409`，未修）、#173。
+* 4.1.2：开机重试 2.5s → 8s → 20s（不拆 TAP，只补没初始化的线程）；`[ZenDiag]` 日志记录谁在抢 XAML 诊断。
+* 可选兜底：`deploy.ps1 -StartupCheck check|restart|remove`，计划任务 `\ZenDesktop\StartupCheck`，每次开机最多重启一次 explorer，日志 `%LOCALAPPDATA%\ZenDesktop\startup-check.log`。
+* 二分步骤见 `TEST_v4.2.md` 第 5 轮。
+
 ### 这一轮已经改了的文件
 * `local@zen-taskbar-acrylic.wh.cpp` **4.0.0 → 4.1.1**
   * 开机 2.5s 后自动走一遍和「关开 mod」相同的 `ReapplyTaskbarStyles(false)`
