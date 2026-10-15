@@ -58,7 +58,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 void OnWindowLoad()
 {
     //如果按住ESC键则不加载扩展
-    if (GetKeyState(VK_ESCAPE) < 0 || !m_isLoaded)
+    // ZenDesktop: runs on the delay thread now, GetKeyState would not see the key
+    if ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) || !m_isLoaded)
         return;
 
     if (!m_gdiplusToken)
@@ -117,7 +118,7 @@ void OnWindowLoad()
     RefreshConfig();
 }
 
-static HANDLE g_delayHookThread = nullptr;
+static HANDLE volatile g_delayHookThread = nullptr;
 
 // ZenDesktop: config.ini [config] delayHookMs (default 800, 0..10000).
 static DWORD GetDelayHookMs()
@@ -135,6 +136,10 @@ DWORD WINAPI DelayHookThreadProc(LPVOID)
 {
     Sleep(GetDelayHookMs());
     OnWindowLoad();
+    // ZenDesktop: allow a retry from the next window if hooking failed.
+    HANDLE self = InterlockedExchangePointer(&g_delayHookThread, nullptr);
+    if (self)
+        CloseHandle(self);
     // Drop the reference taken in ScheduleOnWindowLoad (no-op once pinned).
     FreeLibraryAndExitThread(g_hModule, 0);
     return 0;
@@ -142,7 +147,14 @@ DWORD WINAPI DelayHookThreadProc(LPVOID)
 
 void ScheduleOnWindowLoad()
 {
-    if (m_isInitHook || g_delayHookThread)
+    if (m_isInitHook)
+    {
+        // ZenDesktop: hooks already up -> just pick up config.ini changes for
+        // this new window (the old constructor path did this via OnWindowLoad).
+        RefreshConfig();
+        return;
+    }
+    if (g_delayHookThread)
         return;
     // ZenDesktop: hold a module reference while the delay thread sleeps,
     // otherwise COM can unload the DLL under it (DllCanUnloadNow == S_OK).
@@ -150,7 +162,13 @@ void ScheduleOnWindowLoad()
     if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
             (LPCWSTR)&DelayHookThreadProc, &self))
         return;
-    g_delayHookThread = CreateThread(nullptr, 0, DelayHookThreadProc, nullptr, 0, nullptr);
-    if (!g_delayHookThread)
+    // Create suspended so the handle is published before the thread can clear it.
+    HANDLE th = CreateThread(nullptr, 0, DelayHookThreadProc, nullptr, CREATE_SUSPENDED, nullptr);
+    if (!th)
+    {
         FreeLibrary(self);
+        return;
+    }
+    InterlockedExchangePointer(&g_delayHookThread, th);
+    ResumeThread(th);
 }
