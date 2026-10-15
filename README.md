@@ -59,6 +59,42 @@
 
 ---
 
+## 📦 下载哪个压缩包？/ Which zip should I download?
+
+| 文件 | 适合谁 |
+|---|---|
+| `ZenDesktop_OneKeyDeploy_v4.2.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
+| `ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
+| `ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
+| `ExplorerBlurMica.zip` | 资源管理器透明/模糊效果。**想要文件管理器透明就额外下载它**，解压后以管理员身份运行 `register.cmd` |
+
+> 三个 OneKeyDeploy 包只选一个；`ExplorerBlurMica.zip` 可以和任意一个搭配。
+
+## 🧩 可选 Mod（v4.2 新增）/ Optional mods
+
+运行 `deploy.bat` 时会逐个询问是否安装（默认不装）：
+
+- **Wobbly Windows**：KDE/Compiz 风格果冻窗口。作者 lalimatyus，GPL-3.0。需要在 Windhawk「设置 → 高级设置 → 进程包含列表」里加入 `dwm.exe`，然后注销或重启。
+- **Windows Animations**：关窗（碎裂、溶解、老电视关机等）和最小化动画。作者 ReDrag，MIT。可能和 macOS 神奇效果最小化动画冲突，建议只开一个的最小化动画。
+
+无人值守安装：`deploy.bat -Optional "wobbly-windows,windows-animations"` 或 `-Optional none`。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
+
+## 🖼️ 效果预览 / Previews (#10)
+
+> TODO：截图/动图待补，放在 `docs/previews/` 下。
+
+| Mod | 预览 |
+|---|---|
+| 任务栏美化 | `docs/previews/taskbar.png`（待补） |
+| 通知栏美化 | `docs/previews/notification-center.png`（待补） |
+| 开始菜单美化 | `docs/previews/start-menu.png`（待补） |
+| 桌面双击隐藏图标 | `docs/previews/toggle-icons.gif`（待补） |
+| 设置美化 | `docs/previews/settings.png`（待补） |
+| macOS 神奇效果最小化 | `docs/previews/genie-minimize.gif`（待补） |
+| 资源管理器透明 | `docs/previews/explorer.png`（待补） |
+| Wobbly Windows（可选） | `docs/previews/wobbly.gif`（待补） |
+| Windows Animations（可选） | `docs/previews/close-animation.gif`（待补） |
+
 ## 📥 Installation & Deployment Guide
 
 > [!IMPORTANT]
@@ -88,6 +124,10 @@
 
 ---
 
+## 🩺 常见问题 / Troubleshooting
+
+- **文件管理器顶上有一条黑杠 / 切到别的窗口后标题栏变黑**：这是 ExplorerBlurMica 的已知问题（[Maplespe/ExplorerBlurMica#138](https://github.com/Maplespe/ExplorerBlurMica/issues/138)），常在资源管理器重启后出现。v4.2 的部署脚本会在最后自动重新注册一次。如果还黑：以管理员身份再运行一次 `ExplorerBlurMica\register.cmd`，或者直接重启电脑。仍有黑边可以试试第三方补丁 [FileBrowsWindowPatch](https://github.com/tzdwindows/FileBrowsWindowPatch)（未随包附带，未经本项目测试）。
+
 ## 💖 Support / 赞助支持
 
 - 📺 **哔哩哔哩**: https://space.bilibili.com/1280632999
@@ -104,3 +144,5 @@ Special thanks to:
 * **Maplespe** for ExplorerBlurMica.
 * **m417z** for Windhawk core framework.
 * **Abdullah Masood & Potassiumuncher** for macOS Minimize Animation.
+* **lalimatyus** for Wobbly Windows (GPL-3.0, optional).
+* **ReDrag** for Windows Animations (MIT, optional).

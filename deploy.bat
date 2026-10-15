@@ -18,7 +18,7 @@ echo   ZenDesktop One-Key Deploy (PowerShell Bootstrapper)
 echo ============================================================
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy.ps1" %*
 
 if %errorLevel% neq 0 (
     color 0C

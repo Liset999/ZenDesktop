@@ -12,13 +12,17 @@ common_files = [
     'deploy.ps1',
     'Readme.txt',
     'README.md',
-    'restart_explorer.bat'
+    'restart_explorer.bat',
+    # v4.2: optional mods (installed only on opt-in by deploy.ps1)
+    'optional/local@wobbly-windows.wh.cpp',
+    'optional/local@windows-animations.wh.cpp',
+    'optional/THIRD_PARTY_NOTICES.md',
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v4.1.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.1.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.1.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v4.2.0.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip': common_files
 }
 
 for zip_name, file_list in releases.items():

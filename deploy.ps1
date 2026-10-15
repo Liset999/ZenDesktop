@@ -1,7 +1,13 @@
 # ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v4.1.0 - Full Chinese Localization & Dynamic Engine
+#  Refined v4.2.0 - Full Chinese Localization & Dynamic Engine
 # ============================================================
+# v4.2-draft: optional mods can be preselected for unattended runs, e.g.
+#   deploy.ps1 -Optional "wobbly-windows,windows-animations"
+#   deploy.ps1 -Optional none
+param(
+    [string]$Optional = ""
+)
 $ErrorActionPreference = 'Stop'
 
 # Helper function to print colorful status
@@ -10,7 +16,7 @@ function Write-Status ($text, $color = "Cyan") {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v4.1.0" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v4.2.0" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -159,10 +165,45 @@ if ($windhawkData -ne "$windhawkDir\AppData" -and (Test-Path "$windhawkDir\AppDa
     Remove-Item -Path "$windhawkDir\AppData\ModsSource\local@windows-11-settings-*" -Force -ErrorAction SilentlyContinue
 }
 
-$files = Get-ChildItem -Path $PSScriptRoot -Filter "local@*.wh.cpp"
+$files = @(Get-ChildItem -Path $PSScriptRoot -Filter "local@*.wh.cpp")
 if ($files.Count -eq 0) {
     Write-Error "No local@*.wh.cpp mod files found in script directory! Checked: $PSScriptRoot"
     Exit 1
+}
+
+# v4.2-draft [UNTESTED ON WINDOWS]: optional mods live in .\optional and are only
+# deployed when the user opts in (interactive Y/N, or -Optional parameter).
+$optionalDir = Join-Path $PSScriptRoot "optional"
+$optionalMods = [ordered]@{
+    "local@wobbly-windows"            = "Wobbly Windows (by lalimatyus, GPL-3.0, injects into dwm.exe)"
+    "local@windows-animations"        = "Windows Animations close effect only by default (by ReDrag, MIT; minimize/restore off, auto-off if macOS minimize animation is active)"
+}
+$preselected = @()
+if ($Optional) {
+    $preselected = $Optional.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -ne "none" } | ForEach-Object {
+        if ($_ -like "local@*") { $_ } else { "local@$_" }
+    }
+}
+$dwmModSelected = $false
+if (Test-Path $optionalDir) {
+    foreach ($optId in $optionalMods.Keys) {
+        $optFile = Join-Path $optionalDir "$optId.wh.cpp"
+        if (-not (Test-Path $optFile)) { continue }
+        # Remove stale registration if user does not pick it this time is NOT done on purpose:
+        # we never uninstall something the user may have enabled manually.
+        $pick = $false
+        if ($Optional) {
+            $pick = $preselected -contains $optId
+        } else {
+            $answer = Read-Host "[ZenDeploy] Install optional mod: $($optionalMods[$optId])? (y/N)"
+            $pick = $answer -match '^(y|yes)$'
+        }
+        if ($pick) {
+            $files += Get-Item $optFile
+            if ($optId -eq "local@wobbly-windows") { $dwmModSelected = $true }
+            Write-Status "Optional mod selected: $optId" "Cyan"
+        }
+    }
 }
 
 foreach ($file in $files) {
@@ -364,6 +405,58 @@ foreach ($file in $files) {
         }
     }
 
+    if ($id -eq "local@windows-animations") {
+        # v4.2-draft [UNTESTED ON WINDOWS]: ZenDesktop default = close effect only.
+        # Nested Windhawk settings are stored as "group.key" values; booleans as DWORD 0/1.
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+        $waDefaults = [ordered]@{
+            "close.close_animation"               = 1
+            "minimize_restore.minimize_animation" = 0
+            "minimize_restore.restore_animation"  = 0
+            "minimize_restore.launch_animation"   = 0
+            "window_switch.switch_animation"      = 0
+        }
+        foreach ($key in $waDefaults.Keys) {
+            $val = $null
+            try {
+                $prop = Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue
+                if ($null -ne $prop) { $val = $prop.$key }
+            } catch {
+                $val = $null
+            }
+            if ($null -eq $val) {
+                Write-Status "         [Settings] Initializing Windows Animations $key -> $($waDefaults[$key])" "Yellow"
+                Set-ItemProperty -Path $settingsPath -Name $key -Value $waDefaults[$key] -Type DWord
+            }
+        }
+
+        # If Lanbo's macOS minimize animation is present and enabled, it owns minimize/restore.
+        $macRegPath = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\local@macos-minimize-animation"
+        $macSrcPath = Join-Path $modsSource "local@macos-minimize-animation.wh.cpp"
+        $macActive = $false
+        if (Test-Path $macRegPath) {
+            $macDisabled = $null
+            try {
+                $macProp = Get-ItemProperty -Path $macRegPath -Name "Disabled" -ErrorAction SilentlyContinue
+                if ($null -ne $macProp) { $macDisabled = $macProp.Disabled }
+            } catch {
+                $macDisabled = $null
+            }
+            if ($macDisabled -ne 1) { $macActive = $true }
+        } elseif (Test-Path $macSrcPath) {
+            $macActive = $true
+        }
+        if ($macActive) {
+            Write-Status "         [Settings] macos-minimize-animation detected -> forcing Windows Animations minimize/restore OFF" "Yellow"
+            foreach ($key in @("minimize_restore.minimize_animation", "minimize_restore.restore_animation", "minimize_restore.launch_animation")) {
+                Set-ItemProperty -Path $settingsPath -Name $key -Value 0 -Type DWord
+            }
+        }
+    }
+
     # Initialize ModsWritable runtime key
     $regWritablePath = "HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\$id"
     if (-not (Test-Path $regWritablePath)) {
@@ -390,12 +483,39 @@ if (Test-Path $exePath) {
 }
 Write-Status "Windhawk restarted successfully." "Green"
 
+# 7. v4.2-draft [UNTESTED ON WINDOWS]: re-register ExplorerBlurMica to fix the black
+# title/tab bar after Explorer restarts (Maplespe/ExplorerBlurMica#138).
+# register.cmd itself runs regsvr32 and restarts explorer.exe.
+# Window is kept visible on purpose (notes 2.4: never hide output, errors must be seen).
+$blurRegister = Join-Path $PSScriptRoot "ExplorerBlurMica\register.cmd"
+if (Test-Path $blurRegister) {
+    Write-Status "Re-registering ExplorerBlurMica (black top bar fix)..." "Yellow"
+    try {
+        $p = Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"`"$blurRegister`"`"" -WorkingDirectory (Split-Path $blurRegister) -Wait -PassThru -WindowStyle Normal
+        Write-Status "ExplorerBlurMica re-registered (exit code $($p.ExitCode))." "Green"
+    } catch {
+        Write-Status "ExplorerBlurMica re-register failed: $($_.Exception.Message). Run ExplorerBlurMica\register.cmd manually." "Red"
+    }
+    # Safety net: make sure explorer is running again after register.cmd restarted it
+    Start-Sleep -Seconds 2
+    if (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {
+        Start-Process explorer.exe
+    }
+} else {
+    Write-Status "ExplorerBlurMica\register.cmd not found, skipping re-register." "Gray"
+}
+
+if ($dwmModSelected) {
+    Write-Status "Wobbly Windows must be injected into dwm.exe, which Windhawk skips by default." "Yellow"
+    Write-Status "Open Windhawk > Settings > Advanced settings, add dwm.exe to the Process inclusion list, then sign out or reboot." "Yellow"
+}
+
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v4.1.0 deployed successfully!" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v4.2.0 deployed successfully!" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host "  1. Open Windhawk and compile/save mods if prompted."
-Write-Host "  2. Verify all 6 ZenDesktop mods appear in 'Installed Mods'."
+Write-Host "  2. Verify all 6 ZenDesktop mods (plus any optional mods you picked) appear in 'Installed Mods'."
 Write-Host "  3. Enjoy your fully localized transparent Windows 11 desktop!"
 Write-Host ""
