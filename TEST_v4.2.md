@@ -52,7 +52,7 @@
   - [ ] A：任务栏 mod 设置「XAML diagnostics」= **自动阻止 (Block)**，重启两次 → 托盘应该好；看文件列表还透不透
         两种文件管理器窗口都要看（2.0.1 同时用旧版 UWP XAML 和新版 WinUI 的 XAML 诊断）：
         - [ ] 新版：直接打开「此电脑」/ 任务栏文件管理器（有标签页、新命令栏的那个）→ 命令栏、文件列表透不透，会不会崩
-        - [ ] 旧版：Win+R 输入 `control /name Microsoft.Folders` 或在旧控制面板里打开文件夹窗口 → 透不透，会不会崩
+        - [ ] 旧版：Win+R 输入 `control` 打开控制面板，在地址栏输入 `C:\` 回车（窗口顶上没有 Win11 标签页才是旧版） → 透不透，会不会崩
   - [ ] B 之前：先备份 `ExplorerBlurMica/config.ini`（源码版是 1.0.7，从 2.0.1 降级，效果和配置写法可能不同）；换完检查文件管理器模糊效果是否还在
   - [ ] B：保持「允许共存 (Allow)」，换成 GitHub Actions 编的源码版（v4.2-draft 推上去后，Actions → Build ExplorerBlurMica DLL → 下载 `ExplorerBlurMica-DLL`，覆盖 `ExplorerBlurMica/ExplorerBlurMica.dll`，管理员跑 `register.cmd`；仓库里 427KB 那个是 7 月 6 日的 2.0.1 旧版）。源码版完全不用 XAML 诊断，不会跟任务栏抢；代价是 Win11 的 WinUI 文件列表/命令栏不会变透明。重启两次
         开机文件管理器还是打不开的话，在 `config.ini` 的 `[config]` 里把 `delayHookMs` 从 800 调到 2000 再试
