@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.1.1
+// @version         4.1.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -48,6 +48,7 @@
 
 ## 更新日志
 
+- **4.1.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/开始菜单对齐。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
 
@@ -578,7 +579,7 @@ const Theme g_themeTranslucentShell = {{
     ThemeTargetStyles{L"Windows.UI.Xaml.Controls.StackPanel#PrimaryAndSecondaryTextContainer > Windows.UI.Xaml.Controls.TextBlock#SubtitleText", {
         L"TextAlignment=Center"}},
 }, {
-    L"CommonBgBrush=<WindhawkBlur BlurAmount=\"25\" TintColor=\"#25323232\"/>",
+    L"CommonBgBrush=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#25323232\" FallbackColor=\"#40202020\"/>",
     L"thumbnailImageSize=300",
 }};
 
@@ -2443,18 +2444,19 @@ const Theme g_themeLiquidGlass = {{
     ThemeTargetStyles{L"Button#ExpandCollapseButton", {
         L"AccessKey=e"}},
 }, {
+    // Zen Liquid Glass — shared specular language (less flat acrylic)
     L"transparent = Transparent",
-    L"Background = <WindhawkBlur BlurAmount=\"15\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.4\"  />",
-    L"ElementBackground = <WindhawkBlur BlurAmount=\"20\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.4\"  />",
-    L"AccentBackground =<WindhawkBlur BlurAmount=\"20\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.2\"  />",
-    L"ElementBackground2 = <WindhawkBlur BlurAmount=\"15\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.2\"  />",
-    L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50808080\" Offset=\"0.0\" /><GradientStop Color=\"#50404040\" Offset=\"0.25\" /><GradientStop Color=\"#50808080\" Offset=\"1\" /></LinearGradientBrush>",
-    L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#50808080\" Offset=\"1\" /><GradientStop Color=\"#50606060\" Offset=\"0.15\" /></LinearGradientBrush>",
-    L"BorderThickness=0.3,1,0.3,0.3",
-    L"ElementBorderThickness=0.3,0.3,0.3,1",
+    L"Background = <WindhawkBlur BlurAmount=\"14\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" TintSaturation=\"2.0\" FallbackColor=\"#18FFFFFF\" />",
+    L"ElementBackground = <WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.08\" FallbackColor=\"#14FFFFFF\" />",
+    L"AccentBackground =<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.10\" />",
+    L"ElementBackground2 = <WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" FallbackColor=\"#0CFFFFFF\" />",
+    L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#55FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#14FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#28000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"BorderThickness=1.5",
+    L"ElementBorderThickness=0.5,0.5,0.5,1.0",
     L"CornerRadius = 20",
     L"ElementCornerRadius = 10",
-}};
+};
 
 const Theme g_themeBetterControl11 = {{
     ThemeTargetStyles{L"Windows.UI.Xaml.Controls.ItemsWrapGrid", {
@@ -8706,14 +8708,14 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLiquidGlass;
         overrideStyleConstants = {
             L"transparent=Transparent",
-            L"Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"2.0\" FallbackColor=\"#05FFFFFF\" />",
-            L"ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-            L"AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-            L"ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#66FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#22FF3B30\" Offset=\"0.03\" /><GradientStop Color=\"#18FF9500\" Offset=\"0.07\" /><GradientStop Color=\"#1834C759\" Offset=\"0.12\" /><GradientStop Color=\"#22007AFF\" Offset=\"0.18\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.25\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.82\" /><GradientStop Color=\"#24000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#24FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#12000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-            L"BorderThickness=1.1",
-            L"ElementBorderThickness=0.2,0.2,0.2,0.5",
+            L"Background=<WindhawkBlur BlurAmount=\"14\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" TintSaturation=\"2.0\" FallbackColor=\"#18FFFFFF\" />",
+            L"ElementBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.08\" FallbackColor=\"#14FFFFFF\" />",
+            L"AccentBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.10\" />",
+            L"ElementBackground2=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" FallbackColor=\"#0CFFFFFF\" />",
+            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#55FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#14FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#28000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"BorderThickness=1.5",
+            L"ElementBorderThickness=0.5,0.5,0.5,1.0",
             L"CornerRadius=20",
             L"ElementCornerRadius=10",
         };
@@ -8721,15 +8723,15 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLiquidGlass;
         overrideStyleConstants = {
             L"transparent=Transparent",
-            L"Background=<WindhawkBlur BlurAmount=\"24\" TintColor=\"#E8FFFFFF\" TintOpacity=\"0.18\" TintSaturation=\"1.7\" FallbackColor=\"#30FFFFFF\" />",
-            L"ElementBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#D8FFFFFF\" TintOpacity=\"0.22\" />",
-            L"AccentBackground=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.18\" />",
-            L"ElementBackground2=<WindhawkBlur BlurAmount=\"18\" TintColor=\"#C8FFFFFF\" TintOpacity=\"0.12\" />",
-            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#85FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#22FFFFFF\" Offset=\"0.25\" /><GradientStop Color=\"#1834C759\" Offset=\"0.5\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.75\" /><GradientStop Color=\"#35000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#35FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#18000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-            L"BorderThickness=1.1",
-            L"ElementBorderThickness=0.3,0.3,0.3,0.7",
-            L"CornerRadius=18",
+            L"Background=<WindhawkBlur BlurAmount=\"6\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" TintSaturation=\"1.9\" FallbackColor=\"#14FFFFFF\" />",
+            L"ElementBackground=<WindhawkBlur BlurAmount=\"5\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.06\" FallbackColor=\"#10FFFFFF\" />",
+            L"AccentBackground=<WindhawkBlur BlurAmount=\"5\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.08\" />",
+            L"ElementBackground2=<WindhawkBlur BlurAmount=\"5\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" FallbackColor=\"#08FFFFFF\" />",
+            L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#D0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.15\" /><GradientStop Color=\"#14FF9500\" Offset=\"0.30\" /><GradientStop Color=\"#1434C759\" Offset=\"0.50\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.70\" /><GradientStop Color=\"#14AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#20000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+            L"BorderThickness=1.2",
+            L"ElementBorderThickness=0.4,0.4,0.4,0.9",
+            L"CornerRadius=20",
             L"ElementCornerRadius=10",
         };
     } else if (wcscmp(themeName, L"BetterControl11") == 0) {
