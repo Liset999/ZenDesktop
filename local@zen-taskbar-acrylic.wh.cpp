@@ -21242,6 +21242,54 @@ void InitializeForCurrentThread() {
     g_initializedForThread = true;
 }
 
+// ZenDesktop: serializes Wh_ModAfterInit, Wh_ModSettingsChanged,
+// Wh_ModUninit and the TAP retry below. Never taken on a UI thread: the holders
+// SendMessage into the UI threads (RunFromWindowThread), so a UI thread waiting
+// for it would deadlock.
+std::mutex g_zenLifecycleMutex;
+// Set at the start of Wh_ModUninit, under g_zenTapRetryMutex.
+std::atomic<bool> g_zenUnloading;
+
+// ZenDesktop: if injecting the TAP fails (seen right after boot), try once more
+// a few seconds later, in case no other XAML host window gets created to
+// trigger a new attempt. Armed at most once per load / settings change.
+std::mutex g_zenTapRetryMutex;
+PTP_TIMER g_zenTapRetryTimer;  // Guarded by g_zenTapRetryMutex.
+std::atomic<bool> g_zenTapRetryUsed;
+
+void ZenScheduleTapRetry() {
+    std::lock_guard<std::mutex> lock(g_zenTapRetryMutex);
+
+    if (g_zenUnloading || !g_zenTapRetryTimer ||
+        g_zenTapRetryUsed.exchange(true)) {
+        return;
+    }
+
+    // Negative: relative to now, in 100-nanosecond units.
+    ULARGE_INTEGER dueTime;
+    dueTime.QuadPart = static_cast<ULONGLONG>(-3LL * 10'000'000);
+    FILETIME dueTimeFt;
+    dueTimeFt.dwLowDateTime = dueTime.LowPart;
+    dueTimeFt.dwHighDateTime = dueTime.HighPart;
+    SetThreadpoolTimer(g_zenTapRetryTimer, &dueTimeFt, 0, 0);
+    Wh_Log(L"Scheduled a TAP injection retry");
+}
+
+void ZenStopTapRetry() {
+    PTP_TIMER timer;
+    {
+        std::lock_guard<std::mutex> lock(g_zenTapRetryMutex);
+        timer = g_zenTapRetryTimer;
+        g_zenTapRetryTimer = nullptr;
+    }
+
+    if (timer) {
+        SetThreadpoolTimer(timer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(timer, TRUE);
+        CloseThreadpoolTimer(timer);
+    }
+}
+
 void InitializeSettingsAndTap() {
     if (g_initialized.exchange(true)) {
         return;
@@ -21250,6 +21298,9 @@ void InitializeSettingsAndTap() {
     HRESULT hr = InjectWindhawkTAP();
     if (FAILED(hr)) {
         Wh_Log(L"Error %08X", hr);
+        // ZenDesktop: allow a later attempt instead of staying uninjected.
+        g_initialized = false;
+        ZenScheduleTapRetry();
     }
 }
 
@@ -21900,11 +21951,26 @@ BOOL Wh_ModInit() {
 
     StartStatsTimer();
 
+    g_zenTapRetryTimer = CreateThreadpoolTimer(
+        [](PTP_CALLBACK_INSTANCE, PVOID, PTP_TIMER) {
+            std::lock_guard<std::mutex> lock(g_zenLifecycleMutex);
+            if (!g_zenUnloading && !g_initialized) {
+                Wh_Log(L"Retrying TAP injection");
+                InitializeSettingsAndTap();
+            }
+        },
+        nullptr, nullptr);
+    if (!g_zenTapRetryTimer) {
+        Wh_Log(L"Failed to create the TAP retry timer");
+    }
+
     return TRUE;
 }
 
 void Wh_ModAfterInit() {
     Wh_Log(L">");
+
+    std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
 
     bool initialize = false;
 
@@ -21931,6 +21997,16 @@ void Wh_ModAfterInit() {
 
 void Wh_ModUninit() {
     Wh_Log(L">");
+
+    // ZenDesktop: stop the TAP retry first, without the lifecycle lock, which
+    // its callback takes.
+    {
+        std::lock_guard<std::mutex> lock(g_zenTapRetryMutex);
+        g_zenUnloading = true;
+    }
+    ZenStopTapRetry();
+
+    std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
 
     HWND restartExplorerPromptWindow = g_restartExplorerPromptWindow;
     if (restartExplorerPromptWindow) {
@@ -21972,7 +22048,11 @@ void Wh_ModUninit() {
 void Wh_ModSettingsChanged() {
     Wh_Log(L">");
 
+    std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
+
     UninitializeSettingsAndTap();
+
+    g_zenTapRetryUsed = false;
 
     LoadSettings();
 
