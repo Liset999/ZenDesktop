@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.4.1
+// @version         1.5.0
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -71,8 +71,8 @@
 
 ## 功能
 
-- 关闭动画 6 种：方块碎裂、灭霸响指、柏林溶解、赛博故障、复古电视、像素融化。
-- 最小化、还原与启动动画 9 种：macOS 神奇效果、神奇效果（经典）、Windows 10、墨水飞溅、灼烧、裂片、海市蜃楼、点阵绽放、膨胀淡出。
+- 关闭动画 11 种：方块碎裂、灭霸响指、柏林溶解、赛博故障、复古电视、像素融化、碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走。
+- 最小化、还原与启动动画 12 种：macOS 神奇效果、神奇效果（经典）、Windows 10、墨水飞溅、灼烧、裂片、海市蜃楼、点阵绽放、膨胀淡出、从点击处放大、弹性弹出、三维倾斜。
 - Alt+Tab 切换时的缩放淡入动画，兼容支持选择通知的 Simple Window Switcher。
 - 隐藏到托盘的窗口也可以播放关闭动画。
 - 按进程排除指定程序，由任务栏触发的动画同样会被排除。
@@ -80,7 +80,9 @@
 
 ## 设置说明
 
-- **关闭动画 / 最小化、还原与启动动画 / 窗口切换动画**：三组各自有开关、样式和时长，可开启「随机样式」每次随机选择。
+- **关闭动画 / 最小化、还原与启动动画 / 窗口切换动画**：三组各自有开关、样式和时长，可开启「随机样式」每次随机选择（随机池仍是原版效果，新增样式需手动选择）。
+- **新增关闭样式**：碎片坠落（重力下落）、缩小淡出、弹性收起、三维翻转、向上滑走。
+- **新增最小化/还原/启动样式**：从点击处放大（按光标位置缩放）、弹性弹出、三维倾斜。缩向任务栏请继续用「Windows 10」或神奇效果，不再重复添加。
 - **macOS 神奇效果**：时长按本组「时长」×1.25 计算（默认 360 → 450 毫秒），总是吸入窗口所在显示器的任务栏；「macOS 神奇效果网格密度」越高越平滑，开销也越大。
 - **临时显示自动隐藏的任务栏**：任务栏设为自动隐藏时，让神奇效果有落点。
 - **排除的程序**：每行一个进程名，Windhawk 自带的进程排除只能阻止注入，做不到按窗口排除。
@@ -97,6 +99,7 @@
 
 ## 更新日志
 
+- **1.5.0**：新增关闭样式（碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走）以及最小化/还原/启动样式（从点击处放大、弹性弹出、三维倾斜）。
 - **1.4.1**：规范设置界面与说明文字，行为不变。
 - **1.4.0**：合并「macOS 最小化动画」，新增 macOS 神奇效果样式和「排除的程序」设置。
 - **1.3.8**：扩大覆盖范围：带独立任务栏图标的从属窗口、200 像素以上的窗口、无边框 Chromium/Electron 应用的启动动画；「隐藏到托盘时也播放」默认开启；不再排除通用名 `Client.exe`。
@@ -107,7 +110,7 @@
 - macOS 神奇效果移植自 [macOS Minimize Animation](https://windhawk.net/mods/macos-minimize-animation)（MIT），作者 [Abdullah Masood](https://github.com/Abdullah-Masood-05)；其 Direct2D 网格变形引擎、圆角遮罩、网格密度设置和演示动图由 [Potassiumuncher](https://github.com/Potassiumuncher)（[MacOS-Animation-for-windows](https://github.com/Potassiumuncher/MacOS-Animation-for-windows)）编写。「排除的程序」设置也来自该 mod。
 - 经典神奇效果动画来自 Abdullah Masood 的 macOS Minimize Animation。
 - 各部分版权归各自作者所有。
-- ZenDesktop 修改（Lanbo）：中文界面、游戏与反作弊进程排除名单、覆盖范围扩展、合并 macOS 神奇效果。
+- ZenDesktop 修改（Lanbo）：中文界面、游戏与反作弊进程排除名单、覆盖范围扩展、合并 macOS 神奇效果、新增关闭与最小化样式。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
 
 ## 附录：原版说明（英文）
@@ -115,7 +118,7 @@
 以下为上游 mod 的原版说明，保留英文原文，供编写自定义样式时参考。
 ### Animation Gallery
 
-### `Close Effects - 6 Styles`
+### `Close Effects - 11 Styles`
 
 | Animation | Preview |
 | --- | --- |
@@ -125,10 +128,15 @@
 | **Cyber Glitch** | ![Cyber Glitch](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/cyber_glitch.gif) |
 | **Retro TV Off** | ![Retro TV Off](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/tv_retro.gif) |
 | **Pixel Melt** | ![Pixel Melt](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/pixel_melt.gif) |
+| **Fall Apart** | *Preview coming soon* |
+| **Scale Fade** | *Preview coming soon* |
+| **Elastic Shrink** | *Preview coming soon* |
+| **3D Flip** | *Preview coming soon* |
+| **Slide Up** | *Preview coming soon* |
 
 ---
 
-### `Minimize, Restore and Launch - 9 Styles`
+### `Minimize, Restore and Launch - 12 Styles`
 
 | Animation | Preview |
 | --- | --- |
@@ -141,6 +149,9 @@
 | **Mirage** | ![Mirage](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/mirage.gif) |
 | **Stipple** | ![Stipple](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/stipple.gif) |
 | **Swell** | ![Swell](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/b96dea88ab53f4b781e472d3683f645f4e368f8e/swell.gif) |
+| **Grow From Click** | *Preview coming soon* |
+| **Elastic Pop** | *Preview coming soon* |
+| **3D Tilt** | *Preview coming soon* |
 
 ---
 
@@ -252,6 +263,11 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
     - glitch: "赛博故障：像素传送故障"
     - tv_off: "复古电视：CRT 关机收缩"
     - pixel_melt: "像素融化：像素向下滴落"
+    - fall_apart: "碎片坠落：碎块下落消散"
+    - scale_fade: "缩小淡出：整体缩小并淡出"
+    - elastic_shrink: "弹性收起：带回弹的收缩"
+    - flip_3d: "三维翻转：沿纵轴翻转让消失"
+    - slide_up: "向上滑走：上移并淡出"
   - duration_ms: 630
     $name: "Duration (ms)"
     $name:zh-CN: "时长（毫秒）"
@@ -308,6 +324,9 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
     - mirage: "海市蜃楼：水波纹"
     - stipple: "点阵绽放"
     - swell: "膨胀淡出"
+    - grow_from_click: "从点击处放大：以光标为锚点缩放"
+    - elastic_pop: "弹性弹出：带回弹的缩放"
+    - tilt_3d: "三维倾斜：透视倾斜收起"
   - duration_ms: 360
     $name: "Duration (ms)"
     $name:zh-CN: "时长（毫秒）"
@@ -892,6 +911,9 @@ enum : int {
     kMinRestoreSwell = 6,
     kMinRestoreWindows10 = 7,
     kMinRestoreMacGenie = 8,    // Direct2D genie (Potassiumuncher)
+    kMinRestoreGrowFromClick = 9,
+    kMinRestoreElasticPop = 10,
+    kMinRestoreTilt3D = 11,
 };
 enum : int {
     kCloseShatter = 0,
@@ -900,6 +922,11 @@ enum : int {
     kCloseGlitch = 3,
     kCloseTvOff = 4,
     kClosePixelMelt = 5,
+    kCloseFallApart = 6,
+    kCloseScaleFade = 7,
+    kCloseElasticShrink = 8,
+    kCloseFlip3D = 9,
+    kCloseSlideUp = 10,
 };
 struct AnimEffectInfo {
     PCWSTR settingKey;
@@ -916,6 +943,9 @@ static constexpr AnimEffectInfo kMinRestoreEffectInfo[] = {
     {L"mirage", L"mirage", kMinRestoreMirage},
     {L"stipple", L"stipple", kMinRestoreStipple},
     {L"swell", L"swell", kMinRestoreSwell},
+    {L"grow_from_click", L"grow_click", kMinRestoreGrowFromClick},
+    {L"elastic_pop", L"elastic_pop", kMinRestoreElasticPop},
+    {L"tilt_3d", L"tilt3d", kMinRestoreTilt3D},
 };
 static constexpr AnimEffectInfo kCloseEffectInfo[] = {
     {L"shatter", L"shatter", kCloseShatter},
@@ -924,6 +954,11 @@ static constexpr AnimEffectInfo kCloseEffectInfo[] = {
     {L"glitch", L"glitch", kCloseGlitch},
     {L"tv_off", L"crt", kCloseTvOff},
     {L"pixel_melt", L"melt", kClosePixelMelt},
+    {L"fall_apart", L"fall_apart", kCloseFallApart},
+    {L"scale_fade", L"scale_fade", kCloseScaleFade},
+    {L"elastic_shrink", L"elastic", kCloseElasticShrink},
+    {L"flip_3d", L"flip3d", kCloseFlip3D},
+    {L"slide_up", L"slide_up", kCloseSlideUp},
 };
 // Shuffle keeps cycling the original effects only (indices 0..N-1), so the
 // shared shuffle state stays compatible; new effects are opt-in picks.
@@ -6248,9 +6283,12 @@ static constexpr uint32_t RequiredGpuPipelines(bool isClosing,
     if (effectStyle == 4 || effectStyle == 5) {
         return GpuPipelineInplace;
     }
-    if (effectStyle == 6 || effectStyle == 7) {
+    if (effectStyle == 6 || effectStyle == 7 ||
+        effectStyle == kMinRestoreGrowFromClick ||
+        effectStyle == kMinRestoreElasticPop) {
         return GpuPipelineQuad;
     }
+    // tilt_3d uses a multi-strip CPU approximation; keep it off the quad path.
     return GpuPipelineNone;
 }
 
@@ -8058,6 +8096,9 @@ private:
     int blockSizeSetting = 1;
     int closeEffect = 1;
     int minRestoreEffect = 0;
+    float clickAnchorX = 0.0f;  // screen coords; for grow_from_click
+    float clickAnchorY = 0.0f;
+    bool clickAnchorValid = false;
     // macOS genie state (kMinRestoreMacGenie). The geometry is in canonical
     // space (dock below the window); see MacGenieUvToCanonical and
     // MacGenieCanonicalToScreen for the mapping to the real taskbar edge.
@@ -8803,6 +8844,247 @@ private:
         DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
                         frame.height, 1.0f);
     }
+
+    // --- ZenDesktop 1.5.0 close / min-restore styles ---
+    static float EaseOutCubic(float t) {
+        const float u = 1.0f - t;
+        return 1.0f - u * u * u;
+    }
+    static float EaseInCubic(float t) { return t * t * t; }
+    static float ElasticOut(float t) {
+        if (t <= 0.0f) return 0.0f;
+        if (t >= 1.0f) return 1.0f;
+        const float p = 0.35f;
+        return powf(2.0f, -10.0f * t) *
+                   sinf((t - p / 4.0f) * (2.0f * 3.14159265f) / p) +
+               1.0f;
+    }
+    static float ElasticIn(float t) {
+        if (t <= 0.0f) return 0.0f;
+        if (t >= 1.0f) return 1.0f;
+        return 1.0f - ElasticOut(1.0f - t);
+    }
+    void RenderFallApart(float progress, float& fade) {
+        // Gravity-biased shatter: shards tumble downward and fade.
+        fade = 1.0f - EaseInCubic(progress);
+        if (fade < 0.0f) fade = 0.0f;
+        const int columns =
+            (W + blockSizeSetting - 1) / blockSizeSetting;
+        const int rows =
+            (H + blockSizeSetting - 1) / blockSizeSetting;
+        const size_t expectedParticles =
+            static_cast<size_t>(columns) * static_cast<size_t>(rows);
+        if (closeShatterParticles.size() != expectedParticles ||
+            (firstActiveCloseParticle != kNoActiveCloseParticle &&
+             firstActiveCloseParticle >= closeShatterParticles.size())) {
+            return;
+        }
+        if (telemetryEnabled) {
+            telemetryCpuCloseParticleVisits += activeCloseParticleCount;
+            ++telemetryCpuCloseParticleFrames;
+        }
+        const float g = progress * progress;
+        const int dstOffsetX = origLeft - boundLeft;
+        const int dstOffsetY = origTop - boundTop;
+        size_t rowStart = 0;
+        int srcY = 0;
+        uint32_t previousParticle = kNoActiveCloseParticle;
+        uint32_t particleIndex = firstActiveCloseParticle;
+        while (particleIndex != kNoActiveCloseParticle) {
+            CloseShatterParticle& particle =
+                closeShatterParticles[particleIndex];
+            const uint32_t nextParticle = particle.nextActive;
+            while (static_cast<size_t>(particleIndex) >=
+                   rowStart + static_cast<size_t>(columns)) {
+                rowStart += static_cast<size_t>(columns);
+                srcY += blockSizeSetting;
+            }
+            const int srcX = static_cast<int>(
+                                 static_cast<size_t>(particleIndex) -
+                                 rowStart) *
+                             blockSizeSetting;
+            const float driftX =
+                (particle.dirX * 0.35f + particle.noiseX * 0.55f) *
+                EaseOutCubic(progress) * (float)W * 0.18f;
+            const float fallY =
+                (0.55f + particle.force * 0.85f) * g * (float)H * 1.15f +
+                particle.noiseY * progress * 18.0f;
+            const int dstBaseX =
+                dstOffsetX + srcX + static_cast<int>(driftX);
+            const int dstBaseY =
+                dstOffsetY + srcY + static_cast<int>(fallY);
+            const int blockW = std::min(blockSizeSetting, W - srcX);
+            const int blockH = std::min(blockSizeSetting, H - srcY);
+            const bool outside =
+                dstBaseX + blockW <= 0 || dstBaseX >= boundW ||
+                dstBaseY + blockH <= 0 || dstBaseY >= boundH;
+            if (outside && fallY > 8.0f) {
+                if (previousParticle == kNoActiveCloseParticle)
+                    firstActiveCloseParticle = nextParticle;
+                else
+                    closeShatterParticles[previousParticle].nextActive =
+                        nextParticle;
+                if (activeCloseParticleCount > 0)
+                    --activeCloseParticleCount;
+            } else {
+                previousParticle = particleIndex;
+                if (!outside) {
+                    const float a =
+                        1.0f - EaseInCubic(std::min(1.0f, progress * 1.15f));
+                    DrawBlock(srcX, srcY, dstBaseX, dstBaseY, a);
+                }
+            }
+            particleIndex = nextParticle;
+        }
+    }
+    QuadFrame CalculateScaleFadeFrame(float progress) const {
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float e = EaseInCubic(t);
+        const float scale = 1.0f - 0.92f * e;
+        float opacity = 1.0f - EaseOutCubic(t);
+        if (data->isRising && opacity < 0.04f) opacity = 0.04f;
+        const int dstW = std::max(1, (int)((float)W * scale + 0.5f));
+        const int dstH = std::max(1, (int)((float)H * scale + 0.5f));
+        const int dstX = (origLeft - boundLeft) + (W - dstW) / 2;
+        const int dstY = (origTop - boundTop) + (H - dstH) / 2;
+        return {dstX, dstY, dstW, dstH, opacity};
+    }
+    void RenderScaleFade(float progress, float& fade) {
+        const QuadFrame frame = CalculateScaleFadeFrame(progress);
+        fade = frame.opacity;
+        DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
+                        frame.height, 1.0f);
+    }
+    QuadFrame CalculateElasticShrinkFrame(float progress) const {
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float e = data->isRising ? ElasticOut(progress)
+                                       : ElasticIn(t);
+        // Closing: shrink toward ~8%; opening: grow from ~8% with overshoot.
+        float scale;
+        float opacity;
+        if (data->isRising) {
+            scale = 0.08f + 0.92f * e;
+            if (scale > 1.12f) scale = 1.12f;
+            opacity = std::min(1.0f, progress * 1.4f);
+            if (opacity < 0.04f) opacity = 0.04f;
+        } else {
+            scale = 1.0f - 0.92f * e;
+            if (scale < 0.06f) scale = 0.06f;
+            opacity = 1.0f - EaseInCubic(t);
+        }
+        const int dstW = std::max(1, (int)((float)W * scale + 0.5f));
+        const int dstH = std::max(1, (int)((float)H * scale + 0.5f));
+        const int dstX = (origLeft - boundLeft) + (W - dstW) / 2;
+        const int dstY = (origTop - boundTop) + (H - dstH) / 2;
+        return {dstX, dstY, dstW, dstH, opacity};
+    }
+    void RenderElasticShrink(float progress, float& fade) {
+        const QuadFrame frame = CalculateElasticShrinkFrame(progress);
+        fade = frame.opacity;
+        DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
+                        frame.height, 1.0f);
+    }
+    void RenderFlip3D(float progress, float& fade) {
+        // Fake Y-axis flip: horizontal scale follows |cos(pi * t)|.
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float angle = t * 3.14159265f;
+        float sx = fabsf(cosf(angle));
+        if (sx < 0.02f) sx = 0.02f;
+        const float sy = 1.0f - 0.12f * sinf(angle);
+        fade = 1.0f - EaseInCubic(t);
+        if (data->isRising && fade < 0.04f) fade = 0.04f;
+        const int dstW = std::max(1, (int)((float)W * sx + 0.5f));
+        const int dstH = std::max(1, (int)((float)H * sy + 0.5f));
+        const int dstX = (origLeft - boundLeft) + (W - dstW) / 2;
+        const int dstY = (origTop - boundTop) + (H - dstH) / 2;
+        DrawBlockScaled(0, 0, W, H, dstX, dstY, dstW, dstH, 1.0f);
+    }
+    QuadFrame CalculateSlideUpFrame(float progress) const {
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float e = EaseInCubic(t);
+        const float travel = e * (float)H * 1.05f;
+        float opacity = 1.0f - EaseOutCubic(t);
+        if (data->isRising && opacity < 0.04f) opacity = 0.04f;
+        const int dstX = origLeft - boundLeft;
+        const int dstY =
+            (origTop - boundTop) - static_cast<int>(travel + 0.5f);
+        return {dstX, dstY, W, H, opacity};
+    }
+    void RenderSlideUp(float progress, float& fade) {
+        const QuadFrame frame = CalculateSlideUpFrame(progress);
+        fade = frame.opacity;
+        DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
+                        frame.height, 1.0f);
+    }
+    QuadFrame CalculateGrowFromClickFrame(float progress) const {
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float e = EaseOutCubic(t);
+        const float scale = data->isRising ? (0.05f + 0.95f * (1.0f - e))
+                                           : (1.0f - 0.95f * e);
+        float opacity = data->isRising
+                            ? std::min(1.0f, progress * 1.35f)
+                            : (1.0f - EaseInCubic(t));
+        if (data->isRising && opacity < 0.04f) opacity = 0.04f;
+        const float anchorX =
+            clickAnchorValid ? clickAnchorX : origCenterX;
+        const float anchorY =
+            clickAnchorValid ? clickAnchorY : origCenterY;
+        // Interpolate window center toward the click anchor while scaling.
+        const float fullCX = origCenterX;
+        const float fullCY = origCenterY;
+        const float curCX = fullCX + (anchorX - fullCX) * e;
+        const float curCY = fullCY + (anchorY - fullCY) * e;
+        const float s = std::max(0.04f, scale);
+        const int dstW = std::max(1, (int)((float)W * s + 0.5f));
+        const int dstH = std::max(1, (int)((float)H * s + 0.5f));
+        const int dstX =
+            (int)floorf(curCX - (float)dstW * 0.5f) - boundLeft;
+        const int dstY =
+            (int)floorf(curCY - (float)dstH * 0.5f) - boundTop;
+        return {dstX, dstY, dstW, dstH, opacity};
+    }
+    void RenderGrowFromClick(float progress, float& fade) {
+        const QuadFrame frame = CalculateGrowFromClickFrame(progress);
+        fade = frame.opacity;
+        DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
+                        frame.height, 1.0f);
+    }
+    QuadFrame CalculateElasticPopFrame(float progress) const {
+        // Same motion model as elastic shrink, shared for min/restore.
+        return CalculateElasticShrinkFrame(progress);
+    }
+    void RenderElasticPop(float progress, float& fade) {
+        const QuadFrame frame = CalculateElasticPopFrame(progress);
+        fade = frame.opacity;
+        DrawBlockScaled(0, 0, W, H, frame.x, frame.y, frame.width,
+                        frame.height, 1.0f);
+    }
+    void RenderTilt3D(float progress, float& fade) {
+        // Approximate perspective tilt by shearing row widths.
+        const float t = data->isRising ? (1.0f - progress) : progress;
+        const float e = EaseInCubic(t);
+        fade = 1.0f - EaseOutCubic(t);
+        if (data->isRising && fade < 0.04f) fade = 0.04f;
+        const float tip = 0.55f * e;  // top shrinks more
+        const int strips = std::max(8, H / 12);
+        for (int i = 0; i < strips; ++i) {
+            const int y0 = i * H / strips;
+            const int y1 = (i + 1) * H / strips;
+            const int bh = y1 - y0;
+            if (bh < 1) continue;
+            const float v = ((float)y0 + (float)bh * 0.5f) / (float)H;
+            // Top of window (v=0) narrows; bottom stays wider.
+            const float rowScale = 1.0f - tip * (1.0f - v) - 0.15f * e * v;
+            const float rs = std::max(0.04f, rowScale);
+            const int dstW = std::max(1, (int)((float)W * rs + 0.5f));
+            const int dstX = (origLeft - boundLeft) + (W - dstW) / 2;
+            const float yShift = e * (float)H * 0.08f * (0.5f - v);
+            const int dstY =
+                (origTop - boundTop) + y0 + (int)(yShift + 0.5f);
+            DrawBlockScaled(0, y0, W, bh, dstX, dstY, dstW, bh, 1.0f);
+        }
+    }
+
     QuadFrame CalculateWin10Frame(float progress) const {
         if (progress < 0.0f) progress = 0.0f;
         if (progress > 1.0f) progress = 1.0f;
@@ -9400,11 +9682,29 @@ public:
         keepGhostBelowTaskbar =
             !data->isClosing &&
             MinRestoreEffectSinksBelowTaskbar(minRestoreEffect);
+        {
+            POINT cursor{};
+            if (GetCursorPos(&cursor)) {
+                clickAnchorX = static_cast<float>(cursor.x);
+                clickAnchorY = static_cast<float>(cursor.y);
+                clickAnchorValid = true;
+            } else {
+                clickAnchorX = origCenterX;
+                clickAnchorY = origCenterY;
+                clickAnchorValid = false;
+            }
+        }
         if (data->isClosing) {
             int padLeft = 0, padTop = 0, padRight = 0, padBottom = 0;
-            if (closeEffect == 0) {
+            if (closeEffect == 0 || closeEffect == kCloseFallApart) {
                 int maxShatter = (int)(AnimConstants::ShatterTravelBase + AnimConstants::ShatterTravelMult) + 50;
-                padLeft = padTop = padRight = padBottom = maxShatter;
+                if (closeEffect == kCloseFallApart) {
+                    padLeft = padRight = maxShatter / 2 + 20;
+                    padTop = 40;
+                    padBottom = (int)(H * 1.2f) + maxShatter;
+                } else {
+                    padLeft = padTop = padRight = padBottom = maxShatter;
+                }
             } else if (closeEffect == 1) {
                 padLeft = W / 2;
                 padRight = (int)(W * 1.5f);
@@ -9419,6 +9719,15 @@ public:
                 padLeft = padRight = 4;
                 padTop = 2;
                 padBottom = (int)(H * 0.9f) + 16;
+            } else if (closeEffect == kCloseScaleFade ||
+                       closeEffect == kCloseElasticShrink ||
+                       closeEffect == kCloseFlip3D) {
+                padLeft = padRight = (int)ceilf((float)W * 0.12f) + 4;
+                padTop = padBottom = (int)ceilf((float)H * 0.12f) + 4;
+            } else if (closeEffect == kCloseSlideUp) {
+                padLeft = padRight = 4;
+                padTop = H + 8;
+                padBottom = 4;
             } else {
                 padLeft = padTop = padRight = padBottom = 50;
             }
@@ -9433,9 +9742,22 @@ public:
             boundTop = Clamp(origTop, monTop, monBottom - 1);
             boundW = std::min(W, monRight - boundLeft);
             boundH = std::min(H, monBottom - boundTop);
-        } else if (minRestoreEffect == 6) {
-            const int padX = (int)ceilf((float)W * 0.10f) + 2;
-            const int padY = (int)ceilf((float)H * 0.10f) + 2;
+        } else if (minRestoreEffect == 6 ||
+                   minRestoreEffect == kMinRestoreElasticPop) {
+            const float padFrac =
+                minRestoreEffect == kMinRestoreElasticPop ? 0.22f : 0.10f;
+            const int padX = (int)ceilf((float)W * padFrac) + 2;
+            const int padY = (int)ceilf((float)H * padFrac) + 2;
+            boundLeft = std::max(monLeft, origLeft - padX);
+            boundTop = std::max(monTop, origTop - padY);
+            const int boundRight = std::min(monRight, origLeft + W + padX);
+            const int boundBottom = std::min(monBottom, origTop + H + padY);
+            boundW = boundRight - boundLeft;
+            boundH = boundBottom - boundTop;
+        } else if (minRestoreEffect == kMinRestoreGrowFromClick ||
+                   minRestoreEffect == kMinRestoreTilt3D) {
+            const int padX = (int)ceilf((float)W * 0.15f) + 4;
+            const int padY = (int)ceilf((float)H * 0.15f) + 4;
             boundLeft = std::max(monLeft, origLeft - padX);
             boundTop = std::max(monTop, origTop - padY);
             const int boundRight = std::min(monRight, origLeft + W + padX);
@@ -10401,9 +10723,14 @@ public:
             if (minRestoreEffect == 3) return PrecalcSplinter();
             if (minRestoreEffect == 4) return PrecalcMirage();
             if (minRestoreEffect == 5) return PrecalcStipple();
+            // grow_from_click / elastic_pop / tilt_3d need no precalc.
             return true;
         }
         if (closeEffect == 3 || closeEffect == 4 ||
+            closeEffect == kCloseScaleFade ||
+            closeEffect == kCloseElasticShrink ||
+            closeEffect == kCloseFlip3D ||
+            closeEffect == kCloseSlideUp ||
             (usingGpuBackend &&
              (closeEffect == 1 || closeEffect == 2))) {
             return true;
@@ -10501,7 +10828,7 @@ public:
                                                : kNoActiveCloseParticle;
                 initialCloseParticleCount = particleCount;
                 activeCloseParticleCount = particleCount;
-                if (closeEffect == 0)
+                if (closeEffect == 0 || closeEffect == kCloseFallApart)
                     closeShatterParticles.reserve(particleCount);
                 else
                     closeThanosParticles.reserve(particleCount);
@@ -10510,7 +10837,7 @@ public:
                     for (int srcX = 0; srcX < W; srcX += blockSizeSetting) {
                         uint32_t hash = ((uint32_t)srcX * 73856093u) ^ ((uint32_t)srcY * 19349663u);
                         const uint32_t nextActive = particleIndex + 1;
-                        if (closeEffect == 0) {
+                        if (closeEffect == 0 || closeEffect == kCloseFallApart) {
                             float force = ((hash >> 8) % 100) / 100.0f;
                             float noiseX = ((hash % 2000) / 1000.0f) - 1.0f;
                             float noiseY = (((hash >> 4) % 2000) / 1000.0f) - 1.0f;
@@ -10518,6 +10845,11 @@ public:
                             float dirY = (srcY + blockSizeSetting / 2.0f) - cy;
                             float dist = sqrtf(dirX * dirX + dirY * dirY);
                             if (dist > 0.1f) { dirX /= dist; dirY /= dist; }
+                            if (closeEffect == kCloseFallApart) {
+                                // Bias shards downward; keep a little lateral scatter.
+                                dirX = noiseX * 0.45f;
+                                dirY = 0.75f + force * 0.45f;
+                            }
                             closeShatterParticles.push_back(
                                 {dirX, dirY, force, noiseX, noiseY,
                                  nextActive});
@@ -10545,7 +10877,8 @@ public:
                         ++particleIndex;
                     }
                 }
-                if (closeEffect == 0 && !closeShatterParticles.empty())
+                if ((closeEffect == 0 || closeEffect == kCloseFallApart) &&
+                    !closeShatterParticles.empty())
                     closeShatterParticles.back().nextActive =
                         kNoActiveCloseParticle;
                 else if (closeEffect == 1 &&
@@ -10860,10 +11193,15 @@ public:
                            minRestoreEffect <= 5) {
                     presented = PresentGpuInplace(progress);
                 } else {
-                    const QuadFrame frame =
-                        minRestoreEffect == 6
-                            ? CalculateSwellFrame(progress)
-                            : CalculateWin10Frame(progress);
+                    QuadFrame frame;
+                    if (minRestoreEffect == 6)
+                        frame = CalculateSwellFrame(progress);
+                    else if (minRestoreEffect == kMinRestoreGrowFromClick)
+                        frame = CalculateGrowFromClickFrame(progress);
+                    else if (minRestoreEffect == kMinRestoreElasticPop)
+                        frame = CalculateElasticPopFrame(progress);
+                    else
+                        frame = CalculateWin10Frame(progress);
                     presented = PresentGpuQuad(frame);
                 }
             } else {
@@ -10876,6 +11214,16 @@ public:
                     else if (closeEffect == 3) RenderGlitch(progress);
                     else if (closeEffect == 4) RenderCrtOff(progress);
                     else if (closeEffect == 5) RenderPixelMelt(progress);
+                    else if (closeEffect == kCloseFallApart)
+                        RenderFallApart(progress, fade);
+                    else if (closeEffect == kCloseScaleFade)
+                        RenderScaleFade(progress, fade);
+                    else if (closeEffect == kCloseElasticShrink)
+                        RenderElasticShrink(progress, fade);
+                    else if (closeEffect == kCloseFlip3D)
+                        RenderFlip3D(progress, fade);
+                    else if (closeEffect == kCloseSlideUp)
+                        RenderSlideUp(progress, fade);
                     else RenderThanos(progress);
                 } else if (minRestoreEffect == 1) {
                     RenderInkSplash(progress);
@@ -10893,6 +11241,12 @@ public:
                     RenderWin10MinRestore(progress, fade);
                 } else if (minRestoreEffect == kMinRestoreMacGenie) {
                     RenderMacGenie(progress);
+                } else if (minRestoreEffect == kMinRestoreGrowFromClick) {
+                    RenderGrowFromClick(progress, fade);
+                } else if (minRestoreEffect == kMinRestoreElasticPop) {
+                    RenderElasticPop(progress, fade);
+                } else if (minRestoreEffect == kMinRestoreTilt3D) {
+                    RenderTilt3D(progress, fade);
                 } else {
                     RenderMinimizeRestore(progress, fade);
                 }
@@ -11724,6 +12078,12 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             // macOS genie: x1.25, so the default 360 ms gives the original
             // mod's 450 ms; up to 1750 ms (original allowed 2000 ms).
             durationMs = Clamp((durationMs * 5) / 4, 250, 1750);
+        } else if (!isClosing && effectStyle == kMinRestoreGrowFromClick) {
+            durationMs = Clamp((durationMs * 9) / 10, 200, 1200);
+        } else if (!isClosing && effectStyle == kMinRestoreElasticPop) {
+            durationMs = Clamp((durationMs * 11) / 10, 240, 1300);
+        } else if (!isClosing && effectStyle == kMinRestoreTilt3D) {
+            durationMs = Clamp((durationMs * 19) / 20, 220, 1200);
         }
     }
     {
@@ -11731,6 +12091,16 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             durationMs = Clamp((durationMs * 19) / 20, 320, 1300);
         } else if (isClosing && effectStyle == 4) {
             durationMs = Clamp((durationMs * 55) / 100, 280, 900);
+        } else if (isClosing && effectStyle == kCloseFallApart) {
+            durationMs = Clamp((durationMs * 21) / 20, 360, 1400);
+        } else if (isClosing && effectStyle == kCloseScaleFade) {
+            durationMs = Clamp((durationMs * 4) / 5, 280, 1100);
+        } else if (isClosing && effectStyle == kCloseElasticShrink) {
+            durationMs = Clamp((durationMs * 11) / 10, 320, 1300);
+        } else if (isClosing && effectStyle == kCloseFlip3D) {
+            durationMs = Clamp((durationMs * 17) / 20, 300, 1100);
+        } else if (isClosing && effectStyle == kCloseSlideUp) {
+            durationMs = Clamp((durationMs * 3) / 4, 260, 1000);
         }
     }
     auto* data = new (std::nothrow) WindowAnimData{

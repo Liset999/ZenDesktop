@@ -3,64 +3,35 @@
 每一轮测试前都重启整台电脑。一次只多开一样。
 
 ## 第 0 轮：先看这里
-> 逃生办法：文件管理器打不开时，打开它的同时一直按住 `Esc`，ExplorerBlurMica 就不会加载，进去后再跑 `uninstall.cmd`。
-
-开机托盘不透明、文件管理器打不开的排查，统一按下面「第 5 轮」来做。
+> 文件管理器透明请用 **ZenDesktop: 文件管理器美化**（`zen-explorer-styler`）。**不要**再注册 ExplorerBlurMica。
+> 若以前注册过：管理员运行 `ExplorerBlurMica\uninstall.cmd`，再重启。
 
 ## 第 1 轮：基础包（不开任何可选项）
-- [ ] 运行 `deploy.bat`，不报错
-- [ ] ExplorerBlurMica 重新注册的窗口弹出来，并且显示成功
-- [ ] 重启后打开文件管理器，顶上没有黑杠
-- [ ] 原来的任务栏、开始菜单、通知中心亚克力都正常
-- [ ] mac 最小化动画正常
+- [ ] 运行 `deploy.bat`，不报错；**没有**弹出 ExplorerBlurMica 重新注册窗口
+- [ ] Windhawk 里能看到 `zen-explorer-styler`，默认关着；编译并开启后，文件管理器命令栏/地址栏可透明
+- [ ] 浅色模式下文件管理器仍透，没有整块发黑
+- [ ] 原来的任务栏、开始菜单、通知中心亚克力都正常；开始菜单浅色无白雾
+- [ ] 任务栏 4.2：最大化一层开/关、多显示器、虚拟桌面切换行为正常
 
 ## 第 2 轮：只加果冻窗口
-- [ ] `deploy.ps1 -Optional "wobbly-windows"`，有 dwm.exe 注入的提示
+- [ ] `deploy.ps1 -Optional "wobbly-windows"`，有 `dwm.exe` 加入包含列表的提示
 - [ ] 拖动窗口有果冻效果，不卡、不闪
 - [ ] 打开英雄联盟 / Steam 游戏，进得去，没有反作弊报错
 
 ## 第 3 轮：再加关窗效果
 - [ ] `deploy.ps1 -Optional "wobbly-windows,windows-animations"`
-- [ ] Windhawk 设置页里：只有「Animate closing」是开的，最小化、还原、启动、切换都关着
-- [ ] 关窗有灭霸响指效果
-- [ ] 最小化只有 mac 神灯动画，没有被做两次
-- [ ] 6 种关窗效果都切一遍，截图或录 GIF（顺便交 #10）
+- [ ] 旧 mac 最小化 mod 已关闭；窗口动画里开启最小化/还原，样式选「macOS 神奇效果」时只播一次
+- [ ] 关闭样式各试一遍（含 1.5 新增：碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走）
+- [ ] 最小化样式试「从点击处放大」「弹性弹出」「三维倾斜」以及 Windows 10 / 神奇效果
+- [ ] 按几次 Win+D，再最小化、还原：没有闪烁，动画没被做两次
 
-- [ ] 按几次 Win+D 显示桌面，再最小化、还原几次：没有闪烁，动画没被做两次（Windows Animations 和 mac 动画钩的是同一组窗口函数）
+## 第 4 轮：任务栏歌词
+- [ ] 关掉系统小组件，开启 `zen-taskbar-lyrics`，播歌时有封面/歌词/三按钮
+- [ ] （可选）按 `tools/ai-status` 接上 MCP，AI 状态能显示
 
-## 第 4 轮：README
-- [ ] 照着 README 里那张表，能看懂 4 个 zip 该下哪个
-
-## 第 5 轮：开机托盘不透明 / 文件管理器打不开，找出是谁（二分）
-每一步都要**重启两次整台电脑**（两次都一样才算数），开机后先别手动重启 explorer。
-每次开机记三件事：①托盘/音量图标透明没有 ②第一次点开文件管理器能不能开 ③有没有弹「XAML diagnostics」的框。
-
-先开日志：Windhawk 里 `local@zen-taskbar-acrylic` → 高级 → 打开日志。开机后搜 `[ZenDiag]`，
-如果看到 `Other XAML diagnostics consumer: ...ExplorerBlurMica.dll`，基本就是两者抢「XAML 诊断」那个位置。
-
-- [ ] 5.0 基线：任务栏 mod 版本是 **4.1.2**；重启两次，记下 ①②③
-- [ ] 5.1 只关 ExplorerBlurMica：管理员跑 `ExplorerBlurMica\uninstall.cmd`，重启两次。
-      ①②都好了 → 是 ExplorerBlurMica；跳到 5.4
-- [ ] 5.2 ExplorerBlurMica 还是关着，再在 Windhawk 里一个一个关任务栏相关 mod，每关一个重启两次：
-  - [ ] `local@zen-taskbar-acrylic`
-  - [ ] `local@macos-minimize-animation`
-  - [ ] `local@zen-desktop-toggle-icons`
-  - [ ] 可选的 `local@windows-animations`
-  - [ ] 不是我们的 mod（Windhawk 里其他注入 explorer.exe 的）也一个个关
-- [ ] 5.3 全关了还坏 → 不是 mod 的问题，查 开机自启的软件（TranslucentTB 之类也用 XAML 诊断）
-- [ ] 5.4 确认是 ExplorerBlurMica 后，装回去，二选一试：
-  - [ ] A：任务栏 mod 设置「XAML diagnostics」= **自动阻止 (Block)**，重启两次 → 托盘应该好；看文件列表还透不透
-        两种文件管理器窗口都要看（2.0.1 同时用旧版 UWP XAML 和新版 WinUI 的 XAML 诊断）：
-        - [ ] 新版：直接打开「此电脑」/ 任务栏文件管理器（有标签页、新命令栏的那个）→ 命令栏、文件列表透不透，会不会崩
-        - [ ] 旧版：Win+R 输入 `control` 打开控制面板，在地址栏输入 `C:\` 回车（窗口顶上没有 Win11 标签页才是旧版） → 透不透，会不会崩
-  - [ ] B 之前：先备份 `ExplorerBlurMica/config.ini`（源码版是 1.0.7，从 2.0.1 降级，效果和配置写法可能不同）；换完检查文件管理器模糊效果是否还在
-  - [ ] B：保持「允许共存 (Allow)」，换成 GitHub Actions 编的源码版（v4.2-draft 推上去后，Actions → Build ExplorerBlurMica DLL → 下载 `ExplorerBlurMica-DLL`，覆盖 `ExplorerBlurMica/ExplorerBlurMica.dll`，管理员跑 `register.cmd`；仓库里 427KB 那个是 7 月 6 日的 2.0.1 旧版）。源码版完全不用 XAML 诊断，不会跟任务栏抢；代价是 Win11 的 WinUI 文件列表/命令栏不会变透明。重启两次
-        开机文件管理器还是打不开的话，在 `config.ini` 的 `[config]` 里把 `delayHookMs` 从 800 调到 2000 再试
-- [ ] 5.5 还是要手动重启 explorer 才行 → 装开机自检兜底：
-      `deploy.ps1 -StartupCheck check`，不行再换 `-StartupCheck restart`。
-      日志在 `%LOCALAPPDATA%\ZenDesktop\startup-check.log`，关掉用 `deploy.ps1 -StartupCheck remove`
-- [ ] 顺便看一眼「事件查看器 → Windows 日志 → 应用程序」里开机后有没有 `explorer.exe` 的 1000 号错误，
-      故障模块是 `ucrtbase.dll` / `0xc0000409` 的话，和 ExplorerBlurMica#209 是同一个问题
+## 第 5 轮：README / 发版材料
+- [ ] 照着 README 能看懂该下哪个 zip；文中**没有**「去注册 ExplorerBlurMica」的步骤
+- [ ] `RELEASE_NOTES_v4.2.md` / `RELEASE_POSTS_v4.2.md` 内容与实测一致后再发
 
 ## 出问题时
 截图 + 第几轮第几条 + Windhawk 日志，发群里。

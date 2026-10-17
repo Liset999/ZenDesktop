@@ -4,7 +4,7 @@
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium v4.1.0** is a high-performance desktop styling suite for Windows 11. It blends native Win32/C++ Windhawk mods with the robust external **ExplorerBlurMica** program, with all real-time customizations handled natively via the Windhawk UI **with zero background process bloat, zero UI lag, and 0% CPU overhead**.
+**ZenDesktop Premium v4.2** is a desktop styling suite for Windows 11 built as native Win32/C++ Windhawk mods. File Explorer transparency uses **`zen-explorer-styler`** (no ExplorerBlurMica). Real-time options live in the Windhawk UI.
 
 👨‍💻 **Developer Links & Support / 关注与支持**:
 - 📺 **Bilibili**: https://space.bilibili.com/1280632999
@@ -15,7 +15,7 @@
 
 ---
 
-## 🚀 Latest Updates / 最新更新 (v4.1.0)
+## 🚀 Latest Updates / 最新更新 (v4.2)
 
 ### 🌐 English
 * **Standardized Chinese Localization & Mod Naming**: Unified all core mod display names and descriptions with full bilingual settings translation in Windhawk.
@@ -59,9 +59,9 @@
 > v4.2 起已并入「窗口动画」(`local@windows-animations`) 的「macOS 神奇效果」最小化样式，deploy 不再安装本 mod；旧文件保留在 `legacy/`。
 * Fluid macOS-style Genie minimize and restore animations powered by a high-performance Direct2D mesh engine.
 
-### 7. 📁 File Explorer Transparency (`ExplorerBlurMica`)
-* Author: **Maplespe** ([Maplespe/ExplorerBlurMica](https://github.com/Maplespe/ExplorerBlurMica)).
-* Adds Blur, Acrylic, and Mica effects to Windows 10/11 File Explorer.
+### 7. 📁 File Explorer Styler (`local@zen-explorer-styler` / `ZenDesktop: 文件管理器美化`)
+* Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color.
+* **Do not install ExplorerBlurMica alongside it.** If you registered EBM before, run `ExplorerBlurMica\uninstall.cmd` as Administrator, then enable this mod.
 
 ---
 
@@ -72,16 +72,16 @@
 | `ZenDesktop_OneKeyDeploy_v4.2.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
 | `ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
 | `ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
-| `ExplorerBlurMica.zip` | 资源管理器透明/模糊效果。**想要文件管理器透明就额外下载它**，解压后以管理员身份运行 `register.cmd` |
+| （无需单独的 ExplorerBlurMica 包） | 文件管理器透明请用包内的 `local@zen-explorer-styler`。若以前注册过 EBM，请先卸载再启用该 mod。 |
 
-> 三个 OneKeyDeploy 包只选一个；`ExplorerBlurMica.zip` 可以和任意一个搭配。
+> 三个 OneKeyDeploy 包只选一个。
 
 ## 🧩 可选 Mod（v4.2 新增）/ Optional mods
 
 运行 `deploy.bat` 时会逐个询问是否安装（默认不装）：
 
 - **Wobbly Windows**：KDE/Compiz 风格果冻窗口。作者 lalimatyus，GPL-3.0。需要在 Windhawk「设置 → 高级设置 → 进程包含列表」里加入 `dwm.exe`，然后注销或重启。
-- **Windows Animations**：关窗（碎裂、溶解、老电视关机等）和最小化动画。作者 ReDrag，MIT。可能和 macOS 神奇效果最小化动画冲突，建议只开一个的最小化动画。
+- **Windows Animations**：关窗与最小化/还原/启动动画（含 macOS 神奇效果与 v1.5 新样式）。作者 ReDrag 等，MIT。请关闭旧的独立 mac 最小化 mod，避免播两次。
 
 无人值守安装：`deploy.bat -Optional "wobbly-windows,windows-animations"` 或 `-Optional none`。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
 
@@ -97,7 +97,7 @@
 | 桌面双击隐藏图标 | `docs/previews/toggle-icons.gif`（待补） |
 | 设置美化 | `docs/previews/settings.png`（待补） |
 | macOS 神奇效果最小化 | `docs/previews/genie-minimize.gif`（待补） |
-| 资源管理器透明 | `docs/previews/explorer.png`（待补） |
+| 文件管理器美化 | `docs/previews/explorer.png`（待补） |
 | Wobbly Windows（可选） | `docs/previews/wobbly.gif`（待补） |
 | Windows Animations（可选） | `docs/previews/close-animation.gif`（待补） |
 
@@ -116,7 +116,7 @@
 
 ### Step 3: Configure via Windhawk UI
 1. In the **Windhawk** UI, open each mod's **Settings** page to customize visual options in real-time.
-2. To enable File Explorer transparency, run **`ExplorerBlurMica\register.cmd`** as Administrator.
+2. Enable **ZenDesktop: 文件管理器美化** (`zen-explorer-styler`) in Windhawk. If ExplorerBlurMica was registered before, uninstall it first.
 
 ---
 
@@ -126,13 +126,13 @@
 1. 鼠标右键点击 **`deploy.bat`**，选择 **以管理员身份运行**。
 2. 脚本将自动检测 Windhawk、部署 6 大核心本地 Mod、清理历史插件并刷新缓存。
 3. 打开 Windhawk 软件，依次进入各插件源码页面，点击右上角的 **保存并编译** 即可完成激活！
-4. 如需启用资源管理器透明，以管理员身份运行 **`ExplorerBlurMica\register.cmd`**。
+4. 在 Windhawk 中启用 **ZenDesktop: 文件管理器美化**。若以前注册过 ExplorerBlurMica，请先管理员运行 `ExplorerBlurMica\uninstall.cmd` 再启用。
 
 ---
 
 ## 🩺 常见问题 / Troubleshooting
 
-- **文件管理器顶上有一条黑杠 / 切到别的窗口后标题栏变黑**：这是 ExplorerBlurMica 的已知问题（[Maplespe/ExplorerBlurMica#138](https://github.com/Maplespe/ExplorerBlurMica/issues/138)），常在资源管理器重启后出现。v4.2 的部署脚本会在最后自动重新注册一次。如果还黑：以管理员身份再运行一次 `ExplorerBlurMica\register.cmd`，或者直接重启电脑。仍有黑边可以试试第三方补丁 [FileBrowsWindowPatch](https://github.com/tzdwindows/FileBrowsWindowPatch)（未随包附带，未经本项目测试）。
+- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 EBM，先 `uninstall.cmd` 再重启。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
 
 ## 💖 Support / 赞助支持
 
@@ -147,8 +147,8 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) f
 
 Developed with ❤️ by **Lanbo**.
 Special thanks to:
-* **Maplespe** for ExplorerBlurMica.
-* **m417z** for Windhawk core framework.
+* **m417z** for Windhawk and the upstream File Explorer / Taskbar Styler mods.
+* **Maplespe** for historical ExplorerBlurMica work (no longer bundled as the recommended path).
 * **Abdullah Masood & Potassiumuncher** for macOS Minimize Animation.
 * **lalimatyus** for Wobbly Windows (GPL-3.0, optional).
 * **ReDrag** for Windows Animations (MIT, optional).

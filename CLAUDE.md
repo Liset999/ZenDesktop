@@ -18,6 +18,7 @@
      - 完整的 `// ==WindhawkModSettings==` 中文翻译（`$name:zh-CN`, `$description:zh-CN`）。
    - 禁止在 UI 或控制台中向普通用户展示未翻译的英文设置项。
 
-3. **第三方组件独立性（如 ExplorerBlurMica）**：
-   - `deploy.ps1` 不得强行覆盖或静默篡改用户已有的文件管理器透明组件（ExplorerBlurMica）的系统注册与配置。
-   - 注意 XAML 诊断接口：多个工具（Windhawk 的 XAML Styler 类 Mod、ExplorerBlurMica 的 `clearWinUIBg` 等）都会通过 XAML 诊断接口修改 WinUI 层，同时使用时可能互相干扰，Mod 里有对应的冲突处理设置。文件管理器命令栏黑杠的成因尚未确认，不要把它简单归因于此。
+3. **文件管理器透明（v4.2）**：
+   - 产品路径是 Windhawk mod `local@zen-explorer-styler`，**不要**再引导用户安装或注册 ExplorerBlurMica。
+   - `deploy.ps1` **不得**重新注册 EBM，也不得静默篡改用户机器上残留的 EBM 注册（可提示用户自行 `uninstall.cmd`）。
+   - 注意 XAML 诊断接口：同一时间只能有一个使用者。styler 与残留的 EBM / 其他 Styler 类 mod 可能互相干扰；用户侧应卸掉 EBM 后再用 styler。
