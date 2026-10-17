@@ -305,7 +305,7 @@ foreach ($file in $files) {
         }
         $tintPresetProp = Get-ItemProperty -Path $settingsPath -Name "tintPreset" -ErrorAction SilentlyContinue
         if ($null -eq $tintPresetProp) {
-            Set-ItemProperty -Path $settingsPath -Name "tintPreset" -Value "darkGray" -Type String
+            Set-ItemProperty -Path $settingsPath -Name "tintPreset" -Value "followSystem" -Type String
         }
         $tintColorProp = Get-ItemProperty -Path $settingsPath -Name "tintColor" -ErrorAction SilentlyContinue
         if ($null -eq $tintColorProp) {
