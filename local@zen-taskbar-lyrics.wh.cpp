@@ -4,13 +4,13 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.2.0
+// @version         0.3.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32
+// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -93,21 +93,24 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 位置：小组件位置（推荐）、固定在最左边、固定在托盘左边。
 - 水平偏移：按 100% 缩放的像素，高 DPI 自动放大，范围 -500–2000。
 - 面板宽度：紧凑 260、标准 340、宽 440、超宽 560，或自定义 120–2000。
+- 面板玻璃：默认开启。用系统亚克力模糊做面板背景；关闭后回到原来的透明／底色绘制。
+- 多显示器：默认关闭（只主屏）。开启后每个任务栏各显示一个面板，媒体与 AI 状态共用。
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
-- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。
+- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。玻璃开启时「面板底色」不生效。
 - 歌词偏移：毫秒，正数提前，范围 -60000–60000。
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示。
 
 ## 兼容性与已知问题
-- 只支持 Windows 11 的主显示器任务栏，任务栏在底部。
+- 支持 Windows 11 任务栏（底部）。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
-- 面板是透明窗口，不带毛玻璃；需要底色时选「淡淡一层」或「卡片」。
+- 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色换色调；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时仍可用「面板底色」的无底色／淡淡一层／卡片。
 - 点「打开播放器」只能切换到有可见窗口的播放器；缩到托盘里的播放器切不出来。
 - 网易云、QQ 音乐的歌词接口是非官方的，随时可能失效。
-- 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。
+- 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
 - **0.2.0**：改成小组件位置的音乐面板，加入专辑封面、播放控制、深浅色跟随、文字颜色预设、AI 助手状态。
 - **0.1.0**：任务栏歌词（未发布）。
 
@@ -271,8 +274,18 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - hideInFullscreen: true
   $name: Hide in fullscreen and games
   $name:zh-CN: 全屏和游戏时隐藏
-  $description: Hides during fullscreen games, videos and presentations.
-  $description:zh-CN: 全屏游戏、视频、PPT 放映时隐藏。
+  $description: Hides during fullscreen games, videos and presentations. With multi-monitor, only the panel on the fullscreen monitor hides.
+  $description:zh-CN: 全屏游戏、视频、PPT 放映时隐藏。开启多显示器时，只隐藏全屏所在那块屏幕上的面板。
+- panelGlass: true
+  $name: Panel glass
+  $name:zh-CN: 面板玻璃
+  $description: Acrylic blur behind the panel via AccentBlurBehind. Default on. When off, the panel background setting is used instead.
+  $description:zh-CN: 面板背后使用亚克力模糊（AccentBlurBehind）。默认开启。关闭后改用「面板底色」。
+- multiMonitor: false
+  $name: Multi-monitor
+  $name:zh-CN: 多显示器
+  $description: Off = primary taskbar only. On = one panel per taskbar including secondary monitors. Default off.
+  $description:zh-CN: 关闭时只在主任务栏显示；开启后每个任务栏（含副屏）各有一个面板。默认关闭。
 - enableNetease: true
   $name: NetEase lyrics
   $name:zh-CN: 使用网易云歌词源
@@ -322,6 +335,7 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <gdiplus.h>
+#include <dwmapi.h>
 #include <tlhelp32.h>
 
 #undef GetCurrentTime
@@ -374,6 +388,8 @@ struct Settings {
     bool bold = false;
     int offsetMs = 0;
     bool hideInFullscreen = true;
+    bool panelGlass = true;
+    bool multiMonitor = false;
     bool enableNetease = true;
     bool enableQQ = true;
     bool enableLrclib = true;
@@ -426,6 +442,8 @@ static void LoadSettings() {
         s.bold = Wh_GetIntSetting(L"bold") != 0;
         s.offsetMs = std::clamp(Wh_GetIntSetting(L"offsetMs"), -60000, 60000);
         s.hideInFullscreen = Wh_GetIntSetting(L"hideInFullscreen") != 0;
+        s.panelGlass = Wh_GetIntSetting(L"panelGlass") != 0;
+        s.multiMonitor = Wh_GetIntSetting(L"multiMonitor") != 0;
         s.enableNetease = Wh_GetIntSetting(L"enableNetease") != 0;
         s.enableQQ = Wh_GetIntSetting(L"enableQQ") != 0;
         s.enableLrclib = Wh_GetIntSetting(L"enableLrclib") != 0;
@@ -1641,18 +1659,18 @@ static Gdiplus::ARGB AiStateColor(AiState s) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Display: layered 32-bit PARGB popup owned by Shell_TrayWnd (stays above the taskbar when it's
-// clicked, without being global HWND_TOPMOST). GDI+ -> UpdateLayeredWindow, on its own thread.
-// Hit testing: a ULW_ALPHA window only receives the mouse where a pixel's alpha > 0, so empty
-// areas are painted with alpha 0 (click-through) and clickable areas with at least alpha 1.
-// If the taskbar window is destroyed, Windows destroys our owned window too; the thread then
-// waits for a new Shell_TrayWnd and recreates it.
+// Display: one popup per taskbar (primary Shell_TrayWnd, optional secondary
+// Shell_SecondaryTrayWnd). Two paint paths:
+//   - Glass on: AccentBlurBehind acrylic + WM_PAINT / BitBlt (no UpdateLayeredWindow)
+//   - Glass off: layered 32-bit PARGB + UpdateLayeredWindow (original path)
+// Media session and AI status are shared; fullscreen hide is per-monitor when possible.
 // ─────────────────────────────────────────────────────────────────────────────
 static const wchar_t kWndClass[] = L"ZenTaskbarLyricsWnd";
-static std::atomic<HWND> g_hwnd{nullptr};
 static std::atomic<DWORD> g_uiThreadId{0};
 static constexpr UINT WM_ZEN_SETTINGS = WM_APP + 1;
+static constexpr UINT WM_ZEN_SYNC = WM_APP + 2;
 static constexpr UINT_PTR TIMER_TICK = 1;
+static constexpr UINT_PTR TIMER_SYNC = 2;
 
 static const wchar_t* const kGameProcs[] = {
     L"League of Legends.exe", L"VALORANT-Win64-Shipping.exe", L"YuanShen.exe", L"GenshinImpact.exe",
@@ -1669,21 +1687,56 @@ static bool ForegroundIsGame() {
     return false;
 }
 
-static bool IsFullscreenOrGame() {
-    QUERY_USER_NOTIFICATION_STATE st;
-    if (SUCCEEDED(SHQueryUserNotificationState(&st)) &&
-        (st == QUNS_BUSY || st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_PRESENTATION_MODE))
-        return true;
-    return ForegroundIsGame();
+// Hide this panel only when fullscreen / game is on the same monitor (or global presentation).
+static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting) {
+    if (!hideSetting) return false;
+    QUERY_USER_NOTIFICATION_STATE st = QUNS_NOT_PRESENT;
+    bool haveSt = SUCCEEDED(SHQueryUserNotificationState(&st));
+    if (haveSt && st == QUNS_PRESENTATION_MODE) return true;
+
+    HWND fg = GetForegroundWindow();
+    HMONITOR fgMon = fg ? MonitorFromWindow(fg, MONITOR_DEFAULTTONULL) : nullptr;
+    bool sameMon = fg && fgMon && fgMon == mon;
+
+    if (ForegroundIsGame()) return sameMon;
+    if (haveSt && (st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_BUSY)) return sameMon;
+
+    // Fallback: foreground window covers most of this monitor.
+    if (sameMon && fg && !(GetWindowLongW(fg, GWL_STYLE) & WS_CAPTION)) {
+        RECT mr{}, wr{};
+        MONITORINFO mi{sizeof(mi)};
+        if (GetMonitorInfoW(mon, &mi) && GetWindowRect(fg, &wr)) {
+            mr = mi.rcMonitor;
+            int mw = mr.right - mr.left, mh = mr.bottom - mr.top;
+            int ww = wr.right - wr.left, wh = wr.bottom - wr.top;
+            if (mw > 0 && mh > 0 && ww * 10 >= mw * 9 && wh * 10 >= mh * 9) return true;
+        }
+    }
+    return false;
 }
 
 static HWND FindPrimaryTaskbar() { return FindWindowW(L"Shell_TrayWnd", nullptr); }
 
-// Auto-hidden taskbar slides mostly off-screen; treat < half visible as hidden.
+static std::vector<HWND> FindTaskbars(bool multi) {
+    std::vector<HWND> out;
+    HWND primary = FindPrimaryTaskbar();
+    if (primary) out.push_back(primary);
+    if (!multi) return out;
+    EnumWindows(
+        [](HWND h, LPARAM lp) -> BOOL {
+            wchar_t cls[64]{};
+            if (GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0)
+                reinterpret_cast<std::vector<HWND>*>(lp)->push_back(h);
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&out));
+    return out;
+}
+
 static bool TaskbarMostlyOffscreen(HWND tray, const RECT& tr) {
     MONITORINFO mi{};
     mi.cbSize = sizeof(mi);
-    if (!GetMonitorInfoW(MonitorFromWindow(tray, MONITOR_DEFAULTTOPRIMARY), &mi)) return false;
+    if (!GetMonitorInfoW(MonitorFromWindow(tray, MONITOR_DEFAULTTONEAREST), &mi)) return false;
     RECT vis{};
     if (!IntersectRect(&vis, &tr, &mi.rcMonitor)) return true;
     return (vis.bottom - vis.top) * 2 < (tr.bottom - tr.top);
@@ -1695,12 +1748,10 @@ static DWORD ReadDword(const wchar_t* subkey, const wchar_t* value, DWORD def) {
     return def;
 }
 
-// UI-thread-only environment cache (registry + fullscreen), refreshed every ~0.5–2s instead of per frame.
 struct Env {
-    bool lightTaskbar = false;   // SystemUsesLightTheme
-    bool alignLeft = false;      // TaskbarAl == 0
-    bool fullscreen = false;
-    ULONGLONG regAt = 0, fsAt = 0;
+    bool lightTaskbar = false;
+    bool alignLeft = false;
+    ULONGLONG regAt = 0;
 };
 static Env g_env;
 
@@ -1713,13 +1764,8 @@ static void RefreshEnv(bool force) {
                                     L"TaskbarAl", 1) == 0;
         g_env.regAt = now;
     }
-    if (force || now - g_env.fsAt >= 500) {
-        g_env.fullscreen = IsFullscreenOrGame();
-        g_env.fsAt = now;
-    }
 }
 
-// Same names and values as the other ZenDesktop mods' textColorMode.
 static Gdiplus::ARGB ResolveTextColor(const std::wstring& mode, bool light) {
     if (mode == L"white") return 0xFFFFFFFF;
     if (mode == L"dark") return 0xFF000000;
@@ -1731,7 +1777,7 @@ static Gdiplus::ARGB ResolveTextColor(const std::wstring& mode, bool light) {
     if (mode == L"purple") return 0xFFCC66FF;
     if (mode == L"pink") return 0xFFFF66B2;
     if (mode == L"cyan") return 0xFF33FFFF;
-    return light ? 0xFF1A1A1A : 0xFFFFFFFF;  // default / system: follow taskbar light/dark
+    return light ? 0xFF1A1A1A : 0xFFFFFFFF;
 }
 static Gdiplus::ARGB WithAlpha(Gdiplus::ARGB c, BYTE a) { return (c & 0x00FFFFFF) | ((Gdiplus::ARGB)a << 24); }
 static bool IsLightColor(Gdiplus::ARGB c) {
@@ -1739,7 +1785,6 @@ static bool IsLightColor(Gdiplus::ARGB c) {
     return (r * 299 + g * 587 + b * 114) / 1000 > 150;
 }
 
-// A text line made of colored segments (color 0 = default text color).
 struct Seg { std::wstring text; Gdiplus::ARGB color = 0; bool dot = false; };
 using Line = std::vector<Seg>;
 static Line TextLine(const std::wstring& t) { return t.empty() ? Line{} : Line{Seg{t, 0, false}}; }
@@ -1750,11 +1795,11 @@ static std::wstring LineKey(const Line& l) {
 }
 
 struct Content {
-    bool media = false;      // a media session drives art/buttons
+    bool media = false;
     bool playing = false;
     bool canPrev = false, canNext = false, canPlayPause = false;
-    bool aiOnly = false;     // no media; showing agents
-    bool idle = false;       // nothing at all, showing the idle hint
+    bool aiOnly = false;
+    bool idle = false;
     Line line1, line2;
     std::shared_ptr<const std::vector<BYTE>> thumb;
     unsigned thumbVersion = 0;
@@ -1779,7 +1824,6 @@ static Line AiLine(const std::vector<AiEntry>& ai, const Settings& s, bool forFi
         }
         return l;
     }
-    // Compact list: "● Claude 工作中  ● Codex 等你回复 ..."
     for (size_t i = 0; i < ai.size(); ++i) {
         l.push_back({(i ? L"  \x25CF " : L"\x25CF "), AiStateColor(ai[i].state), true});
         l.push_back({ai[i].name + L" " + AiStateLabel(ai[i].state), 0, false});
@@ -1836,18 +1880,17 @@ static Content BuildContent(const Settings& s) {
         }
     }
     if (c.media) {
-        if (!ai.empty()) c.line2 = AiLine(ai, s, false, nullptr);  // agents take over the second line
+        if (!ai.empty()) c.line2 = AiLine(ai, s, false, nullptr);
     } else if (!ai.empty()) {
         c.aiOnly = true;
         c.line1 = AiLine(ai, s, true, &c.line2);
     } else if (s.showIdle) {
         c.idle = true;
-        c.line1 = TextLine(L"\x266A \x672A\x5728\x64AD\x653E");  // ♪ 未在播放
+        c.line1 = TextLine(L"\x266A \x672A\x5728\x64AD\x653E");
     }
     return c;
 }
 
-// ── GDI+ helpers ──
 static void RoundRectPath(Gdiplus::GraphicsPath& p, Gdiplus::REAL x, Gdiplus::REAL y, Gdiplus::REAL w, Gdiplus::REAL h, Gdiplus::REAL r) {
     r = std::min(r, std::min(w, h) / 2);
     Gdiplus::REAL d = r * 2;
@@ -1881,7 +1924,7 @@ static void DrawIcon(Gdiplus::Graphics& g, int which, bool playing, Gdiplus::REA
         }
         return;
     }
-    Gdiplus::REAL dir = which == HitPrev ? -1.0f : 1.0f;  // prev points left
+    Gdiplus::REAL dir = which == HitPrev ? -1.0f : 1.0f;
     Gdiplus::REAL bar = s * 0.15f;
     Gdiplus::PointF tri[3] = {{cx - dir * s * 0.40f, cy - s * 0.42f}, {cx - dir * s * 0.40f, cy + s * 0.42f}, {cx + dir * s * 0.28f, cy}};
     g.FillPolygon(&b, tri, 3);
@@ -1889,11 +1932,10 @@ static void DrawIcon(Gdiplus::Graphics& g, int which, bool playing, Gdiplus::REA
     FillRound(g, color, Gdiplus::RectF(bx, cy - s * 0.42f, bar, s * 0.84f), bar * 0.4f);
 }
 
-// UI-thread-only render state.
 struct UiState {
     int hover = HitNone, pressed = HitNone;
     bool tracking = false;
-    RECT hitRects[4]{};      // client coords; empty = not clickable
+    RECT hitRects[4]{};
     bool hitEnabled[4]{};
     std::wstring lastSig;
     bool visible = false;
@@ -1901,8 +1943,26 @@ struct UiState {
     unsigned artVersion = ~0u;
     int artPx = 0;
     ULONGLONG lastZ = 0;
+    bool glassApplied = false;
+    bool glassLight = false;
+    int lastW = 0, lastH = 0, lastRad = 0;
 };
-static UiState g_ui;
+
+struct Panel {
+    HWND hwnd = nullptr;
+    HWND tray = nullptr;
+    bool secondary = false;
+    UiState ui;
+};
+
+static std::vector<Panel> g_panels;  // UI thread only
+static bool g_panelsGlass = true;    // style used when panels were created
+static HINSTANCE g_uiInst = nullptr;
+
+static Panel* PanelOf(HWND hwnd) {
+    for (auto& p : g_panels) if (p.hwnd == hwnd) return &p;
+    return nullptr;
+}
 
 static std::unique_ptr<Gdiplus::Bitmap> DecodeArt(const std::vector<BYTE>& bytes, int px, Gdiplus::REAL radius) {
     IStream* stm = SHCreateMemStream(bytes.data(), (UINT)bytes.size());
@@ -1925,7 +1985,7 @@ static std::unique_ptr<Gdiplus::Bitmap> DecodeArt(const std::vector<BYTE>& bytes
             Gdiplus::Graphics g(out.get());
             g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
             g.Clear(Gdiplus::Color(0, 0, 0, 0));
-            Gdiplus::TextureBrush tb(&scaled);  // antialiased rounded corners (SetClip would be jagged)
+            Gdiplus::TextureBrush tb(&scaled);
             Gdiplus::GraphicsPath p;
             RoundRectPath(p, 0, 0, (Gdiplus::REAL)px, (Gdiplus::REAL)px, radius);
             g.FillPath(&tb, &p);
@@ -1935,7 +1995,6 @@ static std::unique_ptr<Gdiplus::Bitmap> DecodeArt(const std::vector<BYTE>& bytes
     return out;
 }
 
-// Draws a segmented line left-aligned in r with ellipsis on overflow.
 static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font& font, const Gdiplus::RectF& r,
                      Gdiplus::ARGB textColor, bool shadow) {
     Gdiplus::StringFormat fmt(Gdiplus::StringFormat::GenericTypographic());
@@ -1959,268 +2018,520 @@ static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font
         Gdiplus::SolidBrush b{Gdiplus::Color(col)};
         g.DrawString(sg.text.c_str(), -1, &font, dst, &fmt, &b);
         x += box.Width;
-        if (box.Width + 1 > avail) break;  // this segment was cut with an ellipsis
+        if (box.Width + 1 > avail) break;
     }
 }
 
-static void HideWindow(HWND hwnd) {
-    if (IsWindowVisible(hwnd)) ShowWindow(hwnd, SW_HIDE);
-    g_ui.visible = false;
-    g_ui.lastSig.clear();
-    g_ui.hover = g_ui.pressed = HitNone;
+// AccentBlurBehind (AABBGGRR GradientColor). Same family as zen-explorer-styler.
+static void ApplyPanelGlass(HWND hwnd, bool enable, bool light) {
+    using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, void*);
+    static auto pSet = (SetWindowCompositionAttribute_t)GetProcAddress(GetModuleHandleW(L"user32.dll"),
+                                                                       "SetWindowCompositionAttribute");
+
+    HRGN hRgn = enable ? CreateRectRgn(0, 0, -1, -1) : nullptr;
+    DWM_BLURBEHIND bb{};
+    bb.dwFlags = DWM_BB_ENABLE | (enable ? DWM_BB_BLURREGION : 0u);
+    bb.fEnable = enable ? TRUE : FALSE;
+    bb.hRgnBlur = hRgn;
+    DwmEnableBlurBehindWindow(hwnd, &bb);
+    if (hRgn) DeleteObject(hRgn);
+
+    if (!pSet) return;
+
+    struct ACCENT_POLICY { int AccentState; int AccentFlags; int GradientColor; int AnimationId; };
+    struct WINDOWCOMPOSITIONATTRIBDATA { DWORD Attrib; PVOID pvData; SIZE_T cbData; };
+    constexpr int ACCENT_ENABLE_ACRYLICBLURBEHIND = 4;
+    constexpr int ACCENT_DISABLED = 0;
+    constexpr DWORD WCA_ACCENT_POLICY = 19;
+
+    // AABBGGRR — readable over glass in both themes.
+    int color = light ? (int)0xA0F5F5F5 : (int)0xA0181818;
+    ACCENT_POLICY policy{};
+    if (enable) {
+        policy.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
+        policy.AccentFlags = 2;
+        policy.GradientColor = color;
+    } else {
+        policy.AccentState = ACCENT_DISABLED;
+    }
+    WINDOWCOMPOSITIONATTRIBDATA data{WCA_ACCENT_POLICY, &policy, sizeof(policy)};
+    pSet(hwnd, &data);
 }
 
-static void Render(HWND hwnd, bool force = false) {
-    Settings s = GetSettings();
-    RefreshEnv(force);
-    HWND tray = FindPrimaryTaskbar();
+static void ApplyRoundRgn(HWND hwnd, int w, int h, int radiusPx) {
+    if (w <= 0 || h <= 0) return;
+    int d = std::max(2, radiusPx * 2);
+    HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, d, d);
+    SetWindowRgn(hwnd, rgn, TRUE);
+}
+
+static void HidePanel(Panel& panel) {
+    if (panel.hwnd && IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_HIDE);
+    panel.ui.visible = false;
+    panel.ui.lastSig.clear();
+    panel.ui.hover = panel.ui.pressed = HitNone;
+}
+
+struct Layout {
+    int x = 0, y = 0, w = 0, h = 0;
+    int dpi = 96;
+    int pad = 0, art = 0, btn = 0, cur = 0, textRight = 0;
+    RECT artRc{};
+    RECT btnRc[3]{};
+    bool showArt = false, showButtons = false, bodyClickable = false;
+    Gdiplus::ARGB text = 0xFFFFFFFF;
+    bool shadow = false;
+    bool light = false;
+    Content content;
+};
+
+static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool forceEnv) {
+    RefreshEnv(forceEnv);
+    HWND tray = panel.tray;
+    if (!tray || !IsWindow(tray)) return false;
     RECT tr{};
-    Content c = BuildContent(s);
-    bool nothing = !c.media && !c.aiOnly && !c.idle;
-    bool hide = !tray || !GetWindowRect(tray, &tr) || !IsWindowVisible(tray) || nothing ||
-                TaskbarMostlyOffscreen(tray, tr) || (s.hideInFullscreen && g_env.fullscreen);
-    if (hide) { HideWindow(hwnd); return; }
+    if (!GetWindowRect(tray, &tr) || !IsWindowVisible(tray)) return false;
+    if (TaskbarMostlyOffscreen(tray, tr)) return false;
+
+    L.content = BuildContent(s);
+    bool nothing = !L.content.media && !L.content.aiOnly && !L.content.idle;
+    if (nothing) return false;
+
+    HMONITOR mon = MonitorFromWindow(tray, MONITOR_DEFAULTTONEAREST);
+    if (ShouldHideForFullscreen(mon, s.hideInFullscreen)) return false;
 
     UINT dpi = GetDpiForWindow(tray);
     if (!dpi) dpi = 96;
+    L.dpi = (int)dpi;
     auto D = [dpi](double v) { return (int)(v * dpi / 96.0 + 0.5); };
-    int w = D(s.width), h = tr.bottom - tr.top;
-    if (h <= 0 || h > 1000 || w <= 0) return;
+    L.w = D(s.width);
+    L.h = tr.bottom - tr.top;
+    if (L.h <= 0 || L.h > 1000 || L.w <= 0) return false;
     int gap = MulDiv(s.xOffset, (int)dpi, 96);
     bool trayMode = s.posMode == PosMode::Tray || (s.posMode == PosMode::Widgets && g_env.alignLeft);
-    int x = tr.left + gap;
+    L.x = tr.left + gap;
     if (trayMode) {
         HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
         RECT nr{};
         if (notify && GetWindowRect(notify, &nr) && nr.right - nr.left > D(40) && nr.left > tr.left && nr.right <= tr.right)
-            x = nr.left - w - gap;
+            L.x = nr.left - L.w - gap;
         else
-            x = tr.right - w - gap - D(260);  // Win11 XAML tray: rough guess, tune with xOffset
+            L.x = tr.right - L.w - gap - D(260);
     }
-    x = std::clamp(x, (int)tr.left, std::max((int)tr.left, (int)tr.right - w));
+    L.x = std::clamp(L.x, (int)tr.left, std::max((int)tr.left, (int)tr.right - L.w));
+    L.y = tr.top;
 
-    Gdiplus::ARGB text = ResolveTextColor(s.textColorMode, g_env.lightTaskbar);
-    bool shadow = IsLightColor(text) && s.panelBg != PanelBg::Card;
+    L.light = g_env.lightTaskbar;
+    L.text = ResolveTextColor(s.textColorMode, L.light);
+    L.shadow = IsLightColor(L.text) && !(s.panelGlass) && s.panelBg != PanelBg::Card;
 
-    // Layout (client px)
-    int pad = D(6);
-    bool showArt = s.showArt && (c.media || c.aiOnly);
-    bool showButtons = s.showButtons && c.media;
-    int art = std::min(h - D(10), D(40));
-    int cur = pad;
-    RECT artRc{};
-    if (showArt && art > 8) { artRc = {cur, (h - art) / 2, cur + art, (h - art) / 2 + art}; cur += art + D(8); }
-    int btn = std::min(D(32), h - D(8));
-    RECT btnRc[3]{};
-    int textRight = w - pad;
-    if (showButtons) {
-        int right = w - D(4);
-        for (int i = 2; i >= 0; --i) { btnRc[i] = {right - btn, (h - btn) / 2, right, (h - btn) / 2 + btn}; right -= btn; }
-        textRight = btnRc[0].left - D(4);
+    L.pad = D(6);
+    L.showArt = s.showArt && (L.content.media || L.content.aiOnly);
+    L.showButtons = s.showButtons && L.content.media;
+    L.art = std::min(L.h - D(10), D(40));
+    L.cur = L.pad;
+    if (L.showArt && L.art > 8) {
+        L.artRc = {L.cur, (L.h - L.art) / 2, L.cur + L.art, (L.h - L.art) / 2 + L.art};
+        L.cur += L.art + D(8);
     }
-    bool bodyClickable = c.media && s.clickOpens;
-    for (int i = 0; i < 3; ++i) { g_ui.hitRects[i] = btnRc[i]; }
-    g_ui.hitEnabled[HitPrev] = showButtons && c.canPrev;
-    g_ui.hitEnabled[HitPlay] = showButtons && c.canPlayPause;
-    g_ui.hitEnabled[HitNext] = showButtons && c.canNext;
-    g_ui.hitRects[HitBody] = bodyClickable ? RECT{D(2), D(2), showButtons ? btnRc[0].left : w - D(2), h - D(2)} : RECT{};
-    g_ui.hitEnabled[HitBody] = bodyClickable;
-    if (g_ui.hover != HitNone && !g_ui.hitEnabled[g_ui.hover]) g_ui.hover = HitNone;
+    L.btn = std::min(D(32), L.h - D(8));
+    L.textRight = L.w - L.pad;
+    if (L.showButtons) {
+        int right = L.w - D(4);
+        for (int i = 2; i >= 0; --i) {
+            L.btnRc[i] = {right - L.btn, (L.h - L.btn) / 2, right, (L.h - L.btn) / 2 + L.btn};
+            right -= L.btn;
+        }
+        L.textRight = L.btnRc[0].left - D(4);
+    }
+    L.bodyClickable = L.content.media && s.clickOpens;
+    for (int i = 0; i < 3; ++i) panel.ui.hitRects[i] = L.btnRc[i];
+    panel.ui.hitEnabled[HitPrev] = L.showButtons && L.content.canPrev;
+    panel.ui.hitEnabled[HitPlay] = L.showButtons && L.content.canPlayPause;
+    panel.ui.hitEnabled[HitNext] = L.showButtons && L.content.canNext;
+    panel.ui.hitRects[HitBody] =
+        L.bodyClickable ? RECT{D(2), D(2), L.showButtons ? L.btnRc[0].left : L.w - D(2), L.h - D(2)} : RECT{};
+    panel.ui.hitEnabled[HitBody] = L.bodyClickable;
+    if (panel.ui.hover != HitNone && !panel.ui.hitEnabled[panel.ui.hover]) panel.ui.hover = HitNone;
 
-    // Art cache (decoded on this thread; GDI+ objects never leave it)
-    if (showArt && c.thumb && (g_ui.artVersion != c.thumbVersion || g_ui.artPx != art)) {
-        g_ui.art = DecodeArt(*c.thumb, art, (Gdiplus::REAL)D(6));
-        g_ui.artVersion = c.thumbVersion;
-        g_ui.artPx = art;
-    } else if (!c.thumb && g_ui.art) {
-        g_ui.art.reset();
-        g_ui.artVersion = c.thumbVersion;
+    if (L.showArt && L.content.thumb && (panel.ui.artVersion != L.content.thumbVersion || panel.ui.artPx != L.art)) {
+        panel.ui.art = DecodeArt(*L.content.thumb, L.art, (Gdiplus::REAL)D(6));
+        panel.ui.artVersion = L.content.thumbVersion;
+        panel.ui.artPx = L.art;
+    } else if (!L.content.thumb && panel.ui.art) {
+        panel.ui.art.reset();
+        panel.ui.artVersion = L.content.thumbVersion;
+    }
+    return true;
+}
+
+static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, const Layout& L, bool glass) {
+    auto D = [&](double v) { return (int)(v * L.dpi / 96.0 + 0.5); };
+    g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
+    g.SetTextRenderingHint(glass ? Gdiplus::TextRenderingHintClearTypeGridFit
+                                 : Gdiplus::TextRenderingHintAntiAlias);
+    // Layered/ULW path needs a fully cleared PARGB buffer. Glass path paints onto a
+    // black-cleared window DC so AccentBlurBehind shows through untouched pixels.
+    if (!glass) g.Clear(Gdiplus::Color(0, 0, 0, 0));
+
+    Gdiplus::REAL fw = (Gdiplus::REAL)L.w, fh = (Gdiplus::REAL)L.h;
+    Gdiplus::RectF panelRc((Gdiplus::REAL)D(2), (Gdiplus::REAL)D(4), fw - D(4), fh - D(8));
+    Gdiplus::REAL rad = (Gdiplus::REAL)D(8);
+
+    if (glass) {
+        // Soft inset highlight so buttons stay readable on acrylic; no solid card fill.
+        Gdiplus::GraphicsPath p;
+        RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
+        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x28000000 : 0x28FFFFFF), 1.0f);
+        g.DrawPath(&pen, &p);
+    } else if (s.panelBg == PanelBg::Subtle) {
+        FillRound(g, L.light ? 0x40FFFFFF : 0x30000000, panelRc, rad);
+    } else if (s.panelBg == PanelBg::Card) {
+        FillRound(g, L.light ? 0xB8F7F7F7 : 0xB8202020, panelRc, rad);
+        Gdiplus::GraphicsPath p;
+        RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
+        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x30000000 : 0x30FFFFFF), 1.0f);
+        g.DrawPath(&pen, &p);
+    } else if (L.bodyClickable) {
+        FillRound(g, 0x01000000, panelRc, rad);
     }
 
-    std::wstring sig = std::to_wstring(x) + L"," + std::to_wstring(tr.top) + L"," + std::to_wstring(w) + L"," +
-                       std::to_wstring(h) + L"," + std::to_wstring(dpi) + L"," + std::to_wstring(text) + L"," +
-                       std::to_wstring(g_ui.hover) + std::to_wstring(g_ui.pressed) + (c.playing ? L"P" : L"p") +
-                       (c.canPrev ? L"1" : L"0") + (c.canNext ? L"1" : L"0") + (c.canPlayPause ? L"1" : L"0") +
-                       std::to_wstring(c.thumbVersion) + (g_ui.art ? L"A" : L"a") + (c.aiOnly ? L"I" : L"i") +
-                       std::to_wstring((int)s.panelBg) + std::to_wstring(s.fontSize) + s.font + (s.bold ? L"B" : L"b") +
-                       L"\x1D" + LineKey(c.line1) + L"\x1D" + LineKey(c.line2);
+    if (!glass) {
+        for (int i = 0; i < 3; ++i)
+            if (panel.ui.hitEnabled[i]) {
+                const RECT& r = L.btnRc[i];
+                FillRound(g, 0x01000000,
+                          Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
+                                         (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)),
+                          rad);
+            }
+    }
+
+    if (panel.ui.hover != HitNone) {
+        BYTE a = panel.ui.pressed == panel.ui.hover ? 0x40 : 0x22;
+        const RECT& r = panel.ui.hitRects[panel.ui.hover];
+        FillRound(g, WithAlpha(L.text, a),
+                  Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
+                                 (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)),
+                  panel.ui.hover == HitBody ? rad : (Gdiplus::REAL)D(6));
+    }
+
+    if (L.showArt && L.artRc.right > L.artRc.left) {
+        Gdiplus::RectF ar((Gdiplus::REAL)L.artRc.left, (Gdiplus::REAL)L.artRc.top, (Gdiplus::REAL)L.art,
+                          (Gdiplus::REAL)L.art);
+        if (panel.ui.art && L.content.media) {
+            g.DrawImage(panel.ui.art.get(), ar.X, ar.Y, ar.Width, ar.Height);
+        } else {
+            FillRound(g, WithAlpha(L.text, 0x26), ar, (Gdiplus::REAL)D(6));
+            Gdiplus::FontFamily sym(L"Segoe UI Symbol");
+            const Gdiplus::FontFamily* sf = sym.IsAvailable() ? &sym : Gdiplus::FontFamily::GenericSansSerif();
+            Gdiplus::Font f(sf, L.art * (L.content.aiOnly ? 0.34f : 0.5f), Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+            Gdiplus::StringFormat cf;
+            cf.SetAlignment(Gdiplus::StringAlignmentCenter);
+            cf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+            Gdiplus::SolidBrush b{Gdiplus::Color(WithAlpha(L.text, 0xC0))};
+            g.DrawString(L.content.aiOnly ? L"AI" : L"\x266A", -1, &f, ar, &cf, &b);
+        }
+    }
+
+    Gdiplus::FontFamily fam(s.font.c_str());
+    const Gdiplus::FontFamily* useFam = fam.IsAvailable() ? &fam : Gdiplus::FontFamily::GenericSansSerif();
+    int style = s.bold ? Gdiplus::FontStyleBold : Gdiplus::FontStyleRegular;
+    bool two = !L.content.line2.empty();
+    Gdiplus::REAL px1 = (Gdiplus::REAL)s.fontSize * (Gdiplus::REAL)L.dpi / 72.0f;
+    if (two) px1 = std::min(px1, fh * 0.34f);
+    else px1 = std::min(px1, fh * 0.5f);
+    Gdiplus::REAL px2 = px1 * 0.82f;
+    Gdiplus::Font font1(useFam, px1, style, Gdiplus::UnitPixel);
+    Gdiplus::Font font2(useFam, px2, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::REAL tx = (Gdiplus::REAL)L.cur, tw = (Gdiplus::REAL)(L.textRight - L.cur);
+    if (tw > 8) {
+        if (two) {
+            Gdiplus::REAL h1 = px1 * 1.32f, h2 = px2 * 1.32f, top = (fh - h1 - h2) / 2;
+            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, top, tw, h1), L.text, L.shadow);
+            DrawLine(g, L.content.line2, font2, Gdiplus::RectF(tx, top + h1, tw, h2), WithAlpha(L.text, 0xB8), L.shadow);
+        } else {
+            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, 0, tw, fh), L.text, L.shadow);
+        }
+    }
+
+    if (L.showButtons) {
+        for (int i = 0; i < 3; ++i) {
+            const RECT& r = L.btnRc[i];
+            Gdiplus::REAL cx = (r.left + r.right) / 2.0f, cy = (r.top + r.bottom) / 2.0f;
+            Gdiplus::REAL sz = (Gdiplus::REAL)D(i == HitPlay ? 13 : 11);
+            DrawIcon(g, i, L.content.playing, cx, cy, sz, panel.ui.hitEnabled[i] ? L.text : WithAlpha(L.text, 0x55));
+        }
+    }
+    g.Flush(Gdiplus::FlushIntentionSync);
+}
+
+static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
+    return std::to_wstring(L.x) + L"," + std::to_wstring(L.y) + L"," + std::to_wstring(L.w) + L"," +
+           std::to_wstring(L.h) + L"," + std::to_wstring(L.dpi) + L"," + std::to_wstring(L.text) + L"," +
+           std::to_wstring(panel.ui.hover) + std::to_wstring(panel.ui.pressed) + (L.content.playing ? L"P" : L"p") +
+           (L.content.canPrev ? L"1" : L"0") + (L.content.canNext ? L"1" : L"0") +
+           (L.content.canPlayPause ? L"1" : L"0") + std::to_wstring(L.content.thumbVersion) +
+           (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") +
+           std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
+           (s.bold ? L"B" : L"b") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
+}
+
+static void RenderPanel(Panel& panel, bool force = false) {
+    if (!panel.hwnd || !IsWindow(panel.hwnd)) return;
+    Settings s = GetSettings();
+    Layout L;
+    if (!ComputeLayout(panel, s, L, force)) {
+        HidePanel(panel);
+        return;
+    }
+
+    const bool glass = s.panelGlass;
+    std::wstring sig = MakeSig(L, panel, s);
     ULONGLONG now = GetTickCount64();
-    if (!force && g_ui.visible && sig == g_ui.lastSig) {
-        // Re-assert Z order now and then without redrawing (owned windows stay above their owner anyway).
-        if (now - g_ui.lastZ > 1000) {
-            SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-            g_ui.lastZ = now;
+    if (!force && panel.ui.visible && sig == panel.ui.lastSig) {
+        if (now - panel.ui.lastZ > 1000) {
+            SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+            panel.ui.lastZ = now;
         }
         return;
     }
 
-    HDC screen = GetDC(nullptr);
-    HDC mem = CreateCompatibleDC(screen);
-    BITMAPINFO bi{};
-    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bi.bmiHeader.biWidth = w;
-    bi.bmiHeader.biHeight = -h;
-    bi.bmiHeader.biPlanes = 1;
-    bi.bmiHeader.biBitCount = 32;
-    bi.bmiHeader.biCompression = BI_RGB;
-    void* bits = nullptr;
-    HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
-    if (!bmp || !bits) { if (bmp) DeleteObject(bmp); DeleteDC(mem); ReleaseDC(nullptr, screen); return; }
-    HGDIOBJ old = SelectObject(mem, bmp);
-    {
-        // Draw straight into the DIB as premultiplied ARGB, which is what ULW_ALPHA expects.
-        Gdiplus::Bitmap canvas(w, h, w * 4, PixelFormat32bppPARGB, (BYTE*)bits);
-        Gdiplus::Graphics g(&canvas);
-        g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-        g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
-        g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);  // grayscale AA: correct on per-pixel alpha
-        g.Clear(Gdiplus::Color(0, 0, 0, 0));
-        Gdiplus::REAL fw = (Gdiplus::REAL)w, fh = (Gdiplus::REAL)h;
-        Gdiplus::RectF panel((Gdiplus::REAL)D(2), (Gdiplus::REAL)D(4), fw - D(4), fh - D(8));
-        Gdiplus::REAL rad = (Gdiplus::REAL)D(8);
-
-        // Background. With "none", a 1/255 fill keeps the clickable body hit-testable without being visible.
-        bool light = g_env.lightTaskbar;
-        if (s.panelBg == PanelBg::Subtle) FillRound(g, light ? 0x40FFFFFF : 0x30000000, panel, rad);
-        else if (s.panelBg == PanelBg::Card) {
-            FillRound(g, light ? 0xB8F7F7F7 : 0xB8202020, panel, rad);
-            Gdiplus::GraphicsPath p;
-            RoundRectPath(p, panel.X, panel.Y, panel.Width, panel.Height, rad);
-            Gdiplus::Pen pen(Gdiplus::Color(light ? 0x30000000 : 0x30FFFFFF), 1.0f);
-            g.DrawPath(&pen, &p);
-        } else if (bodyClickable) FillRound(g, 0x01000000, panel, rad);
-        for (int i = 0; i < 3; ++i)
-            if (g_ui.hitEnabled[i]) {
-                const RECT& r = btnRc[i];
-                FillRound(g, 0x01000000, Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
-                                                         (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)), rad);
-            }
-
-        // Hover / pressed feedback
-        if (g_ui.hover != HitNone) {
-            BYTE a = g_ui.pressed == g_ui.hover ? 0x40 : 0x22;
-            const RECT& r = g_ui.hitRects[g_ui.hover];
-            FillRound(g, WithAlpha(text, a), Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
-                                                            (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)),
-                      g_ui.hover == HitBody ? rad : (Gdiplus::REAL)D(6));
+    if (glass) {
+        if (!panel.ui.glassApplied || panel.ui.glassLight != L.light) {
+            ApplyPanelGlass(panel.hwnd, true, L.light);
+            panel.ui.glassApplied = true;
+            panel.ui.glassLight = L.light;
         }
-
-        // Album art or placeholder
-        if (showArt && artRc.right > artRc.left) {
-            Gdiplus::RectF ar((Gdiplus::REAL)artRc.left, (Gdiplus::REAL)artRc.top, (Gdiplus::REAL)art, (Gdiplus::REAL)art);
-            if (g_ui.art && c.media) {
-                g.DrawImage(g_ui.art.get(), ar.X, ar.Y, ar.Width, ar.Height);
-            } else {
-                FillRound(g, WithAlpha(text, 0x26), ar, (Gdiplus::REAL)D(6));
-                Gdiplus::FontFamily sym(L"Segoe UI Symbol");
-                const Gdiplus::FontFamily* sf = sym.IsAvailable() ? &sym : Gdiplus::FontFamily::GenericSansSerif();
-                Gdiplus::Font f(sf, art * (c.aiOnly ? 0.34f : 0.5f), Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
-                Gdiplus::StringFormat cf;
-                cf.SetAlignment(Gdiplus::StringAlignmentCenter);
-                cf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
-                Gdiplus::SolidBrush b{Gdiplus::Color(WithAlpha(text, 0xC0))};
-                g.DrawString(c.aiOnly ? L"AI" : L"\x266A", -1, &f, ar, &cf, &b);
-            }
+        int rad = (int)(8.0 * L.dpi / 96.0 + 0.5);
+        if (panel.ui.lastW != L.w || panel.ui.lastH != L.h || panel.ui.lastRad != rad) {
+            ApplyRoundRgn(panel.hwnd, L.w, L.h, rad);
+            panel.ui.lastW = L.w;
+            panel.ui.lastH = L.h;
+            panel.ui.lastRad = rad;
         }
+        SetWindowPos(panel.hwnd, HWND_TOP, L.x, L.y, L.w, L.h, SWP_NOACTIVATE);
 
-        // Text
-        Gdiplus::FontFamily fam(s.font.c_str());
-        const Gdiplus::FontFamily* useFam = fam.IsAvailable() ? &fam : Gdiplus::FontFamily::GenericSansSerif();
-        int style = s.bold ? Gdiplus::FontStyleBold : Gdiplus::FontStyleRegular;
-        bool two = !c.line2.empty();
-        Gdiplus::REAL px1 = (Gdiplus::REAL)s.fontSize * (Gdiplus::REAL)dpi / 72.0f;
-        if (two) px1 = std::min(px1, fh * 0.34f);
-        else px1 = std::min(px1, fh * 0.5f);
-        Gdiplus::REAL px2 = px1 * 0.82f;
-        Gdiplus::Font font1(useFam, px1, style, Gdiplus::UnitPixel);
-        Gdiplus::Font font2(useFam, px2, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
-        Gdiplus::REAL tx = (Gdiplus::REAL)cur, tw = (Gdiplus::REAL)(textRight - cur);
-        if (tw > 8) {
-            if (two) {
-                Gdiplus::REAL h1 = px1 * 1.32f, h2 = px2 * 1.32f, top = (fh - h1 - h2) / 2;
-                DrawLine(g, c.line1, font1, Gdiplus::RectF(tx, top, tw, h1), text, shadow);
-                DrawLine(g, c.line2, font2, Gdiplus::RectF(tx, top + h1, tw, h2), WithAlpha(text, 0xB8), shadow);
-            } else {
-                DrawLine(g, c.line1, font1, Gdiplus::RectF(tx, 0, tw, fh), text, shadow);
+        // Black client + opaque GDI+ content: AccentBlurBehind supplies the acrylic
+        // where we do not paint. Avoid UpdateLayeredWindow / BitBlt of PARGB zeros
+        // (those become opaque black and hide the blur).
+        HDC hdc = GetDC(panel.hwnd);
+        if (!hdc) return;
+        RECT rc{0, 0, L.w, L.h};
+        FillRect(hdc, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
+        {
+            Gdiplus::Graphics g(hdc);
+            // Draw onto an intermediate PARGB bitmap then AlphaBlend so antialiased
+            // text/icons composite cleanly over the black/acrylic client.
+            Gdiplus::Bitmap canvas(L.w, L.h, PixelFormat32bppPARGB);
+            {
+                Gdiplus::Graphics cg(&canvas);
+                PaintContent(cg, panel, s, L, true);
             }
+            Gdiplus::ImageAttributes attrs;
+            // Only blend where we drew (alpha > 0); leave black acrylic elsewhere.
+            g.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+            g.DrawImage(&canvas, 0, 0, L.w, L.h);
         }
-
-        // Buttons
-        if (showButtons) {
-            for (int i = 0; i < 3; ++i) {
-                const RECT& r = btnRc[i];
-                Gdiplus::REAL cx = (r.left + r.right) / 2.0f, cy = (r.top + r.bottom) / 2.0f;
-                Gdiplus::REAL sz = (Gdiplus::REAL)D(i == HitPlay ? 13 : 11);
-                DrawIcon(g, i, c.playing, cx, cy, sz, g_ui.hitEnabled[i] ? text : WithAlpha(text, 0x55));
-            }
+        ReleaseDC(panel.hwnd, hdc);
+    } else {
+        if (panel.ui.glassApplied) {
+            ApplyPanelGlass(panel.hwnd, false, L.light);
+            SetWindowRgn(panel.hwnd, nullptr, TRUE);
+            panel.ui.glassApplied = false;
+            panel.ui.lastW = panel.ui.lastH = panel.ui.lastRad = 0;
         }
-        g.Flush(Gdiplus::FlushIntentionSync);
+        HDC screen = GetDC(nullptr);
+        HDC mem = CreateCompatibleDC(screen);
+        BITMAPINFO bi{};
+        bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bi.bmiHeader.biWidth = L.w;
+        bi.bmiHeader.biHeight = -L.h;
+        bi.bmiHeader.biPlanes = 1;
+        bi.bmiHeader.biBitCount = 32;
+        bi.bmiHeader.biCompression = BI_RGB;
+        void* bits = nullptr;
+        HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+        if (!bmp || !bits) {
+            if (bmp) DeleteObject(bmp);
+            DeleteDC(mem);
+            ReleaseDC(nullptr, screen);
+            return;
+        }
+        HGDIOBJ old = SelectObject(mem, bmp);
+        {
+            Gdiplus::Bitmap canvas(L.w, L.h, L.w * 4, PixelFormat32bppPARGB, (BYTE*)bits);
+            Gdiplus::Graphics g(&canvas);
+            PaintContent(g, panel, s, L, false);
+        }
+        POINT ptDst{L.x, L.y}, ptSrc{0, 0};
+        SIZE sz{L.w, L.h};
+        BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+        UpdateLayeredWindow(panel.hwnd, screen, &ptDst, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA);
+        SelectObject(mem, old);
+        DeleteObject(bmp);
+        DeleteDC(mem);
+        ReleaseDC(nullptr, screen);
     }
-    POINT ptDst{x, tr.top}, ptSrc{0, 0};
-    SIZE sz{w, h};
-    BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-    UpdateLayeredWindow(hwnd, screen, &ptDst, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA);
-    SelectObject(mem, old);
-    DeleteObject(bmp);
-    DeleteDC(mem);
-    ReleaseDC(nullptr, screen);
-    g_ui.lastSig = sig;
-    if (!IsWindowVisible(hwnd)) ShowWindow(hwnd, SW_SHOWNOACTIVATE);
-    g_ui.visible = true;
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    g_ui.lastZ = now;
+
+    panel.ui.lastSig = sig;
+    if (!IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_SHOWNOACTIVATE);
+    panel.ui.visible = true;
+    SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    panel.ui.lastZ = now;
 }
 
-static int HitTestClient(POINT pt) {
-    for (int i = 0; i < 4; ++i)  // buttons first (body rect excludes them anyway)
-        if (g_ui.hitEnabled[i] && PtInRect(&g_ui.hitRects[i], pt)) return i;
+static int HitTestClient(Panel& panel, POINT pt) {
+    for (int i = 0; i < 4; ++i)
+        if (panel.ui.hitEnabled[i] && PtInRect(&panel.ui.hitRects[i], pt)) return i;
     return HitNone;
 }
 
+static void DestroyPanelWindow(Panel& panel) {
+    if (panel.hwnd && IsWindow(panel.hwnd)) {
+        KillTimer(panel.hwnd, TIMER_TICK);
+        DestroyWindow(panel.hwnd);
+    }
+    panel.hwnd = nullptr;
+    panel.ui = UiState{};
+}
+
+static HWND CreatePanelWindow(HWND tray, bool glass) {
+    DWORD ex = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+    if (!glass) ex |= WS_EX_LAYERED;
+    HWND hwnd = CreateWindowExW(ex, kWndClass, L"ZenDesktop Taskbar Music", WS_POPUP, 0, 0, 1, 1, tray, nullptr,
+                                g_uiInst, nullptr);
+    if (!hwnd) {
+        Wh_Log(L"CreateWindowEx failed %u", GetLastError());
+        return nullptr;
+    }
+    if (glass) ApplyPanelGlass(hwnd, true, g_env.lightTaskbar);
+    SetTimer(hwnd, TIMER_TICK, 100, nullptr);
+    return hwnd;
+}
+
+static void SyncPanels(bool forceRecreate) {
+    Settings s = GetSettings();
+    RefreshEnv(true);
+    bool wantGlass = s.panelGlass;
+    if (forceRecreate || wantGlass != g_panelsGlass) {
+        for (auto& p : g_panels) DestroyPanelWindow(p);
+        g_panels.clear();
+        g_panelsGlass = wantGlass;
+    }
+
+    auto trays = FindTaskbars(s.multiMonitor);
+    // Drop panels whose tray is gone.
+    for (auto it = g_panels.begin(); it != g_panels.end();) {
+        bool alive = false;
+        for (HWND t : trays)
+            if (t == it->tray) {
+                alive = true;
+                break;
+            }
+        if (!alive || !it->hwnd || !IsWindow(it->hwnd) || !IsWindow(it->tray)) {
+            DestroyPanelWindow(*it);
+            it = g_panels.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    // Add missing trays.
+    HWND primary = FindPrimaryTaskbar();
+    for (HWND tray : trays) {
+        bool have = false;
+        for (auto& p : g_panels)
+            if (p.tray == tray) {
+                have = true;
+                break;
+            }
+        if (have) continue;
+        HWND hwnd = CreatePanelWindow(tray, g_panelsGlass);
+        if (!hwnd) continue;
+        Panel panel;
+        panel.hwnd = hwnd;
+        panel.tray = tray;
+        panel.secondary = (tray != primary);
+        g_panels.push_back(std::move(panel));
+        RenderPanel(g_panels.back(), true);
+    }
+}
+
+static void RenderAll(bool force) {
+    for (auto& p : g_panels) RenderPanel(p, force);
+}
+
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    Panel* panel = PanelOf(hwnd);
     switch (msg) {
         case WM_TIMER:
-            if (g_stop) { DestroyWindow(hwnd); return 0; }  // covers an uninit that raced our thread start
-            if (wp == TIMER_TICK) Render(hwnd);
+            if (g_stop) {
+                DestroyWindow(hwnd);
+                return 0;
+            }
+            if (wp == TIMER_TICK && panel) RenderPanel(*panel);
             return 0;
-        case WM_ZEN_SETTINGS:
+        case WM_PAINT: {
+            // Glass path paints in RenderPanel; validate to clear the update region.
+            PAINTSTRUCT ps;
+            BeginPaint(hwnd, &ps);
+            EndPaint(hwnd, &ps);
+            if (panel) RenderPanel(*panel, true);
+            return 0;
+        }
+        case WM_ERASEBKGND:
+            return 1;
         case WM_DISPLAYCHANGE:
         case WM_DPICHANGED:
-            Render(hwnd, true);
+            if (panel) RenderPanel(*panel, true);
             return 0;
-        case WM_SETTINGCHANGE:  // light/dark switch ("ImmersiveColorSet"), taskbar alignment
-            Render(hwnd, true);
+        case WM_SETTINGCHANGE:
+            if (panel) RenderPanel(*panel, true);
             return 0;
         case WM_MOUSEACTIVATE:
             return MA_NOACTIVATE;
         case WM_MOUSEMOVE: {
+            if (!panel) return 0;
             POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
-            if (!g_ui.tracking) {
+            if (!panel->ui.tracking) {
                 TRACKMOUSEEVENT tme{sizeof(tme), TME_LEAVE, hwnd, 0};
-                g_ui.tracking = TrackMouseEvent(&tme) != FALSE;
+                panel->ui.tracking = TrackMouseEvent(&tme) != FALSE;
             }
-            int hit = HitTestClient(pt);
-            if (hit != g_ui.hover) { g_ui.hover = hit; Render(hwnd); }
+            int hit = HitTestClient(*panel, pt);
+            if (hit != panel->ui.hover) {
+                panel->ui.hover = hit;
+                RenderPanel(*panel);
+            }
             return 0;
         }
         case WM_MOUSELEAVE:
-            g_ui.tracking = false;
-            if (g_ui.hover != HitNone) { g_ui.hover = HitNone; Render(hwnd); }
+            if (!panel) return 0;
+            panel->ui.tracking = false;
+            if (panel->ui.hover != HitNone) {
+                panel->ui.hover = HitNone;
+                RenderPanel(*panel);
+            }
             return 0;
         case WM_SETCURSOR:
-            if (LOWORD(lp) == HTCLIENT && g_ui.hover != HitNone) { SetCursor(LoadCursorW(nullptr, IDC_HAND)); return TRUE; }
+            if (panel && LOWORD(lp) == HTCLIENT && panel->ui.hover != HitNone) {
+                SetCursor(LoadCursorW(nullptr, IDC_HAND));
+                return TRUE;
+            }
             break;
         case WM_LBUTTONDOWN: {
+            if (!panel) return 0;
             POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
-            g_ui.pressed = HitTestClient(pt);
-            if (g_ui.pressed != HitNone) SetCapture(hwnd);
-            Render(hwnd);
+            panel->ui.pressed = HitTestClient(*panel, pt);
+            if (panel->ui.pressed != HitNone) SetCapture(hwnd);
+            RenderPanel(*panel);
             return 0;
         }
         case WM_LBUTTONUP: {
+            if (!panel) return 0;
             POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
-            int hit = HitTestClient(pt), was = g_ui.pressed;
-            g_ui.pressed = HitNone;
+            int hit = HitTestClient(*panel, pt), was = panel->ui.pressed;
+            panel->ui.pressed = HitNone;
             if (GetCapture() == hwnd) ReleaseCapture();
             if (hit != HitNone && hit == was) {
                 if (hit == HitPrev) PostMediaCmd(MediaCmd::Prev);
@@ -2228,16 +2539,21 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 else if (hit == HitNext) PostMediaCmd(MediaCmd::Next);
                 else if (hit == HitBody) PostMediaCmd(MediaCmd::OpenPlayer);
             }
-            Render(hwnd);
+            RenderPanel(*panel);
             return 0;
         }
         case WM_CAPTURECHANGED:
-            if (g_ui.pressed != HitNone) { g_ui.pressed = HitNone; Render(hwnd); }
+            if (panel && panel->ui.pressed != HitNone) {
+                panel->ui.pressed = HitNone;
+                RenderPanel(*panel);
+            }
             return 0;
         case WM_DESTROY:
             KillTimer(hwnd, TIMER_TICK);
-            g_hwnd = nullptr;
-            PostQuitMessage(0);  // leaves the inner loop; outer loop recreates unless stopping
+            if (panel) {
+                panel->hwnd = nullptr;
+                panel->ui = UiState{};
+            }
             return 0;
     }
     return DefWindowProcW(hwnd, msg, wp, lp);
@@ -2246,48 +2562,57 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 static void UiThread() {
     g_uiThreadId = GetCurrentThreadId();
     MSG m;
-    PeekMessageW(&m, nullptr, WM_USER, WM_USER, PM_NOREMOVE);  // create the message queue now
+    PeekMessageW(&m, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     Gdiplus::GdiplusStartupInput gsi;
     ULONG_PTR gdipToken = 0;
     if (Gdiplus::GdiplusStartup(&gdipToken, &gsi, nullptr) != Gdiplus::Ok) return;
 
-    HINSTANCE inst = nullptr;
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                       (LPCWSTR)&WndProc, &inst);
+                       (LPCWSTR)&WndProc, &g_uiInst);
     WNDCLASSW wc{};
     wc.lpfnWndProc = WndProc;
-    wc.hInstance = inst;
+    wc.hInstance = g_uiInst;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.lpszClassName = kWndClass;
+    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     RegisterClassW(&wc);
 
+    HWND msgHwnd = CreateWindowExW(0, kWndClass, L"ZenLyricsMsg", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
+                                   g_uiInst, nullptr);
+    if (msgHwnd) SetTimer(msgHwnd, TIMER_SYNC, 2000, nullptr);
+
+    SyncPanels(true);
+
     while (!g_stop) {
-        HWND tray = FindPrimaryTaskbar();
-        if (!tray) { if (SleepOrStop(1000)) break; continue; }  // boot / Explorer shell restart
-        // Not WS_EX_TRANSPARENT any more: the buttons must get clicks. Fully transparent pixels still pass through.
-        HWND hwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
-                                    kWndClass, L"ZenDesktop Taskbar Music", WS_POPUP, 0, 0, 1, 1, tray,
-                                    nullptr, inst, nullptr);
-        if (!hwnd) { Wh_Log(L"CreateWindowEx failed %u", GetLastError()); if (SleepOrStop(2000)) break; continue; }
-        g_hwnd = hwnd;
-        g_ui = UiState{};
-        SetTimer(hwnd, TIMER_TICK, 100, nullptr);
-        Render(hwnd, true);
-        BOOL r;
-        while ((r = GetMessageW(&m, nullptr, 0, 0)) > 0) {
-            TranslateMessage(&m);
-            DispatchMessageW(&m);
+        BOOL r = GetMessageW(&m, nullptr, 0, 0);
+        if (r <= 0) break;
+        if (m.message == WM_ZEN_SETTINGS) {
+            SyncPanels(true);
+            RenderAll(true);
+            continue;
         }
-        if (IsWindow(hwnd)) DestroyWindow(hwnd);  // WM_QUIT from uninit while window alive
-        g_hwnd = nullptr;
-        // drain a WM_QUIT posted by our own WM_DESTROY above so the next loop isn't cut short
-        while (PeekMessageW(&m, nullptr, 0, 0, PM_REMOVE)) {}
-        if (!g_stop && SleepOrStop(1000)) break;  // owner destroyed: wait, then recreate
+        if (m.message == WM_ZEN_SYNC) {
+            SyncPanels(false);
+            continue;
+        }
+        if (m.hwnd == msgHwnd && m.message == WM_TIMER && m.wParam == TIMER_SYNC) {
+            SyncPanels(false);
+            continue;
+        }
+        TranslateMessage(&m);
+        DispatchMessageW(&m);
     }
-    g_ui = UiState{};  // frees the cached GDI+ bitmap before GdiplusShutdown
-    UnregisterClassW(kWndClass, inst);
+
+    if (msgHwnd) {
+        KillTimer(msgHwnd, TIMER_SYNC);
+        DestroyWindow(msgHwnd);
+    }
+    for (auto& p : g_panels) DestroyPanelWindow(p);
+    g_panels.clear();
+    UnregisterClassW(kWndClass, g_uiInst);
     Gdiplus::GdiplusShutdown(gdipToken);
+    g_uiInst = nullptr;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2315,7 +2640,7 @@ BOOL Wh_ModInit() {
 
 void Wh_ModSettingsChanged() {
     LoadSettings();
-    if (HWND h = g_hwnd.load()) PostMessageW(h, WM_ZEN_SETTINGS, 0, 0);  // async only
+    if (DWORD tid = g_uiThreadId.load()) PostThreadMessageW(tid, WM_ZEN_SETTINGS, 0, 0);
 }
 
 void Wh_ModUninit() {
