@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 开始菜单美化
 // @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
 // @description:zh-CN 为 Windows 11 开始菜单带来高质量亚克力与磨砂玻璃透明美化效果。
-// @version         4.1.0
+// @version         4.1.1
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -494,6 +494,17 @@ from the **TranslucentTB** project.
     - purple: "🟣 紫色 (Purple)"
     - pink: "🌸 粉色 (Pink)"
     - cyan: "💠 青色 (Cyan)"
+- controlTheme: auto
+  $name: "🌗 控件深浅色 (Control Theme)"
+  $description: >-
+    系统浅色模式下，开始菜单里没被主题改到的卡片、按钮、列表底色会变成大块半透明白色，
+    看起来像一层白雾。「自动」在文字是白色时（自定义玻璃等主题的默认）把这些控件固定为
+    深色样式，浅色模式和深色模式一样通透；文字是深色时不改。背景色调仍由上方「背景颜色」
+    决定，想要浅色玻璃可以选「晶莹透白」。
+  $options:
+    - auto: "自动（推荐）"
+    - dark: "始终深色 (Always Dark)"
+    - system: "跟随系统（旧行为）"
 - labelVisibility: show
   $name: "👻 文字显示模式 (Label Visibility)"
   $description: >-
@@ -13997,6 +14008,41 @@ void ProcessAllStylesFromSettings() {
         AddElementCustomizationRules(L"FontIcon", fgStyles);
         AddElementCustomizationRules(L"PathIcon", fgStyles);
         AddElementCustomizationRules(L"ContentPresenter", fgStyles);
+    }
+
+    // ZenDesktop: light mode white haze fix. The glass themes only replace the
+    // main backgrounds; the remaining Start menu layers (cards, buttons, list
+    // items, the user/power footer...) keep their system theme brushes, such
+    // as CardBackgroundFillColorDefault, ControlFillColorDefault and
+    // LayerFillColorDefault. Those are 5-6% white in dark mode, so they're
+    // invisible there, but 50-70% white in light mode, which shows as a white
+    // haze over the glass. With white text, forcing the dark element theme
+    // (the same way as upstream's Windows10 and Everblush themes) makes light
+    // mode resolve the same values as dark mode. The background tint still
+    // comes from bgColorMode, so a light glass is still available.
+    if (g_target == Target::StartMenu) {
+        PCWSTR controlTheme = Wh_GetStringSetting(L"controlTheme");
+        bool forceDark = false;
+        if (wcscmp(controlTheme, L"dark") == 0) {
+            forceDark = true;
+        } else if (wcscmp(controlTheme, L"system") != 0) {
+            // "auto", also the default for an empty value. Dark text colors
+            // ("Black" or #xx000000) mean a light design, which is left alone.
+            // "{ThemeResource ...}" text follows the forced theme and stays
+            // readable.
+            bool darkText = newFgBrush == L"Black" ||
+                            (newFgBrush.size() == 9 && newFgBrush[0] == L'#' &&
+                             newFgBrush.ends_with(L"000000"));
+            forceDark = isCustomTheme && !newFgBrush.empty() && !darkText;
+        }
+        Wh_FreeStringSetting(controlTheme);
+
+        if (forceDark) {
+            Wh_Log(L"[ZenDesktop] Forcing the dark element theme");
+            // ElementTheme::Dark.
+            std::vector<std::wstring> themeStyles = {L"RequestedTheme=2"};
+            AddElementCustomizationRules(L"Grid", std::move(themeStyles));
+        }
     }
 
     if (isCustomTheme) {
