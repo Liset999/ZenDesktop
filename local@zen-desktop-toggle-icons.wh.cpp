@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面双击隐藏图标
 // @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
 // @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
-// @version         4.1.1
+// @version         4.1.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -17,7 +17,7 @@
 /*
 # ZenDesktop: 桌面双击隐藏图标
 
-双击桌面空白处即可显示或隐藏桌面图标，也可以在系统闲置一段时间后自动隐藏。直接运行在 `explorer.exe` 中，不需要额外的后台程序。
+双击桌面空白处即可显示或隐藏桌面图标，也可以在系统闲置一段时间后自动隐藏。直接运行在 `explorer.exe` 中，不需要额外的后台程序。如果想要开机就不显示图标，请先在桌面空白处右键 →「查看」，取消勾选「显示桌面图标」。
 
 ## 功能
 
@@ -25,21 +25,23 @@
 - 系统闲置达到设定时长后自动隐藏图标，检测的是全局键盘和鼠标输入。
 - 自动隐藏后任意输入即可恢复；双击手动隐藏的图标不会被自动恢复。
 - 资源管理器重启、插拔显示器后自动重新挂接。
-- 使用系统自带的「显示桌面图标」命令切换，不打乱图标排列。
+- 通过隐藏桌面 `SysListView32` 实现切换；找不到该窗口时回退到系统「显示桌面图标」命令，不打乱图标排列。
 
 ## 设置说明
 
-- **闲置时自动隐藏图标**：关闭后只保留双击切换。
-- **自动隐藏延迟（秒）**：范围 3–60 秒。
-- **任意输入时恢复图标**：只作用于自动隐藏的情况。
+- **闲置时自动隐藏图标**：关闭后只保留双击切换。默认开启。
+- **自动隐藏延迟（秒）**：范围 3–60 秒。默认 5。
+- **任意输入时恢复图标**：仅对自动隐藏生效；双击手动隐藏的图标不会被恢复。默认开启。
 
 ## 兼容性与已知问题
 
 - 适用于 Windows 11，注入 `explorer.exe`。
+- 如果想要开机就不显示图标，请先在桌面空白处右键 →「查看」，取消勾选「显示桌面图标」（系统菜单里是这一项，勾选为显示、取消勾选为隐藏）。系统会记住该状态；本 mod 双击隐藏后也会自行记住，资源管理器重启后仍会保持隐藏。
 - 如果想让任务栏也在闲置时淡出，可以配合任务栏类 mod 使用。
 
 ## 更新日志
 
+- **4.1.2**：补充开机隐藏图标的使用说明；核对设置与说明文字。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
 
@@ -71,12 +73,12 @@
   $name: "Auto-hide delay (seconds)"
   $name:zh-CN: "自动隐藏延迟（秒）"
   $description: "System-wide idle time before icons are hidden, 3–60 seconds. Default: 5."
-  $description:zh-CN: "隐藏图标前需要的全局闲置时间，范围 3–60 秒，默认 5。"
+  $description:zh-CN: "隐藏图标前需要的全局闲置时间，范围 3–60 秒。默认 5。"
 - showIconsOnAnyInput: true
   $name: "Restore icons on any input"
   $name:zh-CN: "任意输入时恢复图标"
   $description: "When icons were hidden automatically, any mouse or keyboard input restores them. Icons hidden by double-click are not affected. Default: on."
-  $description:zh-CN: "图标是自动隐藏的时，任意鼠标或键盘输入都会恢复显示；双击手动隐藏的图标不受影响。默认开启。"
+  $description:zh-CN: "仅在图标由自动隐藏后生效：任意鼠标或键盘输入都会恢复显示；双击手动隐藏的图标不受影响。默认开启。"
 */
 // ==/WindhawkModSettings==
 
