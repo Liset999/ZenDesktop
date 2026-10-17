@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.2
+// @version         4.1.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -53,6 +53,7 @@
 
 ## 更新日志
 
+- **4.1.3**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/通知中心对齐。
 - **4.1.2**：规范设置界面与说明文字，行为不变。
 - **4.1.1**：新增「控件深色/浅色」设置，修复浅色模式下的白雾。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
@@ -698,13 +699,15 @@ struct Theme {
 const Theme g_themeTranslucentStartMenu = {{
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
-        L"CornerRadius=18",
-        L"Background:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#1AFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#03FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#00FFFFFF\" Offset=\"0.5\"/><GradientStop Color=\"#05000000\" Offset=\"1\"/></LinearGradientBrush>\""}},
+        L"CornerRadius=20",
+        L"BorderThickness=1.8,1.8,0.8,0.8",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#48FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#55000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#18FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.12\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#03000000\" Offset=\"0.75\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
     ThemeTargetStyles{L"Border#BorderElement", {
         L"Background:=<WindhawkBlur BlurAmount=\"25\" TintColor=\"#15000000\"/>",
         L"BorderThickness=0",
@@ -714,14 +717,14 @@ const Theme g_themeTranslucentStartMenu = {{
         L"BorderThickness=1"}},
     ThemeTargetStyles{L"Border#AppBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#AccentAppBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#LayerBorder", {
         L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"Border#TaskbarSearchBackground", {
@@ -814,9 +817,9 @@ const Theme g_themeTranslucentStartMenu = {{
 const Theme g_themeTranslucentStartMenu_variant_ClassicStartMenu = {{
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
         L"CornerRadius=18",
@@ -838,14 +841,14 @@ const Theme g_themeTranslucentStartMenu_variant_ClassicStartMenu = {{
         L"BorderThickness=0"}},
     ThemeTargetStyles{L"Border#AppBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#AccentAppBorder", {
         L"Background:=$CommonBgBrush",
-        L"BorderThickness=1.2",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#4DFFFFFF\" Offset=\"0\"/><GradientStop Color=\"#13FFFFFF\" Offset=\"0.3\"/><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.7\"/><GradientStop Color=\"#26FFFFFF\" Offset=\"1\"/></LinearGradientBrush>\"",
-        L"CornerRadius=18"}},
+        L"BorderThickness=1.5",
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"CornerRadius=20"}},
     ThemeTargetStyles{L"Border#LayerBorder", {
         L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"Border#TaskbarSearchBackground", {
@@ -5514,19 +5517,20 @@ const Theme g_themeLiquidGlass = {{
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
 }, {
+    // Zen Liquid Glass Original — shared specular language with AppleLiquidGlass
     L"BorderThickness=1.5",
-    L"ElementBorderThickness=0.3,0.3,0.3,1",
-    L"CornerRadius=25",
-    L"ElementCornerRadius=12",
-    L"Background=<WindhawkBlur BlurAmount=\"18\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.06\" TintSaturation=\"2.0\"/>",
-    L"ElementBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.3\" />",
-    L"ElementBackground2=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAltLowColor}\" TintOpacity=\"0.15\" />",
-    L"AccentBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.15\" />",
-    L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#B0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#2000FFFF\" Offset=\"0.3\" /><GradientStop Color=\"#20FF00FF\" Offset=\"0.7\" /><GradientStop Color=\"#70000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#25FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FF00FF\" Offset=\"0.5\" /><GradientStop Color=\"#20FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.05\" />",
-    L"ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
-    L"ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.25\" />",
+    L"ElementBorderThickness=0.5,0.5,0.5,1.0",
+    L"CornerRadius=20",
+    L"ElementCornerRadius=10",
+    L"Background=<WindhawkBlur BlurAmount=\"14\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" TintSaturation=\"2.0\" FallbackColor=\"#18FFFFFF\" />",
+    L"ElementBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.08\" FallbackColor=\"#14FFFFFF\" />",
+    L"ElementBackground2=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" FallbackColor=\"#0CFFFFFF\" />",
+    L"AccentBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.10\" />",
+    L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#55FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#14FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#28000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.06\" />",
+    L"ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.14\" />",
+    L"ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.22\" />",
 }, {}, {
     ThemeTargetStyles{L"*", {
         L"transition: background-color 0.083s ease-in-out !important"}},
@@ -5538,8 +5542,8 @@ const Theme g_themeAppleLiquidGlass = {{
         L"Visibility=Visible",
         L"CornerRadius=20",
         L"BorderThickness=1.8,1.8,0.8,0.8",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
-        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#48FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#55000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#18FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.12\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#03000000\" Offset=\"0.75\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
     // -- Main glass body (hyper-transparent + chromatic dispersion border) --
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$Apple_Background",
@@ -5787,28 +5791,21 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
         L"Foreground:=$Apple_ForegroundBrush"}},
 }, {
-    // ------------------------------------------------------
-    // Style constants - v2 refraction upgrade
-    // ------------------------------------------------------
-    L"Apple_BorderThickness=1.6",
-    L"Apple_ElementBorderThickness=0.6,0.6,0.6,1.2",
+    // Zen Liquid Glass shared language (aligned with Taskbar / Notification)
+    L"Apple_BorderThickness=1.5",
+    L"Apple_ElementBorderThickness=0.5,0.5,0.5,1.0",
     L"Apple_CornerRadius=20",
     L"Apple_InnerCornerRadius=18",
     L"Apple_ElementCornerRadius=10",
-    // Refraction glass body (moderate blur = "bent light" distortion, NOT frosted)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"10\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" TintSaturation=\"2.2\" FallbackColor=\"#08FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.06\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"8\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"8\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.08\" />",
-    // Chromatic dispersion border - DOUBLED alpha for visibility
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#DDFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#30FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#28FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#3034C759\" Offset=\"0.48\" /><GradientStop Color=\"#35007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#30AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Element border - stronger top highlight + bottom shadow
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#25000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Tile backgrounds - slightly more visible for readability
-    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.05\" />",
-    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.12\" />",
-    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.20\" />",
-    // Text foreground - system-adaptive by default; overridden by textColorMode setting
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"14\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" TintSaturation=\"2.0\" FallbackColor=\"#18FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.08\" FallbackColor=\"#14FFFFFF\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" FallbackColor=\"#0CFFFFFF\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.10\" />",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#55FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#14FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#28000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.06\" />",
+    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.14\" />",
+    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.22\" />",
     L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
 }, {}, {
     ThemeTargetStyles{L"*", {
@@ -5821,8 +5818,8 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"Visibility=Visible",
         L"CornerRadius=20",
         L"BorderThickness=1.8,1.8,0.8,0.8",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#40FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#60000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
-        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#12FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#04FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#02000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
+        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#CCFFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#48FFFFFF\" Offset=\"0.15\" /><GradientStop Color=\"#0AFFFFFF\" Offset=\"0.4\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.6\" /><GradientStop Color=\"#20000000\" Offset=\"0.85\" /><GradientStop Color=\"#55000000\" Offset=\"1.0\" /></LinearGradientBrush>\"",
+        L"Background:=<LinearGradientBrush StartPoint=\"0.05,0\" EndPoint=\"0.95,1\"><GradientStop Color=\"#18FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#06FFFFFF\" Offset=\"0.12\" /><GradientStop Color=\"#00FFFFFF\" Offset=\"0.35\" /><GradientStop Color=\"#03000000\" Offset=\"0.75\" /><GradientStop Color=\"#08000000\" Offset=\"1.0\" /></LinearGradientBrush>\""}},
     // -- Main glass body (hyper-transparent + chromatic dispersion border) --
     ThemeTargetStyles{L"Border#AcrylicBorder", {
         L"Background:=$Apple_Background",
@@ -6070,28 +6067,21 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
         L"Foreground:=$Apple_ForegroundBrush"}},
 }, {
-    // ------------------------------------------------------
-    // Style constants - v2.7.0 style (Classic Refraction)
-    // ------------------------------------------------------
+    // Zen Liquid Glass Classic — thinner refraction, same specular language
     L"Apple_BorderThickness=1.2",
-    L"Apple_ElementBorderThickness=0.3,0.3,0.3,0.8",
+    L"Apple_ElementBorderThickness=0.4,0.4,0.4,0.9",
     L"Apple_CornerRadius=20",
     L"Apple_InnerCornerRadius=18",
     L"Apple_ElementCornerRadius=10",
-    // Original hyper-transparent glass (low blur=2, no tint, low opacity)
-    L"Apple_Background=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.0\" TintSaturation=\"1.8\" FallbackColor=\"#05FFFFFF\" />",
-    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.05\" />",
-    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"2\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.02\" />",
-    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"2\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.05\" />",
-    // Chromatic dispersion border
-    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#C0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.15\" /><GradientStop Color=\"#15FF9500\" Offset=\"0.3\" /><GradientStop Color=\"#1834C759\" Offset=\"0.5\" /><GradientStop Color=\"#1A007AFF\" Offset=\"0.7\" /><GradientStop Color=\"#18AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#50000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Element border
-    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#20FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#08FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#15FFFFFF\" Offset=\"1.0\" /></LinearGradientBrush>",
-    // Tile backgrounds
-    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.02\" />",
-    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.08\" />",
-    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.15\" />",
-    // Text foreground
+    L"Apple_Background=<WindhawkBlur BlurAmount=\"6\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" TintSaturation=\"1.9\" FallbackColor=\"#14FFFFFF\" />",
+    L"Apple_ElementBackground=<WindhawkBlur BlurAmount=\"5\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.06\" FallbackColor=\"#10FFFFFF\" />",
+    L"Apple_ElementBackground2=<WindhawkBlur BlurAmount=\"5\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.03\" FallbackColor=\"#08FFFFFF\" />",
+    L"Apple_AccentBackground=<WindhawkBlur BlurAmount=\"5\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.08\" />",
+    L"Apple_BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#D0FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#18FF3B30\" Offset=\"0.15\" /><GradientStop Color=\"#14FF9500\" Offset=\"0.30\" /><GradientStop Color=\"#1434C759\" Offset=\"0.50\" /><GradientStop Color=\"#18007AFF\" Offset=\"0.70\" /><GradientStop Color=\"#14AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#40000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#40FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#10FFFFFF\" Offset=\"0.5\" /><GradientStop Color=\"#20000000\" Offset=\"1.0\" /></LinearGradientBrush>",
+    L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.06\" />",
+    L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.14\" />",
+    L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.22\" />",
     L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
 }, {}, {
     ThemeTargetStyles{L"*", {
