@@ -50,8 +50,8 @@ foreach ($regPath in $regPaths) {
 
 # Active process fallback
 if (-not $windhawkDir) {
-    $proc = Get-Process windhawk -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($proc) {
+    $proc = Get-Process windhawk -ErrorAction SilentlyContinue | Where-Object { $_.Path } | Select-Object -First 1
+    if ($proc -and $proc.Path) {
         $windhawkDir = Split-Path $proc.Path
     }
 }
