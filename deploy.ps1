@@ -383,6 +383,33 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "luminosityPreset" 0 DWord $label
     }
 
+
+    if ($id -eq "local@zen-taskbar-lyrics") {
+        $label = "Taskbar Lyrics"
+        Set-RegValueIfMissing $settingsPath "positionMode" "widgets" String $label
+        Set-RegValueIfMissing $settingsPath "xOffset" 12 DWord $label
+        Set-RegValueIfMissing $settingsPath "sizePreset" "standard" String $label
+        Set-RegValueIfMissing $settingsPath "width" 340 DWord $label
+        Set-RegValueIfMissing $settingsPath "showArt" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "showButtons" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "textMode" "lyrics" String $label
+        Set-RegValueIfMissing $settingsPath "secondLine" "auto" String $label
+        Set-RegValueIfMissing $settingsPath "whenIdle" "hide" String $label
+        Set-RegValueIfMissing $settingsPath "clickAction" "open" String $label
+        Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
+        Set-RegValueIfMissing $settingsPath "panelBackground" "none" String $label
+        Set-RegValueIfMissing $settingsPath "fontPreset" "msyh" String $label
+        Set-RegValueIfMissing $settingsPath "fontSize" 12 DWord $label
+        Set-RegValueIfMissing $settingsPath "bold" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "offsetMs" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "hideInFullscreen" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "enableNetease" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "enableQQ" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "enableLrclib" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "aiStatus" "compact" String $label
+        Set-RegValueIfMissing $settingsPath "aiDoneSeconds" "120" String $label
+    }
+
     if ($id -eq "local@windows-animations") {
         # Matches the mod's settings block (1.4.0: macOS genie merged in, so
         # minimize/restore default on with the macos_genie style). Nested
