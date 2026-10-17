@@ -44,6 +44,10 @@
 ### 3. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic` / `ZenDesktop: 开始菜单美化`)
 * Native acrylic blur overlays over the Windows 11 Start Menu, with built-in width/height custom sizing and independent folder opacity/blur controls.
 
+### 4a. 🎵 任务栏音乐与歌词 (`local@zen-taskbar-lyrics` / `ZenDesktop: 任务栏音乐与歌词`)
+
+小组件关掉以后，在任务栏左下角放音乐面板（封面、歌词、上一首／播放暂停／下一首），可选显示本机 AI 编程助手状态。接 AI 状态见 `tools/ai-status/README.md`。
+
 ### 4. 🖱️ Desktop Icon Toggle (`local@zen-desktop-toggle-icons` / `ZenDesktop: 桌面双击隐藏图标`)
 * Double-click empty desktop space to instantly hide/show icons with smooth fade animations. State is saved and preserved across system restarts.
 

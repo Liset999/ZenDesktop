@@ -1,0 +1,10 @@
+# 粘贴到 ~/.codex/config.toml（用户级）。路径是 TOML 单引号字面量，反斜杠不用转义。
+
+# MCP 服务：让 Codex 自己用 set_status 汇报在做什么
+[mcp_servers.zen-status]
+command = "powershell.exe"
+args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", '__TOOLS_DIR_RAW__\zen-status-mcp.ps1', "-Agent", "codex"]
+
+# 可选：不想用 hooks.json 时，用 notify 只在每轮回答结束时报「已完成」。
+# 注意 notify 只能有一个，如果你已经配了别的 notify，就不要加这一行。
+# notify = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", '__TOOLS_DIR_RAW__\codex-notify.ps1']
