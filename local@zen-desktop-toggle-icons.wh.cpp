@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              zen-desktop-toggle-icons
 // @name            ZenDesktop: 桌面双击隐藏图标
-// @name:zh-CN       ZenDesktop: 桌面双击隐藏图标
-// @description     Native C++ Windhawk mod to hide/show desktop icons by double-clicking, with optional inactivity-based auto-hide and restore.
-// @description:zh-CN 双击桌面空白处快速显示/隐藏桌面图标，支持闲置自动隐藏与平滑淡入淡出。
-// @version         4.1.0
+// @name:zh-CN      ZenDesktop: 桌面双击隐藏图标
+// @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
+// @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
+// @version         4.1.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -14,49 +15,66 @@
 
 // ==WindhawkModReadme==
 /*
-# ZenDesktop: Desktop Icon Toggle and Auto-Hide
+# ZenDesktop: 桌面双击隐藏图标
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：Lanboo (ZenDesktop 原生开发)  
-> **功能说明**：原生 C++ 深度嵌入 Explorer 进程，支持双击桌面空白区域即时隐藏/显示桌面图标，并提供全局无操作空闲自动隐藏与智能输入唤醒。
+双击桌面空白处即可显示或隐藏桌面图标，也可以在系统闲置一段时间后自动隐藏。直接运行在 `explorer.exe` 中，不需要额外的后台程序。
 
-Have you ever wanted a clean, clutter-free desktop but found it annoying to right-click -> View -> Show desktop icons every time? 
+## 功能
 
-**ZenDesktop** brings the ultimate native solution to Windows. It allows you to **double-click empty space on your desktop** to instantly hide or show your icons, and optionally **automatically hide icons** after a configurable period of system inactivity.
+- 双击桌面空白处切换图标显示；双击文件、文件夹或快捷方式时照常打开。
+- 系统闲置达到设定时长后自动隐藏图标，检测的是全局键盘和鼠标输入。
+- 自动隐藏后任意输入即可恢复；双击手动隐藏的图标不会被自动恢复。
+- 资源管理器重启、插拔显示器后自动重新挂接。
+- 使用系统自带的「显示桌面图标」命令切换，不打乱图标排列。
 
-### 🌟 Key Features:
-* **Zero UI Overhead**: Embedded natively inside `explorer.exe` process space. No background EXE running, no taskbar/tray icons, 0% CPU and virtually 0MB extra RAM.
-* **Process-Native Hit-Testing**: When you double-click, it performs a real-time ListView hit-test. If you double-click a file, folder, or shortcut, the default "open" action is triggered normally. If you double-click empty space, it toggles your desktop icons.
-* **System-Wide Inactivity Detection**: Uses `GetLastInputInfo()` to track ALL user input (keyboard, mouse anywhere on screen) — icons only auto-hide when you are truly idle, not just away from the desktop.
-* **Smart Auto-Restore**: When icons are auto-hidden, any user input (mouse or keyboard anywhere) instantly restores them. Manually hidden icons are never auto-restored.
-* **Dynamic Hooking**: Automatically subclasses the shell views, meaning even if your Explorer crashes, restarts, or you plug/unplug monitors, the mod remains fully active and stable.
-* **Completely Safe**: Uses native Windows `0x7402` (WM_COMMAND) toggle signals, ensuring Windows handles the fade animations and desktop state natively without breaking icon grid arrangements.
+## 设置说明
 
-This mod focuses on desktop icons. If you want a similar inactivity effect for the taskbar, see the Taskbar Fade mod.
+- **闲置时自动隐藏图标**：关闭后只保留双击切换。
+- **自动隐藏延迟（秒）**：范围 3–60 秒。
+- **任意输入时恢复图标**：只作用于自动隐藏的情况。
+
+## 兼容性与已知问题
+
+- 适用于 Windows 11，注入 `explorer.exe`。
+- 如果想让任务栏也在闲置时淡出，可以配合任务栏类 mod 使用。
+
+## 更新日志
+
+- **4.1.1**：规范设置界面与说明文字，行为不变。
+- **4.1.0**：随 ZenDesktop v4.1 发布。
+
+## 致谢与许可
+
+- ZenDesktop 原创 mod。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - enableAutoHide: true
-  $name: Auto-Hide Icons on Inactivity
-  $name:zh-CN: 自动隐藏空闲桌面图标
-  $description: "Automatically hides desktop icons after the system has been idle for the specified duration."
-  $description:zh-CN: "系统空闲达到指定时长后自动隐藏桌面图标。"
+  $name: "Auto-hide icons when idle"
+  $name:zh-CN: "闲置时自动隐藏图标"
+  $description: "Hide desktop icons after the system has been idle for the delay below. Default: on."
+  $description:zh-CN: "系统闲置达到下方延迟后自动隐藏桌面图标。默认开启。"
 - autoHideDelay: 5
-  $name: Auto-Hide Delay in Seconds
-  $name:zh-CN: 自动隐藏延迟秒数
-  $description: "Seconds of system-wide inactivity before icons are hidden. Range: 3–60 seconds."
-  $description:zh-CN: "桌面图标自动隐藏前的全局空闲秒数，范围为 3 到 60 秒。"
+  $name: "Auto-hide delay (seconds)"
+  $name:zh-CN: "自动隐藏延迟（秒）"
+  $description: "System-wide idle time before icons are hidden, 3–60 seconds. Default: 5."
+  $description:zh-CN: "隐藏图标前需要的全局闲置时间，范围 3–60 秒，默认 5。"
 - showIconsOnAnyInput: true
-  $name: Restore Icons on Any Input
-  $name:zh-CN: 任意输入时恢复图标
-  $description: "When icons were auto-hidden, any mouse or keyboard input instantly restores them. Does NOT affect manually hidden icons."
-  $description:zh-CN: "图标由自动隐藏触发时，任意鼠标或键盘输入都会恢复图标；不影响手动隐藏的图标。"
+  $name: "Restore icons on any input"
+  $name:zh-CN: "任意输入时恢复图标"
+  $description: "When icons were hidden automatically, any mouse or keyboard input restores them. Icons hidden by double-click are not affected. Default: on."
+  $description:zh-CN: "图标是自动隐藏的时，任意鼠标或键盘输入都会恢复显示；双击手动隐藏的图标不受影响。默认开启。"
 */
 // ==/WindhawkModSettings==
 

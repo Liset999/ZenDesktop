@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              wobbly-windows
-// @name            ZenDesktop: 果冻窗口 (Wobbly Windows)
-// @name:zh-CN       ZenDesktop: 果冻窗口 (Wobbly Windows)
-// @description     The classic Compiz/KDE Plasma style Wobbly Windows effect for Windows 11!
-// @description:zh-CN 经典的 Compiz/KDE Plasma 风格果冻窗口晃动效果，深度适配 Windows 11。
-// @version         0.115
+// @name            ZenDesktop: 果冻窗口
+// @name:zh-CN      ZenDesktop: 果冻窗口
+// @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
+// @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
+// @version         0.115.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
 // @include         dwm.exe
@@ -15,77 +16,108 @@
 
 // ==WindhawkModReadme==
 /*
-# Wobbly Windows
+# ZenDesktop: 果冻窗口
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：lalimatyus（Wobbly Windows v0.115，GPL-3.0-only，https://github.com/lalimatyus）  
-> **定制说明**：Hook 代码原样保留（GPL-3.0，源码随包公开），补充完整中文本地化。仅注入 `dwm.exe`，需在 Windhawk 设置里把 `dwm.exe` 加入进程包含列表。作为 ZenDesktop v4.2 可选模块，默认在 Windhawk 中为关闭状态，可随时手动开启。
+拖动、缩放或贴靠窗口时，窗口会像果冻一样弹性晃动，效果参考 Compiz 和 KDE Plasma。本 mod 注入 `dwm.exe`。
 
-经典的 Compiz/KDE Plasma 风格果冻窗口晃动效果，深度适配 Windows 11！
+![效果演示](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/showcase.gif)
 
-![Showcase](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/showcase.gif)
+## 功能
 
-## ⚠️ 重要说明 ⚠️
+- 5 档 KDE Plasma 经典弹性预设。
+- 可自定义刚度、速度保持和形变幅度。
+- 拖动、调整大小、贴靠和最大化时都有弹性过渡。
+- 基于 4×4 弹簧网格模拟。
 
-因为该 Mod 注入的是系统桌面窗口管理器 `dwm.exe`，必须将 `dwm.exe` 添加到 Windhawk 的包含列表中：
-**设置 > 高级设置 > 进程包含列表 (Process inclusion list)** 中输入 `dwm.exe` 并保存。
+## 设置说明
 
-![Tutorial](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/dwm.gif)
+- **弹性预设**：从极轻到极强 5 档，括号内为对应的刚度和阻尼。
+- **自定义物理参数**：开启「启用自定义物理参数」后，下方三项数值代替弹性预设。
 
-## 功能特性
+## 兼容性与已知问题
 
-* 5 种经典的果冻弹性预设可选
-* 支持自定义物理刚度、阻尼和形变幅度参数
-* 拖拽、贴靠分屏、缩放窗口均具备平滑流畅的弹性动画
-* 基于 4x4 弹簧网格仿真算法
+- 必须把 `dwm.exe` 加入 Windhawk 的进程包含列表：**设置 > 高级设置 > 进程包含列表**，填入 `dwm.exe` 并保存。ZenDesktop 的部署脚本会自动添加。
+- 作为 ZenDesktop v4.2 的可选模块，安装后默认关闭，需要在 Windhawk 中手动开启。
 
-## 许可证
-本项目采用 [GNU 通用公共许可证第三版 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html) 分发。
+![设置演示](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/dwm.gif)
+
+## 更新日志
+
+- **0.115.1**：规范设置界面与说明文字，行为不变。
+- **0.115**：基于原版 Wobbly Windows v0.115，补充中文本地化。
+
+## 致谢与许可
+
+- 原作者：lalimatyus（[Wobbly Windows](https://github.com/lalimatyus) v0.115）。
+- 许可证：[GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html)。Hook 代码原样保留，源码随包公开。
+- ZenDesktop 修改：仅中文本地化与文字整理。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - WobblinessPreset: "2"
-  $name: 果冻弹性预设 (Wobbliness)
-  $description: 选择 KDE Plasma 经典的 5 种果冻窗口弹性预设之一。
+  $name: "Wobbliness preset"
+  $name:zh-CN: "弹性预设"
+  $description: "One of the five classic KDE Plasma presets. Ignored when custom physics is enabled. Default: medium."
+  $description:zh-CN: "KDE Plasma 经典的 5 档弹性预设之一。启用自定义物理参数时忽略此项。默认为中等。"
   $options:
-  - "0": "极轻微 (Less - 刚度 15, 阻尼 80)"
-  - "1": "轻度 (Low - 刚度 10, 阻尼 85)"
-  - "2": "中度标准 (Medium - 刚度 6, 阻尼 90)"
-  - "3": "高弹性 (High - 刚度 3, 阻尼 92)"
-  - "4": "极度Q弹 (More - 刚度 1, 阻尼 97)"
+  - "0": "极轻（刚度 15，阻尼 80）"
+  - "1": "轻（刚度 10，阻尼 85）"
+  - "2": "中等（刚度 6，阻尼 90）"
+  - "3": "强（刚度 3，阻尼 92）"
+  - "4": "极强（刚度 1，阻尼 97）"
 
 - EnableResizeWobble: true
-  $name: 缩放窗口果冻晃动 (Resize wobble)
-  $description: 拖拽窗口边缘或边角调整大小时展示果冻弹性动画。
+  $name: "Wobble when resizing"
+  $name:zh-CN: "调整大小时晃动"
+  $description: "Wobble while resizing a window by its edges or corners. Default: on."
+  $description:zh-CN: "拖动窗口边缘或边角调整大小时播放弹性效果。默认开启。"
 
 - EnableWindowStateWobble: true
-  $name: 贴靠与最大化果冻晃动 (Snap & maximize wobble)
-  $description: 窗口贴靠分屏、最大化和向下还原时展示弹性过渡动画。
+  $name: "Wobble on snap and maximize"
+  $name:zh-CN: "贴靠与最大化时晃动"
+  $description: "Wobble when a window is snapped, maximized or restored. Default: on."
+  $description:zh-CN: "窗口贴靠、最大化或还原时播放弹性过渡。默认开启。"
 
 - AdvancedMode:
   - enable: false
-    $name: 启用高级自定义物理参数
-    $description: 启用后将使用下方 3 个自定义物理数值，覆盖上方预设。
+    $name: "Enable custom physics"
+    $name:zh-CN: "启用自定义物理参数"
+    $description: "Use the three values below instead of the preset. Default: off."
+    $description:zh-CN: "使用下方三项数值代替弹性预设。默认关闭。"
 
   - Stiffness: 6
-    $name: 弹簧刚度 (Stiffness)
-    $description: 自定义弹簧刚度值（1-100）。数值越大弹力越硬。
+    $name: "Stiffness"
+    $name:zh-CN: "刚度"
+    $description: "Spring stiffness, 1–100. Larger is stiffer. Default: 6."
+    $description:zh-CN: "弹簧刚度，范围 1–100，数值越大越硬。默认 6。"
 
   - Drag: 90
-    $name: 速度保持 / 阻尼 (Drag)
-    $description: 速度保持系数（1-100）。数值越大阻尼越小、晃动时间越久。
+    $name: "Velocity retention"
+    $name:zh-CN: "速度保持"
+    $description: "Velocity retention, 1–100. Larger means less damping and longer wobble. Default: 90."
+    $description:zh-CN: "速度保持系数，范围 1–100，数值越大阻尼越小、晃动越久。默认 90。"
 
   - MoveFactor: 10
-    $name: 形变幅度 (Move Factor)
-    $description: 自定义形变幅度大小（1-25）。
+    $name: "Deformation"
+    $name:zh-CN: "形变幅度"
+    $description: "Deformation amount, 1–25. Default: 10."
+    $description:zh-CN: "形变幅度，范围 1–25。默认 10。"
 
-  $name: ⚙️ 高级自定义物理参数 (Custom Physics)
+  $name: "Custom physics"
+  $name:zh-CN: "自定义物理参数"
+  $description: "Advanced spring parameters that replace the preset."
+  $description:zh-CN: "替代预设的高级弹簧参数。"
 
 */
 // ==/WindhawkModSettings==

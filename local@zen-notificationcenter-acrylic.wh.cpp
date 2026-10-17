@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              zen-notificationcenter-acrylic
 // @name            ZenDesktop: 通知栏美化
-// @name:zh-CN       ZenDesktop: 通知栏美化
-// @description     Premium acrylic/frosted glass notification center and quick settings. Based on m417z Notification Center Styler.
-// @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力/毛玻璃透明背景美化。
-// @version         4.1.0
+// @name:zh-CN      ZenDesktop: 通知栏美化
+// @description     Acrylic and transparent notification center, quick settings and calendar.
+// @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
+// @version         4.1.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
 // @twitter         https://twitter.com/m417z
@@ -25,22 +26,43 @@
 
 // ==WindhawkModReadme==
 /*
-# ZenDesktop: Notification Center Acrylic Styler
+# ZenDesktop: 通知栏美化
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：m417z (Notification Center Styler)  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版进行深度重构与二开。重构毛玻璃画刷计算管道、新增 10 款视觉预设、12 种文字/图标颜色对齐与全中文配置。
+为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。基于 m417z 的 Windows 11 Notification Center Styler。
 
-Customize the Notification Center and Action Center with themes contributed by
-others or create your own.
+## 功能
 
-Also check out the **Windows 11 Taskbar Styler**, **Windows 11 Start Menu
-Styler** mods.
+- 背景颜色、模糊、不透明度、亮度预设，可与内置主题搭配。
+- 内置自定义玻璃、液态玻璃等主题，保留原版经典主题。
+- 文字颜色与其他 ZenDesktop mod 共用同一套选项。
 
+## 设置说明
+
+- **主题**：默认「自定义玻璃」。标注「旧版」的为早期的白色/黑色毛玻璃主题。
+- **高级：样式常量 / 控件样式 / 资源变量**：用于编写自定义样式，语法见文末附录。一般无需修改。
+
+## 兼容性与已知问题
+
+- 适用于 Windows 11，注入 `ShellExperienceHost.exe`、`ShellHost.exe`。
+- 同一时间只能有一个程序使用 XAML 诊断，与同类美化工具同时使用时可能冲突。
+
+## 更新日志
+
+- **4.1.1**：规范设置界面与说明文字，行为不变。
+- **4.1.0**：随 ZenDesktop v4.1 发布。
+
+## 致谢与许可
+
+- 原版 mod：Windows 11 Notification Center Styler，作者 [m417z](https://github.com/m417z)，GPL-3.0。
+- ZenDesktop 修改（Lanbo）：重构模糊画刷计算、新增视觉预设、文字颜色与中文设置。
+- 内置的社区主题由各自作者贡献，详见对应的 Windows 11 styling guide 仓库。
+- 控件树监听基于 TranslucentTB 项目的 ExplorerTAP，`WindhawkBlur` 画刷基于 TranslucentTB 的 XamlBlurBrush。
+- 本修改版同样以 GPL-3.0 发布。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 附录：原版说明（英文）
+
+以下为上游 mod 的原版说明，保留英文原文，供编写自定义样式时参考。
 ## Themes
 
 Themes are collections of styles. The following themes are integrated into the
@@ -327,110 +349,130 @@ code from the **TranslucentTB** project.
 The `WindhawkBlur` brush object implementation is based on
 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)
 from the **TranslucentTB** project.
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - theme: "TranslucentShell"
-  $name: "🎭 视觉风格 (Visual Style)"
-  $description: >-
-    选择通知中心的整体视觉风格。搭配下方的颜色和模糊度设置使用。
+  $name: "Theme"
+  $name:zh-CN: "主题"
+  $description: "Overall look of the notification center, quick settings and calendar. Works together with the color and blur settings below. Default: Custom Glass."
+  $description:zh-CN: "通知中心、快捷设置和日历面板的整体风格，与下方颜色和模糊设置配合使用。默认为自定义玻璃。"
   $options:
-  - "": "无 (None)"
-  - TranslucentShell: "自定义玻璃 (Custom Glass)"
-  - WindowGlass: "白毛玻璃 - 经典 [Legacy]"
-  - TintedGlass: "黑毛玻璃 - 经典 [Legacy]"
-  - LiquidGlass: "液态玻璃 - 原版 (Liquid Glass Original)"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
+  - "": "无"
+  - TranslucentShell: "自定义玻璃（Custom Glass）"
+  - WindowGlass: "白毛玻璃 - 经典 （旧版）"
+  - TintedGlass: "黑毛玻璃 - 经典 （旧版）"
+  - LiquidGlass: "液态玻璃 - 原版（Liquid Glass Original）"
+  - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
+  - AppleLiquidGlassClassic: "液态玻璃 - 经典（Liquid Glass Classic）"
 - bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
+  $name: "Background color"
+  $name:zh-CN: "背景颜色"
+  $description: "Base tint of the background. \"Theme default\" uses the color built into the selected theme."
+  $description:zh-CN: "背景的基础色调。选「主题默认」时使用所选主题自带的颜色。"
   $options:
-    - Default: "主题默认 (Theme Default)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+    - Default: "主题默认"
+    - Accent: "系统强调色"
+    - GlassWhite: "透白"
+    - MistGrey: "雾灰"
+    - DeepBlack: "深黑"
+    - OceanBlue: "海蓝"
+    - AuroraCyan: "极光青"
+    - RosePink: "玫瑰粉"
+    - BordeauxRed: "酒红"
+    - ForestGreen: "森林绿"
+    - RoyalPurple: "皇家紫"
+    - SunsetOrange: "落日橙"
+    - ChampagneGold: "香槟金"
+    - MorandiSage: "莫兰迪绿"
 - blurPreset: 30
-  $name: "🔮 毛玻璃模糊度 (Blur)"
-  $description: >-
-    调节背景的模糊程度，数值越大越模糊。
+  $name: "Blur"
+  $name:zh-CN: "模糊"
+  $description: "Background blur strength, 0–60. Larger is blurrier."
+  $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - opacityPreset: 50
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节背景颜色的填充浓度，数值越大颜色越深。
+  $name: "Opacity"
+  $name:zh-CN: "不透明度"
+  $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
+  $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - luminosityPreset: 20
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景的亮度与通透程度，数值越大背景越黑。
+  $name: "Luminosity"
+  $name:zh-CN: "亮度"
+  $description: "Luminosity layer strength of the background, 0–150."
+  $description:zh-CN: "背景亮度层的强度，范围 0–150。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。
+  $name: "Text color"
+  $name:zh-CN: "文字颜色"
+  $description: "Color of text and icons. Change it when text is hard to read on the current background."
+  $description:zh-CN: "文字与图标的颜色。当前背景下文字看不清时可以切换。"
   $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
+    - default: "主题默认"
+    - white: "白色"
+    - dark: "深色"
+    - system: "跟随系统"
+    - red: "红色"
+    - green: "绿色"
+    - blue: "蓝色"
+    - yellow: "黄色"
+    - orange: "橙色"
+    - purple: "紫色"
+    - pink: "粉色"
+    - cyan: "青色"
 - styleConstants: [""]
-  $name: "⚙️ Style constants (高级)"
-  $description: >-
-    高级用户自定义样式常量，一般用户无需修改。
+  $name: "Advanced: style constants"
+  $name:zh-CN: "高级：样式常量"
+  $description: "Values defined once and referenced as $name in styles. See the readme. Most users do not need to change this."
+  $description:zh-CN: "定义一次、在样式中用 $名称 引用的常量，写法见说明。一般无需修改。"
 - controlStyles:
   - - target: ""
-      $name: Target
+      $name: "Target"
+      $name:zh-CN: "目标控件"
     - styles: [""]
-      $name: Styles
-  $name: "⚙️ Control styles (高级)"
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: control styles"
+  $name:zh-CN: "高级：控件样式"
+  $description: "Custom styles for specific XAML controls. See the readme. Most users do not need to change this."
+  $description:zh-CN: "针对指定 XAML 控件的自定义样式，写法见说明。一般无需修改。"
 - themeResourceVariables: [""]
-  $name: "⚙️ Resource variables (高级)"
-  $description: >-
-    高级用户自定义资源变量，一般用户无需修改。
-*/
+  $name: "Advanced: resource variables"
+  $name:zh-CN: "高级：资源变量"
+  $description: "Override XAML theme resources with Key=Value, or define theme-aware ones with Key@Dark / Key@Light. See the readme."
+  $description:zh-CN: "用 Key=Value 覆盖 XAML 主题资源，或用 Key@Dark / Key@Light 定义随深色/浅色变化的资源，写法见说明。"*/
 // ==/WindhawkModSettings==
 
 #include <xamlom.h>
