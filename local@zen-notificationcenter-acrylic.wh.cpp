@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.1.2
+// @version         4.1.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -43,11 +43,22 @@
 
 ## 兼容性与已知问题
 
-- 适用于 Windows 11，注入 `ShellExperienceHost.exe`、`ShellHost.exe`。
-- 同一时间只能有一个程序使用 XAML 诊断，与同类美化工具同时使用时可能冲突。
+- **进程挂载**
+  - 通知中心 / 日历：`ShellExperienceHost.exe`（Win11 21H2–24H2 均适用）
+  - 快捷设置（控制中心，Win+A）：自 **24H2** 起改到 `ShellHost.exe`；本 mod 已同时注入这两个进程
+  - 不要同时再开上游「Windows 11 Notification Center Styler」，会抢同一条 XAML 诊断通道
+- **版本对照（经验）**
+  - 22H2 / 23H2：通知 + 日历 + 快捷设置多在 `ShellExperienceHost`，一般正常
+  - 24H2 / 25H2：快捷设置在 `ShellHost`；若只看到通知变了、快捷设置没变，确认 Windhawk 高级选项包含列表里有 `ShellHost.exe`，或重新跑一次 ZenDesktop deploy
+  - `ShellHost.exe` 空闲一段时间后可能被系统关掉，再打开快捷设置时 Windhawk 会重新注入；若偶发没效果，关掉再开一次快捷设置，或重载本 mod
+- **其他**
+  - 同一时间只能有一个程序使用 XAML 诊断（UWPSpy、同类 styler 等），冲突时可能完全无效果
+  - 系统「透明度效果」关掉时，会走 `FallbackColor` 实色回退，看起来像没模糊
+  - 4.1.2 曾把液态玻璃主题的括号写坏导致编不过；4.1.3 已修，并补上上游的 CompositionDiag 防护，减少部分系统上挂接失败 / 闪退
 
 ## 更新日志
 
+- **4.1.3**：修复液态玻璃主题编译错误；移植上游 DisableCompositionDiag，减少部分 Win11 版本上 XAML 挂接失败；快捷设置窗口创建后补一次延迟重试；补充版本兼容说明。
 - **4.1.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/开始菜单对齐。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
@@ -2456,7 +2467,7 @@ const Theme g_themeLiquidGlass = {{
     L"ElementBorderThickness=0.5,0.5,0.5,1.0",
     L"CornerRadius = 20",
     L"ElementCornerRadius = 10",
-};
+}};
 
 const Theme g_themeBetterControl11 = {{
     ThemeTargetStyles{L"Windows.UI.Xaml.Controls.ItemsWrapGrid", {
@@ -3370,6 +3381,17 @@ const Theme g_themeBorderless = {{
 std::atomic<bool> g_initialized;
 thread_local bool g_initializedForThread;
 
+// The XAML composition diagnostics rebuild a process-wide visual tree walker
+// without any locking whenever a DirectComposition visual is added, so any UI
+// thread which adds one corrupts the heap while another thread is in the same
+// code. Only element mutations are needed here, and those are reported by an
+// unrelated code path, so the composition diagnostics are kept from being
+// created at all: XamlDiagnostics::CreateCompVisualDiag skips them when the
+// HKLM\Software\Microsoft\XAML\Debug\DisableCompositionDiag value is 1.
+// Windows.UI.Xaml.dll reads and caches the value once, from within
+// AdviseVisualTreeChange, so answering that single read is enough.
+thread_local bool g_reportCompositionDiagAsDisabled;
+
 void ApplyCustomizations(InstanceHandle handle,
                          winrt::Windows::UI::Xaml::FrameworkElement element,
                          PCWSTR fallbackClassName);
@@ -3458,7 +3480,10 @@ VisualTreeWatcher::VisualTreeWatcher(winrt::com_ptr<IUnknown> site) :
         nullptr, 0,
         [](LPVOID lpParam) -> DWORD {
             auto watcher = reinterpret_cast<VisualTreeWatcher*>(lpParam);
-            HRESULT hr = watcher->m_XamlDiagnostics.as<IVisualTreeService3>()->AdviseVisualTreeChange(watcher);
+            auto service = watcher->m_XamlDiagnostics.as<IVisualTreeService3>();
+            g_reportCompositionDiagAsDisabled = true;
+            HRESULT hr = service->AdviseVisualTreeChange(watcher);
+            g_reportCompositionDiagAsDisabled = false;
             watcher->Release();
             if (FAILED(hr)) {
                 Wh_Log(L"Error %08X", hr);
@@ -9035,8 +9060,43 @@ void InitializeSettingsAndTap() {
     }
 
     HRESULT hr = InjectWindhawkTAP();
-    if (FAILED(hr)) {
-        Wh_Log(L"Error %08X", hr);
+    if (SUCCEEDED(hr)) {
+        return;
+    }
+
+    Wh_Log(L"InjectWindhawkTAP failed %08X — scheduling retries", hr);
+    g_initialized = false;
+
+    // XAML diagnostics may not be ready yet (especially ShellHost right after
+    // spawn). Retry a few times on a background thread.
+    HANDLE thread = CreateThread(
+        nullptr, 0,
+        [](LPVOID) -> DWORD {
+            for (int attempt = 1; attempt <= 10; attempt++) {
+                Sleep(static_cast<DWORD>(300 * attempt));  // 0.3s … 3.0s
+                if (g_initialized.load()) {
+                    return 0;
+                }
+                if (g_initialized.exchange(true)) {
+                    return 0;
+                }
+                HRESULT hrRetry = InjectWindhawkTAP();
+                if (SUCCEEDED(hrRetry)) {
+                    Wh_Log(L"InjectWindhawkTAP succeeded on retry %d", attempt);
+                    return 0;
+                }
+                Wh_Log(L"InjectWindhawkTAP retry %d failed %08X", attempt,
+                       hrRetry);
+                g_initialized = false;
+            }
+            Wh_Log(L"InjectWindhawkTAP gave up after retries");
+            return 0;
+        },
+        nullptr, 0, nullptr);
+    if (thread) {
+        CloseHandle(thread);
+    } else {
+        Wh_Log(L"Failed to start InjectWindhawkTAP retry thread");
     }
 }
 
@@ -9165,10 +9225,11 @@ void OnWindowCreated(HWND hWnd, LPCWSTR lpClassName, PCSTR funcName) {
 
         case Target::ShellHost:
             if (bTextualClassName &&
-                _wcsicmp(lpClassName, L"ControlCenterWindow") == 0) {
+                (_wcsicmp(lpClassName, L"ControlCenterWindow") == 0 ||
+                 _wcsicmp(lpClassName, L"Windows.UI.Core.CoreWindow") == 0)) {
                 Wh_Log(
-                    L"Initializing - Created ControlCenterWindow: %08X via %S",
-                    (DWORD)(ULONG_PTR)hWnd, funcName);
+                    L"Initializing - Created ShellHost window (%s): %08X via %S",
+                    lpClassName, (DWORD)(ULONG_PTR)hWnd, funcName);
                 // Initializing at this point is too early and doesn't work.
                 RunFromWindowThreadViaPostMessage(
                     hWnd,
@@ -9262,6 +9323,66 @@ HWND WINAPI CreateWindowInBandEx_Hook(DWORD dwExStyle,
     return hWnd;
 }
 
+using RegOpenKeyExW_t = decltype(&RegOpenKeyExW);
+RegOpenKeyExW_t RegOpenKeyExW_Original;
+LSTATUS WINAPI RegOpenKeyExW_Hook(HKEY hKey,
+                                  LPCWSTR lpSubKey,
+                                  DWORD ulOptions,
+                                  REGSAM samDesired,
+                                  PHKEY phkResult) {
+    LSTATUS result = RegOpenKeyExW_Original(hKey, lpSubKey, ulOptions,
+                                            samDesired, phkResult);
+    if (result == ERROR_SUCCESS || !g_reportCompositionDiagAsDisabled ||
+        hKey != HKEY_LOCAL_MACHINE || !lpSubKey ||
+        _wcsicmp(lpSubKey, L"Software\\Microsoft\\XAML\\Debug") != 0) {
+        return result;
+    }
+
+    // The key usually doesn't exist, and the value isn't queried unless the key
+    // could be opened, so hand out a key which does exist.
+    Wh_Log(L"Substituting the XAML debug key");
+    return RegOpenKeyExW_Original(HKEY_LOCAL_MACHINE, L"Software\\Microsoft",
+                                  ulOptions, samDesired, phkResult);
+}
+
+using RegQueryValueExW_t = decltype(&RegQueryValueExW);
+RegQueryValueExW_t RegQueryValueExW_Original;
+LSTATUS WINAPI RegQueryValueExW_Hook(HKEY hKey,
+                                     LPCWSTR lpValueName,
+                                     LPDWORD lpReserved,
+                                     LPDWORD lpType,
+                                     LPBYTE lpData,
+                                     LPDWORD lpcbData) {
+    if (!g_reportCompositionDiagAsDisabled || !lpValueName ||
+        _wcsicmp(lpValueName, L"DisableCompositionDiag") != 0) {
+        return RegQueryValueExW_Original(hKey, lpValueName, lpReserved, lpType,
+                                         lpData, lpcbData);
+    }
+
+    Wh_Log(L"Reporting DisableCompositionDiag as set");
+
+    if (lpType) {
+        *lpType = REG_DWORD;
+    }
+
+    if (lpData && (!lpcbData || *lpcbData < sizeof(DWORD))) {
+        if (lpcbData) {
+            *lpcbData = sizeof(DWORD);
+        }
+        return ERROR_MORE_DATA;
+    }
+
+    if (lpData) {
+        *reinterpret_cast<DWORD*>(lpData) = 1;
+    }
+
+    if (lpcbData) {
+        *lpcbData = sizeof(DWORD);
+    }
+
+    return ERROR_SUCCESS;
+}
+
 std::vector<HWND> GetCoreWnds() {
     struct ENUM_WINDOWS_PARAM {
         std::vector<HWND>* hWnds;
@@ -9279,7 +9400,7 @@ std::vector<HWND> GetCoreWnds() {
                 return TRUE;
             }
 
-            WCHAR szClassName[32];
+            WCHAR szClassName[64];
             if (GetClassName(hWnd, szClassName, ARRAYSIZE(szClassName)) == 0) {
                 return TRUE;
             }
@@ -9293,7 +9414,12 @@ std::vector<HWND> GetCoreWnds() {
                     break;
 
                 case Target::ShellHost:
-                    if (_wcsicmp(szClassName, L"ControlCenterWindow") == 0) {
+                    // 24H2+ Control Center uses ControlCenterWindow. Some builds
+                    // also surface a CoreWindow — accept either so we still
+                    // attach when the class name differs slightly.
+                    if (_wcsicmp(szClassName, L"ControlCenterWindow") == 0 ||
+                        _wcsicmp(szClassName, L"Windows.UI.Core.CoreWindow") ==
+                            0) {
                         param.hWnds->push_back(hWnd);
                     }
                     break;
@@ -9478,6 +9604,29 @@ BOOL Wh_ModInit() {
         }
     }
 
+    // Keep XAML composition diagnostics off while Advising the visual tree
+    // (see g_reportCompositionDiagAsDisabled). Without this, some Win11 builds
+    // race / crash inside AdviseVisualTreeChange and the mod silently does
+    // nothing.
+    HMODULE kernelBaseModule = GetModuleHandle(L"kernelbase.dll");
+    if (kernelBaseModule) {
+        void* pKernelBaseRegOpenKeyExW =
+            (void*)GetProcAddress(kernelBaseModule, "RegOpenKeyExW");
+        if (pKernelBaseRegOpenKeyExW) {
+            Wh_SetFunctionHook(pKernelBaseRegOpenKeyExW,
+                               (void*)RegOpenKeyExW_Hook,
+                               (void**)&RegOpenKeyExW_Original);
+        }
+
+        void* pKernelBaseRegQueryValueExW =
+            (void*)GetProcAddress(kernelBaseModule, "RegQueryValueExW");
+        if (pKernelBaseRegQueryValueExW) {
+            Wh_SetFunctionHook(pKernelBaseRegQueryValueExW,
+                               (void*)RegQueryValueExW_Hook,
+                               (void**)&RegQueryValueExW_Original);
+        }
+    }
+
     if (g_target == Target::ShellExperienceHost) {
         StartStatsTimer();
     }
@@ -9499,6 +9648,39 @@ void Wh_ModAfterInit() {
 
     if (initialize) {
         InitializeSettingsAndTap();
+        return;
+    }
+
+    // ShellHost often has no ControlCenterWindow until the user opens Quick
+    // Settings. CreateWindow hooks cover that path; also poll briefly in case
+    // the window already exists but EnumWindows raced.
+    if (g_target == Target::ShellHost) {
+        HANDLE thread = CreateThread(
+            nullptr, 0,
+            [](LPVOID) -> DWORD {
+                for (int attempt = 1; attempt <= 15; attempt++) {
+                    Sleep(400);
+                    auto windows = GetCoreWnds();
+                    if (windows.empty()) {
+                        continue;
+                    }
+                    Wh_Log(L"Delayed ShellHost attach after %d poll(s)",
+                           attempt);
+                    for (auto hCoreWnd : windows) {
+                        RunFromWindowThread(
+                            hCoreWnd,
+                            [](PVOID) { InitializeForCurrentThread(); },
+                            nullptr);
+                    }
+                    InitializeSettingsAndTap();
+                    return 0;
+                }
+                return 0;
+            },
+            nullptr, 0, nullptr);
+        if (thread) {
+            CloseHandle(thread);
+        }
     }
 }
 
