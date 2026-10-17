@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.1.0
+// @version         1.2.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -21,7 +21,7 @@
 //
 // ZenDesktop modifications (Lanbo): Chinese localization of the readme and
 // settings; new integrated "ZenTranslucent" (default) and "ZenTransparent"
-// themes; adjustable tint color/opacity (tintColor, tintOpacity settings) for
+// themes; adjustable tint color/opacity (tintPreset, tintColor, tintOpacity) for
 // the AccentBlurBehind effect, which upstream hardcodes. The rest of the code
 // is unchanged from upstream.
 //
@@ -49,7 +49,7 @@
 
 装好后默认就是 **ZenDesktop 半透明** 主题：样式和原版「半透明 Explorer11」一样（命令栏、地址栏、主页/图库/详细信息窗格背景透明，整窗背景透出），区别是窗口背景改用「模糊 (AccentBlurBehind)」效果，色调颜色和不透明度可以在设置里调：
 
-* **🎨 色调颜色**：`#RRGGBB` 格式，例如 `#000000` 黑、`#FFFFFF` 白、`#1E3A5F` 深蓝。默认 `#232323`。
+* **🎨 色调颜色**：下拉直接选：深灰（默认）、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
 * **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
 
 改完设置后已打开的文件管理器窗口会立即刷新。
@@ -341,11 +341,28 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $options:
   - "": "整个窗口 (Entire Window)"
   - explorerFrame: "仅文件管理器框架 (Explorer Frame Only)"
-- tintColor: "#232323"
+- tintPreset: darkGray
   $name: "🎨 色调颜色 (Tint Color)"
   $description: >-
-    「模糊」背景效果的色调颜色，格式 #RRGGBB，例如 #000000 黑、#FFFFFF 白。
-    格式不对时使用默认的 #232323。
+    「模糊」背景效果的色调颜色。想用其他颜色就选「自定义」，再填下方的颜色代码。
+  $options:
+  - darkGray: "深灰（默认）"
+  - black: "纯黑"
+  - gray: "中灰"
+  - lightGray: "浅灰"
+  - white: "纯白"
+  - coolBlue: "冷蓝"
+  - navy: "深蓝"
+  - lavender: "薰衣草紫"
+  - sakura: "樱花粉"
+  - mint: "薄荷绿"
+  - warmBrown: "暖棕"
+  - custom: "自定义（使用下方颜色代码）"
+- tintColor: "#232323"
+  $name: "⚙️ 自定义颜色代码 (高级)"
+  $description: >-
+    只在上方「色调颜色」选「自定义」时生效。格式 #RRGGBB，例如 #1E3A5F。格式不对时
+    使用 #232323。一般用户无需修改。
 - tintOpacity: 23
   $name: "💧 色调不透明度 (Tint Opacity)"
   $description: >-
@@ -11828,10 +11845,47 @@ DWORD ParseTintColorSetting(PCWSTR value) {
     return (DWORD)r | ((DWORD)g << 8) | ((DWORD)b << 16);
 }
 
+// ZenDesktop: tint color presets for the tintPreset setting, as 0xRRGGBB.
+struct TintPreset {
+    PCWSTR id;
+    DWORD rgb;
+};
+
+constexpr TintPreset kTintPresets[] = {
+    {L"darkGray", 0x232323},  {L"black", 0x000000},
+    {L"gray", 0x606060},      {L"lightGray", 0xC8C8C8},
+    {L"white", 0xFFFFFF},     {L"coolBlue", 0x4A90D9},
+    {L"navy", 0x1E3A5F},      {L"lavender", 0x9B87C9},
+    {L"sakura", 0xF2A7C3},    {L"mint", 0x7FD1B9},
+    {L"warmBrown", 0x6B4A35},
+};
+
+// Returns the color as 0x00BBGGRR. "custom" uses the tintColor setting;
+// an empty or unknown value falls back to darkGray (#232323).
+DWORD GetTintColorBgr() {
+    PCWSTR tintPreset = Wh_GetStringSetting(L"tintPreset");
+    bool custom = wcscmp(tintPreset, L"custom") == 0;
+    DWORD rgb = kTintPresets[0].rgb;
+    for (const auto& preset : kTintPresets) {
+        if (wcscmp(tintPreset, preset.id) == 0) {
+            rgb = preset.rgb;
+            break;
+        }
+    }
+    Wh_FreeStringSetting(tintPreset);
+
+    if (custom) {
+        PCWSTR tintColor = Wh_GetStringSetting(L"tintColor");
+        DWORD bgr = ParseTintColorSetting(tintColor);
+        Wh_FreeStringSetting(tintColor);
+        return bgr;
+    }
+
+    return ((rgb >> 16) & 0xFF) | (rgb & 0xFF00) | ((rgb & 0xFF) << 16);
+}
+
 void LoadTintSettings() {
-    PCWSTR tintColor = Wh_GetStringSetting(L"tintColor");
-    DWORD bgr = ParseTintColorSetting(tintColor);
-    Wh_FreeStringSetting(tintColor);
+    DWORD bgr = GetTintColorBgr();
 
     int tintOpacity = Wh_GetIntSetting(L"tintOpacity");
     if (tintOpacity < 0) {
