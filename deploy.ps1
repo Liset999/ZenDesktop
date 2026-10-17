@@ -285,6 +285,25 @@ foreach ($file in $files) {
     Set-ItemProperty -Path $regPath -Name "LibraryFileName" -Value "" -Type String
 
     # Custom initial settings initialization per mod
+    if ($id -eq "local@zen-explorer-styler") {
+        # Registry-deployed mods get no YAML defaults; without this the theme
+        # would read as "" (None) and the command bar would stay black.
+        $settingsPath = Join-Path $regPath "Settings"
+        if (-not (Test-Path $settingsPath)) {
+            New-Item -Path $settingsPath -Force | Out-Null
+        }
+        $currentTheme = $null
+        try {
+            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
+        } catch {
+            $currentTheme = $null
+        }
+        if ([string]::IsNullOrWhiteSpace($currentTheme)) {
+            Write-Status "         [Settings] Initializing File Explorer theme -> ZenTransparent" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "ZenTransparent" -Type String
+        }
+    }
+
     if ($id -eq "local@zen-taskbar-acrylic") {
         $settingsPath = Join-Path $regPath "Settings"
         if (-not (Test-Path $settingsPath)) {

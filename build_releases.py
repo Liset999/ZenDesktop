@@ -6,6 +6,7 @@ common_files = [
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
+    'local@zen-explorer-styler.wh.cpp',
     'local@windows-11-settings-styler-fork.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
     'deploy.bat',
