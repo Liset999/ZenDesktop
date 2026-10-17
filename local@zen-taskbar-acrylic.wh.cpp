@@ -21214,12 +21214,29 @@ constexpr std::pair<PCWSTR, PCWSTR> kZenTextColorPresets[] = {
     {L"cyan", L"#FF33FFFF"},
 };
 
+// Whether the mod's settings were never written (e.g. only some keys were
+// seeded by an installer). Every bgColorMode option is non-empty, so an empty
+// value means it is missing. Windhawk writes all settings together, so then
+// the int presets are missing too: Wh_GetIntSetting would return 0, which is a
+// valid but non-default choice for them (fully transparent, no blur).
+bool ZenSettingsUnseeded() {
+    string_setting_unique_ptr bgColorMode(Wh_GetStringSetting(L"bgColorMode"));
+    return !*bgColorMode.get();
+}
+
+// Set by ZenApplyBrushPresets for the current pass.
+thread_local bool g_zenSettingsUnseeded;
+
 // Int settings are stored as numbers, so Wh_GetIntSetting is the right reader.
-// It returns 0 for a missing value, which is in range for every preset.
+// Falls back to the settings-block default when the settings are missing or
+// the value is out of range.
 int ZenGetIntSettingInRange(PCWSTR name,
                             int minValue,
                             int maxValue,
                             int fallback) {
+    if (g_zenSettingsUnseeded) {
+        return fallback;
+    }
     int value = Wh_GetIntSetting(name);
     return value >= minValue && value <= maxValue ? value : fallback;
 }
@@ -21320,6 +21337,11 @@ std::wstring ZenBuildBgBrush(int blur,
 // Called right after the style constants are loaded, before the theme styles
 // are expanded with them.
 void ZenApplyBrushPresets(StyleConstants& styleConstants) {
+    g_zenSettingsUnseeded = ZenSettingsUnseeded();
+    if (g_zenSettingsUnseeded) {
+        Wh_Log(L"Settings missing, using the defaults");
+    }
+
     StyleConstant* bgConstant = nullptr;
     for (PCWSTR name : kZenBgConstantNames) {
         bgConstant = ZenFindStyleConstant(styleConstants, name);
@@ -21419,7 +21441,10 @@ void ProcessAllStylesFromSettings() {
     const Theme* theme = nullptr;
     // ZenDesktop: legacy TranslucentTaskbar_* presets from earlier versions.
     std::vector<PCWSTR> overrideStyleConstants;
-    if (wcscmp(themeName, L"TranslucentTaskbar") == 0) {
+    // ZenDesktop: an empty theme means "None", unless the settings are
+    // missing altogether, in which case use the default theme.
+    if (wcscmp(themeName, L"TranslucentTaskbar") == 0 ||
+        (!*themeName && ZenSettingsUnseeded())) {
         theme = &g_themeTranslucentTaskbar;
     } else if (wcscmp(themeName, L"TranslucentTaskbar_Clear") == 0) {
         theme = &g_themeTranslucentTaskbar;
