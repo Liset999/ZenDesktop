@@ -9,7 +9,7 @@
 // @github          https://github.com/Liset999
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lcomctl32 -lgdi32 -lole32 -loleaut32 -lruntimeobject -lshlwapi
+// @compilerOptions -lcomctl32 -ldwmapi -lgdi32 -lole32 -loleaut32 -lruntimeobject -lshlwapi
 // ==/WindhawkMod==
 
 // Source code is published under The GNU General Public License v3.0.
@@ -12402,6 +12402,7 @@ using namespace std::string_view_literals;
 
 #include <commctrl.h>
 #include <d2d1_1.h>
+#include <dwmapi.h>
 #include <roapi.h>
 #include <shlwapi.h>
 #include <windows.graphics.effects.h>
@@ -12448,6 +12449,9 @@ struct {
     bool clickThroughTaskbar;
     XamlDiagnosticsHandling xamlDiagnosticsHandling;
 } g_settings;
+
+// ZenDesktop: the maximizedTaskbarLayer setting, read by the UI threads.
+std::atomic<bool> g_zenMaxLayerEnabled;
 
 // https://stackoverflow.com/a/51274008
 template <auto fn>
@@ -19098,7 +19102,8 @@ void HandleClickThroughElement(FrameworkElement element) {
 // UWPSpy handles system XAML islands.
 void HandleClickThroughIslandRoot(
     winrt::Windows::Foundation::IInspectable const& inspectable) {
-    if (!g_settings.clickThroughTaskbar) {
+    // ZenDesktop: the maximized layer also maps XamlRoots to their windows.
+    if (!g_settings.clickThroughTaskbar && !g_zenMaxLayerEnabled) {
         return;
     }
 
@@ -19445,6 +19450,538 @@ void HandleVirtualizingRepeater(ElementId elementId, FrameworkElement element) {
 
 void MergeResourceVariables();
 
+// ZenDesktop: maximized window layer (maximizedTaskbarLayer).
+//
+// While a maximized window is on a monitor, the taskbar on that monitor uses a
+// denser background brush (maximizedLayer* settings). ProcessAllStylesFromSettings
+// replaces the theme's main background constant with the style variable
+// {{ZenTaskbarRuntimeBgBrush}}. The mod publishes that variable in every
+// XamlRoot's StyleVariableState (one XamlRoot per taskbar) under a synthetic
+// owner id, and the upstream variable code re-applies just the styles that use
+// it whenever the value changes.
+//
+// One background thread tracks which monitors have a maximized window, from
+// filtered WinEvents with a trailing debounce, and wakes the UI threads only
+// when that set changes. The UI threads map each XamlRoot to its monitor
+// (cached, re-resolved when the displays change) and update the variable.
+
+constexpr WCHAR kZenRuntimeBgBrushVariable[] = L"ZenTaskbarRuntimeBgBrush";
+constexpr ElementId kZenRuntimeBgBrushOwner = static_cast<ElementId>(~0ULL);
+
+// Only set while the layer is in use on this thread (enabled when the styles
+// were processed). Empty otherwise, in which case the brush is a constant.
+thread_local std::wstring g_zenBaseBgBrush;
+thread_local std::wstring g_zenMaximizedBgBrush;
+
+std::mutex g_zenMaxMutex;
+// Guarded by g_zenMaxMutex.
+bool g_zenMaxActive;
+std::vector<HMONITOR> g_zenMaxMonitors;  // Sorted, unique.
+unsigned g_zenMaxDisplayEpoch;
+std::vector<winrt::weak_ref<winrt::Windows::System::DispatcherQueue>>
+    g_zenMaxDispatchers;
+size_t g_zenMaxPendingCallbacks;
+std::condition_variable g_zenMaxPendingCallbacksCv;
+
+void ZenMaxLayerRequestRefresh();
+
+struct ZenMaxRootMonitor {
+    winrt::weak_ref<XamlRoot> xamlRoot;
+    HMONITOR monitor = nullptr;
+    unsigned displayEpoch = 0;
+    int resolveAttempts = 0;
+};
+
+thread_local std::list<ZenMaxRootMonitor> g_zenMaxRootMonitors;
+thread_local winrt::Windows::System::DispatcherQueue g_zenMaxDispatcher{
+    nullptr};
+
+// The island of a new taskbar can report its root before its content is
+// attached, so the XamlRoot can't be matched to a window right away. Ask for a
+// few refreshes, ~120 ms apart, to resolve it later.
+constexpr int kZenMaxResolveAttempts = 10;
+
+HMONITOR ZenMaxMonitorForXamlRoot(XamlRoot const& xamlRoot,
+                                  unsigned displayEpoch) {
+    g_zenMaxRootMonitors.remove_if([](ZenMaxRootMonitor const& entry) {
+        return !entry.xamlRoot.get();
+    });
+
+    ZenMaxRootMonitor* entry = nullptr;
+    for (auto& candidate : g_zenMaxRootMonitors) {
+        if (candidate.xamlRoot.get() == xamlRoot) {
+            entry = &candidate;
+            break;
+        }
+    }
+    if (!entry) {
+        entry = &g_zenMaxRootMonitors.emplace_back();
+        entry->xamlRoot = xamlRoot;
+    }
+
+    if (entry->displayEpoch != displayEpoch) {
+        entry->displayEpoch = displayEpoch;
+        entry->monitor = nullptr;
+        entry->resolveAttempts = 0;
+    }
+
+    if (!entry->monitor) {
+        HWND islandHwnd = ResolveClickThroughIslandHwnd(xamlRoot);
+        HWND rootHwnd = islandHwnd ? GetAncestor(islandHwnd, GA_ROOT) : nullptr;
+        if (rootHwnd) {
+            entry->monitor =
+                MonitorFromWindow(rootHwnd, MONITOR_DEFAULTTONEAREST);
+        } else if (entry->resolveAttempts < kZenMaxResolveAttempts) {
+            entry->resolveAttempts++;
+            ZenMaxLayerRequestRefresh();
+        }
+    }
+
+    return entry->monitor;
+}
+
+StyleVariableValue ZenRuntimeBgBrushValue(
+    StyleVariableState* state,
+    const std::vector<HMONITOR>& maximizedMonitors,
+    unsigned displayEpoch) {
+    bool maximized = false;
+    if (auto xamlRoot = state->xamlRoot.get()) {
+        HMONITOR monitor = ZenMaxMonitorForXamlRoot(xamlRoot, displayEpoch);
+        maximized = monitor && std::binary_search(maximizedMonitors.begin(),
+                                                  maximizedMonitors.end(),
+                                                  monitor);
+    }
+
+    StyleVariableValue value;
+    value.stringForm = maximized ? g_zenMaximizedBgBrush : g_zenBaseBgBrush;
+    value.substitutable = true;
+    return value;
+}
+
+void ZenMaxSnapshot(std::vector<HMONITOR>* maximizedMonitors,
+                    unsigned* displayEpoch) {
+    std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+    *maximizedMonitors = g_zenMaxMonitors;
+    *displayEpoch = g_zenMaxDisplayEpoch;
+}
+
+bool ZenHasRuntimeBgBrushCapture(StyleVariableState* state) {
+    auto it = state->variables.find(kZenRuntimeBgBrushVariable);
+    if (it == state->variables.end()) {
+        return false;
+    }
+    return std::any_of(it->second.begin(), it->second.end(),
+                       [](const StyleVariableCapture& capture) {
+                           return capture.elementId == kZenRuntimeBgBrushOwner;
+                       });
+}
+
+// Called by ApplyCustomizations for each element before its styles are
+// resolved, so the variable is defined before any style of a new XamlRoot reads
+// it.
+void ZenEnsureRuntimeBgBrushVariable(StyleVariableState* state) {
+    if (g_zenBaseBgBrush.empty() || ZenHasRuntimeBgBrushCapture(state)) {
+        return;
+    }
+
+    std::vector<HMONITOR> maximizedMonitors;
+    unsigned displayEpoch;
+    ZenMaxSnapshot(&maximizedMonitors, &displayEpoch);
+
+    state->variables[kZenRuntimeBgBrushVariable].push_back(
+        {kZenRuntimeBgBrushOwner,
+         ZenRuntimeBgBrushValue(state, maximizedMonitors, displayEpoch)});
+}
+
+// Runs on a UI thread, from a dispatcher callback.
+void ZenMaxLayerRefreshCurrentThread() {
+    if (!g_initializedForThread || g_zenBaseBgBrush.empty()) {
+        return;
+    }
+
+    std::vector<HMONITOR> maximizedMonitors;
+    unsigned displayEpoch;
+    ZenMaxSnapshot(&maximizedMonitors, &displayEpoch);
+
+    const std::wstring varName = kZenRuntimeBgBrushVariable;
+
+    // Propagation runs XAML work which can re-enter; the pin keeps the states
+    // from being reaped, and std::list keeps the iteration valid if one is
+    // added.
+    StyleVariableStatePin statePin;
+    for (auto& state : g_styleVariableState) {
+        if (!ZenHasRuntimeBgBrushCapture(&state)) {
+            continue;
+        }
+        SetStyleVariableIfChangedAndPropagate(
+            &state, varName, kZenRuntimeBgBrushOwner,
+            ZenRuntimeBgBrushValue(&state, maximizedMonitors, displayEpoch));
+    }
+}
+
+// Called from InitializeForCurrentThread, after the styles were processed.
+void ZenMaxLayerRegisterCurrentThread() {
+    if (g_zenBaseBgBrush.empty() || g_zenMaxDispatcher) {
+        return;
+    }
+
+    try {
+        g_zenMaxDispatcher =
+            winrt::Windows::System::DispatcherQueue::GetForCurrentThread();
+    } catch (...) {
+        Wh_Log(L"Error %08X", winrt::to_hresult());
+    }
+    if (!g_zenMaxDispatcher) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+    g_zenMaxDispatchers.push_back(winrt::make_weak(g_zenMaxDispatcher));
+}
+
+// Called from UninitializeForCurrentThread.
+void ZenMaxLayerUnregisterCurrentThread() {
+    g_zenMaxRootMonitors.clear();
+    g_zenBaseBgBrush.clear();
+    g_zenMaximizedBgBrush.clear();
+
+    auto dispatcher = std::move(g_zenMaxDispatcher);
+    g_zenMaxDispatcher = nullptr;
+    if (!dispatcher) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+    std::erase_if(g_zenMaxDispatchers, [&dispatcher](const auto& weak) {
+        auto registered = weak.get();
+        return !registered || registered == dispatcher;
+    });
+}
+
+// Same scheme as TrackImageRetryCallback: counts a callback handed to a
+// dispatcher, so that ZenMaxLayerStop can wait until it ran or was dropped.
+std::shared_ptr<void> ZenMaxTrackCallback() {
+    {
+        std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+        if (!g_zenMaxActive) {
+            return nullptr;
+        }
+        g_zenMaxPendingCallbacks++;
+    }
+
+    return std::shared_ptr<void>(&g_zenMaxPendingCallbacks, [](void*) {
+        {
+            std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+            g_zenMaxPendingCallbacks--;
+        }
+        g_zenMaxPendingCallbacksCv.notify_all();
+    });
+}
+
+void ZenMaxDispatchToUiThreads() {
+    std::vector<winrt::Windows::System::DispatcherQueue> dispatchers;
+    {
+        std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+        if (!g_zenMaxActive) {
+            return;
+        }
+        for (auto& weak : g_zenMaxDispatchers) {
+            if (auto dispatcher = weak.get()) {
+                dispatchers.push_back(std::move(dispatcher));
+            }
+        }
+        std::erase_if(g_zenMaxDispatchers,
+                      [](const auto& weak) { return !weak.get(); });
+    }
+
+    for (auto& dispatcher : dispatchers) {
+        auto callbackRef = ZenMaxTrackCallback();
+        if (!callbackRef) {
+            return;
+        }
+        try {
+            dispatcher.TryEnqueue(
+                [callbackRef]() { ZenMaxLayerRefreshCurrentThread(); });
+        } catch (...) {
+            Wh_Log(L"Error %08X", winrt::to_hresult());
+        }
+    }
+}
+
+// The tracking thread. Everything in ZenMaxThreadState is only touched on it.
+
+constexpr UINT kZenMaxMsgRefresh = WM_APP + 1;  // wParam: force a UI refresh.
+constexpr UINT kZenMaxDebounceMs = 120;
+// A window which keeps firing events (e.g. an app animating a maximized
+// window) must not postpone the update forever.
+constexpr DWORD kZenMaxMaxDelayMs = 500;
+
+struct ZenMaxThreadState {
+    // Windows whose events can change the result: the counted maximized windows
+    // and the taskbars.
+    std::unordered_set<HWND> trackedWindows;
+    std::vector<std::pair<HWND, HMONITOR>> taskbars;  // Sorted.
+    UINT_PTR timer = 0;
+    DWORD pendingSince = 0;
+    bool forcePending = false;
+};
+
+ZenMaxThreadState* g_zenMaxThreadState;
+HANDLE g_zenMaxThread;  // Guarded by g_zenLifecycleMutex.
+std::atomic<DWORD> g_zenMaxThreadId;
+
+bool ZenMaxIsOwnTaskbarWindow(HWND hWnd) {
+    DWORD processId = 0;
+    if (!GetWindowThreadProcessId(hWnd, &processId) ||
+        processId != GetCurrentProcessId()) {
+        return false;
+    }
+    WCHAR className[32];
+    return GetClassName(hWnd, className, ARRAYSIZE(className)) &&
+           (_wcsicmp(className, L"Shell_TrayWnd") == 0 ||
+            _wcsicmp(className, L"Shell_SecondaryTrayWnd") == 0);
+}
+
+bool ZenMaxIsCountedMaximizedWindow(HWND hWnd) {
+    if (!IsWindowVisible(hWnd) || IsIconic(hWnd) || !IsZoomed(hWnd)) {
+        return false;
+    }
+    if (GetWindowLongPtr(hWnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) {
+        return false;
+    }
+    // Windows on other virtual desktops, and some suspended apps, are cloaked.
+    DWORD cloaked = 0;
+    if (SUCCEEDED(DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &cloaked,
+                                        sizeof(cloaked))) &&
+        cloaked) {
+        return false;
+    }
+    return true;
+}
+
+void ZenMaxRecompute(bool force) {
+    auto& threadState = *g_zenMaxThreadState;
+
+    struct EnumResult {
+        std::vector<HMONITOR> monitors;
+        std::vector<std::pair<HWND, HMONITOR>> taskbars;
+        std::unordered_set<HWND> trackedWindows;
+    } result;
+
+    EnumWindows(
+        [](HWND hWnd, LPARAM lParam) -> BOOL {
+            auto& out = *reinterpret_cast<EnumResult*>(lParam);
+            if (ZenMaxIsOwnTaskbarWindow(hWnd)) {
+                out.taskbars.push_back(
+                    {hWnd, MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST)});
+                out.trackedWindows.insert(hWnd);
+            } else if (ZenMaxIsCountedMaximizedWindow(hWnd)) {
+                out.monitors.push_back(
+                    MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST));
+                out.trackedWindows.insert(hWnd);
+            }
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&result));
+
+    std::sort(result.monitors.begin(), result.monitors.end());
+    result.monitors.erase(
+        std::unique(result.monitors.begin(), result.monitors.end()),
+        result.monitors.end());
+    std::sort(result.taskbars.begin(), result.taskbars.end());
+
+    // A taskbar that appeared, went away or moved to another monitor means the
+    // displays changed, and the cached XamlRoot monitors are stale.
+    bool displaysChanged = result.taskbars != threadState.taskbars;
+    threadState.taskbars = std::move(result.taskbars);
+    threadState.trackedWindows = std::move(result.trackedWindows);
+
+    bool monitorsChanged;
+    {
+        std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+        monitorsChanged = result.monitors != g_zenMaxMonitors;
+        if (monitorsChanged) {
+            g_zenMaxMonitors = std::move(result.monitors);
+        }
+        if (displaysChanged) {
+            g_zenMaxDisplayEpoch++;
+        }
+    }
+
+    if (monitorsChanged || displaysChanged || force) {
+        ZenMaxDispatchToUiThreads();
+    }
+}
+
+void ZenMaxScheduleRecompute(bool force) {
+    auto& threadState = *g_zenMaxThreadState;
+    threadState.forcePending |= force;
+
+    DWORD now = GetTickCount();
+    if (threadState.timer) {
+        if (now - threadState.pendingSince >= kZenMaxMaxDelayMs) {
+            return;  // Let the pending timer fire.
+        }
+        KillTimer(nullptr, threadState.timer);
+    } else {
+        threadState.pendingSince = now;
+    }
+    threadState.timer = SetTimer(nullptr, 0, kZenMaxDebounceMs, nullptr);
+}
+
+void CALLBACK ZenMaxWinEventProc(HWINEVENTHOOK,
+                                 DWORD event,
+                                 HWND hWnd,
+                                 LONG idObject,
+                                 LONG idChild,
+                                 DWORD,
+                                 DWORD) {
+    if (!hWnd || idObject != OBJID_WINDOW || idChild != CHILDID_SELF ||
+        !g_zenMaxThreadState) {
+        return;
+    }
+
+    if (g_zenMaxThreadState->trackedWindows.contains(hWnd)) {
+        ZenMaxScheduleRecompute(false);
+        return;
+    }
+
+    // An untracked window can't change the result by going away.
+    if (event == EVENT_OBJECT_DESTROY || event == EVENT_OBJECT_HIDE ||
+        event == EVENT_SYSTEM_MINIMIZESTART || event == EVENT_OBJECT_CLOAKED) {
+        return;
+    }
+
+    if (GetAncestor(hWnd, GA_ROOT) != hWnd) {
+        return;
+    }
+
+    if (IsZoomed(hWnd) || ZenMaxIsOwnTaskbarWindow(hWnd)) {
+        ZenMaxScheduleRecompute(false);
+    }
+}
+
+DWORD WINAPI ZenMaxThreadProc(LPVOID parameter) {
+    HANDLE readyEvent = static_cast<HANDLE>(parameter);
+
+    ZenMaxThreadState threadState;
+    g_zenMaxThreadState = &threadState;
+
+    // Create the message queue before anyone can post to it.
+    MSG msg;
+    PeekMessage(&msg, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
+
+    constexpr std::pair<DWORD, DWORD> kEventRanges[] = {
+        {EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND},
+        {EVENT_OBJECT_DESTROY, EVENT_OBJECT_HIDE},
+        {EVENT_OBJECT_LOCATIONCHANGE, EVENT_OBJECT_LOCATIONCHANGE},
+        {EVENT_OBJECT_CLOAKED, EVENT_OBJECT_UNCLOAKED},
+    };
+    HWINEVENTHOOK hooks[ARRAYSIZE(kEventRanges)]{};
+    for (size_t i = 0; i < ARRAYSIZE(kEventRanges); i++) {
+        hooks[i] = SetWinEventHook(kEventRanges[i].first,
+                                   kEventRanges[i].second, nullptr,
+                                   ZenMaxWinEventProc, 0, 0,
+                                   WINEVENT_OUTOFCONTEXT);
+        if (!hooks[i]) {
+            Wh_Log(L"SetWinEventHook failed: %u", GetLastError());
+        }
+    }
+
+    g_zenMaxThreadId = GetCurrentThreadId();
+    SetEvent(readyEvent);
+
+    ZenMaxRecompute(/*force=*/true);
+
+    // WinEvent callbacks are delivered from within GetMessage.
+    while (GetMessage(&msg, nullptr, 0, 0) > 0) {
+        if (msg.hwnd) {
+            DispatchMessage(&msg);
+        } else if (msg.message == kZenMaxMsgRefresh) {
+            ZenMaxScheduleRecompute(msg.wParam != 0);
+        } else if (msg.message == WM_TIMER &&
+                   msg.wParam == threadState.timer) {
+            KillTimer(nullptr, threadState.timer);
+            threadState.timer = 0;
+            bool force = threadState.forcePending;
+            threadState.forcePending = false;
+            ZenMaxRecompute(force);
+        }
+    }
+
+    for (HWINEVENTHOOK hook : hooks) {
+        if (hook) {
+            UnhookWinEvent(hook);
+        }
+    }
+    if (threadState.timer) {
+        KillTimer(nullptr, threadState.timer);
+    }
+
+    g_zenMaxThreadState = nullptr;
+    return 0;
+}
+
+// Asks the tracking thread to recompute and refresh all UI threads. Can be
+// called from any thread; a no-op when the thread isn't running.
+void ZenMaxLayerRequestRefresh() {
+    if (DWORD threadId = g_zenMaxThreadId) {
+        PostThreadMessage(threadId, kZenMaxMsgRefresh, TRUE, 0);
+    }
+}
+
+// Start / stop are called with g_zenLifecycleMutex held.
+void ZenMaxLayerStart() {
+    if (g_zenMaxThread) {
+        return;
+    }
+
+    HANDLE readyEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    if (!readyEvent) {
+        Wh_Log(L"CreateEvent failed: %u", GetLastError());
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+        g_zenMaxActive = true;
+    }
+
+    g_zenMaxThread =
+        CreateThread(nullptr, 0, ZenMaxThreadProc, readyEvent, 0, nullptr);
+    if (g_zenMaxThread) {
+        HANDLE handles[] = {readyEvent, g_zenMaxThread};
+        WaitForMultipleObjects(ARRAYSIZE(handles), handles, FALSE, INFINITE);
+    } else {
+        Wh_Log(L"CreateThread failed: %u", GetLastError());
+        std::lock_guard<std::mutex> lock(g_zenMaxMutex);
+        g_zenMaxActive = false;
+    }
+
+    CloseHandle(readyEvent);
+}
+
+void ZenMaxLayerStop() {
+    if (g_zenMaxThread) {
+        g_zenMaxThreadId = 0;
+        DWORD threadId = GetThreadId(g_zenMaxThread);
+        while (WaitForSingleObject(g_zenMaxThread, 0) == WAIT_TIMEOUT) {
+            PostThreadMessage(threadId, WM_QUIT, 0, 0);
+            WaitForSingleObject(g_zenMaxThread, 100);
+        }
+        CloseHandle(g_zenMaxThread);
+        g_zenMaxThread = nullptr;
+    }
+
+    std::unique_lock<std::mutex> lock(g_zenMaxMutex);
+    g_zenMaxActive = false;
+    g_zenMaxMonitors.clear();
+    // Callbacks already queued to the UI threads run (or are dropped) first,
+    // since the module may be unloaded next.
+    g_zenMaxPendingCallbacksCv.wait(
+        lock, [] { return g_zenMaxPendingCallbacks == 0; });
+}
+
 void ApplyCustomizations(ElementId elementId,
                          FrameworkElement element,
                          PCWSTR fallbackClassName) {
@@ -19476,6 +20013,8 @@ void ApplyCustomizations(ElementId elementId,
                winrt::get_class_name(element).c_str());
         return;
     }
+
+    ZenEnsureRuntimeBgBrushVariable(state);
 
     auto resolved = FindElementPropertyOverrides(element, fallbackClassName);
     if (resolved.overridesPerVSG.empty() && resolved.captures.empty()) {
@@ -20801,6 +21340,22 @@ void ZenApplyBrushPresets(StyleConstants& styleConstants) {
     int luminosity = ZenGetIntSettingInRange(L"luminosityPreset", 0, 150, 20);
 
     std::wstring baseBrush = ZenBuildBgBrush(blur, opacity, color, luminosity);
+
+    // With the maximized layer, the background is the runtime variable, which
+    // switches between the two brushes per taskbar.
+    g_zenBaseBgBrush.clear();
+    g_zenMaximizedBgBrush.clear();
+    if (g_zenMaxLayerEnabled) {
+        g_zenMaximizedBgBrush = ZenBuildBgBrush(
+            ZenGetIntSettingInRange(L"maximizedLayerBlur", 0, 100, 24),
+            ZenGetIntSettingInRange(L"maximizedLayerOpacity", 0, 100, 72),
+            color,
+            ZenGetIntSettingInRange(L"maximizedLayerLuminosity", 0, 150, 20));
+        g_zenBaseBgBrush = std::move(baseBrush);
+        baseBrush =
+            std::wstring(L"{{") + kZenRuntimeBgBrushVariable + L"}}";
+    }
+
     if (bgConstant) {
         bgConstant->second = std::move(baseBrush);
     } else {
@@ -21126,6 +21681,9 @@ void UninitializeResourceVariables() {
 }
 
 void UninitializeForCurrentThread() {
+    // ZenDesktop: no more maximized layer refreshes for this thread.
+    ZenMaxLayerUnregisterCurrentThread();
+
     // Drop the click-through subclasses before restoring the windows below.
     // ClearClickThroughRegions calls SetWindowRgn, which sends
     // WM_WINDOWPOSCHANGED synchronously, and a still-attached subclass would
@@ -21238,6 +21796,8 @@ void InitializeForCurrentThread() {
     EnsureTaskbarSurfaceSubclasses();
 
     ProcessAllStylesFromSettings();
+
+    ZenMaxLayerRegisterCurrentThread();
 
     g_initializedForThread = true;
 }
@@ -21886,6 +22446,7 @@ void StopStatsTimer() {
 
 void LoadSettings() {
     g_settings.clickThroughTaskbar = Wh_GetIntSetting(L"clickThroughTaskbar");
+    g_zenMaxLayerEnabled = Wh_GetIntSetting(L"maximizedTaskbarLayer") != 0;
 
     PCWSTR xamlDiagnosticsHandling =
         Wh_GetStringSetting(L"xamlDiagnosticsHandling");
@@ -21993,6 +22554,10 @@ void Wh_ModAfterInit() {
     if (initialize) {
         InitializeSettingsAndTap();
     }
+
+    if (g_zenMaxLayerEnabled) {
+        ZenMaxLayerStart();
+    }
 }
 
 void Wh_ModUninit() {
@@ -22007,6 +22572,10 @@ void Wh_ModUninit() {
     ZenStopTapRetry();
 
     std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
+
+    // Before the UI threads are uninitialized, and waits for the refreshes
+    // already queued to them.
+    ZenMaxLayerStop();
 
     HWND restartExplorerPromptWindow = g_restartExplorerPromptWindow;
     if (restartExplorerPromptWindow) {
@@ -22085,5 +22654,14 @@ void Wh_ModSettingsChanged() {
 
     if (initialize) {
         InitializeSettingsAndTap();
+    }
+
+    if (g_zenMaxLayerEnabled) {
+        ZenMaxLayerStart();
+        // The UI threads were reinitialized, so refresh them even if the
+        // maximized windows didn't change.
+        ZenMaxLayerRequestRefresh();
+    } else {
+        ZenMaxLayerStop();
     }
 }
