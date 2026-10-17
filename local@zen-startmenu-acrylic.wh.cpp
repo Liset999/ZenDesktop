@@ -5,7 +5,7 @@
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
 // @version         4.1.2
-// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
+// @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -415,7 +415,9 @@ from the **TranslucentTB** project.
 
 ## 捐助支持
 
-如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+
+- [爱发电](https://ifdian.net/a/Lanboo)
 
 ![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 
