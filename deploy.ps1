@@ -177,11 +177,11 @@ if ($files.Count -eq 0) {
     Exit 1
 }
 
-# v4.2: optional mods live in .\optional and are deployed to Windhawk automatically.
-# Core mods are enabled (Disabled=0) by default.
-# Optional mods (wobbly-windows, windows-animations) are disabled (Disabled=1) by default,
-# allowing users to toggle them ON in the Windhawk UI at any time without command-line prompts.
-# Preselection via -Optional parameter (e.g. -Optional "wobbly-windows") remains supported for unattended runs.
+# v4.2: deploy 仅负责将所有 Mod 源码及元数据装入 Windhawk，不负责开启，不负责编译。
+# 所有 Mod（包括核心 Mod 与 optional Mod）在首次部署时默认全部处于关闭状态（Disabled=1）。
+# 用户在 Windhawk UI 中自行按需开启开关并在提示时编译。
+# 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
+
 $optionalDir = Join-Path $PSScriptRoot "optional"
 $optionalModIds = @("local@wobbly-windows", "local@windows-animations")
 $preselected = @()
@@ -250,10 +250,10 @@ foreach ($file in $files) {
     }
 
     # Determine Disabled state:
-    # 1. Optional mods default to Disabled=1 (off) so user can toggle them in Windhawk UI.
-    # 2. If -Optional parameter was passed, obey it.
-    # 3. Otherwise preserve user's existing toggle state if mod was already registered.
-    $isOptional = $optionalModIds -contains $id
+    # 核心原则：deploy 不负责编译，也不负责开启！只负责把 mod 装到 Windhawk 里面。
+    # 所有 Mod 默认均为关闭状态（Disabled = 1），绝不自动开启、绝不执行后台编译。
+    # 用户在 Windhawk UI 中自行按需开启开关并在提示时编译。
+    # 若用户此前已在 Windhawk 中手动调整过开关状态，则予以保留。
     $currentDisabled = $null
     try {
         $prop = Get-ItemProperty -Path $regPath -Name "Disabled" -ErrorAction SilentlyContinue
@@ -262,25 +262,18 @@ foreach ($file in $files) {
         $currentDisabled = $null
     }
 
-    $targetDisabled = 0
-    if ($isOptional) {
-        if ($Optional) {
-            $targetDisabled = if ($preselected -contains $id) { 0 } else { 1 }
-        } elseif ($null -ne $currentDisabled) {
-            $targetDisabled = $currentDisabled
-        } else {
-            $targetDisabled = 1  # Default OFF for optional mods on first install
-        }
-        if ($id -eq "local@wobbly-windows" -and $targetDisabled -eq 0) {
-            $dwmModSelected = $true
-        }
+    $targetDisabled = 1
+    if ($Optional) {
+        $targetDisabled = if ($preselected -contains $id) { 0 } else { 1 }
+    } elseif ($null -ne $currentDisabled) {
+        $targetDisabled = $currentDisabled
     } else {
-        if ($null -ne $currentDisabled) {
-            $targetDisabled = $currentDisabled
-        } else {
-            $targetDisabled = 0
-        }
+        $targetDisabled = 1  # 默认关闭：所有 Mod 仅装入 Windhawk，不主动开启、不主动编译
     }
+    if ($id -eq "local@wobbly-windows" -and $targetDisabled -eq 0) {
+        $dwmModSelected = $true
+    }
+
     
     # Populate the registry with metadata
     Set-ItemProperty -Path $regPath -Name "Disabled" -Value $targetDisabled -Type DWord
@@ -564,8 +557,8 @@ Write-Status "   [SUCCESS] ZenDesktop v4.2.0 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："
-Write-Host "  1. 打开 Windhawk，6 个核心美化模块已全部部署并就绪（提示时点击保存/编译）。"
-Write-Host "  2. 果冻窗口与关窗动画已加入 Mod 列表（默认关闭），您可随时在 Windhawk 界面中点击右下角开关开启！"
-Write-Host "  3. 若开启「果冻窗口」，请在 Windhawk「设置 > 高级设置 > 进程包含列表」中添加 dwm.exe。"
-Write-Host "  4. 建议重启整台电脑，使所有美化与透明效果完整生效。"
+Write-Host "  1. deploy 仅负责将美化模块装入 Windhawk，默认不自动开启任何 Mod，也不在后台执行编译。"
+Write-Host "  2. 请在 Windhawk 界面中按需开启您想要使用的模块开关，在弹出的窗口中确认保存与编译。"
+Write-Host "  3. 若开启「果冻窗口」，请在 Windhawk「设置 > 高级设置 > 进程包含列表」中添加 dwm.exe 并重启整机。"
+Write-Host "  4. 建议在配置完成后重启整台电脑，使所有美化与透明效果达到最佳状态。"
 Write-Host ""
