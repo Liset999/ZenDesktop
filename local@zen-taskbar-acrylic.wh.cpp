@@ -2,9 +2,10 @@
 // @id              zen-taskbar-acrylic
 // @name            ZenDesktop: 任务栏美化
 // @name:zh-CN      ZenDesktop: 任务栏美化
-// @description     Acrylic / frosted glass taskbar themes with blur, opacity and color presets. Based on Windows 11 Taskbar Styler by m417z.
-// @description:zh-CN 为 Windows 11 任务栏提供亚克力、毛玻璃与透明背景风格，可调模糊、浓度与颜色。基于 m417z 的 Windows 11 Taskbar Styler。
-// @version         4.2.0
+// @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
+// @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
+// @version         4.2.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -22,22 +23,49 @@
 
 // ==WindhawkModReadme==
 /*
-# ZenDesktop: Taskbar Acrylic Styler
+# ZenDesktop: 任务栏美化
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：m417z (Windows 11 Taskbar Styler)  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版二次开发：背景颜色 / 模糊 / 浓度预设、溢出图标面板与音量弹出条独立玻璃、最大化窗口任务栏状态层、文字颜色与全中文设置。  
-> **上游版本**：Windows 11 Taskbar Styler v1.10。以下为原版说明。
+为 Windows 11 任务栏提供亚克力、模糊和透明背景，颜色、模糊、不透明度和亮度可调。基于 m417z 的 Windows 11 Taskbar Styler v1.10。
 
-Customize the taskbar with themes contributed by others or create your own.
+## 功能
 
-Also check out the **Windows 11 Start Menu Styler**, **Windows 11 Notification
-Center Styler** mods.
+- 背景颜色、模糊、不透明度、亮度预设，可与任意内置主题搭配。
+- 托盘溢出图标面板、音量/亮度浮窗使用独立的玻璃参数。
+- 可选「最大化时加深背景」：某个显示器上有最大化窗口时，该显示器的任务栏改用更实的背景。
+- 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 可选任务栏空白处点击穿透，适合 Dock 风格主题。
 
+## 设置说明
+
+- **主题**：默认「自定义玻璃」。其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
+- **溢出面板 / 音量/亮度浮窗**：分别对应托盘图标放不下时弹出的面板，以及调节音量、亮度时出现的滑条。
+- **最大化时加深背景**：开启后，下方三项「最大化时」参数才生效；切换到其他虚拟桌面的窗口不计入。
+- **高级：XAML 诊断冲突处理**：默认允许其他程序共存；开机后托盘图标不透明时可改为「阻止其他程序」。
+- **高级：样式常量 / 控件样式 / 资源变量**：用于编写自定义样式，语法见文末附录。一般无需修改。
+
+## 兼容性与已知问题
+
+- 适用于 Windows 11，注入 `explorer.exe`。
+- 同一时间只能有一个程序使用 XAML 诊断，与 TranslucentTB 等同类程序同时使用时可能冲突。
+- 原版主题按旧版任务栏编写，在 v1.10 基础上托盘区域的显示可能略有差异。
+
+## 更新日志
+
+- **4.2.1**：规范设置界面与说明文字，行为不变。
+- **4.2.0**：改用上游 v1.10 为基础；重写最大化状态层，按显示器和虚拟桌面判断；新增点击穿透；设置缺失时使用默认值。
+
+## 致谢与许可
+
+- 原版 mod：Windows 11 Taskbar Styler，作者 [m417z](https://github.com/m417z)，GPL-3.0。
+- ZenDesktop 修改（Lanbo）：背景颜色/模糊/不透明度预设、溢出面板与音量浮窗独立玻璃、最大化状态层、文字颜色与中文设置。
+- 内置的社区主题由各自作者贡献，详见对应的 Windows 11 styling guide 仓库。
+- 控件树监听基于 TranslucentTB 项目的 ExplorerTAP，`WindhawkBlur` 画刷基于 TranslucentTB 的 XamlBlurBrush。
+- 本修改版同样以 GPL-3.0 发布。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 附录：原版说明（英文）
+
+以下为上游 mod 的原版说明，保留英文原文，供编写自定义样式时参考。
 ## Themes
 
 Themes are collections of styles. The following themes are integrated into the
@@ -516,287 +544,319 @@ code from the **TranslucentTB** project.
 The `WindhawkBlur` brush object implementation is based on
 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)
 from the **TranslucentTB** project.
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - theme: "TranslucentTaskbar"
-  $name: "🎭 视觉风格 (Visual Style)"
-  $description: >-
-    选择任务栏的整体视觉风格。搭配下方的颜色和模糊度设置使用。
+  $name: "Theme"
+  $name:zh-CN: "主题"
+  $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Custom Glass."
+  $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为自定义玻璃。"
   $options:
-  - "": "无 (None)"
-  - TranslucentTaskbar: "自定义玻璃 (Custom Glass)"
-  - WindowGlass: "圆角分段小组件布局 (Window Glass Layout)"
-  - TintedGlass: "着色玻璃经典布局 (Tinted Glass Layout)"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
-  - SimplyTransparent: "纯粹透明 (Simply Transparent)"
-  - TaskbarXII: "任务栏 XII (Taskbar XII)"
-  - Windows7: "Windows 7 风格 (Windows 7)"
-  - WinXP: "Windows XP 风格 (Windows XP)"
-  - LiquidGlass: "液态琉璃 (LiquidGlass)"
-  - LiquidGlass_variant_Alternate: "液态琉璃 - 备选 (LiquidGlass Alt)"
-  - AppleLiquidGlass_variant_Alternate: "液态玻璃 - 备选 (Liquid Glass Alt)"
-  - AppleLiquidGlassClassic_variant_Alternate: "液态经典 - 备选 (Liquid Classic Alt)"
-  - Borderless: "无边框 (Borderless)"
-  - DockLike: "Dock 风格 (DockLike)"
-  - Squircle: "圆角方块 (Squircle)"
-  - Bubbles: "气泡风格 (Bubbles)"
-  - Fluid: "流体风格 (Fluid)"
-  - Surface: "Surface 风格 (Surface)"
-  - Aeris: "Aeris 风格 (Aeris)"
-  - Plasma: "Plasma 风格 (Plasma)"
-  - WinVista: "Windows Vista 风格 (WinVista)"
-  - WinXP_variant_Zune: "Zune 风格 (WinXP Zune)"
-  - SunValley: "Sun Valley 风格 (SunValley)"
-  - 21996Taskbar: "Sun Valley 经典 (SunValley Legacy)"
-  - CleanSlate: "干净简约 (CleanSlate)"
-  - Lucent: "透明流光 (Lucent)"
-  - Lucent_variant_Light: "透明流光 - 浅色 (Lucent Light)"
-  - RosePine: "玫瑰松 (RosePine)"
-  - xdark: "极暗 (xdark)"
-  - WindowGlass_variant_Split: "窗口玻璃 - 分离 (WindowGlass Split)"
-  - WindowGlass_variant_FullLength: "窗口玻璃 - 全长 (WindowGlass Full)"
-  - Oversimplified&Accentuated: "极简强调 (Oversimplified)"
-  - Luminosity_variant_Dock: "光度 - Dock (Luminosity Dock)"
-  - Luminosity_variant_Classic: "光度 - 经典 (Luminosity Classic)"
-  - Luminosity_variant_Compact: "光度 - 紧凑 (Luminosity Compact)"
-  - LayerMicaUI: "层叠云母 (LayerMicaUI)"
-  - BottomDensy: "底部紧凑 (BottomDensy)"
-  - BottomDensy_variant_NoInd: "底部紧凑 - 无指示 (BottomDensy NoInd)"
-  - TaskbarToStatusbar: "状态栏化 (TaskbarToStatusbar)"
-  - UltraWideFriendly: "超宽屏适配 (UltraWideFriendly)"
-  - LiquidGlass2: "液态琉璃 2 (LiquidGlass 2)"
-  - Command_Center: "控制中心 (Command Center)"
-  - FluentGlass: "Fluent 玻璃 (FluentGlass)"
-  - OS26_Liquid_Glass_variant_ClearMacDock: "OS26 液态玻璃 - 透明 Dock (Clear MacDock)"
-  - OS26_Liquid_Glass_variant_ClearMacDockCompact: "OS26 液态玻璃 - 透明紧凑 Dock (Clear MacDock Compact)"
-  - OS26_Liquid_Glass_variant_ClearTaskbar: "OS26 液态玻璃 - 透明任务栏 (Clear Taskbar)"
-  - OS26_Liquid_Glass_variant_DarkMacDock: "OS26 液态玻璃 - 深色 Dock (Dark MacDock)"
-  - OS26_Liquid_Glass_variant_DarkMacDockCompact: "OS26 液态玻璃 - 深色紧凑 Dock (Dark MacDock Compact)"
-  - OS26_Liquid_Glass_variant_DarkTaskbar: "OS26 液态玻璃 - 深色任务栏 (Dark Taskbar)"
-  - FrostyGlass: "霜雾玻璃 (FrostyGlass)"
-  - FrostedAcrylic: "磨砂亚克力 (FrostedAcrylic)"
-  - Pills: "胶囊 (Pills)"
-  - Blob: "团块 (Blob)"
-  - Minecraft_Hotbar: "我的世界快捷栏 (Minecraft Hotbar)"
+  - "": "无"
+  - TranslucentTaskbar: "自定义玻璃（Custom Glass）"
+  - WindowGlass: "圆角分段小组件布局（Window Glass Layout）"
+  - TintedGlass: "着色玻璃经典布局（Tinted Glass Layout）"
+  - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
+  - AppleLiquidGlassClassic: "液态玻璃 - 经典（Liquid Glass Classic）"
+  - SimplyTransparent: "纯粹透明（Simply Transparent）"
+  - TaskbarXII: "任务栏 XII（Taskbar XII）"
+  - Windows7: "Windows 7 风格"
+  - WinXP: "Windows XP 风格"
+  - LiquidGlass: "液态琉璃（LiquidGlass）"
+  - LiquidGlass_variant_Alternate: "液态琉璃 - 备选（LiquidGlass Alt）"
+  - AppleLiquidGlass_variant_Alternate: "液态玻璃 - 备选（Liquid Glass Alt）"
+  - AppleLiquidGlassClassic_variant_Alternate: "液态经典 - 备选（Liquid Classic Alt）"
+  - Borderless: "无边框（Borderless）"
+  - DockLike: "Dock 风格（DockLike）"
+  - Squircle: "圆角方块（Squircle）"
+  - Bubbles: "气泡风格（Bubbles）"
+  - Fluid: "流体风格（Fluid）"
+  - Surface: "Surface 风格"
+  - Aeris: "Aeris 风格"
+  - Plasma: "Plasma 风格"
+  - WinVista: "Windows Vista 风格（WinVista）"
+  - WinXP_variant_Zune: "Zune 风格（WinXP Zune）"
+  - SunValley: "Sun Valley 风格"
+  - 21996Taskbar: "Sun Valley 经典（SunValley Legacy）"
+  - CleanSlate: "干净简约（CleanSlate）"
+  - Lucent: "透明流光（Lucent）"
+  - Lucent_variant_Light: "透明流光 - 浅色（Lucent Light）"
+  - RosePine: "玫瑰松（RosePine）"
+  - xdark: "极暗（xdark）"
+  - WindowGlass_variant_Split: "窗口玻璃 - 分离（WindowGlass Split）"
+  - WindowGlass_variant_FullLength: "窗口玻璃 - 全长（WindowGlass Full）"
+  - Oversimplified&Accentuated: "极简强调（Oversimplified）"
+  - Luminosity_variant_Dock: "光度 - Dock（Luminosity Dock）"
+  - Luminosity_variant_Classic: "光度 - 经典（Luminosity Classic）"
+  - Luminosity_variant_Compact: "光度 - 紧凑（Luminosity Compact）"
+  - LayerMicaUI: "层叠云母（LayerMicaUI）"
+  - BottomDensy: "底部紧凑（BottomDensy）"
+  - BottomDensy_variant_NoInd: "底部紧凑 - 无指示（BottomDensy NoInd）"
+  - TaskbarToStatusbar: "状态栏化（TaskbarToStatusbar）"
+  - UltraWideFriendly: "超宽屏适配（UltraWideFriendly）"
+  - LiquidGlass2: "液态琉璃 2（LiquidGlass 2）"
+  - Command_Center: "控制中心（Command Center）"
+  - FluentGlass: "Fluent 玻璃（FluentGlass）"
+  - OS26_Liquid_Glass_variant_ClearMacDock: "OS26 液态玻璃 - 透明 Dock（Clear MacDock）"
+  - OS26_Liquid_Glass_variant_ClearMacDockCompact: "OS26 液态玻璃 - 透明紧凑 Dock（Clear MacDock Compact）"
+  - OS26_Liquid_Glass_variant_ClearTaskbar: "OS26 液态玻璃 - 透明任务栏（Clear Taskbar）"
+  - OS26_Liquid_Glass_variant_DarkMacDock: "OS26 液态玻璃 - 深色 Dock（Dark MacDock）"
+  - OS26_Liquid_Glass_variant_DarkMacDockCompact: "OS26 液态玻璃 - 深色紧凑 Dock（Dark MacDock Compact）"
+  - OS26_Liquid_Glass_variant_DarkTaskbar: "OS26 液态玻璃 - 深色任务栏（Dark Taskbar）"
+  - FrostyGlass: "霜雾玻璃（FrostyGlass）"
+  - FrostedAcrylic: "磨砂亚克力（FrostedAcrylic）"
+  - Pills: "胶囊（Pills）"
+  - Blob: "团块（Blob）"
+  - Minecraft_Hotbar: "我的世界快捷栏（Minecraft Hotbar）"
   - One_UI_8_5_variant_Dock: "One UI 8.5 - Dock"
-  - One_UI_8_5_variant_Taskbar: "One UI 8.5 - 任务栏 (Taskbar)"
+  - One_UI_8_5_variant_Taskbar: "One UI 8.5 - 任务栏（Taskbar）"
 - bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
+  $name: "Background color"
+  $name:zh-CN: "背景颜色"
+  $description: "Base tint of the background. \"Theme default\" uses the color built into the selected theme."
+  $description:zh-CN: "背景的基础色调。选「主题默认」时使用所选主题自带的颜色。"
   $options:
-    - Default: "主题默认 (Theme Default)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+    - Default: "主题默认"
+    - Accent: "系统强调色"
+    - GlassWhite: "透白"
+    - MistGrey: "雾灰"
+    - DeepBlack: "深黑"
+    - OceanBlue: "海蓝"
+    - AuroraCyan: "极光青"
+    - RosePink: "玫瑰粉"
+    - BordeauxRed: "酒红"
+    - ForestGreen: "森林绿"
+    - RoyalPurple: "皇家紫"
+    - SunsetOrange: "落日橙"
+    - ChampagneGold: "香槟金"
+    - MorandiSage: "莫兰迪绿"
 - blurPreset: 30
-  $name: "🔮 毛玻璃模糊度 (Blur)"
-  $description: >-
-    调节背景的模糊程度，数值越大越模糊。
+  $name: "Blur"
+  $name:zh-CN: "模糊"
+  $description: "Background blur strength, 0–60. Larger is blurrier."
+  $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - opacityPreset: 50
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节背景颜色的填充浓度，数值越大颜色越深。
+  $name: "Opacity"
+  $name:zh-CN: "不透明度"
+  $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
+  $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - luminosityPreset: 20
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景的亮度与通透程度：数值越小越暗，越大越亮、越通透。
+  $name: "Luminosity"
+  $name:zh-CN: "亮度"
+  $description: "Luminosity layer strength of the background, 0–150."
+  $description:zh-CN: "背景亮度层的强度，范围 0–150。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。
+  $name: "Text color"
+  $name:zh-CN: "文字颜色"
+  $description: "Color of text and icons. Change it when text is hard to read on the current background."
+  $description:zh-CN: "文字与图标的颜色。当前背景下文字看不清时可以切换。"
   $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
+    - default: "主题默认"
+    - white: "白色"
+    - dark: "深色"
+    - system: "跟随系统"
+    - red: "红色"
+    - green: "绿色"
+    - blue: "蓝色"
+    - yellow: "黄色"
+    - orange: "橙色"
+    - purple: "紫色"
+    - pink: "粉色"
+    - cyan: "青色"
 - trayOpacityPreset: 50
-  $name: "📌 溢出图标面板浓度 (Overflow Opacity)"
-  $description: >-
-    任务栏图标装不下时弹出的那块圆角图标墙（不是右边时钟）。做法和开始菜单子菜单一样，单层玻璃。
+  $name: "Overflow panel: opacity"
+  $name:zh-CN: "溢出面板：不透明度"
+  $description: "Fill strength of the overflow icon panel (the flyout shown when tray icons do not fit, not the clock), 0–100%. Default: 50%."
+  $description:zh-CN: "溢出图标面板（托盘图标放不下时弹出的面板，不是时钟）的颜色浓度，范围 0–100%。默认 50%。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - trayLuminosityPreset: 20
-  $name: "📌 溢出图标面板亮度通透度 (Overflow Luminosity)"
-  $description: >-
-    任务栏溢出图标墙的亮度通透度。
+  $name: "Overflow panel: luminosity"
+  $name:zh-CN: "溢出面板：亮度"
+  $description: "Luminosity layer strength of the overflow icon panel, 0–150. Default: 20."
+  $description:zh-CN: "溢出图标面板亮度层的强度，范围 0–150。默认 20。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - trayBlurPreset: 30
-  $name: "📌 溢出图标面板模糊 (Overflow Blur)"
-  $description: >-
-    任务栏溢出图标墙的模糊度，独立于任务栏条子。
+  $name: "Overflow panel: blur"
+  $name:zh-CN: "溢出面板：模糊"
+  $description: "Blur strength of the overflow icon panel, independent of the taskbar, 0–60. Default: 30."
+  $description:zh-CN: "溢出图标面板的模糊强度，独立于任务栏本身，范围 0–60。默认 30。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - volumeOpacityPreset: 50
-  $name: "🔊 音量/亮度弹出条浓度 (OSD Opacity)"
-  $description: >-
-    调音量、调亮度时屏幕上那条小滑条，不是 Win+A。
+  $name: "Volume/brightness OSD: opacity"
+  $name:zh-CN: "音量/亮度浮窗：不透明度"
+  $description: "Fill strength of the slider shown when changing volume or brightness (not the Win+A panel), 0–100%. Default: 50%."
+  $description:zh-CN: "调节音量或亮度时弹出的滑条（不是 Win+A 面板）的颜色浓度，范围 0–100%。默认 50%。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - volumeLuminosityPreset: 20
-  $name: "🔊 音量/亮度弹出条亮度通透度 (OSD Luminosity)"
-  $description: >-
-    调音量、调亮度时那条小滑条的亮度通透度。
+  $name: "Volume/brightness OSD: luminosity"
+  $name:zh-CN: "音量/亮度浮窗：亮度"
+  $description: "Luminosity layer strength of the volume/brightness slider, 0–150. Default: 20."
+  $description:zh-CN: "音量/亮度滑条亮度层的强度，范围 0–150。默认 20。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - volumeBlurPreset: 30
-  $name: "🔊 音量/亮度弹出条模糊 (OSD Blur)"
-  $description: >-
-    调音量、调亮度时那条小滑条的模糊度。
+  $name: "Volume/brightness OSD: blur"
+  $name:zh-CN: "音量/亮度浮窗：模糊"
+  $description: "Blur strength of the volume/brightness slider, 0–60. Default: 30."
+  $description:zh-CN: "音量/亮度滑条的模糊强度，范围 0–60。默认 30。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - maximizedTaskbarLayer: false
-  $name: "🪟 最大化窗口任务栏状态层 (Maximized Window Layer)"
-  $description: >-
-    某个显示器上有最大化窗口时，该显示器的任务栏切换到下面三项设置的更厚实背景。
+  $name: "Maximized window layer"
+  $name:zh-CN: "最大化时加深背景"
+  $description: "When a monitor has a maximized window, its taskbar switches to the denser background defined by the three settings below. Default: off."
+  $description:zh-CN: "某个显示器上有最大化窗口时，该显示器的任务栏改用下方三项定义的更实的背景。默认关闭。"
 - maximizedLayerOpacity: 72
-  $name: "🪟 最大化后浓度 (Maximized Opacity)"
-  $description: >-
-    仅最大化状态层开启时生效。越大越实。
+  $name: "Maximized: opacity"
+  $name:zh-CN: "最大化时：不透明度"
+  $description: "Used only when the maximized window layer is on, 0–100%. Default: 72%."
+  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–100%。默认 72%。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 72: "稳态 (Stable)"
-    - 85: "厚重 (Dense)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 72: "72%：较厚"
+    - 85: "85%：厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - maximizedLayerLuminosity: 20
-  $name: "🪟 最大化后亮度通透度 (Maximized Luminosity)"
-  $description: >-
-    仅最大化状态层开启时生效。
+  $name: "Maximized: luminosity"
+  $name:zh-CN: "最大化时：亮度"
+  $description: "Used only when the maximized window layer is on, 0–150. Default: 20."
+  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–150。默认 20。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - maximizedLayerBlur: 24
-  $name: "🪟 最大化后模糊 (Maximized Blur)"
-  $description: >-
-    仅最大化状态层开启时生效。
+  $name: "Maximized: blur"
+  $name:zh-CN: "最大化时：模糊"
+  $description: "Used only when the maximized window layer is on, 0–60. Default: 24."
+  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–60。默认 24。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 24: "稳态 (Stable)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 24: "24：中等偏强"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - styleConstants: [""]
-  $name: "⚙️ Style constants (高级)"
-  $description: >-
-    高级用户自定义样式常量，一般用户无需修改。
+  $name: "Advanced: style constants"
+  $name:zh-CN: "高级：样式常量"
+  $description: "Values defined once and referenced as $name in styles. See the readme. Most users do not need to change this."
+  $description:zh-CN: "定义一次、在样式中用 $名称 引用的常量，写法见说明。一般无需修改。"
 - controlStyles:
   - - target: ""
-      $name: Target
+      $name: "Target"
+      $name:zh-CN: "目标控件"
     - styles: [""]
-      $name: Styles
-  $name: "⚙️ Control styles (高级)"
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: control styles"
+  $name:zh-CN: "高级：控件样式"
+  $description: "Custom styles for specific XAML controls. See the readme. Most users do not need to change this."
+  $description:zh-CN: "针对指定 XAML 控件的自定义样式，写法见说明。一般无需修改。"
 - themeResourceVariables: [""]
-  $name: "⚙️ Resource variables (高级)"
-  $description: >-
-    高级用户自定义资源变量，一般用户无需修改。
+  $name: "Advanced: resource variables"
+  $name:zh-CN: "高级：资源变量"
+  $description: "Override XAML theme resources with Key=Value, or define theme-aware ones with Key@Dark / Key@Light. See the readme."
+  $description:zh-CN: "用 Key=Value 覆盖 XAML 主题资源，或用 Key@Dark / Key@Light 定义随深色/浅色变化的资源，写法见说明。"
 - clickThroughTaskbar: false
-  $name: "🖱️ 任务栏空白处点击穿透 (Click-through Taskbar)"
-  $description: >-
-    任务栏空白部分可点击穿透，只保留任务栏按钮和系统托盘区域。主要用于 DockLike 等 Dock 风格。
+  $name: "Click through empty taskbar area"
+  $name:zh-CN: "任务栏空白处点击穿透"
+  $description: "Clicks on empty taskbar areas pass through to the window below; only buttons and the tray stay clickable. Mainly for dock-style themes such as DockLike. Default: off."
+  $description:zh-CN: "点击任务栏空白处会穿透到下方窗口，只保留任务栏按钮和托盘可点。主要用于 DockLike 等 Dock 风格主题。默认关闭。"
 - xamlDiagnosticsHandling: allow
-  $name: "⚙️ XAML diagnostics (高级)"
-  $description: >-
-    其他程序（如 ExplorerBlurMica、TranslucentTB）也要使用 XAML 诊断时的处理方式，同一时间只能有一个使用者。
-    默认「允许共存」，不弹窗。开机后托盘图标不透明时可改为「自动阻止」（代价：对方程序的相关效果可能失效）。
+  $name: "Advanced: XAML diagnostics conflicts"
+  $name:zh-CN: "高级：XAML 诊断冲突处理"
+  $description: "What to do when another program (for example TranslucentTB) also wants XAML diagnostics; only one consumer is allowed at a time. If tray icons are not transparent after startup, try \"Block\". Default: allow."
+  $description:zh-CN: "其他程序（例如 TranslucentTB）也要使用 XAML 诊断时的处理方式，同一时间只能有一个使用者。开机后托盘图标不透明时可改为「阻止其他程序」，代价是对方程序的相关效果可能失效。默认为允许其他程序。"
   $options:
-  - alert: "弹窗提示 (Alert)"
-  - block: "自动阻止 (Block)"
-  - allow: "允许共存 (Allow)"
+  - alert: "弹窗询问"
+  - block: "阻止其他程序"
+  - allow: "允许其他程序"
 */
 // ==/WindhawkModSettings==
 

@@ -1,10 +1,10 @@
 // ==WindhawkMod==
 // @id              windows-animations
-// @name            ZenDesktop: 窗口动画 (Windows Animations)
-// @name:zh-CN       ZenDesktop: 窗口动画 (Windows Animations)
-// @description     Smooth minimize, restore, close, switch animations for windows, including the macOS genie minimize.
-// @description:zh-CN 窗口动画合集：电影级关窗动效（灭霸响指、方块碎裂、复古电视等）+ 最小化/还原动效（含 macOS 神奇效果），支持 GPU 硬件加速。
-// @version         1.4.0
+// @name            ZenDesktop: 窗口动画
+// @name:zh-CN      ZenDesktop: 窗口动画
+// @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
+// @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
+// @version         1.4.1
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -65,34 +65,59 @@
 
 // ==WindhawkModReadme==
 /*
-# Windows Animations
+# ZenDesktop: 窗口动画
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：ReDrag（Windows Animations v1.3.7，MIT，https://github.com/redrag2105）  
-> **定制修改说明**：改显示名、置顶开发者信息，并补上与 macOS 最小化动画一致的游戏/反作弊 `@exclude` 名单（本 Mod 为 `@include *` 全局注入；1.3.8 起不再排除通用名 `Client.exe`）。1.3.8 扩大覆盖范围：带 `WS_EX_APPWINDOW` 的从属主窗口、200px 以上的窗口（原 300px），以及无边框 Chromium/Electron 应用窗口（VS Code、Discord 等）的启动动画；「隐藏视为关闭」默认开启。作为 ZenDesktop v4.2 可选模块，部署时询问后才安装。
->
-> **1.4.0：已合并「macOS 神奇效果最小化动画」**（原作者 Abdullah Masood；现代神奇效果渲染引擎作者 Potassiumuncher，均为 MIT）。最小化/还原样式里新增「macOS 神奇效果」（Direct2D 网格变形，默认样式），原 macOS Mod 的「经典」风格就是这里的「神奇效果 (Genie)」。原 macOS 最小化动画 Mod 已被本 Mod 取代，**请在 Windhawk 里关闭或卸载它**，否则同一窗口会出现两套最小化动画。
-> 从 macOS Mod 迁移：「动画时长」共用本组的时长（macOS 样式自动 ×1.25，默认 360 → 450 毫秒）；「多显示器支持」已内置（总是吸入窗口所在显示器的任务栏）；「网格细分密度」「排除的程序」保留。
->
-> **注意**：设置从未写入时（例如只复制了文件），本 Mod 使用设置区里的默认值；部署脚本只会在设置缺失时补上默认值，不会改你已有的设置，也不会替你开启 Mod。
-> ## ⚠️ **`PLEASE READ THESE NOTES:`**
-> * **Packaged & System Apps:** Some protected or system-hosted windows, such as parts of Settings, Microsoft Store, and Windows shell surfaces, will not be animated because they bypass the mod's interception and use native Windows transitions instead.
-> * **Browsers & Tray Apps:** Enable **"Animate windows hidden to the tray"** if you want close animations for apps such as Chrome, Edge, Discord, and Windhawk, because clicking the 'X' button may only hide their window or leave the app running instead of actually closing it.
-> * **MMC Consoles:** Services, Task Scheduler, Event Viewer, and other `mmc.exe` snap-ins are excluded and use native Windows transitions.
-> * **Excel:** Close animations use an unobscured screen snapshot, never `PrintWindow`. If the workbook window can't be captured safely, its close uses the native transition instead. When another workbook window remains open, Excel can finish closing while the captured image continues animating.
+为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含从「macOS 最小化动画」合并来的 macOS 神奇效果。基于 ReDrag 的 Windows Animations v1.3.7。
 
----
-&nbsp;
+## 功能
 
-# 🏞️ Animation Gallery
+- 关闭动画 6 种：方块碎裂、灭霸响指、柏林溶解、赛博故障、复古电视、像素融化。
+- 最小化、还原与启动动画 9 种：macOS 神奇效果、神奇效果（经典）、Windows 10、墨水飞溅、灼烧、裂片、海市蜃楼、点阵绽放、膨胀淡出。
+- Alt+Tab 切换时的缩放淡入动画，兼容支持选择通知的 Simple Window Switcher。
+- 隐藏到托盘的窗口也可以播放关闭动画。
+- 按进程排除指定程序，由任务栏触发的动画同样会被排除。
+- 混合渲染：高密度效果在更快时使用 GPU，其余使用 CPU。
+
+## 设置说明
+
+- **关闭动画 / 最小化、还原与启动动画 / 窗口切换动画**：三组各自有开关、样式和时长，可开启「随机样式」每次随机选择。
+- **macOS 神奇效果**：时长按本组「时长」×1.25 计算（默认 360 → 450 毫秒），总是吸入窗口所在显示器的任务栏；「macOS 神奇效果网格密度」越高越平滑，开销也越大。
+- **临时显示自动隐藏的任务栏**：任务栏设为自动隐藏时，让神奇效果有落点。
+- **排除的程序**：每行一个进程名，Windhawk 自带的进程排除只能阻止注入，做不到按窗口排除。
+- 设置从未写入时（例如只复制了文件），使用设置区中的默认值。部署脚本只在设置缺失时补默认值，不会修改已有设置，也不会替你开启 mod。
+
+## 兼容性与已知问题
+
+- 本 mod 全局注入（`@include *`），已排除常见游戏、反作弊程序和系统外壳进程。
+- 部分受保护或由系统承载的窗口（设置的部分页面、Microsoft Store、Windows 外壳界面）使用系统原生过渡，不会播放动画。
+- Chrome、Edge、Discord、Windhawk 等点关闭只隐藏窗口的应用，需要开启「隐藏到托盘时也播放」才有关闭动画（默认已开启）。
+- 服务、任务计划程序、事件查看器等 `mmc.exe` 管理单元已排除。
+- Excel 的关闭动画使用屏幕截图而不是 `PrintWindow`；无法安全截图时使用原生过渡。
+- 已取代原「macOS 最小化动画」mod，请在 Windhawk 中关闭或卸载它，否则同一窗口会播放两次最小化动画。
+
+## 更新日志
+
+- **1.4.1**：规范设置界面与说明文字，行为不变。
+- **1.4.0**：合并「macOS 最小化动画」，新增 macOS 神奇效果样式和「排除的程序」设置。
+- **1.3.8**：扩大覆盖范围：带独立任务栏图标的从属窗口、200 像素以上的窗口、无边框 Chromium/Electron 应用的启动动画；「隐藏到托盘时也播放」默认开启；不再排除通用名 `Client.exe`。
+
+## 致谢与许可
+
+- 原版 mod：Windows Animations，作者 [ReDrag](https://github.com/redrag2105)，MIT。[赞助原作者](https://ko-fi.com/redrag2105)。
+- macOS 神奇效果移植自 [macOS Minimize Animation](https://windhawk.net/mods/macos-minimize-animation)（MIT），作者 [Abdullah Masood](https://github.com/Abdullah-Masood-05)；其 Direct2D 网格变形引擎、圆角遮罩、网格密度设置和演示动图由 [Potassiumuncher](https://github.com/Potassiumuncher)（[MacOS-Animation-for-windows](https://github.com/Potassiumuncher/MacOS-Animation-for-windows)）编写。「排除的程序」设置也来自该 mod。
+- 经典神奇效果动画来自 Abdullah Masood 的 macOS Minimize Animation。
+- 各部分版权归各自作者所有。
+- ZenDesktop 修改（Lanbo）：中文界面、游戏与反作弊进程排除名单、覆盖范围扩展、合并 macOS 神奇效果。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 附录：原版说明（英文）
+
+以下为上游 mod 的原版说明，保留英文原文，供编写自定义样式时参考。
+### Animation Gallery
 
 ### `Close Effects - 6 Styles`
 
-| Animation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Preview |
+| Animation | Preview |
 | --- | --- |
 | **Square Shatter** | ![Square Shatter](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/a7e46c466c7b88552d5d92cad113b652fbd3f10e/shatter_close.gif) |
 | **Thanos Snap** | ![Thanos Snap](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/0e0508083d6c3108b2b3da8c5f0140f01cd21e37/close_preview.gif) |
@@ -105,7 +130,7 @@
 
 ### `Minimize, Restore and Launch - 9 Styles`
 
-| Animation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Preview |
+| Animation | Preview |
 | --- | --- |
 | **macOS Genie** (Potassiumuncher's Direct2D engine) | ![macOS Genie](https://raw.githubusercontent.com/Potassiumuncher/MacOS-Animation-for-windows/99a9a78e9a06c49b282cc8e337854840a9f7fa73/Desktop2026.07.02-19.32.49.05-ezgif.com-video-to-gif-converter.gif) |
 | **Genie** | ![Genie](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/a7e46c466c7b88552d5d92cad113b652fbd3f10e/genie_preview.gif) |
@@ -121,7 +146,7 @@
 
 ### `Alt+Tab Switch`
 
-| View&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Preview |
+| View | Preview |
 | --- | --- |
 | Before | ![Alt+Tab before](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/ba4e9efd647c954eb619ec2181d5435a80af7b15/switch_before.gif) |
 | After | ![Alt+Tab with Windows Animations](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/ba4e9efd647c954eb619ec2181d5435a80af7b15/switch_after.gif) |
@@ -135,9 +160,7 @@ unsupported targets retain the switcher's native restore path.
 
 ---
 
-&nbsp;
-
-# ⚡ Hybrid Renderer  
+### Hybrid Renderer  
 The GPU toggles allow acceleration where it measured well; they do not force
 every effect onto the GPU. Turning a toggle off forces its entire animation
 group to use the CPU.
@@ -174,11 +197,7 @@ Lower frame cost is better. Values in parentheses are speedups over version
 
 ---
 
-&nbsp;
-
-# ℹ️ More Information
-
-## 📝 Credits
+### Credits
 Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for the Classic Genie animation from his [macOS Minimize Animation](https://windhawk.net/mods/macos-minimize-animation) mod.
 
 **ZenDesktop 1.4.0 merge** — the **macOS Genie** style is ported from the
@@ -191,11 +210,13 @@ written by **Potassiumuncher** (https://github.com/Potassiumuncher,
 The "Excluded programs" setting also comes from that mod. Window Animations
 itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
 
-## 💖 Support Windows Animations
+## 捐助支持
 
-| 🌍 International (Ko-fi) | 🇻🇳 Vietnam (Techcombank) |
-| :---: | :---: |
-| [![Scan or Click for Ko-fi Support](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/c4f49184f5a280a1e18ab63506d471a16fc77f36/kofi-small.png)](https://ko-fi.com/redrag2105) | ![Scan to Support via Techcombank](https://raw.githubusercontent.com/redrag2105/windhawk-mods/9aa57159aed024e454c391c353f9e152c7f37671/banking-qr-code-small.png) |
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
@@ -203,149 +224,154 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
 /*
 - close:
   - close_animation: true
-    $name: 开启动画 (Animate closing)
-    $name:zh-CN: 开启关窗动画
-    $description: 关闭应用程序窗口时播放电影级关窗动效。
+    $name: "Animate closing"
+    $name:zh-CN: "启用关闭动画"
+    $description: "Play an animation when an app window closes. Default: on."
+    $description:zh-CN: "关闭应用窗口时播放动画。默认开启。"
   - hide_as_close: true
-    $name: 隐藏到托盘也播放动画 (Animate windows hidden to the tray)
-    $name:zh-CN: 隐藏到托盘也播放动画
-    $description: >-
-      默认开启。为点击叉号仅隐藏到托盘的应用（如微信、QQ、Discord、Steam 等）也播放关窗动画。
+    $name: "Animate windows hidden to the tray"
+    $name:zh-CN: "隐藏到托盘时也播放"
+    $description: "Also animate apps whose close button only hides the window (such as WeChat, QQ, Discord, Steam). Default: on."
+    $description:zh-CN: "点关闭按钮只是隐藏到托盘的应用（如微信、QQ、Discord、Steam）也播放关闭动画。默认开启。"
   - random_effect: false
-    $name: 随机轮播动效样式 (Shuffle animation styles)
-    $name:zh-CN: 随机轮播关窗样式
-    $description: >-
-      全局随机轮播不同关窗效果。开启后下方的固定动效样式将被忽略。
+    $name: "Random style"
+    $name:zh-CN: "随机样式"
+    $description: "Pick a random close style each time; the style below is ignored. Default: off."
+    $description:zh-CN: "每次随机选择一种关闭样式，开启后忽略下方的固定样式。默认关闭。"
   - effect_style: thanos
-    $name: 关窗动效样式 (Animation style)
-    $name:zh-CN: 关窗动效样式
-    $description: >-
-      选择关闭窗口时播放的动效样式。
+    $name: "Close style"
+    $name:zh-CN: "关闭样式"
+    $description: "Animation style used when closing a window. Default: Thanos snap."
+    $description:zh-CN: "关闭窗口时使用的动画样式。默认为灭霸响指。"
     $options:
-    - shatter: "方块碎裂 (Square Shatter — 爆炸四散)"
-    - thanos: "灭霸响指 (Thanos Snap — 化为微粒灰飞烟灭)"
-    - perlin: "柏林溶解 (Perlin Dissolve — 腐蚀酸蚀消散)"
-    - glitch: "赛博故障 (Cyber Glitch — 像素传送故障)"
-    - tv_off: "复古电视 (Retro TV Off — CRT 关机线收缩)"
-    - pixel_melt: "像素融化 (Pixel Melt — 像素滴落)"
+    - shatter: "方块碎裂：碎块四散"
+    - thanos: "灭霸响指：化为微粒消散"
+    - perlin: "柏林溶解：腐蚀般消散"
+    - glitch: "赛博故障：像素传送故障"
+    - tv_off: "复古电视：CRT 关机收缩"
+    - pixel_melt: "像素融化：像素向下滴落"
   - duration_ms: 630
-    $name: 动画时长 (Duration ms)
-    $name:zh-CN: 关窗动画时长 (毫秒)
-    $description: >-
-      基础关窗动画持续时间（50 到 5000 毫秒）。
+    $name: "Duration (ms)"
+    $name:zh-CN: "时长（毫秒）"
+    $description: "Base duration of the close animation, 50–5000 ms. Default: 630."
+    $description:zh-CN: "关闭动画的基础时长，范围 50–5000 毫秒。默认 630。"
   - shatter_block_size: 5
-    $name: 粒子/碎片大小 (px)
-    $name:zh-CN: 粒子/碎片大小 (像素)
-    $description: >-
-      微粒或碎块尺寸（1 到 100 像素）。
+    $name: "Particle size (px)"
+    $name:zh-CN: "粒子大小（像素）"
+    $description: "Size of particles or fragments, 1–100 px. Default: 5."
+    $description:zh-CN: "粒子或碎片的尺寸，范围 1–100 像素。默认 5。"
   - gpu_acceleration: true
-    $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
-    $name:zh-CN: 混合 GPU 硬件加速
-    $description: >-
-      在支持的高密度关窗特效下使用 Direct3D 11 硬件加速渲染。
-  $name: 🎬 关窗动效设置 (Close Effects)
-  $name:zh-CN: 🎬 关窗动效设置
-  $description: 配置窗口关闭或隐藏到系统托盘时的视觉动画效果。
+    $name: "Hybrid GPU acceleration"
+    $name:zh-CN: "混合 GPU 加速"
+    $description: "Use Direct3D 11 for dense close effects where it is faster. Default: on."
+    $description:zh-CN: "对高密度关闭效果在更快时使用 Direct3D 11 渲染。默认开启。"
+  $name: "Close"
+  $name:zh-CN: "关闭动画"
+  $description: "Animation played when a window closes or hides to the tray."
+  $description:zh-CN: "窗口关闭或隐藏到托盘时播放的动画。"
 
 - minimize_restore:
   - minimize_animation: true
-    $name: 最小化动画 (Animate minimizing)
-    $name:zh-CN: 最小化动画
-    $description: >-
-      最小化窗口时播放下方所选样式的动画（默认 macOS 神奇效果）。已合并原「macOS 神奇效果最小化动画」Mod，请关闭那个 Mod，避免同一窗口出现两套动画。
+    $name: "Animate minimizing"
+    $name:zh-CN: "启用最小化动画"
+    $description: "Play the selected style when minimizing. Replaces the old macOS minimize mod; disable that mod to avoid double animations. Default: on."
+    $description:zh-CN: "最小化窗口时播放所选样式。已取代原「macOS 最小化动画」mod，请关闭该 mod，避免同一窗口播放两次动画。默认开启。"
   - restore_animation: true
-    $name: 还原动画 (Animate restoring)
-    $name:zh-CN: 还原动画
-    $description: >-
-      从任务栏还原窗口时播放反向动画（相当于原 macOS Mod 的「还原展开动画」）。
+    $name: "Animate restoring"
+    $name:zh-CN: "启用还原动画"
+    $description: "Play the reverse animation when restoring from the taskbar. Default: on."
+    $description:zh-CN: "从任务栏还原窗口时播放反向动画。默认开启。"
   - launch_animation: false
-    $name: 应用启动展开动画 (Animate app launches)
-    $name:zh-CN: 应用启动展开动画
-    $description: >-
-      应用窗口首次打开时播放展开动画。
+    $name: "Animate app launches"
+    $name:zh-CN: "启用启动动画"
+    $description: "Play an expand animation when an app window first opens. Default: off."
+    $description:zh-CN: "应用窗口首次打开时播放展开动画。默认关闭。"
   - random_effect: false
-    $name: 随机轮播动画样式 (Shuffle animation styles)
-    $name:zh-CN: 随机轮播最小化/还原样式
-    $description: >-
-      全局随机轮播不同动效（不包含 macOS 神奇效果）。开启后下方的固定样式将被忽略。
+    $name: "Random style"
+    $name:zh-CN: "随机样式"
+    $description: "Pick a random style each time (macOS genie excluded); the style below is ignored. Default: off."
+    $description:zh-CN: "每次随机选择一种样式（不含 macOS 神奇效果），开启后忽略下方的固定样式。默认关闭。"
   - effect_style: macos_genie
-    $name: 最小化/还原样式 (Animation style)
-    $name:zh-CN: 最小化/还原样式
-    $description: >-
-      选择最小化和还原窗口时的效果样式。「macOS 神奇效果」是原 macOS Mod 的现代风格（Direct2D 网格变形）；「神奇效果 (Genie)」就是原 macOS Mod 的经典风格。
+    $name: "Minimize/restore style"
+    $name:zh-CN: "最小化/还原样式"
+    $description: "Animation style for minimizing and restoring. \"Genie (classic)\" is the classic style of the old macOS mod. Default: macOS genie."
+    $description:zh-CN: "最小化和还原时使用的动画样式。「神奇效果（经典）」即原 macOS mod 的经典风格。默认为 macOS 神奇效果。"
     $options:
-    - macos_genie: "macOS 神奇效果 (macOS Genie — 网格变形流入任务栏)"
-    - genie: "神奇效果·经典 (Genie Classic — 吸入任务栏)"
-    - windows10: "Win10 经典 (Windows 10 — 折叠缩向任务栏)"
-    - ink_splash: "墨水溅射 (Ink Splash)"
-    - scorch: "焦灼 (Scorch — 边角燃烧)"
-    - splinter: "裂片 (Splinter — 中心裂开)"
-    - mirage: "海市蜃楼 (Mirage — 水波波纹)"
-    - stipple: "点阵绽放 (Stipple)"
-    - swell: "膨胀淡出 (Swell)"
+    - macos_genie: "macOS 神奇效果：网格变形流入任务栏"
+    - genie: "神奇效果（经典）：吸入任务栏"
+    - windows10: "Windows 10：折叠缩向任务栏"
+    - ink_splash: "墨水飞溅"
+    - scorch: "灼烧：边角燃尽"
+    - splinter: "裂片：从中心裂开"
+    - mirage: "海市蜃楼：水波纹"
+    - stipple: "点阵绽放"
+    - swell: "膨胀淡出"
   - duration_ms: 360
-    $name: 动画时长 (Duration ms)
-    $name:zh-CN: 最小化/还原动画时长 (毫秒)
-    $description: >-
-      基础动画持续时间（200 到 1400 毫秒）。各样式会按自身节奏缩放，macOS 神奇效果为 ×1.25（默认 450 毫秒）。
+    $name: "Duration (ms)"
+    $name:zh-CN: "时长（毫秒）"
+    $description: "Base duration, 200–1400 ms. Each style scales it; macOS genie uses ×1.25. Default: 360."
+    $description:zh-CN: "基础时长，范围 200–1400 毫秒。各样式会按自身节奏缩放，macOS 神奇效果为 ×1.25。默认 360。"
   - genie_tile_count: 35
-    $name: 网格细分密度 (macOS Genie tile count)
-    $name:zh-CN: 网格细分密度 (macOS 神奇效果)
-    $description: >-
-      macOS 神奇效果的网格分辨率（8 到 96）。越高曲线越平滑，每帧开销也越大；24-32 适合低配，35 为默认平衡值，64 以上为高画质。
+    $name: "macOS genie mesh density"
+    $name:zh-CN: "macOS 神奇效果网格密度"
+    $description: "Mesh resolution, 8–96. Higher is smoother but costs more per frame; 24–32 suits low-end PCs. Default: 35."
+    $description:zh-CN: "网格分辨率，范围 8–96。越高曲线越平滑，每帧开销也越大；低配电脑建议 24–32。默认 35。"
   - unhide_taskbar: true
-    $name: 自动隐藏任务栏时临时唤出 (Reveal taskbar during Genie)
-    $name:zh-CN: 自动隐藏任务栏时临时唤出
-    $description: >-
-      任务栏设为自动隐藏时，在神奇效果（经典或 macOS）最小化期间临时浮现任务栏，让窗口有地方可以流入。
+    $name: "Reveal auto-hidden taskbar"
+    $name:zh-CN: "临时显示自动隐藏的任务栏"
+    $description: "When the taskbar auto-hides, show it briefly during genie minimize so the window has a target. Default: on."
+    $description:zh-CN: "任务栏设为自动隐藏时，在神奇效果最小化期间临时显示任务栏，让窗口有落点。默认开启。"
   - unhide_duration_ms: 450
-    $name: 任务栏唤出停留时长 (ms)
-    $name:zh-CN: 任务栏唤出停留时长 (毫秒)
-    $description: >-
-      任务栏唤出停留的时间（0 到 5000 毫秒）。
+    $name: "Taskbar reveal time (ms)"
+    $name:zh-CN: "任务栏显示时长（毫秒）"
+    $description: "How long the taskbar stays visible, 0–5000 ms. Default: 450."
+    $description:zh-CN: "任务栏临时显示的时长，范围 0–5000 毫秒。默认 450。"
   - show_desktop_top_window_only: false
-    $name: 优化「显示桌面」动画 (Optimize Show Desktop)
-    $name:zh-CN: 优化「显示桌面」动画
-    $description: >-
-      开启后，在使用 Win+D 或触控板三指滑动手势显示桌面时，使用 Windows 原生过渡以避免卡顿。
+    $name: "Optimize Show Desktop"
+    $name:zh-CN: "优化「显示桌面」"
+    $description: "Use the native Windows transition for Win+D and the three-finger swipe to avoid stutter. Default: off."
+    $description:zh-CN: "使用 Win+D 或触控板三指下滑显示桌面时改用 Windows 原生过渡，避免卡顿。默认关闭。"
   - gpu_acceleration: true
-    $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
-    $name:zh-CN: 混合 GPU 硬件加速
-    $description: >-
-      使用 Direct3D 11 进行图形硬件加速（macOS 神奇效果使用 Direct2D，不受此项影响）。
-  $name: 📦 最小化、还原与启动动效 (Minimize & Restore)
-  $name:zh-CN: 📦 最小化、还原与启动动效
-  $description: 配置窗口最小化、还原和启动时的动画效果。
+    $name: "Hybrid GPU acceleration"
+    $name:zh-CN: "混合 GPU 加速"
+    $description: "Use Direct3D 11 where it is faster. macOS genie uses Direct2D and is not affected. Default: on."
+    $description:zh-CN: "在更快时使用 Direct3D 11 渲染。macOS 神奇效果使用 Direct2D，不受此项影响。默认开启。"
+  $name: "Minimize, restore and launch"
+  $name:zh-CN: "最小化、还原与启动动画"
+  $description: "Animations played when a window is minimized, restored or first opened."
+  $description:zh-CN: "窗口最小化、还原和首次打开时播放的动画。"
 
 - window_switch:
   - switch_animation: false
-    $name: 开启 Alt+Tab 切换动画 (Animate window switching)
-    $name:zh-CN: 开启 Alt+Tab 切换动画
-    $description: >-
-      在使用 Alt+Tab 或窗口切换器切换窗口时播放缩放淡入淡出动画。
+    $name: "Animate window switching"
+    $name:zh-CN: "启用切换动画"
+    $description: "Play a zoom-and-fade animation when switching with Alt+Tab or a window switcher. Default: off."
+    $description:zh-CN: "使用 Alt+Tab 或窗口切换器切换时播放缩放淡入动画。默认关闭。"
   - duration_ms: 200
-    $name: 动画时长 (Duration ms)
-    $name:zh-CN: 切换动画时长 (毫秒)
-    $description: 窗口切换动画持续时间（50 到 1000 毫秒）。
-  $name: 🔀 窗口切换动画 (Window Switch)
-  $name:zh-CN: 🔀 窗口切换动画
-  $description: 配置使用 Alt+Tab 切换窗口时的动画效果。
+    $name: "Duration (ms)"
+    $name:zh-CN: "时长（毫秒）"
+    $description: "Switch animation duration, 50–1000 ms. Default: 200."
+    $description:zh-CN: "切换动画时长，范围 50–1000 毫秒。默认 200。"
+  $name: "Window switch"
+  $name:zh-CN: "窗口切换动画"
+  $description: "Animation played when switching windows with Alt+Tab."
+  $description:zh-CN: "使用 Alt+Tab 切换窗口时播放的动画。"
 
 - excluded_programs: [""]
-  $name: 🚫 排除的程序 (Excluded programs)
-  $name:zh-CN: 🚫 排除的程序
-  $description: >-
-    这些程序的窗口不播放任何动画（关窗、最小化、还原、启动、切换）。每行一个进程名，例如 WindowsTerminal.exe，可带或不带 .exe。按窗口所属的进程匹配，所以即使动画由任务栏（Explorer）触发也有效；Windhawk 自带的进程排除只能阻止注入，做不到这一点。
-
+  $name: "Excluded programs"
+  $name:zh-CN: "排除的程序"
+  $description: "Windows of these processes get no animations at all. One process name per line, for example WindowsTerminal.exe; the .exe suffix is optional. Matched by the window owner, so it also works when Explorer triggers the animation."
+  $description:zh-CN: "这些程序的窗口不播放任何动画。每行一个进程名，例如 WindowsTerminal.exe，可省略 .exe。按窗口所属进程匹配，因此由任务栏触发的动画也会被排除。"
 - diagnostics:
   - performance_telemetry: false
-    $name: 记录性能统计日志 (Log performance telemetry)
-    $name:zh-CN: 记录性能统计日志
-    $description: >-
-      记录动画渲染各阶段耗时。一般用户无需开启。
-  $name: 🛠️ 性能诊断 (Diagnostics)
-  $name:zh-CN: 🛠️ 性能诊断
-  $description: 诊断渲染器性能的可选测量项。
+    $name: "Log performance telemetry"
+    $name:zh-CN: "记录性能日志"
+    $description: "Log the time spent in each rendering stage. Most users do not need this. Default: off."
+    $description:zh-CN: "记录动画渲染各阶段的耗时。一般无需开启。默认关闭。"
+  $name: "Diagnostics"
+  $name:zh-CN: "性能诊断"
+  $description: "Optional renderer measurements."
+  $description:zh-CN: "渲染性能的可选测量项。"
 */
 // ==/WindhawkModSettings==
 

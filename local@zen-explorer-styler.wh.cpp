@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              zen-explorer-styler
-// @name            ZenDesktop: File Explorer Styler
-// @name:zh-CN       ZenDesktop: 文件管理器美化
-// @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
-// @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.5.0
+// @name            ZenDesktop: 文件管理器美化
+// @name:zh-CN      ZenDesktop: 文件管理器美化
+// @description     Translucent File Explorer with adjustable tint and transparent command bar, address bar and tabs.
+// @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏和标签栏背景透明。
+// @version         1.5.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -40,44 +41,58 @@
 /*
 # ZenDesktop: 文件管理器美化
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：m417z ([Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler))  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版 v1.7 二开。新增「ZenDesktop 半透明」（默认）和「ZenDesktop 仅透明」两款主题，新增可调的模糊色调颜色和不透明度（原版写死为 #232323、约 23%），界面与设置全中文。除此之外代码与原版一致。  
-> **许可证**：GPL-3.0，与原版相同。原版源码：[windhawk-mods](https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-file-explorer-styler.wh.cpp)、[m417z/my-windhawk-mods](https://github.com/m417z/my-windhawk-mods)
+自定义 Windows 11 文件管理器的外观。默认的「ZenDesktop 半透明」主题让整个窗口半透明模糊，色调颜色和不透明度可调，命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler v1.7。
 
-自定义 Windows 11 文件管理器的外观：可以直接选用内置主题，也可以自己写样式。
+## 功能
 
-装好后默认就是 **ZenDesktop 半透明** 主题：样式和原版「半透明 Explorer11」一样（命令栏、地址栏、主页/图库/详细信息窗格背景透明，整窗背景透出），区别是窗口背景改用「模糊 (AccentBlurBehind)」效果，色调颜色和不透明度可以在设置里调：
+- 「ZenDesktop 半透明」主题：样式与原版「半透明 Explorer11」一致，窗口背景改用可调色的「模糊」效果。
+- 「ZenDesktop 仅透明」主题：只清除 WinUI 区域背景，需要另选窗口背景效果。
+- 色调颜色可从 11 种预设中选择，也可以自定义颜色代码。
+- 地址栏与搜索框底色可调，适配浅色模式。
+- 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 改完设置后，已打开的文件管理器窗口立即刷新。
 
-* **🎨 色调颜色**：下拉直接选：跟随系统（默认，深色模式用深灰、浅色模式用浅白，和系统文字颜色搭配）、深灰、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
-* **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
-* **🔲 地址栏/搜索框不透明度**：0–100，地址栏和搜索框的白色底色浓度，深色、浅色模式都生效；0 是完全透明（默认），鼠标悬停时会稍微亮一点。只对两款 ZenDesktop 主题生效。
+## 设置说明
 
-* **🔤 文字颜色**：和 ZenDesktop 其他 mod 一样的选项（主题默认、强制白色、强制深黑、跟随系统和几种彩色）。WinUI 部分（命令栏按钮文字和图标、地址栏、搜索框、标签页、主页等）任何主题都生效；文件列表、列标题、分组标题、左侧导航栏、状态栏这些传统部分只在「窗口背景效果」铺满整个窗口时生效（ZenDesktop 半透明默认就是），而且「跟随系统」时保持系统颜色不改。
+- **主题**：默认「ZenDesktop 半透明」。其余为原版内置的社区主题，括号内为原名。
+- **窗口背景效果**：只有「模糊」会使用色调颜色和色调不透明度。其他主题想调色时，把这一项选成「模糊」即可；「亚克力」「云母」的颜色由系统决定，无法调整。
+- **色调颜色**：默认「跟随系统」，深色模式下用深灰、浅色模式下用浅白。选「自定义」后，在「高级：自定义颜色代码」中填写 `#RRGGBB`。
+- **色调不透明度**：范围 0–100，0 为只有模糊没有颜色，默认 23（与原版相同）。
+- **地址栏与搜索框不透明度**：范围 0–100，默认 0（完全透明），鼠标悬停时会稍亮一些。只对两款 ZenDesktop 主题生效。
+- **文字颜色**：WinUI 区域在任何主题下都生效；文件列表、列标题、导航栏、状态栏等传统区域只在背景效果覆盖整个窗口时生效，选「跟随系统」时保持系统颜色。
+- **浅色模式**：浅色模式下文件列表和导航栏的文字是深色的，色调建议使用「跟随系统」，避免深色色调配深色文字。
+- **高级：样式常量 / 控件样式 / 资源变量 / 顶部框架高度**：用于编写自定义样式，语法见下文「高级样式」。
 
-改完设置后已打开的文件管理器窗口会立即刷新。
+## 兼容性与已知问题
 
-**浅色模式**：ZenDesktop 两款主题的地址栏、搜索框不再是系统默认的一整块白（浓度由「🔲 地址栏/搜索框不透明度」决定），标签页选中底色也随深浅色变化。浅色模式下文件列表、导航栏的文字是深色的，所以色调建议用「跟随系统」，否则深色色调配深色文字会看不清。
+- 适用于 Windows 11，注入 `explorer.exe`。
+- 不需要 ExplorerBlurMica，也不建议同时使用。两者会一起修改窗口背景并争用 XAML 诊断接口，效果互相覆盖。之前注册过 ExplorerBlurMica 的，请先卸载（取消注册）再重启资源管理器。
+- 同一时间只能有一个程序使用 XAML 诊断，处理方式由「高级：XAML 诊断冲突处理」决定：「弹窗询问」每次让你选择；「阻止其他程序」保证本 mod 生效，但对方可能失效；「允许其他程序」让对方生效，但本 mod 的样式可能失效。
 
-**任何主题都能用自定义色调**：色调颜色和不透明度只作用于「模糊 (AccentBlurBehind)」这个背景效果。用其他主题时，把「🪟 窗口背景效果」选成「模糊 (AccentBlurBehind)」即可。原版「半透明 Explorer11」等主题用的是系统亚克力/云母，颜色由系统决定，调不了。
+## 更新日志
 
-## ⚠️ 不需要 ExplorerBlurMica
+- **1.5.1**：规范设置界面与说明文字，行为不变。
+- **1.5.0**：新增文字颜色设置，与其他 ZenDesktop mod 一致。
+- **1.4.0**：新增地址栏与搜索框不透明度（0–100，默认 0）。
+- **1.3.0**：适配浅色模式，色调默认改为「跟随系统」。
+- **1.2.0**：色调颜色改为下拉选择。
 
-本 mod 单独就能提供整窗模糊：默认的「ZenDesktop 半透明」主题自带模糊底，命令栏、地址栏这些 WinUI 部分也由本 mod 改透明，**不需要也不建议再用 ExplorerBlurMica**。
+## 致谢与许可
 
-如果之前注册过 ExplorerBlurMica，请先把它卸载（取消注册），再重启资源管理器。两者同时开会一起改窗口背景、抢 XAML 诊断接口，效果会互相覆盖。
+- 原版 mod：[Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler)，作者 [m417z](https://github.com/m417z)，GPL-3.0。原版源码：[windhawk-mods](https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-file-explorer-styler.wh.cpp)、[m417z/my-windhawk-mods](https://github.com/m417z/my-windhawk-mods)。
+- ZenDesktop 修改（Lanbo）：新增两款 ZenDesktop 主题、可调色调颜色与不透明度（原版固定为 #232323、约 23%）、地址栏与搜索框底色、文字颜色和中文界面，其余代码与原版一致。
+- 内置主题由社区贡献，详见 [Windows 11 文件管理器美化指南](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide)。
+- 控件树监听基于 TranslucentTB 项目的 [ExplorerTAP](https://github.com/TranslucentTB/TranslucentTB/tree/develop/ExplorerTAP)，`WindhawkBlur` 画刷基于 TranslucentTB 的 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)，整窗半透明的 GDI alpha 渲染和 accent blur behind 设置基于 [Translucent Windows](https://windhawk.net/mods/translucent-windows) mod。
+- 本修改版同样以 GPL-3.0 发布。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
 
-## 🎨 主题
+## 附录：内置主题
 
 主题就是一组样式。以下主题已内置在 mod 中，可以在设置里直接选择。除两款 ZenDesktop 主题外，其余主题均来自原版，由社区贡献：
 
 **ZenDesktop 半透明（推荐，默认）**：原版「半透明 Explorer11」的样式 + 可调色调的模糊背景。
 
-**ZenDesktop 仅透明**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。单独使用时下面是黑的，需要在「🪟 窗口背景效果」里选一个效果（例如「模糊」）提供背景。
+**ZenDesktop 仅透明**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。单独使用时下面是黑的，需要在「窗口背景效果」里选一个效果（例如「模糊」）提供背景。
 
 [![Translucent
 Explorer11](https://raw.githubusercontent.com/ramensoftware/windows-11-file-explorer-styling-guide/main/Themes/Translucent%20Explorer11/screenshot-small.png)
@@ -149,7 +164,7 @@ Float](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide/b
 
 更多主题见 [Windows 11 文件管理器美化指南](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide/blob/main/README.md#themes) 的 **Themes** 部分，欢迎贡献新主题。
 
-## ⚙️ 高级样式
+## 附录：高级样式
 
 除了主题，设置里还有两部分：控件样式和资源变量。控件样式用来覆盖目标元素的样式（例如大小、颜色）；资源变量用来覆盖预定义的变量。详细说明和示例见下文。
 
@@ -268,90 +283,71 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
 
 部分主题使用样式常量方便自定义，具体有哪些常量请看对应主题的页面。
 
-## 🛡️ XAML 诊断冲突处理
+## 捐助支持
 
-本 mod 通过 XAML 诊断接口查看和修改文件管理器。同一时间只能有一个 XAML 诊断使用者。如果本 mod 运行时另一个程序（例如还没卸载的 ExplorerBlurMica）也要使用 XAML 诊断，就会冲突。
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
 
-设置中的 **🛡️ XAML 诊断冲突处理** 决定如何处理：
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 
-* **弹窗询问**：其他程序要使用 XAML 诊断时弹出对话框，问你是否阻止，每次自己决定。
-* **阻止**：自动阻止其他程序使用 XAML 诊断。本 mod 能正常工作，但可能导致对方失效。
-* **允许**：允许其他程序使用 XAML 诊断。对方能正常工作，但本 mod 的样式可能失效。
-
-遇到 ExplorerBlurMica 的冲突弹窗时，最好的办法是把 ExplorerBlurMica 卸载。
-
-## 📝 实现说明
-
-VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](https://github.com/TranslucentTB/TranslucentTB/tree/develop/ExplorerTAP) 代码。
-
-`WindhawkBlur` 画刷对象的实现基于 **TranslucentTB** 项目的 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)。
-
-整窗半透明效果所用的带 alpha 的 GDI 渲染和 accent blur behind 设置基于 [Translucent Windows](https://windhawk.net/mods/translucent-windows) mod。
-
-## 📜 致谢与许可
-
-* 原版 mod：[Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler)，作者 [m417z](https://github.com/m417z)，GPL-3.0。
-* 内置主题由社区贡献，详见 [Windows 11 文件管理器美化指南](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide)。
-* 本修改版同样以 GPL-3.0 发布。
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - theme: "ZenTranslucent"
-  $name: "🎭 主题 (Theme)"
-  $description: >-
-    主题就是一组样式。默认的「ZenDesktop 半透明」整窗半透明模糊，色调颜色和不透明度
-    可在下方调节，不需要 ExplorerBlurMica。「ZenDesktop 仅透明」只把 WinUI 区域背景
-    改透明，不带模糊底。其余主题来自原版，详情和投稿方式见 mod 说明。
+  $name: "Theme"
+  $name:zh-CN: "主题"
+  $description: "A theme is a set of styles. \"ZenDesktop Translucent\" blurs the whole window with an adjustable tint; \"ZenDesktop Transparent\" only clears WinUI backgrounds. Other themes come from the original mod. Default: ZenDesktop Translucent."
+  $description:zh-CN: "主题是一组样式。「ZenDesktop 半透明」整窗模糊，色调可调；「ZenDesktop 仅透明」只清除 WinUI 区域背景，不带模糊底。其余主题来自原版。默认为 ZenDesktop 半透明。"
   $options:
-  - "": "无 (None)"
-  - ZenTranslucent: "ZenDesktop 半透明（推荐，可调色）"
-  - ZenTransparent: "ZenDesktop 仅透明（不带模糊底）"
-  - Translucent Explorer11: "半透明 Explorer11 (Translucent Explorer11)"
-  - MicaBar: "云母命令栏 (MicaBar)"
-  - NoCommandBar: "隐藏命令栏 (NoCommandBar)"
-  - Minimal Explorer11: "极简 Explorer11 (Minimal Explorer11)"
-  - Tabless: "无标签页 (Tabless)"
-  - Matter: "Matter 风格 (Matter)"
-  - WindowGlass: "窗口玻璃 (WindowGlass)"
-  - AddressSearchOnly: "仅地址栏和搜索框 (AddressSearchOnly)"
-  - TintedGlass: "着色玻璃 (TintedGlass)"
-  - LiquidGlass: "液态琉璃 (LiquidGlass)"
-  - MicaTabless: "云母无标签页 (MicaTabless)"
-  - OS26 Liquid Glass: "OS26 液态玻璃 (OS26 Liquid Glass)"
-  - OS26 Liquid Glass_variant_Compact: "OS26 液态玻璃 - 紧凑 (OS26 Liquid Glass Compact)"
-  - ZEUSosX_044: "ZEUSosX_044 风格 (ZEUSosX_044)"
-  - Compact Explorer11: "紧凑 Explorer11 (Compact Explorer11)"
-  - Float: "悬浮风格 (Float)"
+  - "": "无"
+  - ZenTranslucent: "ZenDesktop 半透明（推荐）"
+  - ZenTransparent: "ZenDesktop 仅透明"
+  - Translucent Explorer11: "半透明 Explorer11（Translucent Explorer11）"
+  - MicaBar: "云母命令栏（MicaBar）"
+  - NoCommandBar: "隐藏命令栏（NoCommandBar）"
+  - Minimal Explorer11: "极简 Explorer11（Minimal Explorer11）"
+  - Tabless: "无标签页（Tabless）"
+  - Matter: "Matter 风格"
+  - WindowGlass: "窗口玻璃（WindowGlass）"
+  - AddressSearchOnly: "仅地址栏和搜索框（AddressSearchOnly）"
+  - TintedGlass: "着色玻璃（TintedGlass）"
+  - LiquidGlass: "液态琉璃（LiquidGlass）"
+  - MicaTabless: "云母无标签页（MicaTabless）"
+  - OS26 Liquid Glass: "OS26 液态玻璃（OS26 Liquid Glass）"
+  - OS26 Liquid Glass_variant_Compact: "OS26 液态玻璃 - 紧凑（OS26 Liquid Glass Compact）"
+  - ZEUSosX_044: "ZEUSosX_044 风格"
+  - Compact Explorer11: "紧凑 Explorer11（Compact Explorer11）"
+  - Float: "悬浮风格（Float）"
 - backgroundTranslucentEffect: ""
-  $name: "🪟 窗口背景效果 (Background Effect)"
-  $description: >-
-    文件管理器窗口背景使用的半透明效果。「跟随主题」时 ZenDesktop 半透明主题用的是
-    「模糊」。只有「模糊」会使用下方的色调颜色和不透明度，其他主题想调色就选它。
-    更多效果可以看 Translucent Windows mod。
+  $name: "Window background effect"
+  $name:zh-CN: "窗口背景效果"
+  $description: "Translucent effect behind the window. Only \"Blur\" uses the tint color and tint opacity below. Default: follow theme."
+  $description:zh-CN: "窗口背后使用的半透明效果。只有「模糊」会使用下方的色调颜色和色调不透明度。默认为跟随主题。"
   $options:
-  - "": "跟随主题 (Theme Default)"
-  - default: "Windows 默认 (Windows Default)"
-  - acrylicblur: "模糊 (Blur, AccentBlurBehind)"
-  - acrylic: "亚克力 (Acrylic)"
-  - mica: "云母 (Mica)"
-  - micaAlt: "云母 Alt (Mica Alt)"
-  - none: "无 (None)"
+  - "": "跟随主题"
+  - default: "Windows 默认"
+  - acrylicblur: "模糊"
+  - acrylic: "亚克力"
+  - mica: "云母"
+  - micaAlt: "云母（替代版）"
+  - none: "无"
 - backgroundTranslucentEffectRegion: ""
-  $name: "📐 背景效果范围 (Effect Region)"
-  $description: >-
-    半透明背景效果应用的区域。
+  $name: "Effect region"
+  $name:zh-CN: "背景效果范围"
+  $description: "Area the background effect is applied to. Default: entire window."
+  $description:zh-CN: "背景效果作用的区域。默认为整个窗口。"
   $options:
-  - "": "整个窗口 (Entire Window)"
-  - explorerFrame: "仅文件管理器框架 (Explorer Frame Only)"
+  - "": "整个窗口"
+  - explorerFrame: "仅文件管理器框架"
 - tintPreset: followSystem
-  $name: "🎨 色调颜色 (Tint Color)"
-  $description: >-
-    「模糊」背景效果的色调颜色。「跟随系统」在深色模式下用深灰、浅色模式下用浅白，
-    切换深浅色时自动跟着变。想用其他颜色就选「自定义」，再填下方的颜色代码。
+  $name: "Tint color"
+  $name:zh-CN: "色调颜色"
+  $description: "Tint of the \"Blur\" effect. \"Follow system\" uses dark gray in dark mode and light white in light mode. Choose \"Custom\" to use the color code below. Default: follow system."
+  $description:zh-CN: "「模糊」效果的色调。「跟随系统」在深色模式下用深灰、浅色模式下用浅白。选「自定义」时使用下方颜色代码。默认为跟随系统。"
   $options:
-  - followSystem: "跟随系统（默认，深色→深灰，浅色→浅白）"
+  - followSystem: "跟随系统"
   - darkGray: "深灰"
   - black: "纯黑"
   - gray: "中灰"
@@ -363,75 +359,75 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   - sakura: "樱花粉"
   - mint: "薄荷绿"
   - warmBrown: "暖棕"
-  - custom: "自定义（使用下方颜色代码）"
+  - custom: "自定义"
 - tintColor: "#232323"
-  $name: "⚙️ 自定义颜色代码 (高级)"
-  $description: >-
-    只在上方「色调颜色」选「自定义」时生效。格式 #RRGGBB，例如 #1E3A5F。格式不对时
-    使用 #232323。一般用户无需修改。
+  $name: "Advanced: custom color code"
+  $name:zh-CN: "高级：自定义颜色代码"
+  $description: "Used only when tint color is \"Custom\". Format #RRGGBB, for example #1E3A5F. Invalid values fall back to #232323. Default: #232323."
+  $description:zh-CN: "仅在「色调颜色」选「自定义」时生效。格式为 #RRGGBB，例如 #1E3A5F，格式错误时使用 #232323。默认 #232323。"
 - tintOpacity: 23
-  $name: "💧 色调不透明度 (Tint Opacity)"
-  $description: >-
-    「模糊」背景效果的色调浓度，0–100。0 只有模糊没有颜色，100 完全不透明。默认 23。
+  $name: "Tint opacity"
+  $name:zh-CN: "色调不透明度"
+  $description: "Strength of the \"Blur\" tint, 0–100. 0 is blur only, 100 is opaque. Default: 23."
+  $description:zh-CN: "「模糊」效果色调的浓度，范围 0–100。0 为只有模糊没有颜色，100 为完全不透明。默认 23。"
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。文件列表、导航栏等传统部分只在
-    背景效果铺满整个窗口时改色。
+  $name: "Text color"
+  $name:zh-CN: "文字颜色"
+  $description: "Color of text and icons. Classic areas (file list, navigation pane) change only when the background effect covers the entire window. Default: theme default."
+  $description:zh-CN: "文字与图标的颜色。文件列表、导航栏等传统区域只在背景效果覆盖整个窗口时改色。默认为主题默认。"
   $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
+    - default: "主题默认"
+    - white: "白色"
+    - dark: "深色"
+    - system: "跟随系统"
+    - red: "红色"
+    - green: "绿色"
+    - blue: "蓝色"
+    - yellow: "黄色"
+    - orange: "橙色"
+    - purple: "紫色"
+    - pink: "粉色"
+    - cyan: "青色"
 - fieldOpacity: 0
-  $name: "🔲 地址栏/搜索框不透明度 (Field Opacity)"
-  $description: >-
-    地址栏和搜索框白色底色的浓度，0–100，深色和浅色模式都生效。0 完全透明（默认），
-    鼠标悬停时会再亮一点。只对两款 ZenDesktop 主题生效。
+  $name: "Address/search box opacity"
+  $name:zh-CN: "地址栏与搜索框不透明度"
+  $description: "Fill strength of the address bar and search box, 0–100, in both dark and light mode. 0 is fully transparent. Only affects the two ZenDesktop themes. Default: 0."
+  $description:zh-CN: "地址栏和搜索框底色的浓度，范围 0–100，深色和浅色模式都生效，0 为完全透明。只对两款 ZenDesktop 主题生效。默认 0。"
 - styleConstants: [""]
-  $name: "⚙️ 样式常量 (高级)"
-  $description: >-
-    部分主题支持用样式常量自定义颜色等，可用的常量见对应主题页面。技术细节见 mod
-    说明。一般用户无需修改。
+  $name: "Advanced: style constants"
+  $name:zh-CN: "高级：样式常量"
+  $description: "Some themes expose constants for colors and similar values; see the theme page. Most users do not need to change this."
+  $description:zh-CN: "部分主题支持用样式常量自定义颜色等，可用常量见对应主题页面。一般无需修改。"
 - controlStyles:
   - - target: ""
-      $name: "目标控件 (Target)"
+      $name: "Target"
+      $name:zh-CN: "目标控件"
     - styles: [""]
-      $name: "样式 (Styles)"
-  $name: "⚙️ 控件样式 (高级)"
-  $description: >-
-    高级用户自定义控件样式，写法见 mod 说明。一般用户无需修改。
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: control styles"
+  $name:zh-CN: "高级：控件样式"
+  $description: "Custom styles for specific XAML controls. See the readme. Most users do not need to change this."
+  $description:zh-CN: "针对指定 XAML 控件的自定义样式，写法见说明。一般无需修改。"
 - themeResourceVariables: [""]
-  $name: "⚙️ 资源变量 (高级)"
-  $description: >-
-    用 "Key=Value" 把已有资源覆盖为新值。
-
-    用 "Key@Dark=Value" 或 "Key@Light=Value" 定义随深浅色主题变化的资源，
-    在样式中用 {ThemeResource Key} 引用。
-
-    用 ":=" 语法可以写 XAML 值，详见 mod 说明。
+  $name: "Advanced: resource variables"
+  $name:zh-CN: "高级：资源变量"
+  $description: "Override XAML theme resources with Key=Value, or define theme-aware ones with Key@Dark / Key@Light. See the readme."
+  $description:zh-CN: "用 Key=Value 覆盖 XAML 主题资源，或用 Key@Dark / Key@Light 定义随深色/浅色变化的资源，写法见说明。"
 - explorerFrameContainerHeight: 0
-  $name: "📏 顶部框架高度 (高级)"
-  $description: >-
-    文件管理器顶部框架（包含标签页、地址栏和命令栏）的高度，设为 0 使用默认高度。
+  $name: "Advanced: top frame height"
+  $name:zh-CN: "高级：顶部框架高度"
+  $description: "Height of the top frame (tabs, address bar and command bar). 0 uses the default height. Default: 0."
+  $description:zh-CN: "顶部框架（标签页、地址栏和命令栏）的高度，0 为默认高度。默认 0。"
 - xamlDiagnosticsHandling: alert
-  $name: "🛡️ XAML 诊断冲突处理 (XAML Diagnostics)"
-  $description: >-
-    其他程序（例如还没卸载的 ExplorerBlurMica）也要使用 XAML 诊断时怎么处理。
-    同一时间只能有一个使用者。「阻止」会让对方无法使用，可能导致对方失效；「允许」
-    会让对方使用，可能导致本 mod 的样式失效。建议直接卸载 ExplorerBlurMica。
+  $name: "Advanced: XAML diagnostics conflicts"
+  $name:zh-CN: "高级：XAML 诊断冲突处理"
+  $description: "What to do when another program (for example ExplorerBlurMica) also wants XAML diagnostics; only one consumer is allowed at a time. Uninstalling ExplorerBlurMica is recommended. Default: ask."
+  $description:zh-CN: "其他程序（例如 ExplorerBlurMica）也要使用 XAML 诊断时的处理方式，同一时间只能有一个使用者。建议直接卸载 ExplorerBlurMica。默认为弹窗询问。"
   $options:
-  - alert: "弹窗询问 (Alert)"
-  - block: "阻止其他程序 (Block)"
-  - allow: "允许其他程序 (Allow)"
+  - alert: "弹窗询问"
+  - block: "阻止其他程序"
+  - allow: "允许其他程序"
 */
 // ==/WindhawkModSettings==
 

@@ -148,3 +148,11 @@ Special thanks to:
 * **Abdullah Masood & Potassiumuncher** for macOS Minimize Animation.
 * **lalimatyus** for Wobbly Windows (GPL-3.0, optional).
 * **ReDrag** for Windows Animations (MIT, optional).
+
+## 捐助支持
+
+如果 ZenDesktop 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png

@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              zen-startmenu-acrylic
 // @name            ZenDesktop: 开始菜单美化
-// @name:zh-CN       ZenDesktop: 开始菜单美化
-// @description     Premium acrylic/frosted glass start menu themes with custom blur presets. Based on m417z's Start Menu Styler.
-// @description:zh-CN 为 Windows 11 开始菜单带来高质量亚克力与磨砂玻璃透明美化效果。
-// @version         4.1.1
+// @name:zh-CN      ZenDesktop: 开始菜单美化
+// @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
+// @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
+// @version         4.1.2
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         StartMenuExperienceHost.exe
@@ -24,21 +25,50 @@
 
 // ==WindhawkModReadme==
 /*
-# ZenDesktop: Start Menu Acrylic Styler
+# ZenDesktop: 开始菜单美化
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：m417z (Windows 11 Start Menu Styler)  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版进行深度重构与二开。重构 HostBackdrop 渲染管道与卡片模糊层，集成全彩文字/图标对齐系统与全套中文配置选项。
+为 Windows 11 开始菜单和搜索面板提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。基于 m417z 的 Windows 11 Start Menu Styler。
 
-Customize the Start menu with themes contributed by others or create your own.
+## 功能
 
-Also check out the **Windows 11 Taskbar Styler**, **Windows 11 Notification
-Center Styler** mods.
+- 背景颜色、模糊、不透明度、亮度预设，可与任意内置主题搭配。
+- 展开的文件夹面板可单独设置颜色、模糊、不透明度和亮度。
+- 可自定义开始菜单宽度和高度。
+- 应用名称可显示、隐藏或悬停时显示。
+- 文字颜色与其他 ZenDesktop mod 共用同一套选项。
 
+## 设置说明
+
+- **主题**：默认「自定义玻璃」。其余为原版内置的社区主题，括号内为原名。
+- **控件深色/浅色**：解决浅色模式下开始菜单出现白雾的问题，推荐保持「自动」。
+- **开始菜单宽度 / 高度**：单位为像素，0 为系统默认。
+- **自定义文件夹面板**：开启后，四项「文件夹：」设置才生效。
+- **高级：搜索 WebView 样式 / 脚本**：作用于搜索面板中的网页内容，写法见附录。
+- **高级：样式常量 / 控件样式 / 资源变量**：用于编写自定义样式，语法见文末附录。一般无需修改。
+
+## 兼容性与已知问题
+
+- 适用于 Windows 11，注入 `StartMenuExperienceHost.exe`、`SearchHost.exe`、`SearchApp.exe`。
+- 修改搜索 WebView 脚本后，如需清除副作用，清空脚本并结束 `SearchHost.exe`，系统会自动重启它。
+
+## 更新日志
+
+- **4.1.2**：规范设置界面与说明文字，行为不变。
+- **4.1.1**：新增「控件深色/浅色」设置，修复浅色模式下的白雾。
+- **4.1.0**：随 ZenDesktop v4.1 发布。
+
+## 致谢与许可
+
+- 原版 mod：Windows 11 Start Menu Styler，作者 [m417z](https://github.com/m417z)，GPL-3.0。
+- ZenDesktop 修改（Lanbo）：重构 HostBackdrop 渲染与卡片模糊层、文件夹面板独立参数、尺寸调整、文字颜色与中文设置。
+- 内置的社区主题由各自作者贡献，详见对应的 Windows 11 styling guide 仓库。
+- 控件树监听基于 TranslucentTB 项目的 ExplorerTAP，`WindhawkBlur` 画刷基于 TranslucentTB 的 XamlBlurBrush。
+- 本修改版同样以 GPL-3.0 发布。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 附录：原版说明（英文）
+
+以下为上游 mod 的原版说明，保留英文原文，供编写自定义样式时参考。
 ## Themes
 
 Themes are collections of styles. The following themes are integrated into the
@@ -382,228 +412,260 @@ code from the **TranslucentTB** project.
 The `WindhawkBlur` brush object implementation is based on
 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)
 from the **TranslucentTB** project.
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - theme: "SimplyTransparent"
-  $name: "🎭 视觉风格 (Visual Style)"
-  $description: >-
-    选择开始菜单的整体视觉风格。搭配下方的颜色和模糊度设置使用。
+  $name: "Theme"
+  $name:zh-CN: "主题"
+  $description: "Overall look of the Start menu. Works together with the color and blur settings below. Default: Custom Glass."
+  $description:zh-CN: "开始菜单的整体风格，与下方颜色和模糊设置配合使用。默认为自定义玻璃。"
   $options:
-  - "": "无 (None)"
-  - SimplyTransparent: "自定义玻璃 (Custom Glass)"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典 (Liquid Glass Classic)"
-  - LiquidGlass: "液态玻璃 - 原版 (Liquid Glass Original)"
-  - NoRecommendedSection: "无推荐区 (No Recommended Section)"
-  - SideBySide: "并排布局 (Side By Side)"
-  - SideBySide2: "并排布局 2 (Side By Side 2)"
-  - SideBySideMinimal: "并排极简 (Side By Side Minimal)"
-  - Down Aero: "下沉毛玻璃 (Down Aero)"
-  - Windows10: "Windows 10 经典 (Windows 10)"
-  - Windows10_variant_Minimal: "Windows 10 极简 (Windows 10 Minimal)"
+  - "": "无"
+  - SimplyTransparent: "自定义玻璃（Custom Glass）"
+  - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
+  - AppleLiquidGlassClassic: "液态玻璃 - 经典（Liquid Glass Classic）"
+  - LiquidGlass: "液态玻璃 - 原版（Liquid Glass Original）"
+  - NoRecommendedSection: "无推荐区（No Recommended Section）"
+  - SideBySide: "并排布局（Side By Side）"
+  - SideBySide2: "并排布局 2（Side By Side 2）"
+  - SideBySideMinimal: "并排极简（Side By Side Minimal）"
+  - Down Aero: "下沉毛玻璃（Down Aero）"
+  - Windows10: "Windows 10 经典"
+  - Windows10_variant_Minimal: "Windows 10 极简（Windows 10 Minimal）"
   - Windows10X: "Windows 10X"
   - Windows11_Metro10: "Win11 Metro10"
-  - Windows11_Metro10Minimal: "Win11 Metro10 极简 (Metro10 Minimal)"
-  - Fluent2Inspired: "Fluent 2 风格 (Fluent 2 Inspired)"
-  - RosePine: "玫瑰松 (Rosé Pine)"
-  - Everblush: "常青红 (Everblush)"
+  - Windows11_Metro10Minimal: "Win11 Metro10 极简（Metro10 Minimal）"
+  - Fluent2Inspired: "Fluent 2 风格（Fluent 2 Inspired）"
+  - RosePine: "玫瑰松（Rosé Pine）"
+  - Everblush: "常青红（Everblush）"
   - SunValley: "Sun Valley"
-  - 21996: "泄露版 21996 (Build 21996)"
-  - UniMenu: "统一菜单 (UniMenu)"
-  - LegacyFluent: "经典 Fluent (Legacy Fluent)"
-  - OnlySearch: "仅搜索 (Only Search)"
-  - WindowGlass: "窗口玻璃 (Window Glass)"
-  - Fluid: "流体 (Fluid)"
-  - Oversimplified&Accentuated: "极简强调 (Oversimplified & Accentuated)"
-  - TintedGlass: "着色玻璃 (Tinted Glass)"
-  - LayerMicaUI: "层叠云母 (Layer Mica UI)"
-  - Borderless: "无边框 (Borderless)"
-  - Command Center: "指挥中心 (Command Center)"
+  - 21996: "泄露版 21996（Build 21996）"
+  - UniMenu: "统一菜单（UniMenu）"
+  - LegacyFluent: "经典 Fluent（Legacy Fluent）"
+  - OnlySearch: "仅搜索（Only Search）"
+  - WindowGlass: "窗口玻璃（Window Glass）"
+  - Fluid: "流体（Fluid）"
+  - Oversimplified&Accentuated: "极简强调（Oversimplified & Accentuated）"
+  - TintedGlass: "着色玻璃（Tinted Glass）"
+  - LayerMicaUI: "层叠云母（Layer Mica UI）"
+  - Borderless: "无边框（Borderless）"
+  - Command Center: "指挥中心（Command Center）"
 - bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择背景颜色基调。选择「主题默认」则使用风格自带颜色。
+  $name: "Background color"
+  $name:zh-CN: "背景颜色"
+  $description: "Base tint of the background. \"Theme default\" uses the color built into the selected theme."
+  $description:zh-CN: "背景的基础色调。选「主题默认」时使用所选主题自带的颜色。"
   $options:
-    - Default: "主题默认 (Theme Default)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+    - Default: "主题默认"
+    - Accent: "系统强调色"
+    - GlassWhite: "透白"
+    - MistGrey: "雾灰"
+    - DeepBlack: "深黑"
+    - OceanBlue: "海蓝"
+    - AuroraCyan: "极光青"
+    - RosePink: "玫瑰粉"
+    - BordeauxRed: "酒红"
+    - ForestGreen: "森林绿"
+    - RoyalPurple: "皇家紫"
+    - SunsetOrange: "落日橙"
+    - ChampagneGold: "香槟金"
+    - MorandiSage: "莫兰迪绿"
 - blurPreset: 30
-  $name: "🔮 毛玻璃模糊度 (Blur)"
-  $description: >-
-    调节背景的模糊程度，数值越大越模糊。
+  $name: "Blur"
+  $name:zh-CN: "模糊"
+  $description: "Background blur strength, 0–60. Larger is blurrier."
+  $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - opacityPreset: 50
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节背景颜色的填充浓度，数值越大颜色越深。
+  $name: "Opacity"
+  $name:zh-CN: "不透明度"
+  $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
+  $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 50: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 50: "50%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - luminosityPreset: 20
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景的亮度与通透程度，数值越大背景越黑。
+  $name: "Luminosity"
+  $name:zh-CN: "亮度"
+  $description: "Luminosity layer strength of the background, 0–150."
+  $description:zh-CN: "背景亮度层的强度，范围 0–150。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 20: "通透 (Clear 20%)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 20: "20：低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字颜色，浅色背景下文字不清晰时可切换。
+  $name: "Text color"
+  $name:zh-CN: "文字颜色"
+  $description: "Color of text and icons. Change it when text is hard to read on the current background."
+  $description:zh-CN: "文字与图标的颜色。当前背景下文字看不清时可以切换。"
   $options:
-    - default: "主题默认 (Theme Default)"
-    - white: "强制白色 (Force White)"
-    - dark: "强制深黑 (Force Dark)"
-    - system: "跟随系统 (System-aware)"
-    - red: "🔴 红色 (Red)"
-    - green: "🟢 绿色 (Green)"
-    - blue: "🔵 蓝色 (Blue)"
-    - yellow: "🟡 黄色 (Yellow)"
-    - orange: "🟠 橙色 (Orange)"
-    - purple: "🟣 紫色 (Purple)"
-    - pink: "🌸 粉色 (Pink)"
-    - cyan: "💠 青色 (Cyan)"
+    - default: "主题默认"
+    - white: "白色"
+    - dark: "深色"
+    - system: "跟随系统"
+    - red: "红色"
+    - green: "绿色"
+    - blue: "蓝色"
+    - yellow: "黄色"
+    - orange: "橙色"
+    - purple: "紫色"
+    - pink: "粉色"
+    - cyan: "青色"
 - controlTheme: auto
-  $name: "🌗 控件深浅色 (Control Theme)"
-  $description: >-
-    系统浅色模式下，开始菜单里没被主题改到的卡片、按钮、列表底色会变成大块半透明白色，
-    看起来像一层白雾。「自动」在文字是白色时（自定义玻璃等主题的默认）把这些控件固定为
-    深色样式，浅色模式和深色模式一样通透；文字是深色时不改。背景色调仍由上方「背景颜色」
-    决定，想要浅色玻璃可以选「晶莹透白」。
+  $name: "Control theme"
+  $name:zh-CN: "控件深色/浅色"
+  $description: "In light mode, cards, buttons and lists not covered by the theme turn into a white haze. \"Auto\" keeps them dark when text is white; \"Follow system\" is the old behavior. Default: auto."
+  $description:zh-CN: "系统为浅色模式时，主题没有覆盖到的卡片、按钮和列表会变成一层白雾。「自动」在文字为白色时把这些控件固定为深色样式，文字为深色时不改；「跟随系统」为旧版行为。背景色调仍由「背景颜色」决定。默认为自动。"
   $options:
     - auto: "自动（推荐）"
-    - dark: "始终深色 (Always Dark)"
-    - system: "跟随系统（旧行为）"
+    - dark: "始终深色"
+    - system: "跟随系统"
 - labelVisibility: show
-  $name: "👻 文字显示模式 (Label Visibility)"
-  $description: >-
-    控制开始菜单中应用和文件夹的文字显示方式。
+  $name: "App labels"
+  $name:zh-CN: "应用名称显示"
+  $description: "How app and folder names are shown. Default: show."
+  $description:zh-CN: "开始菜单中应用和文件夹名称的显示方式。默认为显示。"
   $options:
-    - show: "显示文字 (Show Text)"
-    - hide: "隐藏文字 (Hide Text)"
-    - hover: "悬浮显示文字 (Hover to Show)"
+    - show: "显示"
+    - hide: "隐藏"
+    - hover: "悬停时显示"
 - width: 0
-  $name: "📐 开始菜单宽度 (Start Menu Width, px)"
-  $description: >-
-    设置开始菜单的自定义宽度（像素）。0 = 系统默认。
-    Set a custom width for the Start menu in pixels. 0 = system default.
+  $name: "Start menu width (px)"
+  $name:zh-CN: "开始菜单宽度（像素）"
+  $description: "Custom width in pixels. 0 uses the system default. Default: 0."
+  $description:zh-CN: "自定义宽度，单位为像素，0 为系统默认。默认 0。"
 - height: 0
-  $name: "📐 开始菜单高度 (Start Menu Height, px)"
-  $description: >-
-    设置开始菜单的自定义高度（像素）。0 = 系统默认。
-    Set a custom height for the Start menu in pixels. 0 = system default.
+  $name: "Start menu height (px)"
+  $name:zh-CN: "开始菜单高度（像素）"
+  $description: "Custom height in pixels. 0 uses the system default. Default: 0."
+  $description:zh-CN: "自定义高度，单位为像素，0 为系统默认。默认 0。"
 - folderCustomEnabled: false
-  $name: "📂 自定义文件夹面板 (Custom Folder Panel)"
-  $description: >-
-    为开始菜单中展开的文件夹子面板设置独立的透明度和颜色。关闭时跟随主面板设置。
-    Set independent opacity and color for expanded folder panels in Start menu.
+  $name: "Custom folder panel"
+  $name:zh-CN: "自定义文件夹面板"
+  $description: "Give expanded folder panels their own color, blur and opacity. When off they follow the main panel. Default: off."
+  $description:zh-CN: "为展开的文件夹面板单独设置颜色、模糊和不透明度；关闭时跟随主面板。默认关闭。"
 - folderBgColorMode: "Default"
-  $name: "📂 文件夹背景颜色 (Folder Color)"
-  $description: >-
-    选择文件夹子面板的背景颜色基调。选择「跟随主面板」则使用上方的主背景设置。
+  $name: "Folder: background color"
+  $name:zh-CN: "文件夹：背景颜色"
+  $description: "Tint of the folder panel. Only used when the custom folder panel is on. Default: follow main panel."
+  $description:zh-CN: "文件夹面板的色调，仅在开启自定义文件夹面板时生效。默认为跟随主面板。"
   $options:
-    - Default: "跟随主面板 (Follow Main)"
-    - Accent: "跟随系统强调色 (System Accent)"
-    - GlassWhite: "晶莹透白 (Glass White)"
-    - MistGrey: "迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "深空极黑 (Space Black)"
-    - OceanBlue: "深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "极光幻青 (Aurora Cyan)"
-    - RosePink: "玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "波尔多红 (Bordeaux Red)"
-    - ForestGreen: "森林黛绿 (Forest Green)"
-    - RoyalPurple: "皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "香槟金黄 (Champagne Gold)"
-    - MorandiSage: "莫兰迪绿 (Morandi Sage)"
+    - Default: "跟随主面板"
+    - Accent: "系统强调色"
+    - GlassWhite: "透白"
+    - MistGrey: "雾灰"
+    - DeepBlack: "深黑"
+    - OceanBlue: "海蓝"
+    - AuroraCyan: "极光青"
+    - RosePink: "玫瑰粉"
+    - BordeauxRed: "酒红"
+    - ForestGreen: "森林绿"
+    - RoyalPurple: "皇家紫"
+    - SunsetOrange: "落日橙"
+    - ChampagneGold: "香槟金"
+    - MorandiSage: "莫兰迪绿"
 - folderBlurPreset: 20
-  $name: "📂 文件夹模糊度 (Folder Blur)"
-  $description: >-
-    调节文件夹子面板的模糊程度。
+  $name: "Folder: blur"
+  $name:zh-CN: "文件夹：模糊"
+  $description: "Blur strength of the folder panel, 0–60. Default: 20."
+  $description:zh-CN: "文件夹面板的模糊强度，范围 0–60。默认 20。"
   $options:
-    - 0: "不模糊 (Clear)"
-    - 10: "微弱毛玻璃 (Subtle)"
-    - 20: "中度毛玻璃 (Standard)"
-    - 30: "高阶亚克力 (Deep Acrylic)"
-    - 45: "重度磨砂 (Heavy Frosted)"
-    - 60: "终极磨砂 (Max Blur)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - folderOpacityPreset: 40
-  $name: "📂 文件夹填充浓度 (Folder Opacity)"
-  $description: >-
-    调节文件夹子面板的背景颜色填充浓度。
+  $name: "Folder: opacity"
+  $name:zh-CN: "文件夹：不透明度"
+  $description: "Fill strength of the folder panel color, 0–100%. Default: 40%."
+  $description:zh-CN: "文件夹面板颜色的填充浓度，范围 0–100%。默认 40%。"
   $options:
-    - 0: "完全透明 (Ultra Glass)"
-    - 10: "极薄亚克力 (Thin)"
-    - 25: "浅透亚克力 (Light)"
-    - 40: "半透亚克力 (Standard)"
-    - 75: "重色亚克力 (Heavy)"
-    - 90: "厚实亚克力 (Solid)"
-    - 100: "完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 40: "40%：适中"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - folderLuminosityPreset: 100
-  $name: "📂 文件夹亮度通透度 (Folder Luminosity)"
-  $description: >-
-    调节文件夹子面板的亮度与通透程度，数值越大背景越黑。
+  $name: "Folder: luminosity"
+  $name:zh-CN: "文件夹：亮度"
+  $description: "Luminosity layer strength of the folder panel, 0–150. Default: 100."
+  $description:zh-CN: "文件夹面板亮度层的强度，范围 0–150。默认 100。"
   $options:
-    - 0: "暗淡无光 (Dark)"
-    - 25: "弱饱和 (Low)"
-    - 50: "中饱和 (Medium)"
-    - 75: "偏亮 (Bright)"
-    - 100: "标准通透 (Standard)"
-    - 125: "高亮 (High)"
-    - 150: "极致通透 (Ultra Bright)"
+    - 0: "0：最低"
+    - 25: "25：较低"
+    - 50: "50：中"
+    - 75: "75：较高"
+    - 100: "100：标准"
+    - 125: "125：高"
+    - 150: "150：最高"
 - styleConstants: [""]
-  $name: "⚙️ Style constants (高级)"
-  $description: >-
-    高级用户自定义样式常量，一般用户无需修改。
+  $name: "Advanced: style constants"
+  $name:zh-CN: "高级：样式常量"
+  $description: "Values defined once and referenced as $name in styles. See the readme. Most users do not need to change this."
+  $description:zh-CN: "定义一次、在样式中用 $名称 引用的常量，写法见说明。一般无需修改。"
 - controlStyles:
   - - target: ""
-      $name: Target
+      $name: "Target"
+      $name:zh-CN: "目标控件"
     - styles: [""]
-      $name: Styles
-  $name: "⚙️ Control styles (高级)"
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: control styles"
+  $name:zh-CN: "高级：控件样式"
+  $description: "Custom styles for specific XAML controls. See the readme. Most users do not need to change this."
+  $description:zh-CN: "针对指定 XAML 控件的自定义样式，写法见说明。一般无需修改。"
 - themeResourceVariables: [""]
-  $name: "⚙️ Resource variables (高级)"
-  $description: >-
-    高级用户自定义资源变量，一般用户无需修改。
+  $name: "Advanced: resource variables"
+  $name:zh-CN: "高级：资源变量"
+  $description: "Override XAML theme resources with Key=Value, or define theme-aware ones with Key@Dark / Key@Light. See the readme."
+  $description:zh-CN: "用 Key=Value 覆盖 XAML 主题资源，或用 Key@Dark / Key@Light 定义随深色/浅色变化的资源，写法见说明。"
 - webContentStyles:
   - - target: ""
-      $name: Target
+      $name: "Target"
+      $name:zh-CN: "目标元素"
     - styles: [""]
-      $name: Styles
-  $name: "⚙️ Search WebView styles (高级)"
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: search WebView styles"
+  $name:zh-CN: "高级：搜索 WebView 样式"
+  $description: "CSS-like styles for the web content of the search panel. See the readme."
+  $description:zh-CN: "搜索面板网页内容的自定义样式，写法见说明。"
 - webContentCustomJs: ""
-  $name: "⚙️ Search WebView JS (高级)"
+  $name: "Advanced: search WebView script"
+  $name:zh-CN: "高级：搜索 WebView 脚本"
+  $description: "JavaScript injected into the search panel web content. See the readme."
+  $description:zh-CN: "注入搜索面板网页内容的 JavaScript，写法见说明。"
 */
 // ==/WindhawkModSettings==
 

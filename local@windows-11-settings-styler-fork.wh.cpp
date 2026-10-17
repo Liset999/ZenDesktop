@@ -1,10 +1,11 @@
 // ==WindhawkMod==
 // @id              windows-11-settings-styler-fork
 // @name            ZenDesktop: 设置美化
-// @name:zh-CN       ZenDesktop: 设置美化
-// @description     Glass Settings app (HostBackdrop always; light-mode frost). ZenDesktop fork of m417z Settings Styler.
-// @description:zh-CN 为 Windows 11 设置应用提供全透明磨砂玻璃/亚克力背景效果，深度适配亮色与暗色模式。
-// @version         4.1.0
+// @name:zh-CN      ZenDesktop: 设置美化
+// @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
+// @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
+// @version         4.1.1
+// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         SystemSettings.exe
@@ -22,153 +23,171 @@
 
 // ==WindhawkModReadme==
 /*
-# ZenDesktop: Settings Acrylic Styler
+# ZenDesktop: 设置美化
 
-> ### 👨‍💻 开发者信息 & 关注支持
-> - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
-> - 🎵 **抖音**：https://v.douyin.com/Isl7QPpKZZ4/
-> - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
->
-> **原作者**：m417z (Windows 11 Settings Styler)  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版进行深度重构与二开。重构单层通透 HostBackdrop 毛玻璃架构以杜绝侧栏色差接缝；深度穿透复合卡片内部 Border 彻底修复浅色模式下主页推荐/账号卡片发白实底问题；增加 12 种文字与图标全彩对齐模式及全套中文设置。
+为 Windows 11「设置」应用提供全窗口透明玻璃背景，深色和浅色模式都适配。基于 m417z 的 Windows 11 Settings Styler 重写。
 
-Clean rebuild based on **m417z** Windows 11 Settings Styler.
+## 功能
 
-## How glass works
+- 整窗使用单层 HostBackdrop 亚克力，侧栏与内容区之间没有色差接缝。
+- 修复浅色模式下主页推荐卡片、账户卡片发白的问题。
+- 背景颜色、卡片模糊、不透明度、亮度可调。
+- 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 内置多款主题，另保留原版的布局主题。
 
-System Settings is a **WinUI/UWP** app. Community **Translucent Windows** explicitly
-notes that its DWM effects **do not affect most modern UWP/WinUI windows**.
+## 设置说明
 
-The stack that actually works for Settings:
+- **主题**：推荐「自定义玻璃」或「液态玻璃」。「紧凑布局」「经典搜索栏」「商店边框风格」「深海静蓝」为原版布局主题。
+- **背景颜色**：「跟随主题」随深色/浅色模式切换。
+- **不透明度**：浅色模式下即使设为 0%，也会保留约 42% 的白色底，保证深色文字清晰；深色模式保持完全通透。
+- **亮度**：本 mod 中数值越大背景越暗，推荐保持 0%。
+- **高级：样式常量 / 控件样式 / 资源变量**：写法与原版 Settings Styler 相同。
 
-1. **Strip Mica** with `DWMWA_SYSTEMBACKDROP_TYPE = NONE` only  
-   (never `ACCENT_POLICY` / `DwmExtendFrameIntoClientArea(-1)` — those freeze Settings input).
-2. **Main chrome** = `AcrylicBrush` `BackgroundSource="HostBackdrop"` +
-   `TintLuminosityOpacity=0` on the root container, with all child pane containers
-   transparent to eliminate multi-layer stacking seams and vertical border mismatch.
-3. **Always** HostBackdrop acrylic. Do **not** swap to `SolidColorBrush`
-   on unfocus.
-4. Keep `WCA_FORCE_ACTIVEWINDOW_APPEARANCE` so inactive HostBackdrop does
-   not use the OS solid-tint recipe.
-5. **Light mode**: opacity 0 is treated as ~42 white frost so dark text
-   stays readable. Dark mode stays at 0 for ultra glass.
-6. **Cards**: optional local `WindhawkBlur` with unified 8px rounded corners.
+## 兼容性与已知问题
 
-## Themes
+- 适用于 Windows 11，注入 `SystemSettings.exe`。
+- 设置是 WinUI/UWP 应用，Translucent Windows 等 DWM 类 mod 对它无效，需使用本 mod。
+- 窗口失去焦点时仍保持亚克力效果，不会切换为纯色。
 
-* **自定义玻璃 (Custom Glass)**: 全局 HostBackdrop 桌面玻璃，单层无缝底色
-* **液态玻璃 (Liquid Glass)**: 灵动通透高光琉璃质感
-* **高阶亚克力 (Frosted Acrylic)**: 经典磨砂高阶亚克力
-* **浅雾轻盈 (Light Fog)**: 优雅浅雾柔光
-* **深邃暗影 (Dark Glass)**: 沉浸深黑玻璃
-* **纯粹全透 (Simply Transparent)**: 极简纯粹透明
-* **原版布局主题**: Densy / ClassicSearchBar / StoreFrame11 / Blue
+## 更新日志
+
+- **4.1.1**：规范设置界面与说明文字，行为不变。
+- **4.1.0**：随 ZenDesktop v4.1 发布。
+
+## 致谢与许可
+
+- 原版 mod：Windows 11 Settings Styler，作者 [m417z](https://github.com/m417z)，GPL-3.0。
+- ZenDesktop 修改（Lanbo）：重构单层 HostBackdrop 玻璃、修复浅色模式卡片底色、增加文字颜色选项与中文设置。
+- 本修改版同样以 GPL-3.0 发布。
+- 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
+
+## 捐助支持
+
+如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+
+![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
 - theme: "TranslucentSettings"
-  $name: "🎭 视觉风格 (Visual Style)"
-  $description: >-
-    选择设置窗口的整体视觉风格。推荐使用「自定义玻璃」或「液态玻璃」。
+  $name: "Theme"
+  $name:zh-CN: "主题"
+  $description: "Overall look of the Settings window. Recommended: Custom Glass or Liquid Glass. Default: Custom Glass."
+  $description:zh-CN: "设置窗口的整体风格。推荐「自定义玻璃」或「液态玻璃」。默认为自定义玻璃。"
   $options:
-  - "": "无 (None)"
+  - "": "无"
   - TranslucentSettings: "自定义玻璃 (Custom Glass) - 推荐"
-  - AppleLiquidGlass: "液态玻璃 (Liquid Glass)"
-  - FrostedAcrylic: "高阶亚克力 (Frosted Acrylic)"
-  - LightFog: "浅雾轻盈 (Light Fog)"
-  - DarkGlass: "深邃暗影 (Dark Glass)"
-  - SimplyTransparent: "纯粹全透 (Simply Transparent)"
-  - Densy: "紧凑布局 (Densy)"
-  - ClassicSearchBar: "经典搜索栏 (Classic Search Bar)"
-  - StoreFrame11: "商店边框风格 (Store Frame 11)"
-  - Blue: "深海静蓝 (Blue Ocean)"
+  - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
+  - FrostedAcrylic: "高阶亚克力（Frosted Acrylic）"
+  - LightFog: "浅雾轻盈（Light Fog）"
+  - DarkGlass: "深邃暗影（Dark Glass）"
+  - SimplyTransparent: "纯粹全透（Simply Transparent）"
+  - Densy: "紧凑布局（Densy）"
+  - ClassicSearchBar: "经典搜索栏（Classic Search Bar）"
+  - StoreFrame11: "商店边框风格（Store Frame 11）"
+  - Blue: "深海静蓝（Blue Ocean）"
 - bgColorMode: "Default"
-  $name: "🎨 背景颜色 (Color Preset)"
-  $description: >-
-    选择玻璃背景色调。选择「主题自适应」将跟随系统浅色/深色模式。
+  $name: "Background color"
+  $name:zh-CN: "背景颜色"
+  $description: "Tint of the glass background. \"Follow theme\" adapts to dark and light mode. Default: follow theme."
+  $description:zh-CN: "玻璃背景的色调。「跟随主题」会随深色/浅色模式自动切换。默认为跟随主题。"
   $options:
-    - Default: "🌓 主题自适应 (Theme Default)"
-    - Accent: "✨ 跟随系统强调色 (System Accent)"
-    - GlassWhite: "⚪ 晶莹透白 (Glass White)"
-    - MistGrey: "🌫️ 迷雾墨灰 (Mist Grey)"
-    - DeepBlack: "🌌 深空极黑 (Space Black)"
-    - OceanBlue: "🌊 深海湛蓝 (Ocean Blue)"
-    - AuroraCyan: "💠 极光幻青 (Aurora Cyan)"
-    - RosePink: "🌸 玫瑰幽粉 (Rose Pink)"
-    - BordeauxRed: "🍷 波尔多红 (Bordeaux Red)"
-    - ForestGreen: "🌲 森林黛绿 (Forest Green)"
-    - RoyalPurple: "👑 皇家黛紫 (Royal Purple)"
-    - SunsetOrange: "🌅 落日熔橙 (Sunset Orange)"
-    - ChampagneGold: "🥂 香槟金黄 (Champagne Gold)"
-    - MorandiSage: "🍃 莫兰迪绿 (Morandi Sage)"
+    - Default: "跟随主题"
+    - Accent: "系统强调色"
+    - GlassWhite: "透白"
+    - MistGrey: "雾灰"
+    - DeepBlack: "深黑"
+    - OceanBlue: "海蓝"
+    - AuroraCyan: "极光青"
+    - RosePink: "玫瑰粉"
+    - BordeauxRed: "酒红"
+    - ForestGreen: "森林绿"
+    - RoyalPurple: "皇家紫"
+    - SunsetOrange: "落日橙"
+    - ChampagneGold: "香槟金"
+    - MorandiSage: "莫兰迪绿"
 - blurPreset: 0
-  $name: "🔮 卡片毛玻璃模糊度 (Card Blur)"
-  $description: >-
-    调节卡片与列表区域的毛玻璃模糊程度。0 为晶莹通透无模糊。
+  $name: "Card blur"
+  $name:zh-CN: "卡片模糊"
+  $description: "Blur strength of cards and lists, 0–60. 0 is no blur. Default: 0."
+  $description:zh-CN: "卡片与列表区域的模糊强度，范围 0–60，0 为不模糊。默认 0。"
   $options:
-    - 0: "0 - 晶透无模糊 (Clear)"
-    - 10: "10 - 微弱朦胧 (Subtle)"
-    - 20: "20 - 中度毛玻璃 (Standard)"
-    - 30: "30 - 高阶亚克力 (Deep Acrylic)"
-    - 45: "45 - 重度磨砂 (Heavy Frosted)"
-    - 60: "60 - 极致磨砂 (Max Frosted)"
+    - 0: "0：不模糊"
+    - 10: "10：轻微"
+    - 20: "20：中等"
+    - 30: "30：较强"
+    - 45: "45：强"
+    - 60: "60：最强"
 - opacityPreset: 0
-  $name: "💧 背景填充浓度 (Opacity)"
-  $description: >-
-    调节玻璃背景的颜色浓度。0 为完全通透（浅色模式自动微调保底保证文字清晰）。
+  $name: "Opacity"
+  $name:zh-CN: "不透明度"
+  $description: "Fill strength of the glass color, 0–100%. In light mode a minimum is applied so text stays readable. Default: 0%."
+  $description:zh-CN: "玻璃背景颜色的填充浓度，范围 0–100%。浅色模式下会自动保留最低浓度，保证文字清晰。默认 0%。"
   $options:
-    - 0: "0% - 完全通透 (Ultra Glass)"
-    - 10: "10% - 极薄琉璃 (Thin)"
-    - 25: "25% - 轻透柔光 (Light)"
-    - 40: "40% - 标准半透 (Standard)"
-    - 50: "50% - 中度磨砂 (Medium)"
-    - 75: "75% - 浓厚着色 (Heavy)"
-    - 90: "90% - 厚实沉稳 (Solid)"
-    - 100: "100% - 完全不透明 (Opaque)"
+    - 0: "0%：完全透明"
+    - 10: "10%：很薄"
+    - 25: "25%：较薄"
+    - 40: "40%：适中"
+    - 50: "50%：中等"
+    - 75: "75%：较厚"
+    - 90: "90%：很厚"
+    - 100: "100%：完全不透明"
 - luminosityPreset: 0
-  $name: "☀️ 亮度通透度 (Luminosity)"
-  $description: >-
-    调节背景亮度与通透程度。推荐保持 0% 以获得最清澈通透的桌面玻璃效果。
+  $name: "Luminosity"
+  $name:zh-CN: "亮度"
+  $description: "Darkening of the background, 0–150%. Larger is darker. Default: 0%."
+  $description:zh-CN: "背景的压暗程度，范围 0–150%，数值越大越暗。默认 0%。"
   $options:
-    - 0: "0% - 极致透亮 (Ultra Clear - 推荐)"
-    - 25: "25% - 微暗轻透 (Low)"
-    - 50: "50% - 中度沉浸 (Medium)"
-    - 75: "75% - 偏暗静谧 (Dim)"
-    - 100: "100% - 暗色遮罩 (Dark)"
-    - 125: "125% - 重度暗影 (Heavy)"
-    - 150: "150% - 极致深邃 (Max)"
+    - 0: "0%：最透亮（推荐）"
+    - 25: "25%：微暗"
+    - 50: "50%：中等"
+    - 75: "75%：偏暗"
+    - 100: "100%：暗"
+    - 125: "125%：较暗"
+    - 150: "150%：最暗"
 - textColorMode: "default"
-  $name: "🔤 文字颜色 (Text Color)"
-  $description: >-
-    自定义文字与图标颜色，浅色/深色背景下文字不清晰时可自由切换。
+  $name: "Text color"
+  $name:zh-CN: "文字颜色"
+  $description: "Color of text and icons. Change it when text is hard to read. Default: follow theme."
+  $description:zh-CN: "文字与图标的颜色，文字看不清时可以切换。默认为跟随主题。"
   $options:
-    - default: "🌓 主题自适应 (Theme Default)"
-    - white: "⚪ 强制纯白 (Force White)"
-    - dark: "⚫ 强制深黑 (Force Dark)"
-    - system: "✨ 跟随系统强调色 (System Accent)"
-    - red: "🔴 活力红色 (Red)"
-    - green: "🟢 清新绿色 (Green)"
-    - blue: "🔵 湛蓝色彩 (Blue)"
-    - yellow: "🟡 明亮黄色 (Yellow)"
-    - orange: "🟠 温暖橙色 (Orange)"
-    - purple: "🟣 优雅紫色 (Purple)"
-    - pink: "🌸 樱花粉色 (Pink)"
-    - cyan: "💠 极光青色 (Cyan)"
+    - default: "跟随主题"
+    - white: "白色"
+    - dark: "深色"
+    - system: "系统强调色"
+    - red: "红色"
+    - green: "绿色"
+    - blue: "蓝色"
+    - yellow: "黄色"
+    - orange: "橙色"
+    - purple: "紫色"
+    - pink: "粉色"
+    - cyan: "青色"
 - styleConstants: [""]
-  $name: "📐 样式常量 (Style Constants)"
-  $description: "高级样式常量定义（供高级用户自定义样式使用）。"
+  $name: "Advanced: style constants"
+  $name:zh-CN: "高级：样式常量"
+  $description: "Values defined once and referenced as $name in styles. See the readme. Most users do not need to change this."
+  $description:zh-CN: "定义一次、在样式中用 $名称 引用的常量，写法见说明。一般无需修改。"
 - controlStyles:
   - - target: ""
-      $name: Target
+      $name: "Target"
+      $name:zh-CN: "目标控件"
     - styles: [""]
-      $name: Styles
-  $name: "🎛️ 控件样式规则 (Control Styles)"
-  $description: "针对特定 XAML 控件的自定义样式规则。"
+      $name: "Styles"
+      $name:zh-CN: "样式"
+  $name: "Advanced: control styles"
+  $name:zh-CN: "高级：控件样式"
+  $description: "Custom styles for specific XAML controls. See the readme. Most users do not need to change this."
+  $description:zh-CN: "针对指定 XAML 控件的自定义样式，写法见说明。一般无需修改。"
 - themeResourceVariables: [""]
-  $name: "📦 资源变量覆盖 (Resource Variables)"
-  $description: "全局 XAML 主题资源变量覆盖。"
+  $name: "Advanced: resource variables"
+  $name:zh-CN: "高级：资源变量"
+  $description: "Override XAML theme resources with Key=Value, or define theme-aware ones with Key@Dark / Key@Light. See the readme."
+  $description:zh-CN: "用 Key=Value 覆盖 XAML 主题资源，或用 Key@Dark / Key@Light 定义随深色/浅色变化的资源，写法见说明。"
 */
 // ==/WindhawkModSettings==
 
