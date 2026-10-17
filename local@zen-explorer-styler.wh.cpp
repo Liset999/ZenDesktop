@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.2.0
+// @version         1.3.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -22,8 +22,10 @@
 // ZenDesktop modifications (Lanbo): Chinese localization of the readme and
 // settings; new integrated "ZenTranslucent" (default) and "ZenTransparent"
 // themes; adjustable tint color/opacity (tintPreset, tintColor, tintOpacity) for
-// the AccentBlurBehind effect, which upstream hardcodes. The rest of the code
-// is unchanged from upstream.
+// the AccentBlurBehind effect, which upstream hardcodes, with a default
+// "followSystem" preset that tints dark in dark mode and light in light mode;
+// theme-aware (light/dark) fills for the address bar and search box in the Zen
+// themes. The rest of the code is unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -49,10 +51,12 @@
 
 装好后默认就是 **ZenDesktop 半透明** 主题：样式和原版「半透明 Explorer11」一样（命令栏、地址栏、主页/图库/详细信息窗格背景透明，整窗背景透出），区别是窗口背景改用「模糊 (AccentBlurBehind)」效果，色调颜色和不透明度可以在设置里调：
 
-* **🎨 色调颜色**：下拉直接选：深灰（默认）、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
+* **🎨 色调颜色**：下拉直接选：跟随系统（默认，深色模式用深灰、浅色模式用浅白，和系统文字颜色搭配）、深灰、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
 * **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
 
 改完设置后已打开的文件管理器窗口会立即刷新。
+
+**浅色模式**：ZenDesktop 两款主题的地址栏、搜索框底色会随深浅色变化（浅色下不再是一整块白），标签页选中底色也随之变化。浅色模式下文件列表、导航栏的文字是深色的，所以色调建议用「跟随系统」，否则深色色调配深色文字会看不清。
 
 **任何主题都能用自定义色调**：色调颜色和不透明度只作用于「模糊 (AccentBlurBehind)」这个背景效果。用其他主题时，把「🪟 窗口背景效果」选成「模糊 (AccentBlurBehind)」即可。原版「半透明 Explorer11」等主题用的是系统亚克力/云母，颜色由系统决定，调不了。
 
@@ -341,12 +345,14 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $options:
   - "": "整个窗口 (Entire Window)"
   - explorerFrame: "仅文件管理器框架 (Explorer Frame Only)"
-- tintPreset: darkGray
+- tintPreset: followSystem
   $name: "🎨 色调颜色 (Tint Color)"
   $description: >-
-    「模糊」背景效果的色调颜色。想用其他颜色就选「自定义」，再填下方的颜色代码。
+    「模糊」背景效果的色调颜色。「跟随系统」在深色模式下用深灰、浅色模式下用浅白，
+    切换深浅色时自动跟着变。想用其他颜色就选「自定义」，再填下方的颜色代码。
   $options:
-  - darkGray: "深灰（默认）"
+  - followSystem: "跟随系统（默认，深色→深灰，浅色→浅白）"
+  - darkGray: "深灰"
   - black: "纯黑"
   - gray: "中灰"
   - lightGray: "浅灰"
@@ -442,6 +448,28 @@ struct Theme {
 
 // clang-format off
 
+// ZenDesktop: theme-aware fills for the address bar and search box. In light
+// mode WinUI fills them with TextControlBackground/ControlFillColorDefault
+// (#B3FFFFFF, 70% white), which shows as an opaque white block over the
+// translucent window; in dark mode the same resource is #0FFFFFFF. These keep
+// the dark mode look and use a matching subtle fill in light mode.
+#define ZEN_FIELD_TARGET_STYLES \
+    ThemeTargetStyles{L"FileExplorerExtensions.AddressBarControl > Grid#PART_LayoutRoot", { \
+        L"Background:=<SolidColorBrush Color=\"{ThemeResource ZenFieldFill}\"/>"}}, \
+    ThemeTargetStyles{L"FileExplorerExtensions.AddressBarControl > Grid#PART_LayoutRoot > Grid#NormalModeGrid", { \
+        L"Background=Transparent"}}, \
+    ThemeTargetStyles{L"AutoSuggestBox#FileExplorerSearchBox > Grid#LayoutRoot > TextBox > Grid@CommonStates > Border#BorderElement", { \
+        L"Background@Normal:=<SolidColorBrush Color=\"{ThemeResource ZenFieldFill}\"/>", \
+        L"Background@PointerOver:=<SolidColorBrush Color=\"{ThemeResource ZenFieldFillPointerOver}\"/>"}}
+
+#define ZEN_THEME_RESOURCE_VARIABLES \
+    L"ZenFieldFill@Dark=#0FFFFFFF", \
+    L"ZenFieldFill@Light=#33FFFFFF", \
+    L"ZenFieldFillPointerOver@Dark=#15FFFFFF", \
+    L"ZenFieldFillPointerOver@Light=#59FFFFFF", \
+    L"ZenTabSelectedFill@Dark=#40404040", \
+    L"ZenTabSelectedFill@Light=#59FFFFFF"
+
 // ZenDesktop: transparent WinUI backgrounds only (command bar, address bar,
 // tabs, home/gallery/details panes). Keeps the window backdrop untouched so
 // ExplorerBlurMica's blur shows through. All targets are taken from the
@@ -467,6 +495,9 @@ const Theme g_themeZenTransparent = {{
         L"Background=Transparent"}},
     ThemeTargetStyles{L"StackPanel#DetailsViewThumbnail > Grid", {
         L"Background=Transparent"}},
+    ZEN_FIELD_TARGET_STYLES,
+}, {}, {
+    ZEN_THEME_RESOURCE_VARIABLES,
 }};
 
 const Theme g_themeTranslucent_Explorer11 = {{
@@ -495,15 +526,41 @@ const Theme g_themeTranslucent_Explorer11 = {{
 }, {}, {}, /*explorerFrameContainerHeight=*/0, BackgroundTranslucentEffect::kAcrylic};
 
 // ZenDesktop: the same styles as Translucent Explorer11, but with the
-// AccentBlurBehind effect, whose tint color and opacity come from the tintColor
-// and tintOpacity settings (the DWM acrylic backdrop tint isn't adjustable).
-// Must be defined after g_themeTranslucent_Explorer11, which it copies.
-const Theme g_themeZenTranslucent = {
-    g_themeTranslucent_Explorer11.targetStyles,
-    {},
-    {},
-    /*explorerFrameContainerHeight=*/0,
-    BackgroundTranslucentEffect::kBlur};
+// AccentBlurBehind effect, whose tint color and opacity come from the tintPreset,
+// tintColor and tintOpacity settings (the DWM acrylic backdrop tint isn't
+// adjustable). Upstream's dark-only colors (the selected tab fill #40404040)
+// are replaced with theme-aware resources, and the address bar and search box
+// get theme-aware fills, so that light mode is as clear as dark mode.
+const Theme g_themeZenTranslucent = {{
+    ThemeTargetStyles{L"FileExplorerExtensions.CommandBarControl_Wave1 > Grid, Grid#CommandBarControlRootGrid", {
+        L"Background=Transparent",
+        L"BorderThickness=0,0,0,1",
+        L"BorderBrush=#40A0A0A0"}},
+    ThemeTargetStyles{L"CommandBar#FileExplorerCommandBar", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Grid#NavigationBarControlGrid", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"TabViewItem > Grid#LayoutRoot > Canvas > Microsoft.UI.Xaml.Shapes.Path#SelectedBackgroundPath", {
+        L"Fill:=<SolidColorBrush Color=\"{ThemeResource ZenTabSelectedFill}\"/>"}},
+    ThemeTargetStyles{L"Grid#HomeViewRootGrid", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"FileExplorerExtensions.GalleryViewControl#GalleryViewControl > Grid", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.Grid#GalleryRootGrid", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"ToolTip", {
+        L"Background:=<AcrylicBrush TintColor=\"#121212\" Opacity=\"0.3\"/>"}},
+    ThemeTargetStyles{L"Grid#DetailsViewControlRootGrid", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"StackPanel#DetailsViewThumbnail > Grid", {
+        L"Background=Transparent"}},
+    ZEN_FIELD_TARGET_STYLES,
+}, {}, {
+    ZEN_THEME_RESOURCE_VARIABLES,
+}, /*explorerFrameContainerHeight=*/0, BackgroundTranslucentEffect::kBlur};
+
+#undef ZEN_FIELD_TARGET_STYLES
+#undef ZEN_THEME_RESOURCE_VARIABLES
 
 const Theme g_themeMicaBar = {{
     ThemeTargetStyles{L"FileExplorerExtensions.CommandBarControl_Wave1 > Grid, Grid#CommandBarControlRootGrid", {
@@ -1729,7 +1786,10 @@ struct {
     int explorerFrameContainerHeight;
     XamlDiagnosticsHandling xamlDiagnosticsHandling;
     // ZenDesktop: AccentBlurBehind tint, AABBGGRR (as ACCENT_POLICY expects).
+    // With tintFollowSystem, only the alpha part is used and the color depends
+    // on the light/dark theme, see GetAccentGradientColor.
     int accentGradientColor;
+    bool tintFollowSystem;
 } g_settings;
 
 BackgroundTranslucentEffect g_themeBackgroundTranslucentEffect;
@@ -9959,6 +10019,10 @@ BackgroundTranslucentEffect GetEffectiveBackgroundTranslucentEffect() {
         g_themeBackgroundTranslucentEffect);
 }
 
+void SetAccentBlurBehind(HWND hWnd,
+                         bool enable,
+                         std::optional<bool> darkTheme = std::nullopt);
+
 using DwmSetWindowAttribute_t = decltype(&DwmSetWindowAttribute);
 DwmSetWindowAttribute_t DwmSetWindowAttribute_Original;
 HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
@@ -9969,6 +10033,25 @@ HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
         return DwmSetWindowAttribute_Original(hWnd, dwAttribute, pvAttribute,
                                               cbAttribute);
     };
+
+    // ZenDesktop: File Explorer sets the dark mode attribute when the window is
+    // created and when the light/dark theme changes. With the "followSystem"
+    // tint, the accent tint is updated to match the new theme.
+    if (dwAttribute == DWMWA_USE_IMMERSIVE_DARK_MODE) {
+        HRESULT result = original();
+        if (SUCCEEDED(result) && g_settings.tintFollowSystem && pvAttribute &&
+            cbAttribute == sizeof(BOOL) &&
+            GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer &&
+            GetEffectiveBackgroundTranslucentEffect() ==
+                BackgroundTranslucentEffect::kBlur) {
+            bool dark = *(const BOOL*)pvAttribute != FALSE;
+            Wh_Log(L"Dark mode %d for %08X, updating the tint", dark,
+                   (DWORD)(ULONG_PTR)hWnd);
+            SetAccentBlurBehind(hWnd, true, dark);
+        }
+
+        return result;
+    }
 
     if (dwAttribute != DWMWA_SYSTEMBACKDROP_TYPE &&
         dwAttribute != DWMWA_USE_HOSTBACKDROPBRUSH) {
@@ -11160,8 +11243,42 @@ HRESULT WINAPI DrawThemeBackgroundEx_Hook(HTHEME hTheme,
                                           pOptions);
 }
 
+// ZenDesktop: whether apps use the dark theme, which File Explorer follows.
+bool IsAppsDarkTheme() {
+    DWORD value = 1;
+    DWORD size = sizeof(value);
+    if (RegGetValue(
+            HKEY_CURRENT_USER,
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            L"AppsUseLightTheme", RRF_RT_REG_DWORD, nullptr, &value,
+            &size) != ERROR_SUCCESS) {
+        // Light is the Windows default when the value is missing.
+        return false;
+    }
+
+    return value == 0;
+}
+
+// ZenDesktop: the "followSystem" tint colors, as 0x00BBGGRR. Dark matches the
+// upstream #232323, light is the Windows 11 light mica base color #F3F3F3.
+constexpr DWORD kFollowSystemDarkTintBgr = 0x00232323;
+constexpr DWORD kFollowSystemLightTintBgr = 0x00F3F3F3;
+
+// ZenDesktop: the ACCENT_POLICY GradientColor (AABBGGRR) for the tint settings.
+// darkTheme is the window's theme if known, otherwise the apps theme is read.
+int GetAccentGradientColor(std::optional<bool> darkTheme = std::nullopt) {
+    if (!g_settings.tintFollowSystem) {
+        return g_settings.accentGradientColor;
+    }
+
+    bool dark = darkTheme.has_value() ? *darkTheme : IsAppsDarkTheme();
+    DWORD alpha = (DWORD)g_settings.accentGradientColor & 0xFF000000;
+    return (int)(alpha |
+                 (dark ? kFollowSystemDarkTintBgr : kFollowSystemLightTintBgr));
+}
+
 // Based on the Translucent Windows mod.
-void SetAccentBlurBehind(HWND hWnd, bool enable) {
+void SetAccentBlurBehind(HWND hWnd, bool enable, std::optional<bool> darkTheme) {
     // Without blur behind, the extended frame is drawn over the accent blur.
     HRGN hRgn = enable ? CreateRectRgn(0, 0, -1, -1) : nullptr;
     DWM_BLURBEHIND blurBehind = {
@@ -11212,9 +11329,9 @@ void SetAccentBlurBehind(HWND hWnd, bool enable) {
 
     ACCENT_POLICY accentPolicy = {
         .AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND,
-        // AABBGGRR. ZenDesktop: from the tintColor and tintOpacity settings,
-        // upstream hardcodes 0x3A232323.
-        .GradientColor = g_settings.accentGradientColor,
+        // AABBGGRR. ZenDesktop: from the tintPreset, tintColor and
+        // tintOpacity settings, upstream hardcodes 0x3A232323.
+        .GradientColor = GetAccentGradientColor(darkTheme),
     };
 
     WINDOWCOMPOSITIONATTRIBDATA data = {
@@ -11861,9 +11978,13 @@ constexpr TintPreset kTintPresets[] = {
 };
 
 // Returns the color as 0x00BBGGRR. "custom" uses the tintColor setting;
-// an empty or unknown value falls back to darkGray (#232323).
-DWORD GetTintColorBgr() {
+// an unknown value falls back to darkGray (#232323). followSystem (also used
+// for an empty value, i.e. the default) is reported via the out parameter and
+// the color depends on the theme, see GetAccentGradientColor.
+DWORD GetTintColorBgr(bool* followSystem) {
     PCWSTR tintPreset = Wh_GetStringSetting(L"tintPreset");
+    *followSystem =
+        !*tintPreset || wcscmp(tintPreset, L"followSystem") == 0;
     bool custom = wcscmp(tintPreset, L"custom") == 0;
     DWORD rgb = kTintPresets[0].rgb;
     for (const auto& preset : kTintPresets) {
@@ -11885,7 +12006,9 @@ DWORD GetTintColorBgr() {
 }
 
 void LoadTintSettings() {
-    DWORD bgr = GetTintColorBgr();
+    bool followSystem;
+    DWORD bgr = GetTintColorBgr(&followSystem);
+    g_settings.tintFollowSystem = followSystem;
 
     int tintOpacity = Wh_GetIntSetting(L"tintOpacity");
     if (tintOpacity < 0) {
