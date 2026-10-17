@@ -1,7 +1,9 @@
 // ==WindhawkMod==
 // @id              windows-animations
 // @name            ZenDesktop: 窗口动画 (Windows Animations)
-// @description     ZenDesktop v4.2 收录 | Smooth minimize, restore, close, switch animations for windows.
+// @name:zh-CN       ZenDesktop: 窗口动画 (Windows Animations)
+// @description     Smooth minimize, restore, close, switch animations for windows.
+// @description:zh-CN 为 Windows 窗口提供电影级关窗动效（灭霸响指、方块碎裂、复古电视等），支持 GPU 硬件加速。
 // @version         1.3.7
 // @author          ReDrag
 // @github          https://github.com/redrag2105
@@ -184,156 +186,115 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
 
 // ==WindhawkModSettings==
 /*
-- minimize_restore:
-  - minimize_animation: false
-    $name: Animate minimizing
-    $description: Animate windows as they minimize to the taskbar.
-  - restore_animation: false
-    $name: Animate restoring
-    $description: Animate windows as they return from the taskbar.
-  - launch_animation: false
-    $name: Animate app launches
-    $description: >-
-      Disabled by default. Enable to use the restore animation when an application window first
-      opens. Firefox-family browsers such as Firefox and Waterfox use an alpha-only compatibility
-      path for their startup window that preserves session restore while keeping the launch animation.
-      Some apps that open their window asynchronously show it without a launch animation.
-      Windows hidden to the tray still become visible normally when reopened.
-  - random_effect: false
-    $name: Shuffle animation styles
-    $description: >-
-      Use one session-wide shuffled cycle shared by every app. Play every effect once before
-      starting a new cycle, and never join consecutive cycles on the same effect. Each restore or
-      animated launch selects the next global effect, and the following minimize reuses it. A
-      minimize without an earlier animated restore selects an effect for itself. Rapid reversals
-      keep the same effect. When enabled, the Animation style setting below is ignored.
-  - effect_style: genie
-    $name: Animation style
-    $description: >-
-      Choose the effect used for minimizing and restoring windows. Ignored while shuffling is
-      enabled.
-    $options:
-    - genie: Genie — Taskbar suck
-    - windows10: Windows 10 — Collapse to taskbar
-    - ink_splash: Ink Splash — Organic blot
-    - scorch: Scorch — Corner burn
-    - splinter: Splinter — Center crack
-    - mirage: Mirage — Wavy shimmer
-    - stipple: Stipple — Dotted bloom
-    - swell: Swell — Expand and fade
-  - duration_ms: 360
-    $name: Duration (ms)
-    $description: >-
-      Base animation duration, from 200 to 1400 ms. Non-Genie effects apply a small pacing
-      adjustment. Windows 10 style ignores this setting and uses a fixed system-like timing.
-  - unhide_taskbar: false
-    $name: Reveal the taskbar during Genie
-    $description: >-
-      When taskbar auto-hide is enabled, keep an already visible or hovered taskbar above the
-      Genie effect without changing focus. If it is hidden, briefly reveal it and defer the real
-      minimize until the animation finishes. Off by default. No effect on other animation styles.
-  - unhide_duration_ms: 450
-    $name: Taskbar reveal duration (ms)
-    $description: >-
-      How long to keep the taskbar revealed before the deferred Genie minimize commits, from 0
-      to 5000 ms.
-  - show_desktop_top_window_only: false
-    $name: Optimize Show Desktop
-    $description: >-
-      Disabled keeps the classic behavior and custom-animates eligible windows in sequence during
-      Show Desktop. Enable this to bypass the mod's minimize and restore animations for Show
-      Desktop, including three-finger touchpad gestures, and let Windows animate the entire batch
-      natively. Individual taskbar and title-bar minimize/restore operations remain animated.
-      Operations immediately after Show Desktop can also use native animations for up to 1.5 seconds,
-      or up to 2 seconds when the mod detects Show Desktop through the Win+D keyboard shortcut.
-  - gpu_acceleration: true
-    $name: Hybrid GPU acceleration
-    $description: >-
-      Use D3D11 with DirectComposition for warmed, compatible restore and launch animations.
-      Normal minimize animations intentionally use the optimized CPU renderer because it is
-      faster and avoids native taskbar-state flicker. Rapid reversals keep the renderer already
-      in use. Unsupported hardware, Remote Desktop, incompatible processes such as UniKey,
-      initialization failure, or device loss falls back to CPU. Disable this setting to force
-      CPU for the entire group. See the mod README for the full routing details.
-  $name: Minimize, restore, and launch
-  $description: Configure animations for minimizing, restoring, and opening windows.
 - close:
   - close_animation: true
-    $name: Animate closing
-    $description: Play a cinematic effect when an application window closes.
+    $name: 开启动画 (Animate closing)
+    $description: 关闭应用程序窗口时播放电影级关窗动效。
   - hide_as_close: false
-    $name: Animate windows hidden to the tray
+    $name: 隐藏到托盘也播放动画 (Animate windows hidden to the tray)
     $description: >-
-      Disabled by default. Enable to animate apps such as Discord, Steam, and Telegram when they
-      hide their window instead of closing it. This can also animate splash screens, such as the
-      Discord updater, or windows hidden automatically by an app, such as the Google Chrome
-      profile picker. Brief Tauri show/hide normalization during startup or tray restoration is
-      excluded from close animation so it doesn't play a false close effect.
+      默认关闭。开启后，为点击叉号仅隐藏到托盘的应用（如微信、QQ、Discord、Steam 等）也播放关窗动画。
   - random_effect: false
-    $name: Shuffle animation styles
+    $name: 随机轮播动效样式 (Shuffle animation styles)
     $description: >-
-      Use one session-wide shuffled cycle shared by every app. Play every close effect once before
-      starting a new cycle, and never join consecutive cycles on the same effect. Closing and
-      reopening an app continues the same global cycle. When enabled, the Animation style setting
-      below is ignored.
+      全局随机轮播不同关窗效果。开启后下方的固定动效样式将被忽略。
   - effect_style: thanos
-    $name: Animation style
+    $name: 关窗动效样式 (Animation style)
     $description: >-
-      Choose the effect used when closing a window. Ignored while shuffling is enabled.
+      选择关闭窗口时播放的动效样式。
     $options:
-    - shatter: Square Shatter — Explosion
-    - thanos: Thanos Snap — Disintegration wave
-    - perlin: Perlin Dissolve — Acid burn
-    - glitch: Cyber Glitch — Digital teleport
-    - tv_off: Retro TV Off — CRT power-down
-    - pixel_melt: Pixel Melt — Dripping paint
+    - shatter: "方块碎裂 (Square Shatter — 爆炸四散)"
+    - thanos: "灭霸响指 (Thanos Snap — 化为微粒灰飞烟灭)"
+    - perlin: "柏林溶解 (Perlin Dissolve — 腐蚀酸蚀消散)"
+    - glitch: "赛博故障 (Cyber Glitch — 像素传送故障)"
+    - tv_off: "复古电视 (Retro TV Off — CRT 关机线收缩)"
+    - pixel_melt: "像素融化 (Pixel Melt — 像素滴落)"
   - duration_ms: 630
-    $name: Duration (ms)
+    $name: 动画时长 (Duration ms)
     $description: >-
-      Base close animation duration, from 50 to 5000 ms. Some effects adjust their pacing.
-      Usually the closing or hiding app's UI thread waits for completion (only sent messages
-      are pumped). Compatible Excel closes with another workbook
-      window open wait only for the first animation frame; the last window still waits for completion.
+      基础关窗动画持续时间（50 到 5000 毫秒）。
   - shatter_block_size: 5
-    $name: Dust and shatter block size (px)
+    $name: 粒子/碎片大小 (px)
     $description: >-
-      Particle size, from 1 to 100 px. The 1 px setting uses specialized single-pixel paths on
-      both renderers; values from 2 to 4 use dense quad fields and can be especially demanding
-      on 4K displays.
+      微粒或碎块尺寸（1 到 100 像素）。
   - gpu_acceleration: true
-    $name: Hybrid GPU acceleration
+    $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
     $description: >-
-      Use D3D11 only for very dense Thanos or Perlin closes: 1 px blocks on windows with at least
-      1.5 million source pixels. Other close effects and lighter workloads intentionally use the
-      optimized CPU renderer because layered GPU synchronization costs more. File Explorer and
-      other backdrop-sensitive windows, Remote Desktop, incompatible processes, unavailable
-      hardware, initialization failure, or device loss also use CPU. Disable this setting to
-      force CPU for every close. See the mod README for the full routing details.
-  $name: Close
-  $description: Configure the effects played when windows close or hide (system tray app).
+      在支持的高密度关窗特效下使用 Direct3D 11 硬件加速渲染。
+  $name: 🎬 关窗动效设置 (Close Effects)
+  $description: 配置窗口关闭或隐藏到系统托盘时的视觉动画效果。
+
+- minimize_restore:
+  - minimize_animation: false
+    $name: 最小化动画 (Animate minimizing)
+    $description: >-
+      ⚠️ 建议保持关闭！ZenDesktop 已默认内置更稳定流畅的 macOS 神奇最小化动画（Genie），开启此项会导致双重动画冲突。
+  - restore_animation: false
+    $name: 还原动画 (Animate restoring)
+    $description: >-
+      ⚠️ 建议保持关闭！避免与 macOS 展开动画冲突。
+  - launch_animation: false
+    $name: 应用启动展开动画 (Animate app launches)
+    $description: >-
+      应用窗口首次打开时播放展开动画。
+  - random_effect: false
+    $name: 随机轮播动画样式 (Shuffle animation styles)
+    $description: >-
+      全局随机轮播不同动效。开启后下方的固定样式将被忽略。
+  - effect_style: genie
+    $name: 最小化/还原样式 (Animation style)
+    $description: >-
+      选择最小化和还原窗口时的效果样式。
+    $options:
+    - genie: "神奇效果 (Genie — 吸入任务栏)"
+    - windows10: "Win10 经典 (Windows 10 — 折叠缩向任务栏)"
+    - ink_splash: "墨水溅射 (Ink Splash)"
+    - scorch: "焦灼 (Scorch — 边角燃烧)"
+    - splinter: "裂片 (Splinter — 中心裂开)"
+    - mirage: "海市蜃楼 (Mirage — 水波波纹)"
+    - stipple: "点阵绽放 (Stipple)"
+    - swell: "膨胀淡出 (Swell)"
+  - duration_ms: 360
+    $name: 动画时长 (Duration ms)
+    $description: >-
+      基础动画持续时间（200 到 1400 毫秒）。
+  - unhide_taskbar: false
+    $name: 自动隐藏任务栏时临时唤出 (Reveal taskbar during Genie)
+    $description: >-
+      在开启任务栏自动隐藏时，动画期间临时浮现任务栏。
+  - unhide_duration_ms: 450
+    $name: 任务栏唤出停留时长 (ms)
+    $description: >-
+      任务栏唤出停留的时间（0 到 5000 毫秒）。
+  - show_desktop_top_window_only: false
+    $name: 优化「显示桌面」动画 (Optimize Show Desktop)
+    $description: >-
+      开启后，在使用 Win+D 或触控板三指滑动手势显示桌面时，使用 Windows 原生过渡以避免卡顿。
+  - gpu_acceleration: true
+    $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
+    $description: >-
+      使用 Direct3D 11 进行图形硬件加速。
+  $name: 📦 最小化、还原与启动动效 (Minimize & Restore)
+  $description: 配置窗口最小化、还原和启动时的动画效果（建议由 macOS Mod 接管）。
+
 - window_switch:
   - switch_animation: false
-    $name: Animate window switching
+    $name: 开启 Alt+Tab 切换动画 (Animate window switching)
     $description: >-
-      Play a scale-and-fade animation when switching windows with Alt+Tab, or through
-      confirmed selections in compatible Simple Window Switcher builds, including touchpad gestures.
+      在使用 Alt+Tab 或窗口切换器切换窗口时播放缩放淡入淡出动画。
   - duration_ms: 200
-    $name: Duration (ms)
-    $description: Window-switch animation duration, from 50 to 1000 ms.
-  $name: Window switch
-  $description: Configure the animation used when selecting a window through Alt+Tab.
+    $name: 动画时长 (Duration ms)
+    $description: 窗口切换动画持续时间（50 到 1000 毫秒）。
+  $name: 🔀 窗口切换动画 (Window Switch)
+  $description: 配置使用 Alt+Tab 切换窗口时的动画效果。
+
 - diagnostics:
   - performance_telemetry: false
-    $name: Log performance telemetry
+    $name: 记录性能统计日志 (Log performance telemetry)
     $description: >-
-      Disabled by default. Write one compact performance summary after each minimize, restore,
-      launch, or close animation and enable supporting animation-start, renderer-routing,
-      taskbar-lookup, reversal, settings, and GPU-lifecycle events. CPU samples split canvas
-      clearing, effect rendering, and layered-window presentation. No per-frame messages are
-      written. Enable this only while collecting measurements, then disable it to keep the log
-      concise.
-  $name: Diagnostics
-  $description: Optional measurements used when diagnosing renderer performance.
+      记录动画渲染各阶段耗时。一般用户无需开启。
+  $name: 🛠️ 性能诊断 (Diagnostics)
+  $description: 诊断渲染器性能的可选测量项。
 */
 // ==/WindhawkModSettings==
 

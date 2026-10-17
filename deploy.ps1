@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
 #  Refined v4.2.0 - Full Chinese Localization & Dynamic Engine
 # ============================================================
@@ -177,13 +177,13 @@ if ($files.Count -eq 0) {
     Exit 1
 }
 
-# v4.2-draft [UNTESTED ON WINDOWS]: optional mods live in .\optional and are only
-# deployed when the user opts in (interactive Y/N, or -Optional parameter).
+# v4.2: optional mods live in .\optional and are deployed to Windhawk automatically.
+# Core mods are enabled (Disabled=0) by default.
+# Optional mods (wobbly-windows, windows-animations) are disabled (Disabled=1) by default,
+# allowing users to toggle them ON in the Windhawk UI at any time without command-line prompts.
+# Preselection via -Optional parameter (e.g. -Optional "wobbly-windows") remains supported for unattended runs.
 $optionalDir = Join-Path $PSScriptRoot "optional"
-$optionalMods = [ordered]@{
-    "local@wobbly-windows"            = "Wobbly Windows (by lalimatyus, GPL-3.0, injects into dwm.exe)"
-    "local@windows-animations"        = "Windows Animations close effect only by default (by ReDrag, MIT; minimize/restore off, auto-off if macOS minimize animation is active)"
-}
+$optionalModIds = @("local@wobbly-windows", "local@windows-animations")
 $preselected = @()
 if ($Optional) {
     $preselected = $Optional.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -ne "none" } | ForEach-Object {
@@ -192,23 +192,9 @@ if ($Optional) {
 }
 $dwmModSelected = $false
 if (Test-Path $optionalDir) {
-    foreach ($optId in $optionalMods.Keys) {
-        $optFile = Join-Path $optionalDir "$optId.wh.cpp"
-        if (-not (Test-Path $optFile)) { continue }
-        # Remove stale registration if user does not pick it this time is NOT done on purpose:
-        # we never uninstall something the user may have enabled manually.
-        $pick = $false
-        if ($Optional) {
-            $pick = $preselected -contains $optId
-        } else {
-            $answer = Read-Host "[ZenDeploy] Install optional mod: $($optionalMods[$optId])? (y/N)"
-            $pick = $answer -match '^(y|yes)$'
-        }
-        if ($pick) {
-            $files += Get-Item $optFile
-            if ($optId -eq "local@wobbly-windows") { $dwmModSelected = $true }
-            Write-Status "Optional mod selected: $optId" "Cyan"
-        }
+    $optFiles = @(Get-ChildItem -Path $optionalDir -Filter "local@*.wh.cpp")
+    foreach ($optFile in $optFiles) {
+        $files += $optFile
     }
 }
 
@@ -262,9 +248,42 @@ foreach ($file in $files) {
     if (-not (Test-Path $regPath)) {
         New-Item -Path $regPath -Force | Out-Null
     }
+
+    # Determine Disabled state:
+    # 1. Optional mods default to Disabled=1 (off) so user can toggle them in Windhawk UI.
+    # 2. If -Optional parameter was passed, obey it.
+    # 3. Otherwise preserve user's existing toggle state if mod was already registered.
+    $isOptional = $optionalModIds -contains $id
+    $currentDisabled = $null
+    try {
+        $prop = Get-ItemProperty -Path $regPath -Name "Disabled" -ErrorAction SilentlyContinue
+        if ($null -ne $prop) { $currentDisabled = $prop.Disabled }
+    } catch {
+        $currentDisabled = $null
+    }
+
+    $targetDisabled = 0
+    if ($isOptional) {
+        if ($Optional) {
+            $targetDisabled = if ($preselected -contains $id) { 0 } else { 1 }
+        } elseif ($null -ne $currentDisabled) {
+            $targetDisabled = $currentDisabled
+        } else {
+            $targetDisabled = 1  # Default OFF for optional mods on first install
+        }
+        if ($id -eq "local@wobbly-windows" -and $targetDisabled -eq 0) {
+            $dwmModSelected = $true
+        }
+    } else {
+        if ($null -ne $currentDisabled) {
+            $targetDisabled = $currentDisabled
+        } else {
+            $targetDisabled = 0
+        }
+    }
     
     # Populate the registry with metadata
-    Set-ItemProperty -Path $regPath -Name "Disabled" -Value 0 -Type DWord
+    Set-ItemProperty -Path $regPath -Name "Disabled" -Value $targetDisabled -Type DWord
     Set-ItemProperty -Path $regPath -Name "LoggingEnabled" -Value 0 -Type DWord
     Set-ItemProperty -Path $regPath -Name "Include" -Value $includeStr -Type String
     Set-ItemProperty -Path $regPath -Name "Exclude" -Value $excludeStr -Type String
@@ -558,16 +577,17 @@ if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
 }
 
 if ($dwmModSelected) {
-    Write-Status "Wobbly Windows must be injected into dwm.exe, which Windhawk skips by default." "Yellow"
-    Write-Status "Open Windhawk > Settings > Advanced settings, add dwm.exe to the Process inclusion list, then sign out or reboot." "Yellow"
+    Write-Status "果冻窗口 (Wobbly Windows) 已启用，需要注入 dwm.exe（Windhawk 默认跳过系统核心进程）。" "Yellow"
+    Write-Status "请在 Windhawk > 设置 > 高级设置 的「进程包含列表」中添加 dwm.exe 并重启整台电脑。" "Yellow"
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v4.2.0 deployed successfully!" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v4.2.0 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
-Write-Host "Next steps:"
-Write-Host "  1. Open Windhawk and compile/save mods if prompted."
-Write-Host "  2. Verify all 6 ZenDesktop mods (plus any optional mods you picked) appear in 'Installed Mods'."
-Write-Host "  3. Enjoy your fully localized transparent Windows 11 desktop!"
+Write-Host "后续说明与使用建议："
+Write-Host "  1. 打开 Windhawk，6 个核心美化模块已全部部署并就绪（提示时点击保存/编译）。"
+Write-Host "  2. 果冻窗口与关窗动画已加入 Mod 列表（默认关闭），您可随时在 Windhawk 界面中点击右下角开关开启！"
+Write-Host "  3. 若开启「果冻窗口」，请在 Windhawk「设置 > 高级设置 > 进程包含列表」中添加 dwm.exe。"
+Write-Host "  4. 建议重启整台电脑，使所有美化与透明效果完整生效。"
 Write-Host ""
