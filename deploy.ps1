@@ -315,6 +315,10 @@ foreach ($file in $files) {
         if ($null -eq $tintOpacityProp) {
             Set-ItemProperty -Path $settingsPath -Name "tintOpacity" -Value 23 -Type DWord
         }
+        $fieldOpacityProp = Get-ItemProperty -Path $settingsPath -Name "fieldOpacity" -ErrorAction SilentlyContinue
+        if ($null -eq $fieldOpacityProp) {
+            Set-ItemProperty -Path $settingsPath -Name "fieldOpacity" -Value 0 -Type DWord
+        }
     }
 
     if ($id -eq "local@zen-taskbar-acrylic") {

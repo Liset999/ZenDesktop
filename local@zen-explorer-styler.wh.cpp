@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.3.0
+// @version         1.4.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -24,8 +24,9 @@
 // themes; adjustable tint color/opacity (tintPreset, tintColor, tintOpacity) for
 // the AccentBlurBehind effect, which upstream hardcodes, with a default
 // "followSystem" preset that tints dark in dark mode and light in light mode;
-// theme-aware (light/dark) fills for the address bar and search box in the Zen
-// themes. The rest of the code is unchanged from upstream.
+// address bar and search box fills in the Zen themes with an adjustable opacity
+// (fieldOpacity, default 0), theme-aware selected tab fill. The rest of the code
+// is unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -53,23 +54,19 @@
 
 * **🎨 色调颜色**：下拉直接选：跟随系统（默认，深色模式用深灰、浅色模式用浅白，和系统文字颜色搭配）、深灰、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
 * **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
+* **🔲 地址栏/搜索框不透明度**：0–100，地址栏和搜索框的白色底色浓度，深色、浅色模式都生效；0 是完全透明（默认），鼠标悬停时会稍微亮一点。只对两款 ZenDesktop 主题生效。
 
 改完设置后已打开的文件管理器窗口会立即刷新。
 
-**浅色模式**：ZenDesktop 两款主题的地址栏、搜索框底色会随深浅色变化（浅色下不再是一整块白），标签页选中底色也随之变化。浅色模式下文件列表、导航栏的文字是深色的，所以色调建议用「跟随系统」，否则深色色调配深色文字会看不清。
+**浅色模式**：ZenDesktop 两款主题的地址栏、搜索框不再是系统默认的一整块白（浓度由「🔲 地址栏/搜索框不透明度」决定），标签页选中底色也随深浅色变化。浅色模式下文件列表、导航栏的文字是深色的，所以色调建议用「跟随系统」，否则深色色调配深色文字会看不清。
 
 **任何主题都能用自定义色调**：色调颜色和不透明度只作用于「模糊 (AccentBlurBehind)」这个背景效果。用其他主题时，把「🪟 窗口背景效果」选成「模糊 (AccentBlurBehind)」即可。原版「半透明 Explorer11」等主题用的是系统亚克力/云母，颜色由系统决定，调不了。
 
-## ⚠️ 搭配 ExplorerBlurMica 使用
+## ⚠️ 不需要 ExplorerBlurMica
 
-ZenDesktop 半透明主题自带整窗模糊底，**不需要** ExplorerBlurMica。两者同时开会一起改窗口背景，效果可能叠加或互相覆盖，建议二选一：
+本 mod 单独就能提供整窗模糊：默认的「ZenDesktop 半透明」主题自带模糊底，命令栏、地址栏这些 WinUI 部分也由本 mod 改透明，**不需要也不建议再用 ExplorerBlurMica**。
 
-* 只用本 mod：选「ZenDesktop 半透明」，把 ExplorerBlurMica 卸载（取消注册）。
-* 用 ExplorerBlurMica 提供模糊底：选「ZenDesktop 仅透明」（它只把 WinUI 区域背景改透明，不改窗口背景效果）。
-
-另外，本 mod 和 ExplorerBlurMica 都会通过 XAML 诊断接口去改 WinUI 层，同一时间只能有一个程序使用这个接口。如果保留 ExplorerBlurMica，请把它的 `config.ini` 里的 `clearWinUIBg` 改成 `false`，让 WinUI 这一层只由本 mod 处理；ExplorerBlurMica 继续负责整个窗口的模糊底。改完后重新打开文件管理器窗口（必要时重启资源管理器）。
-
-如果 ExplorerBlurMica 仍然开着 `clearWinUIBg`，本 mod 默认会弹窗询问是否阻止它（见下方「XAML 诊断冲突处理」）。
+如果之前注册过 ExplorerBlurMica，请先把它卸载（取消注册），再重启资源管理器。两者同时开会一起改窗口背景、抢 XAML 诊断接口，效果会互相覆盖。
 
 ## 🎨 主题
 
@@ -77,7 +74,7 @@ ZenDesktop 半透明主题自带整窗模糊底，**不需要** ExplorerBlurMica
 
 **ZenDesktop 半透明（推荐，默认）**：原版「半透明 Explorer11」的样式 + 可调色调的模糊背景。
 
-**ZenDesktop 仅透明**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。单独使用时下面是黑的，需要 ExplorerBlurMica 或「🪟 窗口背景效果」提供背景。
+**ZenDesktop 仅透明**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。单独使用时下面是黑的，需要在「🪟 窗口背景效果」里选一个效果（例如「模糊」）提供背景。
 
 [![Translucent
 Explorer11](https://raw.githubusercontent.com/ramensoftware/windows-11-file-explorer-styling-guide/main/Themes/Translucent%20Explorer11/screenshot-small.png)
@@ -270,7 +267,7 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
 
 ## 🛡️ XAML 诊断冲突处理
 
-本 mod 通过 XAML 诊断接口查看和修改文件管理器。同一时间只能有一个 XAML 诊断使用者。如果本 mod 运行时另一个程序（例如开着 `clearWinUIBg` 的 ExplorerBlurMica）也要使用 XAML 诊断，就会冲突。
+本 mod 通过 XAML 诊断接口查看和修改文件管理器。同一时间只能有一个 XAML 诊断使用者。如果本 mod 运行时另一个程序（例如还没卸载的 ExplorerBlurMica）也要使用 XAML 诊断，就会冲突。
 
 设置中的 **🛡️ XAML 诊断冲突处理** 决定如何处理：
 
@@ -278,7 +275,7 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
 * **阻止**：自动阻止其他程序使用 XAML 诊断。本 mod 能正常工作，但可能导致对方失效。
 * **允许**：允许其他程序使用 XAML 诊断。对方能正常工作，但本 mod 的样式可能失效。
 
-搭配 ExplorerBlurMica 时，推荐按上文把它的 `clearWinUIBg` 设为 `false`，这样就不会冲突。
+遇到 ExplorerBlurMica 的冲突弹窗时，最好的办法是把 ExplorerBlurMica 卸载。
 
 ## 📝 实现说明
 
@@ -302,12 +299,12 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $name: "🎭 主题 (Theme)"
   $description: >-
     主题就是一组样式。默认的「ZenDesktop 半透明」整窗半透明模糊，色调颜色和不透明度
-    可在下方调节。「ZenDesktop 仅透明」只把 WinUI 区域背景改透明，需要配合
-    ExplorerBlurMica。其余主题来自原版，详情和投稿方式见 mod 说明。
+    可在下方调节，不需要 ExplorerBlurMica。「ZenDesktop 仅透明」只把 WinUI 区域背景
+    改透明，不带模糊底。其余主题来自原版，详情和投稿方式见 mod 说明。
   $options:
   - "": "无 (None)"
   - ZenTranslucent: "ZenDesktop 半透明（推荐，可调色）"
-  - ZenTransparent: "ZenDesktop 仅透明（配合 ExplorerBlurMica）"
+  - ZenTransparent: "ZenDesktop 仅透明（不带模糊底）"
   - Translucent Explorer11: "半透明 Explorer11 (Translucent Explorer11)"
   - MicaBar: "云母命令栏 (MicaBar)"
   - NoCommandBar: "隐藏命令栏 (NoCommandBar)"
@@ -373,6 +370,11 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $name: "💧 色调不透明度 (Tint Opacity)"
   $description: >-
     「模糊」背景效果的色调浓度，0–100。0 只有模糊没有颜色，100 完全不透明。默认 23。
+- fieldOpacity: 0
+  $name: "🔲 地址栏/搜索框不透明度 (Field Opacity)"
+  $description: >-
+    地址栏和搜索框白色底色的浓度，0–100，深色和浅色模式都生效。0 完全透明（默认），
+    鼠标悬停时会再亮一点。只对两款 ZenDesktop 主题生效。
 - styleConstants: [""]
   $name: "⚙️ 样式常量 (高级)"
   $description: >-
@@ -402,10 +404,9 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
 - xamlDiagnosticsHandling: alert
   $name: "🛡️ XAML 诊断冲突处理 (XAML Diagnostics)"
   $description: >-
-    其他程序（例如开着 clearWinUIBg 的 ExplorerBlurMica）也要使用 XAML 诊断时怎么处理。
+    其他程序（例如还没卸载的 ExplorerBlurMica）也要使用 XAML 诊断时怎么处理。
     同一时间只能有一个使用者。「阻止」会让对方无法使用，可能导致对方失效；「允许」
-    会让对方使用，可能导致本 mod 的样式失效。搭配 ExplorerBlurMica 时，推荐把它的
-    clearWinUIBg 设为 false。
+    会让对方使用，可能导致本 mod 的样式失效。建议直接卸载 ExplorerBlurMica。
   $options:
   - alert: "弹窗询问 (Alert)"
   - block: "阻止其他程序 (Block)"
@@ -448,11 +449,13 @@ struct Theme {
 
 // clang-format off
 
-// ZenDesktop: theme-aware fills for the address bar and search box. In light
-// mode WinUI fills them with TextControlBackground/ControlFillColorDefault
-// (#B3FFFFFF, 70% white), which shows as an opaque white block over the
-// translucent window; in dark mode the same resource is #0FFFFFFF. These keep
-// the dark mode look and use a matching subtle fill in light mode.
+// ZenDesktop: fills for the address bar and search box. In light mode WinUI
+// fills them with TextControlBackground/ControlFillColorDefault (#B3FFFFFF, 70%
+// white), which shows as an opaque white block over the translucent window; in
+// dark mode the same resource is #0FFFFFFF. The ZenFieldFill and
+// ZenFieldFillPointerOver resources are white at the fieldOpacity setting's
+// alpha in both themes, they're added at runtime in
+// AddZenFieldFillResourceVariables.
 #define ZEN_FIELD_TARGET_STYLES \
     ThemeTargetStyles{L"FileExplorerExtensions.AddressBarControl > Grid#PART_LayoutRoot", { \
         L"Background:=<SolidColorBrush Color=\"{ThemeResource ZenFieldFill}\"/>"}}, \
@@ -463,16 +466,12 @@ struct Theme {
         L"Background@PointerOver:=<SolidColorBrush Color=\"{ThemeResource ZenFieldFillPointerOver}\"/>"}}
 
 #define ZEN_THEME_RESOURCE_VARIABLES \
-    L"ZenFieldFill@Dark=#0FFFFFFF", \
-    L"ZenFieldFill@Light=#33FFFFFF", \
-    L"ZenFieldFillPointerOver@Dark=#15FFFFFF", \
-    L"ZenFieldFillPointerOver@Light=#59FFFFFF", \
     L"ZenTabSelectedFill@Dark=#40404040", \
     L"ZenTabSelectedFill@Light=#59FFFFFF"
 
 // ZenDesktop: transparent WinUI backgrounds only (command bar, address bar,
-// tabs, home/gallery/details panes). Keeps the window backdrop untouched so
-// ExplorerBlurMica's blur shows through. All targets are taken from the
+// tabs, home/gallery/details panes). Keeps the window backdrop untouched, for
+// use with a background effect chosen in the settings. All targets are taken from the
 // upstream themes above.
 const Theme g_themeZenTransparent = {{
     ThemeTargetStyles{L"FileExplorerExtensions.CommandBarControl_Wave1 > Grid, Grid#CommandBarControlRootGrid", {
@@ -9848,9 +9847,40 @@ void ProcessAllStylesFromSettings() {
         }
     }
 
+    std::vector<PCWSTR> themeResourceVariables =
+        theme ? theme->themeResourceVariables : std::vector<PCWSTR>{};
+
+    // ZenDesktop: the field fill resources of the Zen themes, from the
+    // fieldOpacity setting. They're added after the theme's own variables and
+    // before the user's, so user variables still override them. The strings
+    // must outlive the ProcessResourceVariablesFromSettings call.
+    std::vector<std::wstring> zenFieldFillVariables;
+    if (theme == &g_themeZenTranslucent || theme == &g_themeZenTransparent) {
+        int fieldOpacity = Wh_GetIntSetting(L"fieldOpacity");
+        fieldOpacity = std::clamp(fieldOpacity, 0, 100);
+        int hoverOpacity = std::min(fieldOpacity + 6, 100);
+
+        auto whiteAtOpacity = [](int opacity) {
+            WCHAR color[16];
+            swprintf_s(color, L"#%02XFFFFFF", opacity * 255 / 100);
+            return std::wstring(color);
+        };
+
+        std::wstring fill = whiteAtOpacity(fieldOpacity);
+        std::wstring hover = whiteAtOpacity(hoverOpacity);
+        zenFieldFillVariables = {
+            L"ZenFieldFill@Dark=" + fill,
+            L"ZenFieldFill@Light=" + fill,
+            L"ZenFieldFillPointerOver@Dark=" + hover,
+            L"ZenFieldFillPointerOver@Light=" + hover,
+        };
+        for (const auto& variable : zenFieldFillVariables) {
+            themeResourceVariables.push_back(variable.c_str());
+        }
+    }
+
     g_resourceVariables = ProcessResourceVariablesFromSettings(
-        styleConstants,
-        theme ? theme->themeResourceVariables : std::vector<PCWSTR>{});
+        styleConstants, themeResourceVariables);
 }
 
 void UninitializeResourceVariables() {
