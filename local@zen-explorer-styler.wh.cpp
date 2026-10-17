@@ -2,9 +2,9 @@
 // @id              zen-explorer-styler
 // @name            ZenDesktop: 文件管理器美化
 // @name:zh-CN      ZenDesktop: 文件管理器美化
-// @description     Translucent File Explorer with adjustable tint and transparent command bar, address bar and tabs.
-// @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏和标签栏背景透明。
-// @version         1.5.1
+// @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
+// @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
+// @version         1.6.0
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -27,7 +27,9 @@
 // "followSystem" preset that tints dark in dark mode and light in light mode;
 // address bar and search box fills in the Zen themes with an adjustable opacity
 // (fieldOpacity, default 0), theme-aware selected tab fill; a text color setting
-// (textColorMode) shared with the other ZenDesktop mods. The rest of the code is
+// (textColorMode) shared with the other ZenDesktop mods; optional WindhawkBlur
+// glass on the Win11 desktop/Explorer context menu (contextMenuEnable /
+// contextMenuBlur), reusing tintPreset and tintOpacity. The rest of the code is
 // unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
@@ -41,7 +43,7 @@
 /*
 # ZenDesktop: 文件管理器美化
 
-自定义 Windows 11 文件管理器的外观。默认的「ZenDesktop 半透明」主题让整个窗口半透明模糊，色调颜色和不透明度可调，命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler v1.7。
+自定义 Windows 11 文件管理器的外观。默认的「ZenDesktop 半透明」主题让整个窗口半透明模糊，色调颜色和不透明度可调，命令栏、地址栏、标签栏等 WinUI 区域背景透明；并可给桌面与资源管理器的现代右键菜单加上玻璃效果。基于 m417z 的 Windows 11 File Explorer Styler v1.7。
 
 ## 功能
 
@@ -50,6 +52,7 @@
 - 色调颜色可从 11 种预设中选择，也可以自定义颜色代码。
 - 地址栏与搜索框底色可调，适配浅色模式。
 - 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 桌面与文件管理器的现代右键菜单可开玻璃效果（`WindhawkBlur`），色调沿用上方设置。
 - 改完设置后，已打开的文件管理器窗口立即刷新。
 
 ## 设置说明
@@ -61,16 +64,20 @@
 - **地址栏与搜索框不透明度**：范围 0–100，默认 0（完全透明），鼠标悬停时会稍亮一些。只对两款 ZenDesktop 主题生效。
 - **文字颜色**：WinUI 区域在任何主题下都生效；文件列表、列标题、导航栏、状态栏等传统区域只在背景效果覆盖整个窗口时生效，选「跟随系统」时保持系统颜色。
 - **浅色模式**：浅色模式下文件列表和导航栏的文字是深色的，色调建议使用「跟随系统」，避免深色色调配深色文字。
+- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单，用 `WindhawkBlur` 而不是 `AcrylicBrush`（后者在右键菜单上常会显示成白底）。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
+- **右键菜单：模糊**：仅在开启玻璃效果后生效，范围 0–60，默认 30。色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」。
 - **高级：样式常量 / 控件样式 / 资源变量 / 顶部框架高度**：用于编写自定义样式，语法见下文「高级样式」。
 
 ## 兼容性与已知问题
 
-- 适用于 Windows 11，注入 `explorer.exe`。
+- 适用于 Windows 11，注入 `explorer.exe`。桌面右键菜单也在这个进程里（XAML Island），不是 `ShellExperienceHost`。
+- 「显示更多选项」或第三方「经典右键菜单」mod 打开的是 Win32 菜单，本项不改它们；可用 TranslucentFlyouts 或 Windhawk 的 Win32 UI Modernizer。
 - 不需要 ExplorerBlurMica，也不建议同时使用。两者会一起修改窗口背景并争用 XAML 诊断接口，效果互相覆盖。之前注册过 ExplorerBlurMica 的，请先卸载（取消注册）再重启资源管理器。
 - 同一时间只能有一个程序使用 XAML 诊断，处理方式由「高级：XAML 诊断冲突处理」决定：「弹窗询问」每次让你选择；「阻止其他程序」保证本 mod 生效，但对方可能失效；「允许其他程序」让对方生效，但本 mod 的样式可能失效。
 
 ## 更新日志
 
+- **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
 - **1.5.1**：规范设置界面与说明文字，行为不变。
 - **1.5.0**：新增文字颜色设置，与其他 ZenDesktop mod 一致。
 - **1.4.0**：新增地址栏与搜索框不透明度（0–100，默认 0）。
@@ -395,6 +402,16 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
   $name:zh-CN: "地址栏与搜索框不透明度"
   $description: "Fill strength of the address bar and search box, 0–100, in both dark and light mode. 0 is fully transparent. Only affects the two ZenDesktop themes. Default: 0."
   $description:zh-CN: "地址栏和搜索框底色的浓度，范围 0–100，深色和浅色模式都生效，0 为完全透明。只对两款 ZenDesktop 主题生效。默认 0。"
+- contextMenuEnable: true
+  $name: "Context menu glass"
+  $name:zh-CN: "右键菜单：玻璃效果"
+  $description: "Apply WindhawkBlur glass to the Windows 11 desktop and File Explorer context menus. Uses the tint color and tint opacity above. Default: on."
+  $description:zh-CN: "给 Windows 11 桌面和文件管理器的现代右键菜单加上 WindhawkBlur 玻璃效果，色调沿用上方的色调颜色和不透明度。默认开启。"
+- contextMenuBlur: 30
+  $name: "Context menu: blur"
+  $name:zh-CN: "右键菜单：模糊"
+  $description: "Blur strength of the context menu glass, 0–60. Only applies when context menu glass is on. Default: 30."
+  $description:zh-CN: "右键菜单玻璃的模糊强度，范围 0–60。仅在开启「右键菜单：玻璃效果」后生效。默认 30。"
 - styleConstants: [""]
   $name: "Advanced: style constants"
   $name:zh-CN: "高级：样式常量"
@@ -9826,6 +9843,10 @@ const TextColorMode* GetTextColorMode() {
     return result;
 }
 
+// ZenDesktop: applied after theme styles; defined later next to
+// GetAccentGradientColor so it can reuse the tint helpers.
+void ApplyZenContextMenuStyles();
+
 // The WinUI Foreground value, empty to keep the theme's colors.
 std::wstring GetTextColorModeBrush() {
     const TextColorMode* mode = GetTextColorMode();
@@ -9915,6 +9936,15 @@ void ProcessAllStylesFromSettings() {
             // The address bar edit mode and search box text.
             AddElementCustomizationRules(L"TextBox", fgStyles);
         }
+    } catch (winrt::hresult_error const& ex) {
+        Wh_Log(L"Error %08X", ex.code());
+    } catch (std::exception const& ex) {
+        Wh_Log(L"Error: %S", ex.what());
+    }
+
+    // ZenDesktop: modern Win11 context menu glass (desktop + Explorer).
+    try {
+        ApplyZenContextMenuStyles();
     } catch (winrt::hresult_error const& ex) {
         Wh_Log(L"Error %08X", ex.code());
     } catch (std::exception const& ex) {
@@ -11403,6 +11433,82 @@ int GetAccentGradientColor(std::optional<bool> darkTheme = std::nullopt) {
     DWORD alpha = (DWORD)g_settings.accentGradientColor & 0xFF000000;
     return (int)(alpha |
                  (dark ? kFollowSystemDarkTintBgr : kFollowSystemLightTintBgr));
+}
+
+// ZenDesktop: glass for the Win11 XAML context menu (desktop right-click and
+// Explorer). Targets match the File Explorer styling guide and themes such as
+// WindowGlass / LiquidGlass. AcrylicBrush often paints an opaque white surface
+// on these menus; WindhawkBlur is the reliable path (m417z, discussion #3928).
+void ApplyZenContextMenuStyles() {
+    if (!Wh_GetIntSetting(L"contextMenuEnable")) {
+        return;
+    }
+
+    int blur = Wh_GetIntSetting(L"contextMenuBlur");
+    blur = std::clamp(blur, 0, 60);
+
+    // accentGradientColor / GetAccentGradientColor: AABBGGRR → #AARRGGBB.
+    int accent = GetAccentGradientColor();
+    unsigned a = (static_cast<unsigned>(accent) >> 24) & 0xFFu;
+    unsigned b = (static_cast<unsigned>(accent) >> 16) & 0xFFu;
+    unsigned g = (static_cast<unsigned>(accent) >> 8) & 0xFFu;
+    unsigned r = static_cast<unsigned>(accent) & 0xFFu;
+
+    WCHAR tintHex[16];
+    swprintf_s(tintHex, L"#%02X%02X%02X%02X", a, r, g, b);
+
+    WCHAR bgBrush[192];
+    swprintf_s(bgBrush,
+               L"<WindhawkBlur BlurAmount=\"%d\" TintColor=\"%s\"/>", blur,
+               tintHex);
+
+    std::wstring background = L"Background:=" + std::wstring(bgBrush);
+    std::wstring borderBrush =
+        L"BorderBrush:=<SolidColorBrush "
+        L"Color=\"{ThemeResource SystemChromeHighColor}\" Opacity=\"0.45\"/>";
+
+    std::vector<std::wstring> rootStyles = {
+        background,
+        L"BorderThickness=1",
+        borderBrush,
+        L"CornerRadius=8",
+    };
+
+    static constexpr PCWSTR kRoots[] = {
+        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
+        L"Grid#OuterOverflowContentRootV2 > Grid#OverflowContentRoot > "
+        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
+        L"MenuFlyoutPresenter > Border",
+        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar > "
+        L"Grid#LayoutRoot > Grid#OuterContentRoot > Grid#ContentRoot > "
+        L"Grid#PrimaryItemsRoot",
+        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter > "
+        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter",
+    };
+
+    for (PCWSTR target : kRoots) {
+        AddElementCustomizationRules(target, rootStyles);
+    }
+
+    AddElementCustomizationRules(
+        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot > "
+        L"Border",
+        {L"Background=Transparent", borderBrush});
+
+    std::vector<std::wstring> itemHover = {
+        L"Background@PointerOver:=<SolidColorBrush Color=\"#FFFFFF\" "
+        L"Opacity=\"0.08\"/>",
+        L"Background@Pressed:=<SolidColorBrush Color=\"#FFFFFF\" "
+        L"Opacity=\"0.12\"/>",
+        L"CornerRadius=4",
+    };
+    AddElementCustomizationRules(
+        L"CommandBarOverflowPresenter#SecondaryItemsControl "
+        L"Microsoft.UI.Xaml.Controls.AppBarButton",
+        itemHover);
+    AddElementCustomizationRules(
+        L"CommandBarOverflowPresenter Microsoft.UI.Xaml.Controls.AppBarButton",
+        itemHover);
 }
 
 // Based on the Translucent Windows mod.
