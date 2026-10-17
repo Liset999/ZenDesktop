@@ -5,7 +5,7 @@
 // @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
 // @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
 // @version         0.115.1
-// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
+// @donateUrl       https://ifdian.net/a/Lanboo
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
 // @include         dwm.exe
@@ -55,7 +55,9 @@
 
 ## 捐助支持
 
-如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+
+- [爱发电](https://ifdian.net/a/Lanboo)
 
 ![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 

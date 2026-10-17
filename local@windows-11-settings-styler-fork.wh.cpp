@@ -5,7 +5,7 @@
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
 // @version         4.1.1
-// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
+// @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         SystemSettings.exe
@@ -63,7 +63,9 @@
 
 ## 捐助支持
 
-如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+
+- [爱发电](https://ifdian.net/a/Lanboo)
 
 ![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 

@@ -96,16 +96,18 @@
 
 ## 6. 捐助支持
 
-- 每个 mod 的说明以 `## 捐助支持` 作为最后一节（放在附录之后），内容固定为：
+- 每个 mod 的说明以 `## 捐助支持` 作为最后一节（放在附录之后），内容固定为：爱发电链接 + 微信赞赏码图。
 
 ```markdown
 ## 捐助支持
 
-如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+
+- [爱发电](https://ifdian.net/a/Lanboo)
 
 ![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 
 图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 ```
 
-- 元数据中加入 Windhawk 支持的 `@donateUrl`，指向同一张赞赏码图片。基于他人 mod 且原版已有 `@donateUrl` 的（如窗口动画），保留原作者的链接，不替换。
+- 元数据中加入 Windhawk 支持的 `@donateUrl`，指向爱发电：`https://ifdian.net/a/Lanboo`。基于他人 mod 且原版已有 `@donateUrl` 的（如窗口动画），保留原作者的链接，不替换；其说明里的「捐助支持」仍同时写爱发电与微信赞赏码。

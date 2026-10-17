@@ -5,7 +5,7 @@
 // @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
 // @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
 // @version         4.1.1
-// @donateUrl       https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
+// @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -50,7 +50,9 @@
 
 ## 捐助支持
 
-如果这个 mod 对你有帮助，可以用微信扫码赞赏支持作者 Lanbo。
+如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+
+- [爱发电](https://ifdian.net/a/Lanboo)
 
 ![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 
