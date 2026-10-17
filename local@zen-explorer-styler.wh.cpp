@@ -2,9 +2,9 @@
 // @id              zen-explorer-styler
 // @name            ZenDesktop: File Explorer Styler
 // @name:zh-CN       ZenDesktop: 文件管理器美化
-// @description     Transparent WinUI command bar, address bar and tabs for File Explorer, designed to pair with ExplorerBlurMica. Based on m417z's Windows 11 File Explorer Styler.
-// @description:zh-CN 让 Windows 11 文件管理器的命令栏、地址栏、标签栏等 WinUI 区域背景透明，搭配 ExplorerBlurMica 的模糊底一起使用。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.0.0
+// @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
+// @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
+// @version         1.1.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -20,8 +20,10 @@
 // https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-file-explorer-styler.wh.cpp
 //
 // ZenDesktop modifications (Lanbo): Chinese localization of the readme and
-// settings, and a new integrated "ZenTransparent" theme used as the default.
-// The rest of the code is unchanged from upstream.
+// settings; new integrated "ZenTranslucent" (default) and "ZenTransparent"
+// themes; adjustable tint color/opacity (tintColor, tintOpacity settings) for
+// the AccentBlurBehind effect, which upstream hardcodes. The rest of the code
+// is unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -40,25 +42,38 @@
 > - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
 >
 > **原作者**：m417z ([Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler))  
-> **定制修改说明**：由 Lanboo 基于 m417z 原版 v1.7 二开。新增「ZenDesktop 透明（推荐）」主题并设为默认，界面与设置全中文。除此之外代码与原版一致。  
+> **定制修改说明**：由 Lanboo 基于 m417z 原版 v1.7 二开。新增「ZenDesktop 半透明」（默认）和「ZenDesktop 仅透明」两款主题，新增可调的模糊色调颜色和不透明度（原版写死为 #232323、约 23%），界面与设置全中文。除此之外代码与原版一致。  
 > **许可证**：GPL-3.0，与原版相同。原版源码：[windhawk-mods](https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-file-explorer-styler.wh.cpp)、[m417z/my-windhawk-mods](https://github.com/m417z/my-windhawk-mods)
 
 自定义 Windows 11 文件管理器的外观：可以直接选用内置主题，也可以自己写样式。
 
-装好后默认就是 **ZenDesktop 透明** 主题：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格这些 WinUI 区域的背景改成透明，不改窗口本身的背景效果，让 ExplorerBlurMica 的模糊底透出来。
+装好后默认就是 **ZenDesktop 半透明** 主题：样式和原版「半透明 Explorer11」一样（命令栏、地址栏、主页/图库/详细信息窗格背景透明，整窗背景透出），区别是窗口背景改用「模糊 (AccentBlurBehind)」效果，色调颜色和不透明度可以在设置里调：
+
+* **🎨 色调颜色**：`#RRGGBB` 格式，例如 `#000000` 黑、`#FFFFFF` 白、`#1E3A5F` 深蓝。默认 `#232323`。
+* **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
+
+改完设置后已打开的文件管理器窗口会立即刷新。
+
+**任何主题都能用自定义色调**：色调颜色和不透明度只作用于「模糊 (AccentBlurBehind)」这个背景效果。用其他主题时，把「🪟 窗口背景效果」选成「模糊 (AccentBlurBehind)」即可。原版「半透明 Explorer11」等主题用的是系统亚克力/云母，颜色由系统决定，调不了。
 
 ## ⚠️ 搭配 ExplorerBlurMica 使用
 
-本 mod 和 ExplorerBlurMica 都会通过 XAML 诊断接口去改 WinUI 层，同一时间只能有一个程序使用这个接口。请把 ExplorerBlurMica 的 `config.ini` 里的 `clearWinUIBg` 改成 `false`，让 WinUI 这一层只由本 mod 处理；ExplorerBlurMica 继续负责整个窗口的模糊底。改完后重新打开文件管理器窗口（必要时重启资源管理器）。
+ZenDesktop 半透明主题自带整窗模糊底，**不需要** ExplorerBlurMica。两者同时开会一起改窗口背景，效果可能叠加或互相覆盖，建议二选一：
+
+* 只用本 mod：选「ZenDesktop 半透明」，把 ExplorerBlurMica 卸载（取消注册）。
+* 用 ExplorerBlurMica 提供模糊底：选「ZenDesktop 仅透明」（它只把 WinUI 区域背景改透明，不改窗口背景效果）。
+
+另外，本 mod 和 ExplorerBlurMica 都会通过 XAML 诊断接口去改 WinUI 层，同一时间只能有一个程序使用这个接口。如果保留 ExplorerBlurMica，请把它的 `config.ini` 里的 `clearWinUIBg` 改成 `false`，让 WinUI 这一层只由本 mod 处理；ExplorerBlurMica 继续负责整个窗口的模糊底。改完后重新打开文件管理器窗口（必要时重启资源管理器）。
 
 如果 ExplorerBlurMica 仍然开着 `clearWinUIBg`，本 mod 默认会弹窗询问是否阻止它（见下方「XAML 诊断冲突处理」）。
 
-本 mod 的「🪟 窗口背景效果」默认跟随主题；ZenDesktop 透明主题不改窗口背景效果。如果不用 ExplorerBlurMica，也可以在这里选「亚克力」「云母」等，由本 mod 自己提供背景。
-
 ## 🎨 主题
 
-主题就是一组样式。以下主题已内置在 mod 中，可以在设置里直接选择。除 ZenDesktop 透明外，其余主题均来自原版，由社区贡献：
-**ZenDesktop 透明（推荐，默认）**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。
+主题就是一组样式。以下主题已内置在 mod 中，可以在设置里直接选择。除两款 ZenDesktop 主题外，其余主题均来自原版，由社区贡献：
+
+**ZenDesktop 半透明（推荐，默认）**：原版「半透明 Explorer11」的样式 + 可调色调的模糊背景。
+
+**ZenDesktop 仅透明**：只把命令栏、地址栏、标签页、主页/图库/详细信息窗格的背景改成透明，不改窗口背景效果。单独使用时下面是黑的，需要 ExplorerBlurMica 或「🪟 窗口背景效果」提供背景。
 
 [![Translucent
 Explorer11](https://raw.githubusercontent.com/ramensoftware/windows-11-file-explorer-styling-guide/main/Themes/Translucent%20Explorer11/screenshot-small.png)
@@ -279,15 +294,16 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
 
 // ==WindhawkModSettings==
 /*
-- theme: "ZenTransparent"
+- theme: "ZenTranslucent"
   $name: "🎭 主题 (Theme)"
   $description: >-
-    主题就是一组样式。默认的「ZenDesktop 透明」只把命令栏、地址栏、标签页等 WinUI
-    区域的背景改成透明，适合搭配 ExplorerBlurMica。其余主题来自原版，详情和投稿方式见
-    mod 说明。
+    主题就是一组样式。默认的「ZenDesktop 半透明」整窗半透明模糊，色调颜色和不透明度
+    可在下方调节。「ZenDesktop 仅透明」只把 WinUI 区域背景改透明，需要配合
+    ExplorerBlurMica。其余主题来自原版，详情和投稿方式见 mod 说明。
   $options:
   - "": "无 (None)"
-  - ZenTransparent: "ZenDesktop 透明（推荐）"
+  - ZenTranslucent: "ZenDesktop 半透明（推荐，可调色）"
+  - ZenTransparent: "ZenDesktop 仅透明（配合 ExplorerBlurMica）"
   - Translucent Explorer11: "半透明 Explorer11 (Translucent Explorer11)"
   - MicaBar: "云母命令栏 (MicaBar)"
   - NoCommandBar: "隐藏命令栏 (NoCommandBar)"
@@ -307,8 +323,9 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
 - backgroundTranslucentEffect: ""
   $name: "🪟 窗口背景效果 (Background Effect)"
   $description: >-
-    文件管理器窗口背景使用的半透明效果。搭配 ExplorerBlurMica 时保持「跟随主题」，
-    由 ExplorerBlurMica 提供模糊底。更多效果可以看 Translucent Windows mod。
+    文件管理器窗口背景使用的半透明效果。「跟随主题」时 ZenDesktop 半透明主题用的是
+    「模糊」。只有「模糊」会使用下方的色调颜色和不透明度，其他主题想调色就选它。
+    更多效果可以看 Translucent Windows mod。
   $options:
   - "": "跟随主题 (Theme Default)"
   - default: "Windows 默认 (Windows Default)"
@@ -324,6 +341,15 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $options:
   - "": "整个窗口 (Entire Window)"
   - explorerFrame: "仅文件管理器框架 (Explorer Frame Only)"
+- tintColor: "#232323"
+  $name: "🎨 色调颜色 (Tint Color)"
+  $description: >-
+    「模糊」背景效果的色调颜色，格式 #RRGGBB，例如 #000000 黑、#FFFFFF 白。
+    格式不对时使用默认的 #232323。
+- tintOpacity: 23
+  $name: "💧 色调不透明度 (Tint Opacity)"
+  $description: >-
+    「模糊」背景效果的色调浓度，0–100。0 只有模糊没有颜色，100 完全不透明。默认 23。
 - styleConstants: [""]
   $name: "⚙️ 样式常量 (高级)"
   $description: >-
@@ -450,6 +476,17 @@ const Theme g_themeTranslucent_Explorer11 = {{
     ThemeTargetStyles{L"StackPanel#DetailsViewThumbnail > Grid", {
         L"Background=Transparent"}},
 }, {}, {}, /*explorerFrameContainerHeight=*/0, BackgroundTranslucentEffect::kAcrylic};
+
+// ZenDesktop: the same styles as Translucent Explorer11, but with the
+// AccentBlurBehind effect, whose tint color and opacity come from the tintColor
+// and tintOpacity settings (the DWM acrylic backdrop tint isn't adjustable).
+// Must be defined after g_themeTranslucent_Explorer11, which it copies.
+const Theme g_themeZenTranslucent = {
+    g_themeTranslucent_Explorer11.targetStyles,
+    {},
+    {},
+    /*explorerFrameContainerHeight=*/0,
+    BackgroundTranslucentEffect::kBlur};
 
 const Theme g_themeMicaBar = {{
     ThemeTargetStyles{L"FileExplorerExtensions.CommandBarControl_Wave1 > Grid, Grid#CommandBarControlRootGrid", {
@@ -1674,6 +1711,8 @@ struct {
     BackgroundTranslucentEffectRegion backgroundTranslucentEffectRegion;
     int explorerFrameContainerHeight;
     XamlDiagnosticsHandling xamlDiagnosticsHandling;
+    // ZenDesktop: AccentBlurBehind tint, AABBGGRR (as ACCENT_POLICY expects).
+    int accentGradientColor;
 } g_settings;
 
 BackgroundTranslucentEffect g_themeBackgroundTranslucentEffect;
@@ -9655,7 +9694,9 @@ void MergeResourceVariables() {
 const Theme* GetSelectedTheme() {
     PCWSTR themeName = Wh_GetStringSetting(L"theme");
     const Theme* theme = nullptr;
-    if (wcscmp(themeName, L"ZenTransparent") == 0) {
+    if (wcscmp(themeName, L"ZenTranslucent") == 0) {
+        theme = &g_themeZenTranslucent;
+    } else if (wcscmp(themeName, L"ZenTransparent") == 0) {
         theme = &g_themeZenTransparent;
     } else if (wcscmp(themeName, L"Translucent Explorer11") == 0) {
         theme = &g_themeTranslucent_Explorer11;
@@ -11154,8 +11195,9 @@ void SetAccentBlurBehind(HWND hWnd, bool enable) {
 
     ACCENT_POLICY accentPolicy = {
         .AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND,
-        // AABBGGRR.
-        .GradientColor = 0x3A232323,
+        // AABBGGRR. ZenDesktop: from the tintColor and tintOpacity settings,
+        // upstream hardcodes 0x3A232323.
+        .GradientColor = g_settings.accentGradientColor,
     };
 
     WINDOWCOMPOSITIONATTRIBDATA data = {
@@ -11743,7 +11785,69 @@ void StopStatsTimer() {
     }
 }
 
+// ZenDesktop: parses "#RRGGBB" (the "#" is optional; for "#AARRGGBB" the AA
+// part is ignored, opacity comes from tintOpacity). Returns the color as
+// 0x00BBGGRR, or the upstream default 0x232323 if the value is invalid.
+DWORD ParseTintColorSetting(PCWSTR value) {
+    constexpr DWORD kDefaultColor = 0x00232323;
+
+    std::wstring_view str = value ? value : L"";
+    auto isSpace = [](WCHAR c) { return c == L' ' || c == L'\t'; };
+    while (!str.empty() && isSpace(str.front())) {
+        str.remove_prefix(1);
+    }
+    while (!str.empty() && isSpace(str.back())) {
+        str.remove_suffix(1);
+    }
+    if (!str.empty() && str.front() == L'#') {
+        str.remove_prefix(1);
+    }
+
+    if (str.size() != 6 && str.size() != 8) {
+        return kDefaultColor;
+    }
+
+    DWORD argb = 0;
+    for (WCHAR c : str) {
+        DWORD digit;
+        if (c >= L'0' && c <= L'9') {
+            digit = c - L'0';
+        } else if (c >= L'a' && c <= L'f') {
+            digit = c - L'a' + 10;
+        } else if (c >= L'A' && c <= L'F') {
+            digit = c - L'A' + 10;
+        } else {
+            return kDefaultColor;
+        }
+        argb = (argb << 4) | digit;
+    }
+
+    BYTE r = (argb >> 16) & 0xFF;
+    BYTE g = (argb >> 8) & 0xFF;
+    BYTE b = argb & 0xFF;
+    return (DWORD)r | ((DWORD)g << 8) | ((DWORD)b << 16);
+}
+
+void LoadTintSettings() {
+    PCWSTR tintColor = Wh_GetStringSetting(L"tintColor");
+    DWORD bgr = ParseTintColorSetting(tintColor);
+    Wh_FreeStringSetting(tintColor);
+
+    int tintOpacity = Wh_GetIntSetting(L"tintOpacity");
+    if (tintOpacity < 0) {
+        tintOpacity = 0;
+    } else if (tintOpacity > 100) {
+        tintOpacity = 100;
+    }
+
+    // 23% -> 0x3A, matching the upstream hardcoded 0x3A232323.
+    DWORD alpha = (DWORD)tintOpacity * 255 / 100;
+    g_settings.accentGradientColor = (int)((alpha << 24) | bgr);
+}
+
 void LoadSettings() {
+    LoadTintSettings();
+
     PCWSTR backgroundTranslucentEffectRegion =
         Wh_GetStringSetting(L"backgroundTranslucentEffectRegion");
     g_settings.backgroundTranslucentEffectRegion =

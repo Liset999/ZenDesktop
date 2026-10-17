@@ -287,7 +287,7 @@ foreach ($file in $files) {
     # Custom initial settings initialization per mod
     if ($id -eq "local@zen-explorer-styler") {
         # Registry-deployed mods get no YAML defaults; without this the theme
-        # would read as "" (None) and the command bar would stay black.
+        # would read as "" (None) and tintOpacity as 0.
         $settingsPath = Join-Path $regPath "Settings"
         if (-not (Test-Path $settingsPath)) {
             New-Item -Path $settingsPath -Force | Out-Null
@@ -298,9 +298,18 @@ foreach ($file in $files) {
         } catch {
             $currentTheme = $null
         }
-        if ([string]::IsNullOrWhiteSpace($currentTheme)) {
-            Write-Status "         [Settings] Initializing File Explorer theme -> ZenTransparent" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "ZenTransparent" -Type String
+        # "ZenTransparent" was the 1.0.0 default; on its own it leaves the window black.
+        if ([string]::IsNullOrWhiteSpace($currentTheme) -or $currentTheme -eq "ZenTransparent") {
+            Write-Status "         [Settings] Initializing File Explorer theme -> ZenTranslucent" "Yellow"
+            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "ZenTranslucent" -Type String
+        }
+        $tintColorProp = Get-ItemProperty -Path $settingsPath -Name "tintColor" -ErrorAction SilentlyContinue
+        if ($null -eq $tintColorProp) {
+            Set-ItemProperty -Path $settingsPath -Name "tintColor" -Value "#232323" -Type String
+        }
+        $tintOpacityProp = Get-ItemProperty -Path $settingsPath -Name "tintOpacity" -ErrorAction SilentlyContinue
+        if ($null -eq $tintOpacityProp) {
+            Set-ItemProperty -Path $settingsPath -Name "tintOpacity" -Value 23 -Type DWord
         }
     }
 
