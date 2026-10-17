@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 窗口动画 (Windows Animations)
 // @description     Smooth minimize, restore, close, switch animations for windows.
 // @description:zh-CN 为 Windows 窗口提供电影级关窗动效（灭霸响指、方块碎裂、复古电视等），支持 GPU 硬件加速。
-// @version         1.3.7
+// @version         1.3.8
 // @author          ReDrag
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -37,7 +37,6 @@
 // @exclude         TenSafe.exe
 // @exclude         TenSafe_1.exe
 // @exclude         CrossProxy.exe
-// @exclude         Client.exe
 // @exclude         vgc.exe
 // @exclude         vgtray.exe
 // @exclude         VALORANT.exe
@@ -190,10 +189,10 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
   - close_animation: true
     $name: 开启动画 (Animate closing)
     $description: 关闭应用程序窗口时播放电影级关窗动效。
-  - hide_as_close: false
+  - hide_as_close: true
     $name: 隐藏到托盘也播放动画 (Animate windows hidden to the tray)
     $description: >-
-      默认关闭。开启后，为点击叉号仅隐藏到托盘的应用（如微信、QQ、Discord、Steam 等）也播放关窗动画。
+      默认开启。为点击叉号仅隐藏到托盘的应用（如微信、QQ、Discord、Steam 等）也播放关窗动画。
   - random_effect: false
     $name: 随机轮播动效样式 (Shuffle animation styles)
     $description: >-
@@ -3271,7 +3270,12 @@ static bool IsAppMainWindow(HWND hWnd, bool forSwitch = false) {
     if (!hWnd || !IsWindow(hWnd) || !IsWindowVisible(hWnd) || IsIconic(hWnd) || GetAncestor(hWnd, GA_ROOT) != hWnd) return false;
     const LONG_PTR style = GetWindowLongPtrW(hWnd, GWL_STYLE);
     const LONG_PTR exStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
-    if ((style & WS_CHILD) || (exStyle & WS_EX_TOOLWINDOW) || GetWindow(hWnd, GW_OWNER)) return false;
+    // ZenDesktop: owned windows that ask for a taskbar button
+    // (WS_EX_APPWINDOW), e.g. the main window of apps that parent it to a
+    // hidden owner, are app windows too.
+    const bool appWindow = (exStyle & WS_EX_APPWINDOW) != 0;
+    if ((style & WS_CHILD) || (exStyle & WS_EX_TOOLWINDOW) ||
+        (GetWindow(hWnd, GW_OWNER) && !appWindow)) return false;
     const auto cls = GetClassNameStr(hWnd);
     if (ContainsClass(cls, kAlwaysExcludedClasses) || (!forSwitch && ContainsClass(cls, kGdiExcludedClasses))) return false;
     if (!forSwitch && IsExplorerProcess() &&
@@ -3284,7 +3288,8 @@ static bool IsAppMainWindow(HWND hWnd, bool forSwitch = false) {
         return false;
     }
     RECT r{};
-    bool isMain = GetWindowRect(hWnd, &r) && r.right - r.left >= 300 && r.bottom - r.top >= 300;
+    // ZenDesktop: 200px (was 300px) so that small app windows are included.
+    bool isMain = GetWindowRect(hWnd, &r) && r.right - r.left >= 200 && r.bottom - r.top >= 200;
     return isMain;
 }
 static bool CanAnimateCloseMessage(HWND hWnd) {
@@ -3598,12 +3603,25 @@ static bool ShouldAnimateWindow(HWND hWnd) {
     } else if (!GetWindowRect(hWnd, &r)) return false;
     return r.right - r.left >= 40 && r.bottom - r.top >= 40;
 }
+// ZenDesktop: frameless Chromium/Electron app windows (VS Code, Discord...)
+// have no WS_CAPTION. Their menus, tooltips and popups share the class, so
+// only unowned (or WS_EX_APPWINDOW), resizable or taskbar windows count.
+static bool IsChromiumFramelessAppWindow(HWND hWnd, LONG_PTR style,
+                                         LONG_PTR exStyle) {
+    if (style & WS_CHILD) return false;
+    if (!(style & WS_THICKFRAME) && !(exStyle & WS_EX_APPWINDOW)) return false;
+    if (GetWindow(hWnd, GW_OWNER) && !(exStyle & WS_EX_APPWINDOW)) return false;
+    WCHAR cls[64]{};
+    return GetClassNameW(hWnd, cls, ARRAYSIZE(cls)) &&
+           _wcsicmp(cls, L"Chrome_WidgetWin_1") == 0;
+}
 static bool IsLaunchWindow(HWND hWnd) {
     if (!hWnd || GetAncestor(hWnd, GA_ROOT) != hWnd) return false;
     const LONG_PTR style = GetWindowLongPtrW(hWnd, GWL_STYLE);
     const LONG_PTR exStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
-    return (style & WS_CAPTION) && !(exStyle & WS_EX_TOOLWINDOW) &&
-           ShouldAnimateWindow(hWnd);
+    return ((style & WS_CAPTION) ||
+            IsChromiumFramelessAppWindow(hWnd, style, exStyle)) &&
+           !(exStyle & WS_EX_TOOLWINDOW) && ShouldAnimateWindow(hWnd);
 }
 struct MozillaBrowserWindowSearch {
     HWND excludedWindow;
