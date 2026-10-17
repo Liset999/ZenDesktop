@@ -48,11 +48,13 @@
 5. 未核验：实机开机、连续 max/min、新 DLL。不要在没编译任务栏 4.1.1 之前判断视觉结果（笔记 2.61：源码同步 ≠ 已加载 DLL）。
 
 ### 不要再做的事
+* **绝对不要让 deploy.bat / deploy.ps1 负责编译或开启 Mod！** deploy 仅负责把 mod 源码和元数据装到 Windhawk 里面，所有 Mod 首次导入一律默认关闭（`Disabled=1`）。由用户在 Windhawk UI 中自行按需开启并确认编译。
 * 不要把文件管理器再做成 Windhawk XAML Styler / TP 自研引擎（2.41–2.52 已经走穿过）
 * 不要在 WinEvent 上 `UninitializeSettingsAndTap`
 * 不要给 Win11 任务栏套 helper 的 Win32 accent
 * 不要对 Settings 用 `ACCENT_POLICY` / `DwmExtendFrameIntoClientArea(-1)`（冻输入）
 * 代码风格继续 ponytail：复用开始菜单 TaskbarCreated 和 helper 线程，不新写第三套检测
+
 
 ---
 
