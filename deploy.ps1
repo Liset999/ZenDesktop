@@ -342,6 +342,8 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "tintOpacity" 23 DWord $label
         Set-RegValueIfMissing $settingsPath "fieldOpacity" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
+        Set-RegValueIfMissing $settingsPath "contextMenuEnable" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "contextMenuBlur" 30 DWord $label
     }
 
     if ($id -eq "local@zen-taskbar-acrylic") {

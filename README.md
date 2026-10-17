@@ -60,7 +60,7 @@
 * Fluid macOS-style Genie minimize and restore animations powered by a high-performance Direct2D mesh engine.
 
 ### 7. 📁 File Explorer Styler (`local@zen-explorer-styler` / `ZenDesktop: 文件管理器美化`)
-* Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color.
+* Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color, plus optional WindhawkBlur glass on the Win11 desktop/Explorer context menu.
 * **Do not install ExplorerBlurMica alongside it.** If you registered EBM before, run `ExplorerBlurMica\uninstall.cmd` as Administrator, then enable this mod.
 
 ---
