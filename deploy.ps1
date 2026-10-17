@@ -522,29 +522,7 @@ if (Test-Path $exePath) {
 }
 Write-Status "Windhawk restarted successfully." "Green"
 
-# 7. v4.2-draft [UNTESTED ON WINDOWS]: re-register ExplorerBlurMica to fix the black
-# title/tab bar after Explorer restarts (Maplespe/ExplorerBlurMica#138).
-# register.cmd itself runs regsvr32 and restarts explorer.exe.
-# Window is kept visible on purpose (notes 2.4: never hide output, errors must be seen).
-$blurRegister = Join-Path $PSScriptRoot "ExplorerBlurMica\register.cmd"
-if (Test-Path $blurRegister) {
-    Write-Status "Re-registering ExplorerBlurMica (black top bar fix)..." "Yellow"
-    try {
-        $p = Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"`"$blurRegister`"`"" -WorkingDirectory (Split-Path $blurRegister) -Wait -PassThru -WindowStyle Normal
-        Write-Status "ExplorerBlurMica re-registered (exit code $($p.ExitCode))." "Green"
-    } catch {
-        Write-Status "ExplorerBlurMica re-register failed: $($_.Exception.Message). Run ExplorerBlurMica\register.cmd manually." "Red"
-    }
-    # Safety net: make sure explorer is running again after register.cmd restarted it
-    Start-Sleep -Seconds 2
-    if (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {
-        Start-Process explorer.exe
-    }
-} else {
-    Write-Status "ExplorerBlurMica\register.cmd not found, skipping re-register." "Gray"
-}
-
-# 8. Optional startup self-check (scheduled task, current user, at logon).
+# 7. Optional startup self-check (scheduled task, current user, at logon).
 $zenTaskName = "StartupCheck"
 $zenTaskPath = "\ZenDesktop\"
 if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
