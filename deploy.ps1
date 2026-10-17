@@ -165,21 +165,9 @@ $globalExcludeList = @(
 # as Windhawk > Settings > Advanced). Our entries are merged into the user's
 # lists instead of replacing them. A process matching Include is injected even
 # if it matches Exclude or the built-in critical process list, which is how
-# dwm.exe is made available to Wobbly Windows. dwm.exe is only added when
-# Wobbly Windows is selected: preselected via -Optional, or already enabled
-# by the user in Windhawk (without -Optional). Otherwise Include is untouched.
-$wobblyId = "local@wobbly-windows"
-$wobblySelected = $false
-if ($Optional) {
-    $wobblySelected = @($Optional.Split(",") | ForEach-Object { $_.Trim() } | ForEach-Object {
-        if ($_ -like "local@*") { $_ } else { "local@$_" }
-    }) -contains $wobblyId
-} else {
-    $wobblyDisabled = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Windhawk\Engine\Mods\$wobblyId" -Name "Disabled" -ErrorAction SilentlyContinue).Disabled
-    $wobblySelected = ($null -ne $wobblyDisabled -and $wobblyDisabled -eq 0)
-}
-$globalIncludeList = @()
-if ($wobblySelected) { $globalIncludeList += "dwm.exe" }
+# dwm.exe is made available to Wobbly Windows (the mod itself still has to be
+# enabled by the user).
+$globalIncludeList = @("dwm.exe")
 
 $engineSettingsPath = "HKLM:\SOFTWARE\Windhawk\Engine\Settings"
 if (-not (Test-Path $engineSettingsPath)) {
@@ -187,10 +175,8 @@ if (-not (Test-Path $engineSettingsPath)) {
 }
 $currentExclude = (Get-ItemProperty -Path $engineSettingsPath -Name "Exclude" -ErrorAction SilentlyContinue).Exclude
 Set-ItemProperty -Path $engineSettingsPath -Name "Exclude" -Value (Merge-ProcessList $currentExclude $globalExcludeList) -Type String
-if ($globalIncludeList.Count -gt 0) {
-    $currentInclude = (Get-ItemProperty -Path $engineSettingsPath -Name "Include" -ErrorAction SilentlyContinue).Include
-    Set-ItemProperty -Path $engineSettingsPath -Name "Include" -Value (Merge-ProcessList $currentInclude $globalIncludeList) -Type String
-}
+$currentInclude = (Get-ItemProperty -Path $engineSettingsPath -Name "Include" -ErrorAction SilentlyContinue).Include
+Set-ItemProperty -Path $engineSettingsPath -Name "Include" -Value (Merge-ProcessList $currentInclude $globalIncludeList) -Type String
 # Windhawk's own default is 0 (don't inject into games); only seeded.
 Set-RegValueIfMissing $engineSettingsPath "InjectIntoGames" 0 DWord
 
@@ -486,7 +472,7 @@ Write-Host ""
 Write-Host "后续说明与使用建议："
 Write-Host "  1. deploy 仅负责将美化模块装入 Windhawk，默认不自动开启任何 Mod，也不在后台执行编译。"
 Write-Host "  2. 请在 Windhawk 界面中按需开启您想要使用的模块开关，在弹出的窗口中确认保存与编译。"
-Write-Host "  3. 仅在选择「果冻窗口」时，deploy 才会把 dwm.exe 加入 Windhawk「进程包含列表」（之后在 Windhawk 里开启果冻窗口时，请重新运行 deploy 并重启整机）。"
+Write-Host "  3. deploy 已把 dwm.exe 加入 Windhawk「进程包含列表」；若开启「果冻窗口」，请重启整机后生效。"
 Write-Host "     deploy 只会补上缺失的默认设置，不会覆盖您已有的 Mod 设置。"
 Write-Host "  4. 建议在配置完成后重启整台电脑，使所有美化与透明效果达到最佳状态。"
 Write-Host ""
