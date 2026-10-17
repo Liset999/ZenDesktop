@@ -16,7 +16,7 @@
 4. ZenDesktop: 桌面双击隐藏图标 (双击空白处显示/隐藏图标，支持闲置自动隐藏与平滑淡入淡出)
 5. ZenDesktop: 设置美化 (Windows 11 设置 Win+I 界面全透明/磨砂玻璃，深度适配亮色/暗色模式)
 6. macOS 神奇效果最小化动画 (基于 Direct2D 网格变形的 macOS 经典 Genie 神奇缩放动画)
-7. ExplorerBlurMica: 资源管理器透明 (由 Maplespe 开发的优秀外部程序，支持 Blur/Acrylic/Mica 效果)
+7. zen-explorer-styler: 文件管理器美化（Windhawk mod，替代 ExplorerBlurMica）
 
 ========================================================================
 ✨ v4.1.0 重磅更新说明：
@@ -46,11 +46,11 @@
    2. 依次进入各个插件的源码页面，点击右上角的【保存并编译】 (Save / Compile) 按钮。
    3. 编译完成后，插件即刻被激活。
 
-第三步：在 Windhawk 中调整参数与启用资源管理器透明
+第三步：在 Windhawk 中调整参数并启用文件管理器美化
    1. 打开 Windhawk 软件，进入各美化插件的设置页面，调整透明色、浓度、模糊等参数，保存即生效。
-   2. 如需启用资源管理器透明：进入 ExplorerBlurMica 目录，右键以管理员身份运行 register.cmd（首次启用需要管理员授权）。
-   3. 如需调整资源管理器透明的模糊半径、颜色等：运行 ExplorerBlurMica 目录下的 config-editor-wpf.exe 可视化编辑器。
-   4. 如需注销资源管理器透明：运行 ExplorerBlurMica 目录下的 uninstall.cmd。
+   2. 文件管理器透明：在 Windhawk 中编译并启用「ZenDesktop: 文件管理器美化」。
+   3. 若以前注册过 ExplorerBlurMica：管理员运行 ExplorerBlurMica\uninstall.cmd 取消注册后再启用 styler。
+   4. 色调、不透明度等请在 Windhawk 该 mod 的设置页调整。
 
 ========================================================================
 文件说明：
@@ -60,10 +60,10 @@
   deploy.bat                                  - 一键自适应智能部署脚本（以管理员身份运行）
   deploy.ps1                                  - 部署脚本核心逻辑 (v4.1.0)
   build_releases.py                           - 一键打包发布脚本 (v4.1.0)
-  ExplorerBlurMica/                           - 资源管理器透明程序目录 (原作者: Maplespe)
-    ├─ ExplorerBlurMica.dll                   - 透明效果核心 DLL 动态链接库
+  ExplorerBlurMica/                           - 【历史遗留，v4.2 不推荐使用】原 ExplorerBlurMica 目录 (Maplespe)
+    ├─ ExplorerBlurMica.dll                   - （请改用 zen-explorer-styler；若已注册请 uninstall.cmd）
     ├─ config-editor-wpf.exe                 - 可视化透明设置编辑器
-    ├─ register.cmd                           - 注册并启用透明的脚本
+    ├─ register.cmd                           - 【勿用】历史注册脚本；请改用 uninstall.cmd 取消注册
     └─ uninstall.cmd                          - 注销并还原透明的脚本
   local@zen-taskbar-acrylic.wh.cpp            - 任务栏美化插件源码
   local@zen-notificationcenter-acrylic.wh.cpp - 通知中心美化插件源码
@@ -77,7 +77,7 @@
 ========================================================================
 特别鸣谢：
 ========================================================================
-1. 感谢原作者 Maplespe 创作的开源项目 ExplorerBlurMica。
+1. 文件管理器透明现以 zen-explorer-styler 为准；历史版本曾使用 Maplespe 的 ExplorerBlurMica，致谢保留。
 2. 感谢 Windhawk 官方作者 m417z 创作的 Windhawk 基础框架及系列 Mod。
 3. 感谢 Abdullah Masood & Potassiumuncher 创作的 MacOS Minimize Animation 神奇动画。
 ========================================================================

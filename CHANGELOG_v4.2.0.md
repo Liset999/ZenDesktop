@@ -3,7 +3,10 @@
 > ⚠️ 草稿：以下改动尚未在 Windows 上实测，发布前需逐条验证。
 
 ## 🛠️ 修复
-- **文件管理器顶部黑杠**：一键部署结束时自动重新注册 ExplorerBlurMica 并重启资源管理器，缓解切换窗口后标题栏/标签栏变黑的问题（ExplorerBlurMica #138）。README 新增排查说明，仍有问题可重启电脑或尝试 FileBrowsWindowPatch。
+- **文件管理器**：改用 `zen-explorer-styler`，不再推荐注册 ExplorerBlurMica；若已注册请卸载后再启用 styler。
+- **窗口动画 1.5**：新增碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走，以及从点击处放大、弹性弹出、三维倾斜。
+- **任务栏歌词 0.2**：左下角音乐面板 + AI 状态 MCP。
+- **deploy**：只装 mod、管进程列表、缺省补默认值；不编译、不开启、不重注册 EBM。
 
 ## ✨ 新增（可选安装）
 - **Wobbly Windows 果冻窗口**（作者 lalimatyus，GPL-3.0）：KDE/Compiz 风格，拖动窗口会像果冻一样晃。需要在 Windhawk 进程包含列表里加入 `dwm.exe`。

@@ -1,5 +1,7 @@
 # ZenDesktop - 开发者备忘录与技术沉淀
 
+> **v4.2 策略更新（2026-10）**：文件管理器透明以 Windhawk mod `local@zen-explorer-styler` 为准，**不再推荐用户安装或注册 ExplorerBlurMica**。若用户机器上仍注册着 EBM，应引导其 `uninstall.cmd` 取消注册后再使用 styler。下文中大量 EBM / clearWinUIBg / 黑杠排查记录保留作历史，不要再当作当前产品建议写进 README 或发布文案。`deploy.ps1` 不得重新注册 EBM。
+
 这份文档记录了 ZenDesktop Mod 的架构解析、各个核心文件的作用，以及在开发过程中特别是针对 Windows API 及 Windhawk 环境踩过的坑和技术解决方案。
 
 ## 0. 当前接手状态（2026-08-20，读完这一节就能接着干）
