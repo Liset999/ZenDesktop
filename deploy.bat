@@ -6,7 +6,11 @@ setlocal EnableDelayedExpansion
 fsutil dirty query %systemdrive% >nul 2>&1
 if %errorLevel% neq 0 (
     echo [INFO] Requesting Administrator Privileges...
-    powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList '%*' -WorkingDirectory '%~dp0' -Verb RunAs"
+    if "%~1"=="" (
+        powershell -Command "Start-Process -FilePath '%~f0' -WorkingDirectory '%~dp0' -Verb RunAs"
+    ) else (
+        powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList '%*' -WorkingDirectory '%~dp0' -Verb RunAs"
+    )
     exit /b
 )
 
