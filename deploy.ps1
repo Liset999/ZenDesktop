@@ -303,6 +303,10 @@ foreach ($file in $files) {
             Write-Status "         [Settings] Initializing File Explorer theme -> ZenTranslucent" "Yellow"
             Set-ItemProperty -Path $settingsPath -Name "theme" -Value "ZenTranslucent" -Type String
         }
+        $tintPresetProp = Get-ItemProperty -Path $settingsPath -Name "tintPreset" -ErrorAction SilentlyContinue
+        if ($null -eq $tintPresetProp) {
+            Set-ItemProperty -Path $settingsPath -Name "tintPreset" -Value "darkGray" -Type String
+        }
         $tintColorProp = Get-ItemProperty -Path $settingsPath -Name "tintColor" -ErrorAction SilentlyContinue
         if ($null -eq $tintColorProp) {
             Set-ItemProperty -Path $settingsPath -Name "tintColor" -Value "#232323" -Type String
