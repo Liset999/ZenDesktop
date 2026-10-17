@@ -21,6 +21,38 @@ function Write-Status ($text, $color = "Cyan") {
     Write-Host "[ZenDeploy] $text" -ForegroundColor $color
 }
 
+# Settings rule: deploy only seeds a value that does not exist yet (fresh
+# install). An existing value, including an empty string or 0 chosen by the
+# user, is never overwritten.
+function Set-RegValueIfMissing ($path, $name, $value, $type, $label = "") {
+    if (-not (Test-Path $path)) {
+        New-Item -Path $path -Force | Out-Null
+    }
+    $prop = Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
+    if ($null -eq $prop) {
+        if ($label) {
+            Write-Status "         [Settings] Seeding $label $name -> $value" "Yellow"
+        }
+        Set-ItemProperty -Path $path -Name $name -Value $value -Type $type
+    }
+}
+
+# Adds entries to a "|"-separated Windhawk process list, keeping the user's
+# entries and their order.
+function Merge-ProcessList ($current, [string[]]$entries) {
+    $list = New-Object System.Collections.Generic.List[string]
+    if ($current) {
+        foreach ($item in ($current -split '\|')) {
+            $item = $item.Trim()
+            if ($item -and -not ($list -contains $item)) { $list.Add($item) }
+        }
+    }
+    foreach ($item in $entries) {
+        if (-not ($list -contains $item)) { $list.Add($item) }
+    }
+    return ($list -join "|")
+}
+
 Write-Status "================================================" "Green"
 Write-Status "   ZenDesktop Direct Injection Engine v4.2.0" "Green"
 Write-Status "================================================" "Green"
@@ -127,14 +159,26 @@ $globalExcludeList = @(
     "EasyAntiCheat.exe", "EasyAntiCheat_EOS.exe", "BEService.exe", "BEService_x64.exe",
     "YuanShen.exe", "GenshinImpact.exe", "StarRail.exe", "ZenlessZoneZero.exe", "HYP.exe",
     "HoYoPlay.exe", "steam.exe", "steamwebhelper.exe", "EpicGamesLauncher.exe"
-) -join "|"
+)
+
+# Engine process lists (HKLM\SOFTWARE\Windhawk\Engine\Settings, the same values
+# as Windhawk > Settings > Advanced). Our entries are merged into the user's
+# lists instead of replacing them. A process matching Include is injected even
+# if it matches Exclude or the built-in critical process list, which is how
+# dwm.exe is made available to Wobbly Windows (the mod itself still has to be
+# enabled by the user).
+$globalIncludeList = @("dwm.exe")
 
 $engineSettingsPath = "HKLM:\SOFTWARE\Windhawk\Engine\Settings"
 if (-not (Test-Path $engineSettingsPath)) {
     New-Item -Path $engineSettingsPath -Force | Out-Null
 }
-Set-ItemProperty -Path $engineSettingsPath -Name "Exclude" -Value $globalExcludeList -Type String
-Set-ItemProperty -Path $engineSettingsPath -Name "InjectIntoGames" -Value 0 -Type DWord
+$currentExclude = (Get-ItemProperty -Path $engineSettingsPath -Name "Exclude" -ErrorAction SilentlyContinue).Exclude
+Set-ItemProperty -Path $engineSettingsPath -Name "Exclude" -Value (Merge-ProcessList $currentExclude $globalExcludeList) -Type String
+$currentInclude = (Get-ItemProperty -Path $engineSettingsPath -Name "Include" -ErrorAction SilentlyContinue).Include
+Set-ItemProperty -Path $engineSettingsPath -Name "Include" -Value (Merge-ProcessList $currentInclude $globalIncludeList) -Type String
+# Windhawk's own default is 0 (don't inject into games); only seeded.
+Set-RegValueIfMissing $engineSettingsPath "InjectIntoGames" 0 DWord
 
 Write-Status "Stopping Windhawk Service & UI..."
 Stop-Process -Name windhawk -Force -ErrorAction SilentlyContinue
@@ -277,100 +321,38 @@ foreach ($file in $files) {
     
     # Populate the registry with metadata
     Set-ItemProperty -Path $regPath -Name "Disabled" -Value $targetDisabled -Type DWord
-    Set-ItemProperty -Path $regPath -Name "LoggingEnabled" -Value 0 -Type DWord
+    Set-RegValueIfMissing $regPath "LoggingEnabled" 0 DWord
     Set-ItemProperty -Path $regPath -Name "Include" -Value $includeStr -Type String
     Set-ItemProperty -Path $regPath -Name "Exclude" -Value $excludeStr -Type String
     Set-ItemProperty -Path $regPath -Name "Architecture" -Value $arch -Type String
     Set-ItemProperty -Path $regPath -Name "Version" -Value $version -Type String
     Set-ItemProperty -Path $regPath -Name "LibraryFileName" -Value "" -Type String
 
-    # Custom initial settings initialization per mod
+    # Default settings for a fresh install: only seeded when missing, never
+    # overwriting the user's settings. Registry-deployed mods get no defaults
+    # from their settings block (the engine reads the registry only and returns
+    # 0 / "" for a missing value).
+    $settingsPath = Join-Path $regPath "Settings"
+
     if ($id -eq "local@zen-explorer-styler") {
-        # Registry-deployed mods get no YAML defaults; without this the theme
-        # would read as "" (None) and tintOpacity as 0.
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-        $currentTheme = $null
-        try {
-            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
-        } catch {
-            $currentTheme = $null
-        }
-        # "ZenTransparent" was the 1.0.0 default; on its own it leaves the window black.
-        if ([string]::IsNullOrWhiteSpace($currentTheme) -or $currentTheme -eq "ZenTransparent") {
-            Write-Status "         [Settings] Initializing File Explorer theme -> ZenTranslucent" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "ZenTranslucent" -Type String
-        }
-        $tintPresetProp = Get-ItemProperty -Path $settingsPath -Name "tintPreset" -ErrorAction SilentlyContinue
-        if ($null -eq $tintPresetProp) {
-            Set-ItemProperty -Path $settingsPath -Name "tintPreset" -Value "followSystem" -Type String
-        }
-        $tintColorProp = Get-ItemProperty -Path $settingsPath -Name "tintColor" -ErrorAction SilentlyContinue
-        if ($null -eq $tintColorProp) {
-            Set-ItemProperty -Path $settingsPath -Name "tintColor" -Value "#232323" -Type String
-        }
-        $tintOpacityProp = Get-ItemProperty -Path $settingsPath -Name "tintOpacity" -ErrorAction SilentlyContinue
-        if ($null -eq $tintOpacityProp) {
-            Set-ItemProperty -Path $settingsPath -Name "tintOpacity" -Value 23 -Type DWord
-        }
-        $fieldOpacityProp = Get-ItemProperty -Path $settingsPath -Name "fieldOpacity" -ErrorAction SilentlyContinue
-        if ($null -eq $fieldOpacityProp) {
-            Set-ItemProperty -Path $settingsPath -Name "fieldOpacity" -Value 0 -Type DWord
-        }
+        $label = "File Explorer"
+        Set-RegValueIfMissing $settingsPath "theme" "ZenTranslucent" String $label
+        Set-RegValueIfMissing $settingsPath "tintPreset" "followSystem" String $label
+        Set-RegValueIfMissing $settingsPath "tintColor" "#232323" String $label
+        Set-RegValueIfMissing $settingsPath "tintOpacity" 23 DWord $label
+        Set-RegValueIfMissing $settingsPath "fieldOpacity" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
     }
 
     if ($id -eq "local@zen-taskbar-acrylic") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        $currentTheme = $null
-        try {
-            $currentTheme = (Get-ItemProperty -Path $settingsPath -Name "theme" -ErrorAction SilentlyContinue).theme
-        } catch {
-            $currentTheme = $null
-        }
-
-        if ([string]::IsNullOrWhiteSpace($currentTheme)) {
-            Write-Status "         [Settings] Initializing taskbar theme -> TranslucentTaskbar" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "theme" -Value "TranslucentTaskbar" -Type String
-        }
-
-        $maxLayerVal = $null
-        try {
-            $maxLayerVal = (Get-ItemProperty -Path $settingsPath -Name "maximizedTaskbarLayer" -ErrorAction SilentlyContinue).maximizedTaskbarLayer
-        } catch {
-            $maxLayerVal = $null
-        }
-        if ($null -eq $maxLayerVal) {
-            Set-ItemProperty -Path $settingsPath -Name "maximizedTaskbarLayer" -Value 0 -Type DWord
-        }
-
-        # 4.1.2: never leave XAML diagnostics on "alert" - the MessageBox blocks the
-        # first File Explorer window thread when ExplorerBlurMica 2.x asks for it.
-        # Keep an explicit "block" (user picked taskbar over Explorer blur).
-        $xdh = $null
-        try {
-            $xdh = (Get-ItemProperty -Path $settingsPath -Name "xamlDiagnosticsHandling" -ErrorAction SilentlyContinue).xamlDiagnosticsHandling
-        } catch {
-            $xdh = $null
-        }
-        if ([string]::IsNullOrWhiteSpace($xdh) -or $xdh -eq "alert") {
-            Write-Status "         [Settings] xamlDiagnosticsHandling -> allow (was: '$xdh')" "Yellow"
-            Set-ItemProperty -Path $settingsPath -Name "xamlDiagnosticsHandling" -Value "allow" -Type String
-        }
+        $label = "Taskbar"
+        Set-RegValueIfMissing $settingsPath "theme" "TranslucentTaskbar" String $label
+        Set-RegValueIfMissing $settingsPath "maximizedTaskbarLayer" 0 DWord $label
     }
 
     if ($id -eq "local@macos-minimize-animation") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        $defaults = @{
+        $label = "macOS Genie"
+        $macDefaults = [ordered]@{
             "duration_ms" = 450
             "open_animation" = 1
             "launch_animation" = 0
@@ -379,149 +361,44 @@ foreach ($file in $files) {
             "unhide_duration_ms" = 450
             "tile_count" = 35
         }
-
-        foreach ($key in $defaults.Keys) {
-            $val = $null
-            try {
-                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
-            } catch {
-                $val = $null
-            }
-            if ($val -eq $null) {
-                Write-Status "         [Settings] Initializing macOS Genie $key -> $($defaults[$key])" "Yellow"
-                Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
-            }
+        foreach ($key in $macDefaults.Keys) {
+            Set-RegValueIfMissing $settingsPath $key $macDefaults[$key] DWord $label
         }
-
-        $engineVal = $null
-        try {
-            $engineVal = (Get-ItemProperty -Path $settingsPath -Name "engine" -ErrorAction SilentlyContinue).engine
-        } catch {
-            $engineVal = $null
-        }
-        if ([string]::IsNullOrWhiteSpace($engineVal)) {
-            Set-ItemProperty -Path $settingsPath -Name "engine" -Value "modern" -Type String
-        }
+        Set-RegValueIfMissing $settingsPath "engine" "modern" String $label
     }
 
     if ($id -eq "local@zen-startmenu-acrylic") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        $defaults = @{
-            "width" = 0
-            "height" = 0
-        }
-
-        foreach ($key in $defaults.Keys) {
-            $val = $null
-            try {
-                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
-            } catch {
-                $val = $null
-            }
-            if ($val -eq $null) {
-                Write-Status "         [Settings] Initializing StartMenu Acrylic $key -> $($defaults[$key])" "Yellow"
-                Set-ItemProperty -Path $settingsPath -Name $key -Value $defaults[$key] -Type DWord
-            }
-        }
+        $label = "StartMenu Acrylic"
+        Set-RegValueIfMissing $settingsPath "width" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "height" 0 DWord $label
     }
 
     if ($id -eq "local@windows-11-settings-styler-fork") {
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
-
-        $stringDefaults = @{
-            "theme" = "TranslucentSettings"
-            "bgColorMode" = "Default"
-            "textColorMode" = "default"
-        }
-        foreach ($key in $stringDefaults.Keys) {
-            $val = $null
-            try {
-                $val = (Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue).$key
-            } catch {
-                $val = $null
-            }
-            if ([string]::IsNullOrWhiteSpace($val)) {
-                Write-Status "         [Settings] Initializing Settings Acrylic $key -> $($stringDefaults[$key])" "Yellow"
-                Set-ItemProperty -Path $settingsPath -Name $key -Value $stringDefaults[$key] -Type String
-            }
-        }
-
-        $intDefaults = @{
-            "blurPreset" = 0
-            "opacityPreset" = 0
-            "luminosityPreset" = 0
-        }
-        foreach ($key in $intDefaults.Keys) {
-            $val = $null
-            try {
-                $prop = Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue
-                if ($null -ne $prop) { $val = $prop.$key }
-            } catch {
-                $val = $null
-            }
-            if ($null -eq $val) {
-                Write-Status "         [Settings] Initializing Settings Acrylic $key -> $($intDefaults[$key])" "Yellow"
-                Set-ItemProperty -Path $settingsPath -Name $key -Value $intDefaults[$key] -Type DWord
-            }
-        }
+        $label = "Settings Acrylic"
+        Set-RegValueIfMissing $settingsPath "theme" "TranslucentSettings" String $label
+        Set-RegValueIfMissing $settingsPath "bgColorMode" "Default" String $label
+        Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
+        Set-RegValueIfMissing $settingsPath "blurPreset" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "opacityPreset" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "luminosityPreset" 0 DWord $label
     }
 
     if ($id -eq "local@windows-animations") {
-        # v4.2-draft [UNTESTED ON WINDOWS]: ZenDesktop default = close effect only.
-        # Nested Windhawk settings are stored as "group.key" values; booleans as DWORD 0/1.
-        $settingsPath = Join-Path $regPath "Settings"
-        if (-not (Test-Path $settingsPath)) {
-            New-Item -Path $settingsPath -Force | Out-Null
-        }
+        # Matches the mod's settings block. Nested Windhawk settings are stored
+        # as "group.key" values; booleans as DWORD 0/1. If macOS Genie is also
+        # enabled and the user turns on minimize/restore here, both animate;
+        # that is the user's choice and is not changed by deploy.
+        $label = "Windows Animations"
         $waDefaults = [ordered]@{
             "close.close_animation"               = 1
+            "close.hide_as_close"                 = 1
             "minimize_restore.minimize_animation" = 0
             "minimize_restore.restore_animation"  = 0
             "minimize_restore.launch_animation"   = 0
             "window_switch.switch_animation"      = 0
         }
         foreach ($key in $waDefaults.Keys) {
-            $val = $null
-            try {
-                $prop = Get-ItemProperty -Path $settingsPath -Name $key -ErrorAction SilentlyContinue
-                if ($null -ne $prop) { $val = $prop.$key }
-            } catch {
-                $val = $null
-            }
-            if ($null -eq $val) {
-                Write-Status "         [Settings] Initializing Windows Animations $key -> $($waDefaults[$key])" "Yellow"
-                Set-ItemProperty -Path $settingsPath -Name $key -Value $waDefaults[$key] -Type DWord
-            }
-        }
-
-        # If Lanbo's macOS minimize animation is present and enabled, it owns minimize/restore.
-        $macRegPath = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\local@macos-minimize-animation"
-        $macSrcPath = Join-Path $modsSource "local@macos-minimize-animation.wh.cpp"
-        $macActive = $false
-        if (Test-Path $macRegPath) {
-            $macDisabled = $null
-            try {
-                $macProp = Get-ItemProperty -Path $macRegPath -Name "Disabled" -ErrorAction SilentlyContinue
-                if ($null -ne $macProp) { $macDisabled = $macProp.Disabled }
-            } catch {
-                $macDisabled = $null
-            }
-            if ($macDisabled -ne 1) { $macActive = $true }
-        } elseif (Test-Path $macSrcPath) {
-            $macActive = $true
-        }
-        if ($macActive) {
-            Write-Status "         [Settings] macos-minimize-animation detected -> forcing Windows Animations minimize/restore OFF" "Yellow"
-            foreach ($key in @("minimize_restore.minimize_animation", "minimize_restore.restore_animation", "minimize_restore.launch_animation")) {
-                Set-ItemProperty -Path $settingsPath -Name $key -Value 0 -Type DWord
-            }
+            Set-RegValueIfMissing $settingsPath $key $waDefaults[$key] DWord $label
         }
     }
 
@@ -585,7 +462,7 @@ if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
 
 if ($dwmModSelected) {
     Write-Status "果冻窗口 (Wobbly Windows) 已启用，需要注入 dwm.exe（Windhawk 默认跳过系统核心进程）。" "Yellow"
-    Write-Status "请在 Windhawk > 设置 > 高级设置 的「进程包含列表」中添加 dwm.exe 并重启整台电脑。" "Yellow"
+    Write-Status "deploy 已把 dwm.exe 加入 Windhawk「进程包含列表」，请重启整台电脑后生效。" "Yellow"
 }
 
 Write-Status "================================================" "Green"
@@ -595,6 +472,7 @@ Write-Host ""
 Write-Host "后续说明与使用建议："
 Write-Host "  1. deploy 仅负责将美化模块装入 Windhawk，默认不自动开启任何 Mod，也不在后台执行编译。"
 Write-Host "  2. 请在 Windhawk 界面中按需开启您想要使用的模块开关，在弹出的窗口中确认保存与编译。"
-Write-Host "  3. 若开启「果冻窗口」，请在 Windhawk「设置 > 高级设置 > 进程包含列表」中添加 dwm.exe 并重启整机。"
+Write-Host "  3. deploy 已把 dwm.exe 加入 Windhawk「进程包含列表」；若开启「果冻窗口」，请重启整机后生效。"
+Write-Host "     deploy 只会补上缺失的默认设置，不会覆盖您已有的 Mod 设置。"
 Write-Host "  4. 建议在配置完成后重启整台电脑，使所有美化与透明效果达到最佳状态。"
 Write-Host ""
