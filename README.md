@@ -51,6 +51,8 @@
 * Full acrylic/frosted glass customization for the Windows 11 Settings app (Win+I), deeply adapted for both Light and Dark modes.
 
 ### 6. 🎨 macOS Genie Minimize Animation (`local@macos-minimize-animation` / `macOS 神奇效果最小化动画`)
+
+> v4.2 起已并入「窗口动画」(`local@windows-animations`) 的「macOS 神奇效果」最小化样式，deploy 不再安装本 mod；旧文件保留在 `legacy/`。
 * Fluid macOS-style Genie minimize and restore animations powered by a high-performance Direct2D mesh engine.
 
 ### 7. 📁 File Explorer Transparency (`ExplorerBlurMica`)
