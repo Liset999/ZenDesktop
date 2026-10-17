@@ -4,7 +4,7 @@
 // @name:zh-CN       ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable blur tint color and opacity, plus transparent WinUI command bar, address bar and tabs. Based on m417z's Windows 11 File Explorer Styler.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调颜色和不透明度可调；命令栏、地址栏、标签栏等 WinUI 区域背景透明。基于 m417z 的 Windows 11 File Explorer Styler。
-// @version         1.4.0
+// @version         1.5.0
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
 // @include         explorer.exe
@@ -25,8 +25,9 @@
 // the AccentBlurBehind effect, which upstream hardcodes, with a default
 // "followSystem" preset that tints dark in dark mode and light in light mode;
 // address bar and search box fills in the Zen themes with an adjustable opacity
-// (fieldOpacity, default 0), theme-aware selected tab fill. The rest of the code
-// is unchanged from upstream.
+// (fieldOpacity, default 0), theme-aware selected tab fill; a text color setting
+// (textColorMode) shared with the other ZenDesktop mods. The rest of the code is
+// unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -55,6 +56,8 @@
 * **🎨 色调颜色**：下拉直接选：跟随系统（默认，深色模式用深灰、浅色模式用浅白，和系统文字颜色搭配）、深灰、纯黑、中灰、浅灰、纯白、冷蓝、深蓝、薰衣草紫、樱花粉、薄荷绿、暖棕。想要别的颜色就选「自定义」，再在「⚙️ 自定义颜色代码 (高级)」里填 `#RRGGBB`。
 * **💧 色调不透明度**：0–100，越大颜色越浓、越不透；0 是只有模糊没有颜色。默认 23（和原版一样）。
 * **🔲 地址栏/搜索框不透明度**：0–100，地址栏和搜索框的白色底色浓度，深色、浅色模式都生效；0 是完全透明（默认），鼠标悬停时会稍微亮一点。只对两款 ZenDesktop 主题生效。
+
+* **🔤 文字颜色**：和 ZenDesktop 其他 mod 一样的选项（主题默认、强制白色、强制深黑、跟随系统和几种彩色）。WinUI 部分（命令栏按钮文字和图标、地址栏、搜索框、标签页、主页等）任何主题都生效；文件列表、列标题、分组标题、左侧导航栏、状态栏这些传统部分只在「窗口背景效果」铺满整个窗口时生效（ZenDesktop 半透明默认就是），而且「跟随系统」时保持系统颜色不改。
 
 改完设置后已打开的文件管理器窗口会立即刷新。
 
@@ -370,6 +373,24 @@ VisualTreeWatcher 的实现基于 **TranslucentTB** 项目的 [ExplorerTAP](http
   $name: "💧 色调不透明度 (Tint Opacity)"
   $description: >-
     「模糊」背景效果的色调浓度，0–100。0 只有模糊没有颜色，100 完全不透明。默认 23。
+- textColorMode: "default"
+  $name: "🔤 文字颜色 (Text Color)"
+  $description: >-
+    自定义文字颜色，浅色背景下文字不清晰时可切换。文件列表、导航栏等传统部分只在
+    背景效果铺满整个窗口时改色。
+  $options:
+    - default: "主题默认 (Theme Default)"
+    - white: "强制白色 (Force White)"
+    - dark: "强制深黑 (Force Dark)"
+    - system: "跟随系统 (System-aware)"
+    - red: "🔴 红色 (Red)"
+    - green: "🟢 绿色 (Green)"
+    - blue: "🔵 蓝色 (Blue)"
+    - yellow: "🟡 黄色 (Yellow)"
+    - orange: "🟠 橙色 (Orange)"
+    - purple: "🟣 紫色 (Purple)"
+    - pink: "🌸 粉色 (Pink)"
+    - cyan: "💠 青色 (Cyan)"
 - fieldOpacity: 0
   $name: "🔲 地址栏/搜索框不透明度 (Field Opacity)"
   $description: >-
@@ -1789,6 +1810,10 @@ struct {
     // on the light/dark theme, see GetAccentGradientColor.
     int accentGradientColor;
     bool tintFollowSystem;
+    // ZenDesktop: textColorMode for the GDI text of the Win32 parts (file list,
+    // headers, navigation pane, status bar), only used with the entire window
+    // effect. Not set for "default" and "system", which keep the system colors.
+    std::optional<COLORREF> win32TextColor;
 } g_settings;
 
 BackgroundTranslucentEffect g_themeBackgroundTranslucentEffect;
@@ -9767,6 +9792,48 @@ void MergeResourceVariables() {
     }
 }
 
+// ZenDesktop: the textColorMode options, shared with the other ZenDesktop mods.
+// rgb is 0xRRGGBB for the GDI text, or -1 to keep the system color.
+struct TextColorMode {
+    PCWSTR id;
+    PCWSTR brush;
+    int rgb;
+};
+
+constexpr TextColorMode kTextColorModes[] = {
+    {L"white", L"White", 0xFFFFFF},
+    {L"dark", L"Black", 0x000000},
+    {L"system", L"{ThemeResource SystemControlForegroundBaseHighBrush}", -1},
+    {L"red", L"#FFFF3333", 0xFF3333},
+    {L"green", L"#FF33FF33", 0x33FF33},
+    {L"blue", L"#FF3399FF", 0x3399FF},
+    {L"yellow", L"#FFFFCC00", 0xFFCC00},
+    {L"orange", L"#FFFF8800", 0xFF8800},
+    {L"purple", L"#FFCC66FF", 0xCC66FF},
+    {L"pink", L"#FFFF66B2", 0xFF66B2},
+    {L"cyan", L"#FF33FFFF", 0x33FFFF},
+};
+
+// Returns nullptr for "default", an empty or an unknown value.
+const TextColorMode* GetTextColorMode() {
+    PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
+    const TextColorMode* result = nullptr;
+    for (const auto& mode : kTextColorModes) {
+        if (wcscmp(textColorMode, mode.id) == 0) {
+            result = &mode;
+            break;
+        }
+    }
+    Wh_FreeStringSetting(textColorMode);
+    return result;
+}
+
+// The WinUI Foreground value, empty to keep the theme's colors.
+std::wstring GetTextColorModeBrush() {
+    const TextColorMode* mode = GetTextColorMode();
+    return mode ? mode->brush : L"";
+}
+
 const Theme* GetSelectedTheme() {
     PCWSTR themeName = Wh_GetStringSetting(L"theme");
     const Theme* theme = nullptr;
@@ -9833,6 +9900,27 @@ void ProcessAllStylesFromSettings() {
                 Wh_Log(L"Error: %S", ex.what());
             }
         }
+    }
+
+    // ZenDesktop: text color, the same option set and targets as the other
+    // ZenDesktop mods. Added after the theme styles so that it takes
+    // precedence, and before the user's control styles, which still override
+    // it.
+    try {
+        std::wstring newFgBrush = GetTextColorModeBrush();
+        if (!newFgBrush.empty()) {
+            std::vector<std::wstring> fgStyles = {L"Foreground=" + newFgBrush};
+            AddElementCustomizationRules(L"TextBlock", fgStyles);
+            AddElementCustomizationRules(L"FontIcon", fgStyles);
+            AddElementCustomizationRules(L"PathIcon", fgStyles);
+            AddElementCustomizationRules(L"ContentPresenter", fgStyles);
+            // The address bar edit mode and search box text.
+            AddElementCustomizationRules(L"TextBox", fgStyles);
+        }
+    } catch (winrt::hresult_error const& ex) {
+        Wh_Log(L"Error %08X", ex.code());
+    } catch (std::exception const& ex) {
+        Wh_Log(L"Error: %S", ex.what());
     }
 
     for (int i = 0;; i++) {
@@ -10714,8 +10802,20 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
     bool windowBk =
         (options & ETO_OPAQUE) && GetBkColor(hdc) == GetSysColor(COLOR_WINDOW);
     COLORREF prevBkColor = windowBk ? SetBkColor(hdc, RGB(0, 0, 0)) : 0;
+
+    // ZenDesktop: the textColorMode setting. Set on the DC, so that both the
+    // alpha rendering and the fallback to the original function use it. Text
+    // drawn by DrawTextWithGlow also ends up here.
+    std::optional<COLORREF> textColor = g_settings.win32TextColor;
+    COLORREF prevTextColor =
+        textColor ? SetTextColor(hdc, *textColor) : CLR_INVALID;
+
     BOOL result =
         ExtTextOutWithAlpha(hdc, x, y, options, lprect, lpString, c, lpDx);
+
+    if (textColor && prevTextColor != CLR_INVALID) {
+        SetTextColor(hdc, prevTextColor);
+    }
     if (windowBk) {
         SetBkColor(hdc, prevBkColor);
     }
@@ -12054,6 +12154,14 @@ void LoadTintSettings() {
 
 void LoadSettings() {
     LoadTintSettings();
+
+    const TextColorMode* textColorMode = GetTextColorMode();
+    g_settings.win32TextColor.reset();
+    if (textColorMode && textColorMode->rgb >= 0) {
+        int rgb = textColorMode->rgb;
+        g_settings.win32TextColor =
+            RGB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+    }
 
     PCWSTR backgroundTranslucentEffectRegion =
         Wh_GetStringSetting(L"backgroundTranslucentEffectRegion");
