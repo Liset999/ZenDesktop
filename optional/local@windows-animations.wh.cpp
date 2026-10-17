@@ -2,10 +2,10 @@
 // @id              windows-animations
 // @name            ZenDesktop: 窗口动画 (Windows Animations)
 // @name:zh-CN       ZenDesktop: 窗口动画 (Windows Animations)
-// @description     Smooth minimize, restore, close, switch animations for windows.
-// @description:zh-CN 为 Windows 窗口提供电影级关窗动效（灭霸响指、方块碎裂、复古电视等），支持 GPU 硬件加速。
-// @version         1.3.8
-// @author          ReDrag
+// @description     Smooth minimize, restore, close, switch animations for windows, including the macOS genie minimize.
+// @description:zh-CN 窗口动画合集：电影级关窗动效（灭霸响指、方块碎裂、复古电视等）+ 最小化/还原动效（含 macOS 神奇效果），支持 GPU 硬件加速。
+// @version         1.4.0
+// @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
 // @include         *
@@ -55,7 +55,7 @@
 // @exclude         steamwebhelper.exe
 // @exclude         EpicGamesLauncher.exe
 // @license         MIT
-// @compilerOptions -ladvapi32 -ld3d11 -ldcomp -ldwmapi -ldxgi -lgdi32 -lole32 -loleaut32 -lshell32 -luuid -luser32
+// @compilerOptions -ladvapi32 -ld2d1 -ld3d11 -ldcomp -ldwmapi -ldxgi -lgdi32 -lole32 -loleaut32 -lshell32 -luuid -luser32
 // ==/WindhawkMod==
 
 // The explicit process exclusions above are pre-injection fast paths for
@@ -75,9 +75,10 @@
 > **原作者**：ReDrag（Windows Animations v1.3.7，MIT，https://github.com/redrag2105）  
 > **定制修改说明**：改显示名、置顶开发者信息，并补上与 macOS 最小化动画一致的游戏/反作弊 `@exclude` 名单（本 Mod 为 `@include *` 全局注入；1.3.8 起不再排除通用名 `Client.exe`）。1.3.8 扩大覆盖范围：带 `WS_EX_APPWINDOW` 的从属主窗口、200px 以上的窗口（原 300px），以及无边框 Chromium/Electron 应用窗口（VS Code、Discord 等）的启动动画；「隐藏视为关闭」默认开启。作为 ZenDesktop v4.2 可选模块，部署时询问后才安装。
 >
-> **与 macOS 最小化动画同时使用**：默认只开启关闭动画（含「隐藏视为关闭」）。若同时启用 macOS 神奇最小化动画（Genie），又在这里开启最小化/还原/启动动画，同一窗口会出现两套动画叠加。部署脚本不会替你改这些开关，请按需只在一个 Mod 中开启。
+> **1.4.0：已合并「macOS 神奇效果最小化动画」**（原作者 Abdullah Masood；现代神奇效果渲染引擎作者 Potassiumuncher，均为 MIT）。最小化/还原样式里新增「macOS 神奇效果」（Direct2D 网格变形，默认样式），原 macOS Mod 的「经典」风格就是这里的「神奇效果 (Genie)」。原 macOS 最小化动画 Mod 已被本 Mod 取代，**请在 Windhawk 里关闭或卸载它**，否则同一窗口会出现两套最小化动画。
+> 从 macOS Mod 迁移：「动画时长」共用本组的时长（macOS 样式自动 ×1.25，默认 360 → 450 毫秒）；「多显示器支持」已内置（总是吸入窗口所在显示器的任务栏）；「网格细分密度」「排除的程序」保留。
 >
-> **注意**：设置值缺失时 Windhawk 按 0（关闭）读取；部署脚本只会在设置缺失时补上默认值。
+> **注意**：设置从未写入时（例如只复制了文件），本 Mod 使用设置区里的默认值；部署脚本只会在设置缺失时补上默认值，不会改你已有的设置，也不会替你开启 Mod。
 > ## ⚠️ **`PLEASE READ THESE NOTES:`**
 > * **Packaged & System Apps:** Some protected or system-hosted windows, such as parts of Settings, Microsoft Store, and Windows shell surfaces, will not be animated because they bypass the mod's interception and use native Windows transitions instead.
 > * **Browsers & Tray Apps:** Enable **"Animate windows hidden to the tray"** if you want close animations for apps such as Chrome, Edge, Discord, and Windhawk, because clicking the 'X' button may only hide their window or leave the app running instead of actually closing it.
@@ -102,10 +103,11 @@
 
 ---
 
-### `Minimize, Restore and Launch - 8 Styles`
+### `Minimize, Restore and Launch - 9 Styles`
 
 | Animation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Preview |
 | --- | --- |
+| **macOS Genie** (Potassiumuncher's Direct2D engine) | ![macOS Genie](https://raw.githubusercontent.com/Potassiumuncher/MacOS-Animation-for-windows/99a9a78e9a06c49b282cc8e337854840a9f7fa73/Desktop2026.07.02-19.32.49.05-ezgif.com-video-to-gif-converter.gif) |
 | **Genie** | ![Genie](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/a7e46c466c7b88552d5d92cad113b652fbd3f10e/genie_preview.gif) |
 | **Windows 10** | *Preview coming soon* |
 | **Ink Splash** | ![Ink Splash](https://raw.githubusercontent.com/redrag2105/windhawk-windows-animations-preview/ff3a17e818f2d08e43ee4f79059b4ccb3c663cb0/ink_splash.gif) |
@@ -179,6 +181,16 @@ Lower frame cost is better. Values in parentheses are speedups over version
 ## 📝 Credits
 Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for the Classic Genie animation from his [macOS Minimize Animation](https://windhawk.net/mods/macos-minimize-animation) mod.
 
+**ZenDesktop 1.4.0 merge** — the **macOS Genie** style is ported from the
+[macOS Minimize Animation](https://windhawk.net/mods/macos-minimize-animation)
+mod (MIT) by **Abdullah Masood** (https://github.com/Abdullah-Masood-05). Its
+Direct2D genie engine — the mesh warp driven by the macOS "lamp" curve, the
+rounded outline mask, the tile-count setting and the demo GIF above — was
+written by **Potassiumuncher** (https://github.com/Potassiumuncher,
+[MacOS-Animation-for-windows](https://github.com/Potassiumuncher/MacOS-Animation-for-windows)).
+The "Excluded programs" setting also comes from that mod. Window Animations
+itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
+
 ## 💖 Support Windows Animations
 
 | 🌍 International (Ko-fi) | 🇻🇳 Vietnam (Techcombank) |
@@ -192,17 +204,21 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
 - close:
   - close_animation: true
     $name: 开启动画 (Animate closing)
+    $name:zh-CN: 开启关窗动画
     $description: 关闭应用程序窗口时播放电影级关窗动效。
   - hide_as_close: true
     $name: 隐藏到托盘也播放动画 (Animate windows hidden to the tray)
+    $name:zh-CN: 隐藏到托盘也播放动画
     $description: >-
       默认开启。为点击叉号仅隐藏到托盘的应用（如微信、QQ、Discord、Steam 等）也播放关窗动画。
   - random_effect: false
     $name: 随机轮播动效样式 (Shuffle animation styles)
+    $name:zh-CN: 随机轮播关窗样式
     $description: >-
       全局随机轮播不同关窗效果。开启后下方的固定动效样式将被忽略。
   - effect_style: thanos
     $name: 关窗动效样式 (Animation style)
+    $name:zh-CN: 关窗动效样式
     $description: >-
       选择关闭窗口时播放的动效样式。
     $options:
@@ -214,42 +230,52 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
     - pixel_melt: "像素融化 (Pixel Melt — 像素滴落)"
   - duration_ms: 630
     $name: 动画时长 (Duration ms)
+    $name:zh-CN: 关窗动画时长 (毫秒)
     $description: >-
       基础关窗动画持续时间（50 到 5000 毫秒）。
   - shatter_block_size: 5
     $name: 粒子/碎片大小 (px)
+    $name:zh-CN: 粒子/碎片大小 (像素)
     $description: >-
       微粒或碎块尺寸（1 到 100 像素）。
   - gpu_acceleration: true
     $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
+    $name:zh-CN: 混合 GPU 硬件加速
     $description: >-
       在支持的高密度关窗特效下使用 Direct3D 11 硬件加速渲染。
   $name: 🎬 关窗动效设置 (Close Effects)
+  $name:zh-CN: 🎬 关窗动效设置
   $description: 配置窗口关闭或隐藏到系统托盘时的视觉动画效果。
 
 - minimize_restore:
-  - minimize_animation: false
+  - minimize_animation: true
     $name: 最小化动画 (Animate minimizing)
+    $name:zh-CN: 最小化动画
     $description: >-
-      ⚠️ 建议保持关闭！ZenDesktop 已默认内置更稳定流畅的 macOS 神奇最小化动画（Genie），开启此项会导致双重动画冲突。
-  - restore_animation: false
+      最小化窗口时播放下方所选样式的动画（默认 macOS 神奇效果）。已合并原「macOS 神奇效果最小化动画」Mod，请关闭那个 Mod，避免同一窗口出现两套动画。
+  - restore_animation: true
     $name: 还原动画 (Animate restoring)
+    $name:zh-CN: 还原动画
     $description: >-
-      ⚠️ 建议保持关闭！避免与 macOS 展开动画冲突。
+      从任务栏还原窗口时播放反向动画（相当于原 macOS Mod 的「还原展开动画」）。
   - launch_animation: false
     $name: 应用启动展开动画 (Animate app launches)
+    $name:zh-CN: 应用启动展开动画
     $description: >-
       应用窗口首次打开时播放展开动画。
   - random_effect: false
     $name: 随机轮播动画样式 (Shuffle animation styles)
+    $name:zh-CN: 随机轮播最小化/还原样式
     $description: >-
-      全局随机轮播不同动效。开启后下方的固定样式将被忽略。
-  - effect_style: genie
+      全局随机轮播不同动效（不包含 macOS 神奇效果）。开启后下方的固定样式将被忽略。
+  - effect_style: macos_genie
     $name: 最小化/还原样式 (Animation style)
+    $name:zh-CN: 最小化/还原样式
     $description: >-
-      选择最小化和还原窗口时的效果样式。
+      选择最小化和还原窗口时的效果样式。「macOS 神奇效果」是原 macOS Mod 的现代风格（Direct2D 网格变形）；「神奇效果 (Genie)」就是原 macOS Mod 的经典风格。
     $options:
-    - genie: "神奇效果 (Genie — 吸入任务栏)"
+    - macos_genie: "macOS 神奇效果 (macOS Genie — 网格变形流入任务栏)"
+    - genie: "神奇效果·经典 (Genie Classic — 吸入任务栏)"
     - windows10: "Win10 经典 (Windows 10 — 折叠缩向任务栏)"
     - ink_splash: "墨水溅射 (Ink Splash)"
     - scorch: "焦灼 (Scorch — 边角燃烧)"
@@ -259,44 +285,66 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
     - swell: "膨胀淡出 (Swell)"
   - duration_ms: 360
     $name: 动画时长 (Duration ms)
+    $name:zh-CN: 最小化/还原动画时长 (毫秒)
     $description: >-
-      基础动画持续时间（200 到 1400 毫秒）。
-  - unhide_taskbar: false
+      基础动画持续时间（200 到 1400 毫秒）。各样式会按自身节奏缩放，macOS 神奇效果为 ×1.25（默认 450 毫秒）。
+  - genie_tile_count: 35
+    $name: 网格细分密度 (macOS Genie tile count)
+    $name:zh-CN: 网格细分密度 (macOS 神奇效果)
+    $description: >-
+      macOS 神奇效果的网格分辨率（8 到 96）。越高曲线越平滑，每帧开销也越大；24-32 适合低配，35 为默认平衡值，64 以上为高画质。
+  - unhide_taskbar: true
     $name: 自动隐藏任务栏时临时唤出 (Reveal taskbar during Genie)
+    $name:zh-CN: 自动隐藏任务栏时临时唤出
     $description: >-
-      在开启任务栏自动隐藏时，动画期间临时浮现任务栏。
+      任务栏设为自动隐藏时，在神奇效果（经典或 macOS）最小化期间临时浮现任务栏，让窗口有地方可以流入。
   - unhide_duration_ms: 450
     $name: 任务栏唤出停留时长 (ms)
+    $name:zh-CN: 任务栏唤出停留时长 (毫秒)
     $description: >-
       任务栏唤出停留的时间（0 到 5000 毫秒）。
   - show_desktop_top_window_only: false
     $name: 优化「显示桌面」动画 (Optimize Show Desktop)
+    $name:zh-CN: 优化「显示桌面」动画
     $description: >-
       开启后，在使用 Win+D 或触控板三指滑动手势显示桌面时，使用 Windows 原生过渡以避免卡顿。
   - gpu_acceleration: true
     $name: 混合 GPU 硬件加速 (Hybrid GPU acceleration)
+    $name:zh-CN: 混合 GPU 硬件加速
     $description: >-
-      使用 Direct3D 11 进行图形硬件加速。
+      使用 Direct3D 11 进行图形硬件加速（macOS 神奇效果使用 Direct2D，不受此项影响）。
   $name: 📦 最小化、还原与启动动效 (Minimize & Restore)
-  $description: 配置窗口最小化、还原和启动时的动画效果（建议由 macOS Mod 接管）。
+  $name:zh-CN: 📦 最小化、还原与启动动效
+  $description: 配置窗口最小化、还原和启动时的动画效果。
 
 - window_switch:
   - switch_animation: false
     $name: 开启 Alt+Tab 切换动画 (Animate window switching)
+    $name:zh-CN: 开启 Alt+Tab 切换动画
     $description: >-
       在使用 Alt+Tab 或窗口切换器切换窗口时播放缩放淡入淡出动画。
   - duration_ms: 200
     $name: 动画时长 (Duration ms)
+    $name:zh-CN: 切换动画时长 (毫秒)
     $description: 窗口切换动画持续时间（50 到 1000 毫秒）。
   $name: 🔀 窗口切换动画 (Window Switch)
+  $name:zh-CN: 🔀 窗口切换动画
   $description: 配置使用 Alt+Tab 切换窗口时的动画效果。
+
+- excluded_programs: [""]
+  $name: 🚫 排除的程序 (Excluded programs)
+  $name:zh-CN: 🚫 排除的程序
+  $description: >-
+    这些程序的窗口不播放任何动画（关窗、最小化、还原、启动、切换）。每行一个进程名，例如 WindowsTerminal.exe，可带或不带 .exe。按窗口所属的进程匹配，所以即使动画由任务栏（Explorer）触发也有效；Windhawk 自带的进程排除只能阻止注入，做不到这一点。
 
 - diagnostics:
   - performance_telemetry: false
     $name: 记录性能统计日志 (Log performance telemetry)
+    $name:zh-CN: 记录性能统计日志
     $description: >-
       记录动画渲染各阶段耗时。一般用户无需开启。
   $name: 🛠️ 性能诊断 (Diagnostics)
+  $name:zh-CN: 🛠️ 性能诊断
   $description: 诊断渲染器性能的可选测量项。
 */
 // ==/WindhawkModSettings==
@@ -306,6 +354,7 @@ Special thanks to [@Abdullah Masood](https://github.com/Abdullah-Masood-05) for 
 #endif
 #include <windows.h>
 #include <tlhelp32.h>
+#include <d2d1.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <dcomp.h>
@@ -790,6 +839,99 @@ std::atomic<bool> g_nativeShowDesktopAnimations{false};
 std::atomic<bool> g_gpuAcceleration{true};
 std::atomic<bool> g_closeGpuAcceleration{true};
 std::atomic<bool> g_performanceTelemetry{false};
+// ZenDesktop (macOS genie merge): mesh resolution of the macOS genie and the
+// "Excluded programs" list, both from the macOS Minimize Animation mod.
+std::atomic<int> g_genieTileCount{35};
+std::mutex g_ExcludedProgramsMutex;
+std::vector<std::wstring> g_ExcludedPrograms;  // normalized, see below
+std::atomic<bool> g_hasExcludedPrograms{false};
+
+// ZenDesktop: effect registry. The numeric indices are stable: shuffle bags,
+// the GPU pipeline map (RequiredGpuPipelines), the minimize/restore pair token
+// (4 bits, so at most 15 minimize/restore effects) and the shaders all use
+// them. To add an effect: give it the next free index here, add a row to the
+// table (settings key + telemetry name), list the key in the settings block,
+// set its traits below, its canvas bounds in AnimationEngine::Initialize-
+// Geometry, and its Render... call in AnimationEngine::RunLoop. Effects that
+// have no GPU pipeline automatically render on the CPU path.
+enum : int {
+    kMinRestoreGenie = 0,       // classic genie (Abdullah Masood)
+    kMinRestoreInkSplash = 1,
+    kMinRestoreScorch = 2,
+    kMinRestoreSplinter = 3,
+    kMinRestoreMirage = 4,
+    kMinRestoreStipple = 5,
+    kMinRestoreSwell = 6,
+    kMinRestoreWindows10 = 7,
+    kMinRestoreMacGenie = 8,    // Direct2D genie (Potassiumuncher)
+};
+enum : int {
+    kCloseShatter = 0,
+    kCloseThanos = 1,
+    kClosePerlin = 2,
+    kCloseGlitch = 3,
+    kCloseTvOff = 4,
+    kClosePixelMelt = 5,
+};
+struct AnimEffectInfo {
+    PCWSTR settingKey;
+    PCWSTR telemetryName;
+    int style;
+};
+static constexpr AnimEffectInfo kMinRestoreEffectInfo[] = {
+    {L"macos_genie", L"macos_genie", kMinRestoreMacGenie},
+    {L"genie", L"genie", kMinRestoreGenie},
+    {L"windows10", L"windows10", kMinRestoreWindows10},
+    {L"ink_splash", L"ink", kMinRestoreInkSplash},
+    {L"scorch", L"scorch", kMinRestoreScorch},
+    {L"splinter", L"splinter", kMinRestoreSplinter},
+    {L"mirage", L"mirage", kMinRestoreMirage},
+    {L"stipple", L"stipple", kMinRestoreStipple},
+    {L"swell", L"swell", kMinRestoreSwell},
+};
+static constexpr AnimEffectInfo kCloseEffectInfo[] = {
+    {L"shatter", L"shatter", kCloseShatter},
+    {L"thanos", L"thanos", kCloseThanos},
+    {L"perlin", L"perlin", kClosePerlin},
+    {L"glitch", L"glitch", kCloseGlitch},
+    {L"tv_off", L"crt", kCloseTvOff},
+    {L"pixel_melt", L"melt", kClosePixelMelt},
+};
+// Shuffle keeps cycling the original effects only (indices 0..N-1), so the
+// shared shuffle state stays compatible; new effects are opt-in picks.
+static constexpr int kMinRestoreShuffleEffectCount = 8;
+static constexpr int kCloseShuffleEffectCount = 6;
+template <size_t N>
+static int ParseAnimEffectKey(const AnimEffectInfo (&table)[N], PCWSTR key,
+                              int fallback) {
+    if (!key || !*key) return fallback;
+    for (const AnimEffectInfo& info : table) {
+        if (wcscmp(key, info.settingKey) == 0) return info.style;
+    }
+    return fallback;
+}
+template <size_t N>
+static PCWSTR AnimEffectTelemetryName(const AnimEffectInfo (&table)[N],
+                                      int style) {
+    for (const AnimEffectInfo& info : table) {
+        if (info.style == style) return info.telemetryName;
+    }
+    return L"unknown";
+}
+// Effects that fly to the window's taskbar button (need its position).
+static constexpr bool MinRestoreEffectTargetsTaskbarButton(int style) {
+    return style == kMinRestoreGenie || style == kMinRestoreWindows10 ||
+           style == kMinRestoreMacGenie;
+}
+// Effects whose ghost is kept just below the taskbar in z-order, so the
+// window appears to pour into it.
+static constexpr bool MinRestoreEffectSinksBelowTaskbar(int style) {
+    return MinRestoreEffectTargetsTaskbarButton(style);
+}
+// Effects for which an auto-hidden taskbar is revealed during a minimize.
+static constexpr bool MinRestoreEffectRevealsTaskbar(int style) {
+    return style == kMinRestoreGenie || style == kMinRestoreMacGenie;
+}
 std::atomic<DWORD> g_localNativeShowDesktopUntilTick{0};
 std::atomic<DWORD> g_localShowDesktopOperationUntilTick{0};
 std::atomic<LONG> g_animationGhostCount{0};
@@ -841,8 +983,8 @@ std::mutex g_SharedEffectShuffleStateMutex;
 static SharedEffectShuffleState* EnsureSharedEffectShuffleState();
 
 std::mutex g_EffectShuffleMutex;
-EffectShuffleBag<6> g_CloseEffectShuffle;
-EffectShuffleBag<8> g_MinRestoreEffectShuffle;
+EffectShuffleBag<kCloseShuffleEffectCount> g_CloseEffectShuffle;
+EffectShuffleBag<kMinRestoreShuffleEffectCount> g_MinRestoreEffectShuffle;
 
 static uint32_t MixGlobalShuffleValue(uint32_t value) {
     value ^= value >> 16;
@@ -1022,7 +1164,7 @@ static void InvalidateEffectShuffleLocked(EffectShuffleBag<EffectCount>& bag) {
 static int ResolveMinRestoreEffectStyle() {
     if (g_minRestoreShuffleEffect.load(std::memory_order_relaxed)) {
         if (auto* sharedState = EnsureSharedEffectShuffleState()) {
-            return ConsumeGlobalEffectShuffle<8>(
+            return ConsumeGlobalEffectShuffle<kMinRestoreShuffleEffectCount>(
                 &sharedState->minRestoreNextOrdinal,
                 &sharedState->minRestoreSeed, 0x4D525354u);
         }
@@ -1035,7 +1177,7 @@ static int ResolveMinRestoreEffectStyle() {
 static int ResolveCloseEffectStyle() {
     if (g_closeShuffleEffect.load(std::memory_order_relaxed)) {
         if (auto* sharedState = EnsureSharedEffectShuffleState()) {
-            return ConsumeGlobalEffectShuffle<6>(
+            return ConsumeGlobalEffectShuffle<kCloseShuffleEffectCount>(
                 &sharedState->closeNextOrdinal,
                 &sharedState->closeSeed, 0x434C4F53u);
         }
@@ -1057,7 +1199,7 @@ static int PeekMinRestoreEffectStyle(HWND hWnd) {
     }
     if (g_minRestoreShuffleEffect.load(std::memory_order_relaxed)) {
         if (auto* sharedState = EnsureSharedEffectShuffleState()) {
-            return PeekGlobalEffectShuffle<8>(
+            return PeekGlobalEffectShuffle<kMinRestoreShuffleEffectCount>(
                 &sharedState->minRestoreNextOrdinal,
                 &sharedState->minRestoreSeed, 0x4D525354u);
         }
@@ -1071,7 +1213,7 @@ static int PeekMinRestoreEffectStyle(HWND hWnd) {
 static int PeekCloseEffectStyle() {
     if (g_closeShuffleEffect.load(std::memory_order_relaxed)) {
         if (auto* sharedState = EnsureSharedEffectShuffleState()) {
-            return PeekGlobalEffectShuffle<6>(
+            return PeekGlobalEffectShuffle<kCloseShuffleEffectCount>(
                 &sharedState->closeNextOrdinal,
                 &sharedState->closeSeed, 0x434C4F53u);
         }
@@ -2505,36 +2647,77 @@ static bool EnsureSharedStateMapped() {
     g_pSharedState = view;
     return true;
 }
+// ZenDesktop: normalizes an "Excluded programs" entry the same way as
+// GetProcessNameCached: file name only, lowercased, cut at the first dot.
+static std::wstring NormalizeExcludedProgramName(PCWSTR value) {
+    std::wstring name = value ? value : L"";
+    const size_t slash = name.find_last_of(L"\\/");
+    if (slash != std::wstring::npos) name.erase(0, slash + 1);
+    const size_t first = name.find_first_not_of(L" \t\"");
+    if (first == std::wstring::npos) return L"";
+    const size_t last = name.find_last_not_of(L" \t\"");
+    name = name.substr(first, last - first + 1);
+    const size_t dot = name.find(L'.');
+    if (dot != std::wstring::npos) name.erase(dot);
+    std::transform(name.begin(), name.end(), name.begin(), ::towlower);
+    return name;
+}
+static void LoadExcludedPrograms() {
+    std::vector<std::wstring> excluded;
+    for (int i = 0; i < 256; i++) {
+        PCWSTR value = Wh_GetStringSetting(L"excluded_programs[%d]", i);
+        const bool present = value && *value;
+        if (present) {
+            std::wstring name = NormalizeExcludedProgramName(value);
+            if (!name.empty()) excluded.push_back(std::move(name));
+        }
+        if (value) Wh_FreeStringSetting(value);
+        if (!present) break;
+    }
+    std::lock_guard<std::mutex> lock(g_ExcludedProgramsMutex);
+    g_ExcludedPrograms.swap(excluded);
+    g_hasExcludedPrograms.store(!g_ExcludedPrograms.empty(),
+                                std::memory_order_relaxed);
+}
 void LoadAnimSettings() {
-    g_durationMs.store(Clamp(Wh_GetIntSetting(L"minimize_restore.duration_ms"), 200, 1400), std::memory_order_relaxed);
-    g_closeDurationMs.store(Clamp(Wh_GetIntSetting(L"close.duration_ms"), 50, 5000), std::memory_order_relaxed);
-    g_shatterBlockSize.store(Clamp(Wh_GetIntSetting(L"close.shatter_block_size"), 1, 100), std::memory_order_relaxed);
-    {
-        auto style = WindhawkUtils::StringSetting::make(L"close.effect_style");
-        const int value = wcscmp(style, L"shatter") == 0 ? 0
-                          : wcscmp(style, L"perlin") == 0 ? 2
-                          : wcscmp(style, L"glitch") == 0 ? 3
-                          : wcscmp(style, L"tv_off") == 0 ? 4
-                          : wcscmp(style, L"pixel_melt") == 0 ? 5
-                                                         : 1;
-        g_closeEffectStyle.store(value, std::memory_order_relaxed);
-    }
-    {
-        auto style = WindhawkUtils::StringSetting::make(L"minimize_restore.effect_style");
-        const int value = wcscmp(style, L"windows10") == 0  ? 7
-                          : wcscmp(style, L"ink_splash") == 0 ? 1
-                          : wcscmp(style, L"scorch") == 0   ? 2
-                          : wcscmp(style, L"splinter") == 0 ? 3
-                          : wcscmp(style, L"mirage") == 0   ? 4
-                          : wcscmp(style, L"stipple") == 0  ? 5
-                          : wcscmp(style, L"swell") == 0    ? 6
-                                                            : 0;
-        g_minRestoreEffectStyle.store(value, std::memory_order_relaxed);
-    }
-    const bool closeShuffleEnabled =
-        Wh_GetIntSetting(L"close.random_effect") != 0;
+    auto closeStyle = WindhawkUtils::StringSetting::make(L"close.effect_style");
+    auto minRestoreStyle =
+        WindhawkUtils::StringSetting::make(L"minimize_restore.effect_style");
+    const PCWSTR closeStyleValue = closeStyle;
+    const PCWSTR minRestoreStyleValue = minRestoreStyle;
+    // ZenDesktop: every effect_style option is non-empty, so both being empty
+    // means the settings were never written (the file was only copied, or an
+    // installer seeded a few keys). Windhawk reads a missing value as 0 / "",
+    // so then use the settings-block defaults instead of "everything off".
+    const bool unseeded = (!closeStyleValue || !*closeStyleValue) &&
+                          (!minRestoreStyleValue || !*minRestoreStyleValue);
+    if (unseeded) Wh_Log(L"Settings missing, using the defaults");
+    const auto getBool = [unseeded](PCWSTR name, bool defaultValue) {
+        return unseeded ? defaultValue : Wh_GetIntSetting(name) != 0;
+    };
+    // A value below the minimum (0 for a missing key) means "use the
+    // default"; anything else is clamped to the documented range.
+    const auto getInt = [unseeded](PCWSTR name, int defaultValue,
+                                   int minValue, int maxValue) {
+        if (unseeded) return defaultValue;
+        const int value = Wh_GetIntSetting(name);
+        if (value < minValue) return defaultValue;
+        return Clamp(value, minValue, maxValue);
+    };
+    g_durationMs.store(getInt(L"minimize_restore.duration_ms", 360, 200, 1400), std::memory_order_relaxed);
+    g_closeDurationMs.store(getInt(L"close.duration_ms", 630, 50, 5000), std::memory_order_relaxed);
+    g_shatterBlockSize.store(getInt(L"close.shatter_block_size", 5, 1, 100), std::memory_order_relaxed);
+    g_genieTileCount.store(getInt(L"minimize_restore.genie_tile_count", 35, 8, 96), std::memory_order_relaxed);
+    g_closeEffectStyle.store(
+        ParseAnimEffectKey(kCloseEffectInfo, closeStyleValue, kCloseThanos),
+        std::memory_order_relaxed);
+    g_minRestoreEffectStyle.store(
+        ParseAnimEffectKey(kMinRestoreEffectInfo, minRestoreStyleValue,
+                           kMinRestoreMacGenie),
+        std::memory_order_relaxed);
+    const bool closeShuffleEnabled = getBool(L"close.random_effect", false);
     const bool minRestoreShuffleEnabled =
-        Wh_GetIntSetting(L"minimize_restore.random_effect") != 0;
+        getBool(L"minimize_restore.random_effect", false);
     {
         std::lock_guard<std::mutex> lock(g_EffectShuffleMutex);
         if (g_closeShuffleEffect.load(std::memory_order_relaxed) !=
@@ -2550,29 +2733,30 @@ void LoadAnimSettings() {
         g_minRestoreShuffleEffect.store(minRestoreShuffleEnabled,
                                         std::memory_order_relaxed);
     }
-    g_minimizeAnimation.store(Wh_GetIntSetting(L"minimize_restore.minimize_animation") != 0, std::memory_order_relaxed);
-    g_restoreAnimation.store(Wh_GetIntSetting(L"minimize_restore.restore_animation") != 0, std::memory_order_relaxed);
-    g_closeAnimation.store(Wh_GetIntSetting(L"close.close_animation") != 0, std::memory_order_relaxed);
-    g_hideAsClose.store(Wh_GetIntSetting(L"close.hide_as_close") != 0, std::memory_order_relaxed);
-    g_launchAnimation.store(Wh_GetIntSetting(L"minimize_restore.launch_animation") != 0, std::memory_order_relaxed);
-    g_switchAnimation.store(Wh_GetIntSetting(L"window_switch.switch_animation") != 0, std::memory_order_relaxed);
-    g_switchDurationMs.store(Clamp(Wh_GetIntSetting(L"window_switch.duration_ms"), 50, 1000), std::memory_order_relaxed);
-    g_unhideEnabled.store(Wh_GetIntSetting(L"minimize_restore.unhide_taskbar") != 0, std::memory_order_relaxed);
-    g_unhideDurationMs.store(Clamp(Wh_GetIntSetting(L"minimize_restore.unhide_duration_ms"), 0, 5000), std::memory_order_relaxed);
+    g_minimizeAnimation.store(getBool(L"minimize_restore.minimize_animation", true), std::memory_order_relaxed);
+    g_restoreAnimation.store(getBool(L"minimize_restore.restore_animation", true), std::memory_order_relaxed);
+    g_closeAnimation.store(getBool(L"close.close_animation", true), std::memory_order_relaxed);
+    g_hideAsClose.store(getBool(L"close.hide_as_close", true), std::memory_order_relaxed);
+    g_launchAnimation.store(getBool(L"minimize_restore.launch_animation", false), std::memory_order_relaxed);
+    g_switchAnimation.store(getBool(L"window_switch.switch_animation", false), std::memory_order_relaxed);
+    g_switchDurationMs.store(getInt(L"window_switch.duration_ms", 200, 50, 1000), std::memory_order_relaxed);
+    g_unhideEnabled.store(getBool(L"minimize_restore.unhide_taskbar", true), std::memory_order_relaxed);
+    // 0 is a valid "no extra wait", so only an unseeded set uses 450 here.
+    g_unhideDurationMs.store(unseeded ? 450 : Clamp(Wh_GetIntSetting(L"minimize_restore.unhide_duration_ms"), 0, 5000), std::memory_order_relaxed);
     g_gpuAcceleration.store(
-        Wh_GetIntSetting(L"minimize_restore.gpu_acceleration") != 0,
+        getBool(L"minimize_restore.gpu_acceleration", true),
         std::memory_order_relaxed);
     g_closeGpuAcceleration.store(
-        Wh_GetIntSetting(L"close.gpu_acceleration") != 0,
+        getBool(L"close.gpu_acceleration", true),
         std::memory_order_relaxed);
     g_performanceTelemetry.store(
-        Wh_GetIntSetting(L"diagnostics.performance_telemetry") != 0,
+        getBool(L"diagnostics.performance_telemetry", false),
         std::memory_order_relaxed);
+    LoadExcludedPrograms();
     // Keep the existing key so users retain their preference across this
     // change from a single custom leader to an entirely native batch.
     const bool nativeShowDesktopAnimations =
-        Wh_GetIntSetting(
-            L"minimize_restore.show_desktop_top_window_only") != 0;
+        getBool(L"minimize_restore.show_desktop_top_window_only", false);
     g_nativeShowDesktopAnimations.store(nativeShowDesktopAnimations,
                                         std::memory_order_relaxed);
     if (!nativeShowDesktopAnimations) {
@@ -3230,6 +3414,19 @@ std::wstring GetProcessNameCached(HWND hWnd) {
     }
     return procNameLower;
 }
+// ZenDesktop: true if the process that owns hWnd is on the "Excluded
+// programs" list. Checked at each animation entry point (not inside the
+// generic window filters, which also drive GPU and lifetime bookkeeping).
+static bool IsUserExcludedWindow(HWND hWnd) {
+    if (!hWnd || !g_hasExcludedPrograms.load(std::memory_order_relaxed)) {
+        return false;
+    }
+    const std::wstring name = GetProcessNameCached(hWnd);
+    if (name.empty()) return false;
+    std::lock_guard<std::mutex> lock(g_ExcludedProgramsMutex);
+    return std::find(g_ExcludedPrograms.begin(), g_ExcludedPrograms.end(),
+                     name) != g_ExcludedPrograms.end();
+}
 static bool NeedsLocalWinEventThread() {
     const bool needTaskbarObserver =
         IsShellExplorerProcess() &&
@@ -3404,7 +3601,8 @@ static bool ConsumeTransientTauriShowHideGuard(HWND hWnd) {
 static bool ShouldTreatHideAsClose(HWND hWnd) {
     if (!g_hideAsClose.load(std::memory_order_relaxed) ||
         !g_closeAnimation.load(std::memory_order_relaxed) ||
-        !IsAppMainWindow(hWnd) || CanAnimateCloseMessage(hWnd)) {
+        !IsAppMainWindow(hWnd) || CanAnimateCloseMessage(hWnd) ||
+        IsUserExcludedWindow(hWnd)) {
         return false;
     }
     return !ConsumeTransientTauriShowHideGuard(hWnd);
@@ -4934,7 +5132,7 @@ DWORD WINAPI SwitchingAnimThread(LPVOID lpParam) {
     } guard{hWnd, needsFullExplorerRepair};
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
     RECT winRect;
-    if (g_unloading.load(std::memory_order_relaxed) || !IsWindow(hWnd) || !IsAppMainWindow(hWnd, true) || !GetWindowRect(hWnd, &winRect)) {
+    if (g_unloading.load(std::memory_order_relaxed) || !IsWindow(hWnd) || !IsAppMainWindow(hWnd, true) || IsUserExcludedWindow(hWnd) || !GetWindowRect(hWnd, &winRect)) {
         return 0; 
     }
     RECT extRect = winRect;
@@ -7701,6 +7899,116 @@ static void ScheduleFinalWindowGpuRelease(HWND closingWindow) {
     StartWorkerThread(FinalWindowGpuReleaseThread, closingWindow);
 }
 
+// -------------------------------------------------------------------------
+// ZenDesktop: macOS genie (kMinRestoreMacGenie). Ported from the macOS
+// Minimize Animation mod (MIT) by Abdullah Masood; the Direct2D genie engine
+// (lamp curve, mesh warp, outline mask, tile count) is Potassiumuncher's
+// (https://github.com/Potassiumuncher). The original only knew a bottom
+// taskbar; here the curve runs in a "canonical" space in which the dock is
+// below the window, mapped to the real taskbar edge by AnimationEngine.
+// -------------------------------------------------------------------------
+struct MacGenieGeometry { float x, y, width, height; };
+static constexpr float kMacGeniePi = 3.14159265f;
+
+// The macOS "lamp" curve: maps a mesh vertex (tx,ty in 0..1) at progress p to
+// its warped position, given the window rect w and the taskbar icon rect i.
+// Ported verbatim from Potassiumuncher's engine.
+static void MacGenieLampVertex(float tx, float ty, float p,
+                               const MacGenieGeometry& w,
+                               const MacGenieGeometry& i, float* outX,
+                               float* outY) {
+    const float split = 0.3f;
+    const float k = (p <= split) ? (p / split) : 1.0f;
+    const float j = (p > split) ? ((p - split) / (1.0f - split)) : 0.0f;
+
+    const float expandHeight = (i.y - w.y - w.height);
+    const float fullHeight = (i.y - w.y) - (expandHeight * (1.0f - k));
+    const float height = fullHeight - (j * fullHeight);
+
+    const float y = ty * height;
+    const float x = tx * (i.width) +
+                    tx * (w.width - i.width) * (1.0f - j) * (1.0f - ty) +
+                    tx * (w.width - i.width) * (1.0f - k) * ty;
+
+    // fullHeight + 0.1f as in the original; the sine term divides by
+    // fullHeight, which is only 0 for a window that already sits on the dock.
+    const float safeFullHeight =
+        fabsf(fullHeight) < 0.001f ? 0.001f : fullHeight;
+    const float offsetX = (i.x - w.x) * (y / (fullHeight + 0.1f)) * k +
+                          (i.x - w.x) * j;
+    const float offsetY = i.y - w.y - height - (expandHeight * (1.0f - k));
+
+    const float effectX =
+        sinf(((height - y) / safeFullHeight) * 2.0f * kMacGeniePi +
+             kMacGeniePi) *
+        (w.x + w.width * tx - (i.x + i.width * tx)) / 7.0f * k;
+
+    *outX = w.x + x + offsetX + effectX;
+    *outY = w.y + y + offsetY;
+}
+
+static ID2D1PathGeometry* MacGenieCreateQuadGeometry(ID2D1Factory* factory,
+                                                     D2D1_POINT_2F p0,
+                                                     D2D1_POINT_2F p1,
+                                                     D2D1_POINT_2F p2,
+                                                     D2D1_POINT_2F p3) {
+    ID2D1PathGeometry* geometry = nullptr;
+    if (FAILED(factory->CreatePathGeometry(&geometry)) || !geometry) {
+        return nullptr;
+    }
+    ID2D1GeometrySink* sink = nullptr;
+    if (FAILED(geometry->Open(&sink)) || !sink) {
+        geometry->Release();
+        return nullptr;
+    }
+    sink->BeginFigure(p0, D2D1_FIGURE_BEGIN_FILLED);
+    sink->AddLine(p1);
+    sink->AddLine(p2);
+    sink->AddLine(p3);
+    sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+    sink->Close();
+    sink->Release();
+    return geometry;
+}
+
+// Pushes a quad's corners slightly away from its center so neighbouring
+// aliased quads overlap and no seams show. Potassiumuncher's engine.
+static D2D1_POINT_2F MacGenieBloatPoint(D2D1_POINT_2F p, D2D1_POINT_2F c,
+                                        float amount) {
+    const float dx = p.x - c.x;
+    const float dy = p.y - c.y;
+    const float len = sqrtf(dx * dx + dy * dy);
+    if (len < 0.001f) return p;
+    return D2D1::Point2F(p.x + (dx / len) * amount,
+                         p.y + (dy / len) * amount);
+}
+
+// One multi-threaded factory for all animation workers, created on first use
+// and released in Wh_ModUninit after every worker has finished.
+std::mutex g_d2dFactoryMutex;
+ID2D1Factory* g_d2dFactory = nullptr;
+static ID2D1Factory* AcquireD2DFactory() {
+    std::lock_guard<std::mutex> lock(g_d2dFactoryMutex);
+    if (!g_d2dFactory) {
+        HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED,
+                                       __uuidof(ID2D1Factory),
+                                       reinterpret_cast<void**>(&g_d2dFactory));
+        if (FAILED(hr)) {
+            g_d2dFactory = nullptr;
+            Wh_Log(L"macOS genie: D2D1CreateFactory failed hr=0x%08X",
+                   static_cast<unsigned>(hr));
+        }
+    }
+    return g_d2dFactory;
+}
+static void ReleaseD2DFactory() {
+    std::lock_guard<std::mutex> lock(g_d2dFactoryMutex);
+    if (g_d2dFactory) {
+        g_d2dFactory->Release();
+        g_d2dFactory = nullptr;
+    }
+}
+
 class AnimationEngine {
 private:
     WindowAnimData* data = nullptr;
@@ -7722,6 +8030,20 @@ private:
     int blockSizeSetting = 1;
     int closeEffect = 1;
     int minRestoreEffect = 0;
+    // macOS genie state (kMinRestoreMacGenie). The geometry is in canonical
+    // space (dock below the window); see MacGenieUvToCanonical and
+    // MacGenieCanonicalToScreen for the mapping to the real taskbar edge.
+    MacGenieGeometry macWindowGeom{};
+    MacGenieGeometry macIconGeom{};
+    int macTiles = 35;
+    ID2D1Factory* macFactory = nullptr;
+    ID2D1DCRenderTarget* macRenderTarget = nullptr;
+    ID2D1Bitmap* macSnapshot = nullptr;
+    ID2D1BitmapBrush* macBrush = nullptr;
+    ID2D1PathGeometry* macOutline = nullptr;
+    float macOutlineLeft = -1e9f, macOutlineTop = -1e9f;
+    float macOutlineRight = -1e9f, macOutlineBottom = -1e9f;
+    std::vector<D2D1_POINT_2F> macGrid;
     double totalMs = 0.0;
     bool ownershipReleased = false;
     bool keepGhostBelowTaskbar = false;
@@ -8631,6 +8953,300 @@ private:
             }
         }
     }
+    // ---- macOS genie (kMinRestoreMacGenie) ----
+    // Source pixel coordinates (u,v in 0..1) -> canonical mesh coordinates.
+    void MacGenieUvToCanonical(float u, float v, float* tx, float* ty) const {
+        switch (taskbarEdge) {
+            case TaskbarEdge::Top:   *tx = u; *ty = 1.0f - v; break;
+            case TaskbarEdge::Right: *tx = v; *ty = u; break;
+            case TaskbarEdge::Left:  *tx = v; *ty = 1.0f - u; break;
+            default:                 *tx = u; *ty = v; break;
+        }
+    }
+    void MacGenieCanonicalToScreen(float cx, float cy, float* sx,
+                                   float* sy) const {
+        switch (taskbarEdge) {
+            case TaskbarEdge::Top:   *sx = cx;  *sy = -cy; break;
+            case TaskbarEdge::Right: *sx = cy;  *sy = cx; break;
+            case TaskbarEdge::Left:  *sx = -cy; *sy = cx; break;
+            default:                 *sx = cx;  *sy = cy; break;
+        }
+    }
+    // Builds the canonical window/icon geometry and the ghost canvas. Needs
+    // taskbarEdge, dockXf/dockY and taskbarDpiScale.
+    void ComputeMacGenieBounds(int monLeft, int monTop, int monRight,
+                               int monBottom) {
+        const bool horizontalTaskbar = IsHorizontalTaskbar(taskbarEdge);
+        const float left = static_cast<float>(origLeft);
+        const float top = static_cast<float>(origTop);
+        const float w = static_cast<float>(W);
+        const float h = static_cast<float>(H);
+        switch (taskbarEdge) {
+            case TaskbarEdge::Top:
+                macWindowGeom = {left, -(top + h), w, h};
+                break;
+            case TaskbarEdge::Right:
+                macWindowGeom = {top, left, h, w};
+                break;
+            case TaskbarEdge::Left:
+                macWindowGeom = {top, -(left + w), h, w};
+                break;
+            default:
+                macWindowGeom = {left, top, w, h};
+                break;
+        }
+        // Original engine: a 22 px wide neck aimed at the button center,
+        // 33 px (DPI scaled) deep into the taskbar from its inner edge.
+        const float along = horizontalTaskbar ? dockXf : dockY;
+        const float edge = horizontalTaskbar ? dockY : dockXf;
+        const bool mirrored = taskbarEdge == TaskbarEdge::Top ||
+                              taskbarEdge == TaskbarEdge::Left;
+        macIconGeom = {along - 11.0f, mirrored ? -edge : edge, 22.0f,
+                       33.0f * taskbarDpiScale};
+
+        const MacGenieGeometry& wg = macWindowGeom;
+        const MacGenieGeometry& ig = macIconGeom;
+        const float sway = std::max(fabsf(wg.x - ig.x),
+                                    fabsf(wg.x + wg.width - ig.x - ig.width)) /
+                           7.0f;
+        const float pad = sway + 4.0f;
+        const float cx0 = std::min(wg.x, ig.x) - pad;
+        const float cx1 = std::max(wg.x + wg.width, ig.x + ig.width) + pad;
+        const float cy0 = std::min(wg.y, ig.y);
+        const float cy1 = std::max(wg.y + wg.height, ig.y + ig.height);
+        float ax, ay, bx, by;
+        MacGenieCanonicalToScreen(cx0, cy0, &ax, &ay);
+        MacGenieCanonicalToScreen(cx1, cy1, &bx, &by);
+        constexpr int safetyPad = 2;
+        boundLeft = std::max(
+            monLeft, static_cast<int>(floorf(std::min(ax, bx))) - safetyPad);
+        boundTop = std::max(
+            monTop, static_cast<int>(floorf(std::min(ay, by))) - safetyPad);
+        const int boundRight = std::min(
+            monRight, static_cast<int>(ceilf(std::max(ax, bx))) + safetyPad);
+        const int boundBottom = std::min(
+            monBottom, static_cast<int>(ceilf(std::max(ay, by))) + safetyPad);
+        boundW = boundRight - boundLeft;
+        boundH = boundBottom - boundTop;
+    }
+    void ReleaseMacGenie() {
+        if (macOutline) { macOutline->Release(); macOutline = nullptr; }
+        if (macBrush) { macBrush->Release(); macBrush = nullptr; }
+        if (macSnapshot) { macSnapshot->Release(); macSnapshot = nullptr; }
+        if (macRenderTarget) {
+            macRenderTarget->Release();
+            macRenderTarget = nullptr;
+        }
+        macFactory = nullptr;  // owned by g_d2dFactory
+    }
+    // Creates the Direct2D resources once per animation (the source DIB never
+    // changes afterwards, also not across a minimize/restore reversal).
+    bool PrecalcMacGenie() {
+        macTiles = Clamp(g_genieTileCount.load(std::memory_order_relaxed),
+                         8, 96);
+        macFactory = AcquireD2DFactory();
+        if (macFactory && srcBits && hCanvasDC) {
+            const D2D1_RENDER_TARGET_PROPERTIES rtProps =
+                D2D1::RenderTargetProperties(
+                    D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                    D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+                                      D2D1_ALPHA_MODE_PREMULTIPLIED),
+                    0, 0, D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE,
+                    D2D1_FEATURE_LEVEL_DEFAULT);
+            if (SUCCEEDED(macFactory->CreateDCRenderTarget(
+                    &rtProps, &macRenderTarget)) &&
+                macRenderTarget) {
+                const D2D1_BITMAP_PROPERTIES bmpProps =
+                    D2D1::BitmapProperties(D2D1::PixelFormat(
+                        DXGI_FORMAT_B8G8R8A8_UNORM,
+                        D2D1_ALPHA_MODE_PREMULTIPLIED));
+                if (SUCCEEDED(macRenderTarget->CreateBitmap(
+                        D2D1::SizeU(static_cast<UINT32>(W),
+                                    static_cast<UINT32>(H)),
+                        srcBits, static_cast<UINT32>(srcStride), bmpProps,
+                        &macSnapshot)) &&
+                    macSnapshot) {
+                    const D2D1_BITMAP_BRUSH_PROPERTIES brushProps =
+                        D2D1::BitmapBrushProperties(
+                            D2D1_EXTEND_MODE_CLAMP, D2D1_EXTEND_MODE_CLAMP,
+                            D2D1_BITMAP_INTERPOLATION_MODE_LINEAR);
+                    macRenderTarget->CreateBitmapBrush(
+                        macSnapshot, &brushProps, nullptr, &macBrush);
+                }
+            }
+        }
+        if (macBrush) {
+            try {
+                macGrid.assign(static_cast<size_t>(macTiles + 1) *
+                                   static_cast<size_t>(macTiles + 1),
+                               D2D1::Point2F(0.0f, 0.0f));
+                return true;
+            } catch (const std::exception&) {
+            }
+        }
+        // Direct2D unavailable: fall back to the classic genie, which only
+        // needs the CPU canvas that already exists (it never writes outside
+        // the canvas, whatever its bounds).
+        Wh_Log(L"macOS genie unavailable hwnd=%p, using the classic genie",
+               data->hRealWnd);
+        ReleaseMacGenie();
+        macGrid.clear();
+        minRestoreEffect = kMinRestoreGenie;
+        try {
+            axisBounds.resize(
+                (IsHorizontalTaskbar(taskbarEdge) ? H : W) + 1);
+        } catch (const std::exception&) {
+            return false;
+        }
+        return true;
+    }
+    void RenderMacGenie(float progress) {
+        if (!macRenderTarget || !macBrush || !macFactory) return;
+        const float raw = Clamp(data->isRising ? 1.0f - progress : progress,
+                                0.0f, 1.0f);
+        const float t = raw * raw * (3.0f - 2.0f * raw);
+        const int tiles = macTiles;
+        const size_t stride = static_cast<size_t>(tiles) + 1;
+        const float canvasLeft = static_cast<float>(boundLeft);
+        const float canvasTop = static_cast<float>(boundTop);
+        float left = 1e9f, right = -1e9f, top = 1e9f, bottom = -1e9f;
+        for (int gy = 0; gy <= tiles; ++gy) {
+            for (int gx = 0; gx <= tiles; ++gx) {
+                float tx, ty, cx, cy, sx, sy;
+                MacGenieUvToCanonical(static_cast<float>(gx) / tiles,
+                                      static_cast<float>(gy) / tiles, &tx,
+                                      &ty);
+                MacGenieLampVertex(tx, ty, t, macWindowGeom, macIconGeom,
+                                   &cx, &cy);
+                MacGenieCanonicalToScreen(cx, cy, &sx, &sy);
+                const D2D1_POINT_2F point =
+                    D2D1::Point2F(sx - canvasLeft, sy - canvasTop);
+                macGrid[static_cast<size_t>(gy) * stride + gx] = point;
+                left = std::min(left, point.x);
+                right = std::max(right, point.x);
+                top = std::min(top, point.y);
+                bottom = std::max(bottom, point.y);
+            }
+        }
+        if (right - left < 2.0f || bottom - top < 2.0f) {
+            return;  // fully collapsed: present the cleared canvas
+        }
+
+        RECT bindRect = {0, 0, boundW, boundH};
+        if (FAILED(macRenderTarget->BindDC(hCanvasDC, &bindRect))) return;
+        macRenderTarget->BeginDraw();
+        macRenderTarget->Clear(D2D1::ColorF(0, 0, 0, 0));
+        macRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+
+        // Rounded outline mask around the warped mesh (12 px corners).
+        const bool rebuildOutline =
+            !macOutline || fabsf(left - macOutlineLeft) > 0.5f ||
+            fabsf(right - macOutlineRight) > 0.5f ||
+            fabsf(top - macOutlineTop) > 0.5f ||
+            fabsf(bottom - macOutlineBottom) > 0.5f;
+        if (rebuildOutline) {
+            if (macOutline) { macOutline->Release(); macOutline = nullptr; }
+            macOutlineLeft = left; macOutlineRight = right;
+            macOutlineTop = top; macOutlineBottom = bottom;
+            const float r = fminf(12.0f, fminf(right - left, bottom - top) / 2.0f);
+            const float K = 0.5523f;
+            const float L = left, T = top, R = right, B = bottom;
+            ID2D1GeometrySink* sink = nullptr;
+            if (SUCCEEDED(macFactory->CreatePathGeometry(&macOutline)) &&
+                macOutline && SUCCEEDED(macOutline->Open(&sink)) && sink) {
+                const auto bezier = [sink](D2D1_POINT_2F a, D2D1_POINT_2F b,
+                                           D2D1_POINT_2F c) {
+                    D2D1_BEZIER_SEGMENT segment;
+                    segment.point1 = a;
+                    segment.point2 = b;
+                    segment.point3 = c;
+                    sink->AddBezier(segment);
+                };
+                sink->BeginFigure(D2D1::Point2F(L + r, T), D2D1_FIGURE_BEGIN_FILLED);
+                sink->AddLine(D2D1::Point2F(R - r, T));
+                bezier(D2D1::Point2F(R - r + K * r, T),
+                       D2D1::Point2F(R, T + r - K * r), D2D1::Point2F(R, T + r));
+                sink->AddLine(D2D1::Point2F(R, B - r));
+                bezier(D2D1::Point2F(R, B - r + K * r),
+                       D2D1::Point2F(R - r + K * r, B), D2D1::Point2F(R - r, B));
+                sink->AddLine(D2D1::Point2F(L + r, B));
+                bezier(D2D1::Point2F(L + r - K * r, B),
+                       D2D1::Point2F(L, B - r + K * r), D2D1::Point2F(L, B - r));
+                sink->AddLine(D2D1::Point2F(L, T + r));
+                bezier(D2D1::Point2F(L, T + r - K * r),
+                       D2D1::Point2F(L + r - K * r, T), D2D1::Point2F(L + r, T));
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+                sink->Release();
+            } else {
+                if (sink) sink->Release();
+                if (macOutline) { macOutline->Release(); macOutline = nullptr; }
+            }
+        }
+        if (macOutline) {
+            D2D1_LAYER_PARAMETERS layerParams = D2D1::LayerParameters();
+            layerParams.geometricMask = macOutline;
+            layerParams.maskAntialiasMode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
+            macRenderTarget->PushLayer(&layerParams, nullptr);
+            const float sw = static_cast<float>(W) / tiles;
+            const float sh = static_cast<float>(H) / tiles;
+            for (int gy = 0; gy < tiles; ++gy) {
+                for (int gx = 0; gx < tiles; ++gx) {
+                    const D2D1_POINT_2F p1 = macGrid[gy * stride + gx];
+                    const D2D1_POINT_2F p2 = macGrid[gy * stride + gx + 1];
+                    const D2D1_POINT_2F p3 = macGrid[(gy + 1) * stride + gx];
+                    const D2D1_POINT_2F p4 = macGrid[(gy + 1) * stride + gx + 1];
+                    const D2D1_POINT_2F c = D2D1::Point2F(
+                        (p1.x + p2.x + p3.x + p4.x) / 4.0f,
+                        (p1.y + p2.y + p3.y + p4.y) / 4.0f);
+                    // Corner spread in screen space, independent of the
+                    // taskbar orientation (the original used x/y deltas).
+                    const float quadW = fmaxf(
+                        hypotf(p2.x - p1.x, p2.y - p1.y),
+                        hypotf(p4.x - p3.x, p4.y - p3.y));
+                    const float quadH = fmaxf(
+                        hypotf(p3.x - p1.x, p3.y - p1.y),
+                        hypotf(p4.x - p2.x, p4.y - p2.y));
+                    float bloat = fminf(quadW, quadH) * 0.05f;
+                    bloat = fmaxf(0.20f, fminf(0.40f, bloat));
+                    ID2D1PathGeometry* quad = MacGenieCreateQuadGeometry(
+                        macFactory, MacGenieBloatPoint(p1, c, bloat),
+                        MacGenieBloatPoint(p2, c, bloat),
+                        MacGenieBloatPoint(p4, c, bloat),
+                        MacGenieBloatPoint(p3, c, bloat));
+                    if (!quad) continue;
+                    // Affine map of the source tile onto the warped quad.
+                    const float sx0 = gx * sw;
+                    const float sy0 = gy * sh;
+                    const float m11 = (p2.x - p1.x) / sw;
+                    const float m12 = (p2.y - p1.y) / sw;
+                    const float m21 = (p3.x - p1.x) / sh;
+                    const float m22 = (p3.y - p1.y) / sh;
+                    const float m31 = p1.x - sx0 * m11 - sy0 * m21;
+                    const float m32 = p1.y - sx0 * m12 - sy0 * m22;
+                    macBrush->SetTransform(
+                        D2D1::Matrix3x2F(m11, m12, m21, m22, m31, m32));
+                    macRenderTarget->FillGeometry(quad, macBrush);
+                    quad->Release();
+                }
+            }
+            macRenderTarget->PopLayer();
+        }
+        if (FAILED(macRenderTarget->EndDraw())) {
+            // D2DERR_RECREATE_TARGET etc.: drop to the classic genie for the
+            // rest of this animation instead of presenting blank frames.
+            ReleaseMacGenie();
+            minRestoreEffect = kMinRestoreGenie;
+            try {
+                axisBounds.resize(
+                    (IsHorizontalTaskbar(taskbarEdge) ? H : W) + 1);
+            } catch (const std::exception&) {
+                axisBounds.clear();
+            }
+            return;
+        }
+        GdiFlush();
+    }
     void SetAnimationWindowCloak(BOOL cloak) {
         if (!data || !IsWindow(data->hRealWnd)) return;
         // A bounded caller wait can expire before a delayed first frame. A
@@ -8754,7 +9370,8 @@ public:
             minRestoreEffect = data->effectStyle;
         }
         keepGhostBelowTaskbar =
-            !data->isClosing && (minRestoreEffect == 0 || minRestoreEffect == 7);
+            !data->isClosing &&
+            MinRestoreEffectSinksBelowTaskbar(minRestoreEffect);
         if (data->isClosing) {
             int padLeft = 0, padTop = 0, padRight = 0, padBottom = 0;
             if (closeEffect == 0) {
@@ -8831,6 +9448,8 @@ public:
                 monBottom, std::max(origTop + H, targetBottom) + pad);
             boundW = boundRight - boundLeft;
             boundH = boundBottom - boundTop;
+        } else if (minRestoreEffect == kMinRestoreMacGenie) {
+            ComputeMacGenieBounds(monLeft, monTop, monRight, monBottom);
         } else {
             // Genie bends rows for horizontal taskbars and columns for
             // vertical taskbars. Its canvas is the exact union of the source
@@ -9183,24 +9802,10 @@ public:
         const int effectStyle = telemetryInitialClosing
                                     ? closeEffect
                                     : minRestoreEffect;
-        PCWSTR effect = L"unknown";
-        if (telemetryInitialClosing) {
-            static constexpr PCWSTR closeNames[] = {
-                L"shatter", L"thanos", L"perlin", L"glitch",
-                L"crt", L"melt"};
-            if (effectStyle >= 0 && effectStyle <
-                                        static_cast<int>(ARRAYSIZE(closeNames))) {
-                effect = closeNames[effectStyle];
-            }
-        } else {
-            static constexpr PCWSTR minRestoreNames[] = {
-                L"genie", L"ink", L"scorch", L"splinter",
-                L"mirage", L"stipple", L"swell", L"windows10"};
-            if (effectStyle >= 0 && effectStyle < static_cast<int>(
-                                                    ARRAYSIZE(minRestoreNames))) {
-                effect = minRestoreNames[effectStyle];
-            }
-        }
+        const PCWSTR effect =
+            telemetryInitialClosing
+                ? AnimEffectTelemetryName(kCloseEffectInfo, effectStyle)
+                : AnimEffectTelemetryName(kMinRestoreEffectInfo, effectStyle);
         uint64_t blockCount = 0;
         if (telemetryInitialClosing &&
             (effectStyle >= 0 && effectStyle <= 2)) {
@@ -9756,6 +10361,9 @@ public:
     }
     bool PrecalcPhysics() {
         if (!data->isClosing) {
+            if (minRestoreEffect == kMinRestoreMacGenie) {
+                return PrecalcMacGenie();
+            }
             if (usingGpuBackend &&
                 (minRestoreEffect >= 1 && minRestoreEffect <= 5)) {
                 return true;
@@ -10255,6 +10863,8 @@ public:
                     RenderSwell(progress, fade);
                 } else if (minRestoreEffect == 7) {
                     RenderWin10MinRestore(progress, fade);
+                } else if (minRestoreEffect == kMinRestoreMacGenie) {
+                    RenderMacGenie(progress);
                 } else {
                     RenderMinimizeRestore(progress, fade);
                 }
@@ -10700,6 +11310,7 @@ public:
         }
     }
     void ReleaseGdiResources() {
+        ReleaseMacGenie();  // before the canvas DC it is bound to goes away
         if (hCanvasDC && hOldCanvas && hOldCanvas != HGDI_ERROR) SelectObject(hCanvasDC, hOldCanvas);
         if (hSrcDibDC && hOldSrcDib && hOldSrcDib != HGDI_ERROR) SelectObject(hSrcDibDC, hOldSrcDib);
         if (hSrcDC && hOldSrc && hOldSrc != HGDI_ERROR) SelectObject(hSrcDC, hOldSrc);
@@ -11057,7 +11668,7 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
     } else if (!isClosing && !shuffledMinRestorePair) {
         ClearMinRestorePair(hWnd);
     }
-    if (!isClosing && (effectStyle == 0 || effectStyle == 7)) {
+    if (!isClosing && MinRestoreEffectTargetsTaskbarButton(effectStyle)) {
         WCHAR windowTitle[256] = {0};
         GetWindowTextW(hWnd, windowTitle, 256);
         learnedTarget = GetTaskbarButtonPositionAsync(
@@ -11081,6 +11692,10 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             durationMs = Clamp((durationMs * 4) / 5, 220, 1100); // Stipple
         } else if (!isClosing && effectStyle == 6) {
             durationMs = Clamp((durationMs * 17) / 20, 200, 1200); // Swell
+        } else if (!isClosing && effectStyle == kMinRestoreMacGenie) {
+            // macOS genie: x1.25, so the default 360 ms gives the original
+            // mod's 450 ms; up to 1750 ms (original allowed 2000 ms).
+            durationMs = Clamp((durationMs * 5) / 4, 250, 1750);
         }
     }
     {
@@ -11601,6 +12216,7 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             const DWORD firstFrameWaitMs =
                 (!rising && !isClosing &&
                  ((effectStyle >= 1 && effectStyle <= 7) ||
+                  effectStyle == kMinRestoreMacGenie ||
                   crossThreadGpuGenie))
                     ? 500
                     : 200;
@@ -11715,6 +12331,7 @@ static bool CanRunExcelCloseWithoutBlocking(HWND hWnd, UINT closeMsg,
 }
 
 static bool RunCloseAnimation(HWND hWnd, UINT closeMsg) {
+    if (IsUserExcludedWindow(hWnd)) return false;
     const LONG_PTR originalExStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
     const bool excelClose =
         RequiresExcelScreenOnlyCloseCapture(hWnd, /*isClosing=*/true);
@@ -11905,7 +12522,7 @@ static bool IsVisibleShowDesktopCandidate(HWND hWnd) {
         IsIconic(hWnd) || GetAncestor(hWnd, GA_ROOT) != hWnd ||
         GetWindow(hWnd, GW_OWNER) ||
         (GetWindowLongPtrW(hWnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) ||
-        !ShouldAnimateWindow(hWnd)) {
+        !ShouldAnimateWindow(hWnd) || IsUserExcludedWindow(hWnd)) {
         return false;
     }
     const std::wstring cls = GetClassNameStr(hWnd);
@@ -12482,7 +13099,8 @@ static MinimizeKick KickMinimizeAnimation(HWND hWnd, bool desktopFocusOnUnhide =
     }
     if (!g_minimizeAnimation.load(std::memory_order_relaxed)) return MinimizeKick::None;
     if (!IsWindowVisible(hWnd) || IsIconic(hWnd)) return MinimizeKick::None;
-    if (IsHungAppWindow(hWnd) || !ShouldAnimateWindow(hWnd)) {
+    if (IsHungAppWindow(hWnd) || !ShouldAnimateWindow(hWnd) ||
+        IsUserExcludedWindow(hWnd)) {
         return MinimizeKick::None;
     }
     if (QueueClassicShowDesktopMinimize(hWnd, showCmd)) {
@@ -12520,7 +13138,7 @@ static MinimizeKick KickMinimizeAnimation(HWND hWnd, bool desktopFocusOnUnhide =
     if (effectStyle < 0) {
         effectStyle = ResolveMinRestoreEffectStyle();
     }
-    const bool genieStyle = effectStyle == 0;
+    const bool genieStyle = MinRestoreEffectRevealsTaskbar(effectStyle);
     if (allowUnhide && genieStyle && g_unhideEnabled.load(std::memory_order_relaxed)) {
         hMon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
         hTray = FindTaskbarForMonitor(hMon);
@@ -12946,7 +13564,8 @@ static MinimizeKick TryMinimizeAnim(HWND hWnd, NativeMinimizeBarrier* nativeMini
 }
 static bool CanPrepareRestoreAnimation(HWND hWnd) {
     if (!g_restoreAnimation.load(std::memory_order_relaxed) || IsHungAppWindow(hWnd) ||
-        !IsWindowVisible(hWnd) || !ShouldAnimateWindow(hWnd)) {
+        !IsWindowVisible(hWnd) || !ShouldAnimateWindow(hWnd) ||
+        IsUserExcludedWindow(hWnd)) {
         return false;
     }
     return true;
@@ -13078,6 +13697,7 @@ static bool PrepareLaunchAnim(HWND hWnd, int nCmdShow, LONG_PTR* origExOut,
     if (!g_launchAnimation.load(std::memory_order_relaxed)) return false;
     if (!IsLaunchCommand(nCmdShow)) return false;
     if (!IsLaunchWindow(hWnd)) return false;
+    if (IsUserExcludedWindow(hWnd)) return false;
     {
         std::lock_guard<std::mutex> lock(g_StateMutex);
         if (g_LaunchSeen.count(hWnd)) return false;
@@ -14517,4 +15137,5 @@ void Wh_ModUninit() {
     }
     CloseSharedEffectShuffleState();
     CloseSharedState();
+    ReleaseD2DFactory();  // workers are joined; no engine holds it now
 }

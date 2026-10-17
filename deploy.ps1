@@ -384,22 +384,39 @@ foreach ($file in $files) {
     }
 
     if ($id -eq "local@windows-animations") {
-        # Matches the mod's settings block. Nested Windhawk settings are stored
-        # as "group.key" values; booleans as DWORD 0/1. If macOS Genie is also
-        # enabled and the user turns on minimize/restore here, both animate;
-        # that is the user's choice and is not changed by deploy.
+        # Matches the mod's settings block (1.4.0: macOS genie merged in, so
+        # minimize/restore default on with the macos_genie style). Nested
+        # Windhawk settings are stored as "group.key" values; booleans as
+        # DWORD 0/1. Only missing values are seeded; existing settings stay.
+        # The old macOS Minimize Animation mod is superseded: if the user also
+        # enables it, both animate (deploy never enables or disables mods).
         $label = "Windows Animations"
         $waDefaults = [ordered]@{
-            "close.close_animation"               = 1
-            "close.hide_as_close"                 = 1
-            "minimize_restore.minimize_animation" = 0
-            "minimize_restore.restore_animation"  = 0
-            "minimize_restore.launch_animation"   = 0
-            "window_switch.switch_animation"      = 0
+            "close.close_animation"                 = 1
+            "close.hide_as_close"                   = 1
+            "close.random_effect"                   = 0
+            "close.duration_ms"                     = 630
+            "close.shatter_block_size"              = 5
+            "close.gpu_acceleration"                = 1
+            "minimize_restore.minimize_animation"   = 1
+            "minimize_restore.restore_animation"    = 1
+            "minimize_restore.launch_animation"     = 0
+            "minimize_restore.random_effect"        = 0
+            "minimize_restore.duration_ms"          = 360
+            "minimize_restore.genie_tile_count"     = 35
+            "minimize_restore.unhide_taskbar"       = 1
+            "minimize_restore.unhide_duration_ms"   = 450
+            "minimize_restore.show_desktop_top_window_only" = 0
+            "minimize_restore.gpu_acceleration"     = 1
+            "window_switch.switch_animation"        = 0
+            "window_switch.duration_ms"             = 200
+            "diagnostics.performance_telemetry"     = 0
         }
         foreach ($key in $waDefaults.Keys) {
             Set-RegValueIfMissing $settingsPath $key $waDefaults[$key] DWord $label
         }
+        Set-RegValueIfMissing $settingsPath "close.effect_style" "thanos" String $label
+        Set-RegValueIfMissing $settingsPath "minimize_restore.effect_style" "macos_genie" String $label
     }
 
     # Initialize ModsWritable runtime key

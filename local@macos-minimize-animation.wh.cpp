@@ -1,9 +1,9 @@
 // ==WindhawkMod==
 // @id              macos-minimize-animation
 // @name            MacOS Minimize Animation
-// @name:zh-CN       macOS 神奇效果最小化动画
+// @name:zh-CN       macOS 神奇效果最小化动画（已合并进「窗口动画」）
 // @description     Smooth macOS-style genie minimize and restore (open) animations for every window.
-// @description:zh-CN 为每个窗口带来丝滑的 macOS 经典“神奇效果（Genie）”最小化与还原展开动画。
+// @description:zh-CN 已被 ZenDesktop「窗口动画 (windows-animations) 1.4.0」取代：在那里把最小化/还原样式选为「macOS 神奇效果」。请勿与其同时开启，否则会出现两套最小化动画。
 // @version         4.1.0
 // @author          Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/Abdullah-Masood-05
@@ -49,6 +49,8 @@
 // ==WindhawkModReadme==
 /*
 # MacOS Minimize Animation (macOS 神奇效果最小化动画)
+
+> ⚠️ **已被取代 (Superseded)**：本 Mod 的现代神奇效果（Potassiumuncher 的 Direct2D 引擎）、排除程序列表与网格密度设置，已合并进 ZenDesktop「窗口动画 (windows-animations) 1.4.0」的「最小化/还原样式 → macOS 神奇效果」；经典风格即那里的「神奇效果·经典」。请关闭本 Mod，改用窗口动画；两者同时开启会让同一窗口播放两套动画。本文件仅为兼容保留，不再维护。
 
 > ### 👨‍💻 开发者信息 & 关注支持
 > - 📺 **哔哩哔哩**：https://space.bilibili.com/1280632999
