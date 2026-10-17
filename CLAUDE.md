@@ -20,4 +20,4 @@
 
 3. **第三方组件独立性（如 ExplorerBlurMica）**：
    - `deploy.ps1` 不得强行覆盖或静默篡改用户已有的文件管理器透明组件（ExplorerBlurMica）的系统注册与配置。
-   - 警惕 XAML 诊断接口独占问题：Windows 11 在单个 `explorer.exe` 进程中仅支持一个 XAML 诊断挂载点。若开启任务栏 XAML Mod 会抢占该挂载点导致文件管理器 WinUI 命令栏出现黑杠。
+   - 注意 XAML 诊断接口：多个工具（Windhawk 的 XAML Styler 类 Mod、ExplorerBlurMica 的 `clearWinUIBg` 等）都会通过 XAML 诊断接口修改 WinUI 层，同时使用时可能互相干扰，Mod 里有对应的冲突处理设置。文件管理器命令栏黑杠的成因尚未确认，不要把它简单归因于此。

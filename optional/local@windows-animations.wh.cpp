@@ -73,7 +73,11 @@
 > - ⚡ **爱发电**：https://ifdian.net/a/Lanboo
 >
 > **原作者**：ReDrag（Windows Animations v1.3.7，MIT，https://github.com/redrag2105）  
-> **定制修改说明**：Hook 代码原样保留，仅改显示名、置顶开发者信息，并补上与 macOS 最小化动画一致的游戏/反作弊 `@exclude` 名单（本 Mod 为 `@include *` 全局注入）。作为 ZenDesktop v4.2 可选模块，部署时询问后才安装。
+> **定制修改说明**：改显示名、置顶开发者信息，并补上与 macOS 最小化动画一致的游戏/反作弊 `@exclude` 名单（本 Mod 为 `@include *` 全局注入；1.3.8 起不再排除通用名 `Client.exe`）。1.3.8 扩大覆盖范围：带 `WS_EX_APPWINDOW` 的从属主窗口、200px 以上的窗口（原 300px），以及无边框 Chromium/Electron 应用窗口（VS Code、Discord 等）的启动动画；「隐藏视为关闭」默认开启。作为 ZenDesktop v4.2 可选模块，部署时询问后才安装。
+>
+> **与 macOS 最小化动画同时使用**：默认只开启关闭动画（含「隐藏视为关闭」）。若同时启用 macOS 神奇最小化动画（Genie），又在这里开启最小化/还原/启动动画，同一窗口会出现两套动画叠加。部署脚本不会替你改这些开关，请按需只在一个 Mod 中开启。
+>
+> **注意**：设置值缺失时 Windhawk 按 0（关闭）读取；部署脚本只会在设置缺失时补上默认值。
 > ## ⚠️ **`PLEASE READ THESE NOTES:`**
 > * **Packaged & System Apps:** Some protected or system-hosted windows, such as parts of Settings, Microsoft Store, and Windows shell surfaces, will not be animated because they bypass the mod's interception and use native Windows transitions instead.
 > * **Browsers & Tray Apps:** Enable **"Animate windows hidden to the tray"** if you want close animations for apps such as Chrome, Edge, Discord, and Windhawk, because clicking the 'X' button may only hide their window or leave the app running instead of actually closing it.
