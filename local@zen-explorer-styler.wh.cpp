@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.3
+// @version         1.6.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -83,11 +83,11 @@
 
 ## 更新日志
 
+- **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
 - **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
 - **1.6.2**：尝试用 WindhawkBlur 画刷做右键菜单玻璃（实际只是在系统亚克力上叠了一层色调和描边，已在 1.6.3 撤回）。
 - **1.6.1**：右键菜单玻璃改为替换菜单的系统背景材质。「模糊」改名「磨砂程度」，设置键和默认值不变。
 - **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
-- **1.5.0**：新增文字颜色设置，与其他 ZenDesktop mod 一致。
 
 ## 致谢与许可
 
@@ -6223,10 +6223,14 @@ ParseZenAcrylicBackdropValue(std::wstring_view substr) {
 // XAML parser resolving the property, every step can be logged, and the value
 // which was replaced is known exactly for the restore.
 //
-// The write waits for the menu's Loaded event: the control connects its
-// default backdrop in its own Loaded handler (registered first), and replacing
-// a backdrop which was never connected corrupts the old backdrop's target list
-// (see DeferSystemBackdropUntilLoaded).
+// The write only replaces a backdrop which is connected: the control connects
+// it in its own Loaded handler (registered first), or right in
+// OnPropertyChanged when the menu already has a XamlRoot. Replacing a backdrop
+// which was never connected corrupts the old backdrop's target list (see
+// DeferSystemBackdropUntilLoaded). On Win11 26xxx the menu is added (already
+// reporting IsLoaded) before the flyout sets its SystemBackdrop and before the
+// template is applied, so a property changed callback on SystemBackdrop waits
+// for it and the write happens after the next layout pass (1.6.4).
 struct ZenContextMenuParams {
     bool enabled = false;
     winrt::Windows::UI::Color tint{};
@@ -6240,7 +6244,14 @@ thread_local ZenContextMenuParams g_zenContextMenuParams;
 struct ZenContextMenuEntry {
     winrt::weak_ref<Controls::Primitives::CommandBarFlyoutCommandBar> menu;
     winrt::event_token loadedToken{};
-    bool applied = false;
+    winrt::event_token layoutToken{};
+    int64_t backdropCallbackToken = 0;
+    bool backdropCallbackRegistered = false;
+    bool loggedWaiting = false;
+    // Loop guard: re-applies in quick succession (someone keeps replacing
+    // the backdrop back).
+    ULONGLONG lastApplyTick = 0;
+    int burst = 0;
     winrt::Windows::Foundation::IInspectable originalValue{nullptr};
     winrt::Windows::Foundation::IInspectable backdrop{nullptr};
 };
@@ -6249,21 +6260,74 @@ struct ZenContextMenuEntry {
 // when another object is allocated at the same address.
 thread_local std::unordered_map<void*, ZenContextMenuEntry> g_zenContextMenus;
 
-void ZenContextMenuApply(
+// Set while this mod writes the property, so that its own write doesn't
+// trigger the "backdrop changed" callback.
+thread_local bool g_zenContextMenuWriting;
+
+void ZenContextMenuWaitLoaded(void* key,
+                              Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+                              ZenContextMenuEntry& entry);
+
+// The system backdrop of the menu, if any, and whether it's ours.
+bool ZenContextMenuIsOurs(
     Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
-    ZenContextMenuEntry& entry) {
-    if (entry.applied) {
+    ZenContextMenuEntry const& entry) {
+    auto current = menu.SystemBackdrop();
+    return current && entry.backdrop &&
+           current.as<winrt::Windows::Foundation::IInspectable>() ==
+               entry.backdrop;
+}
+
+// Writes the glass if the menu has a system backdrop which isn't ours.
+//
+// Only called when the current backdrop is known to be connected: the menu is
+// loaded and has a XamlRoot, and either this runs from the menu's Loaded event
+// (the control's own Loaded handler, registered first, connects it), or a
+// layout pass after the backdrop was set while the menu had a XamlRoot (then
+// CommandBarFlyoutCommandBar::OnPropertyChanged connected it right away).
+// Replacing a backdrop which was never connected corrupts its target list
+// (see DeferSystemBackdropUntilLoaded).
+void ZenContextMenuApply(
+    void* key,
+    Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+    ZenContextMenuEntry& entry,
+    PCWSTR reason) {
+    const auto& params = g_zenContextMenuParams;
+    if (!params.enabled) {
         return;
     }
 
-    const auto& params = g_zenContextMenuParams;
     auto property =
         Controls::Primitives::CommandBarFlyoutCommandBar::SystemBackdropProperty();
 
-    if (!menu.SystemBackdrop()) {
-        // Nothing for the glass to replace: the template only places the
-        // backdrop when the menu had one from the start.
-        Wh_Log(L"[ctxmenu] menu has no system backdrop, left as is");
+    auto current = menu.SystemBackdrop();
+    if (!current) {
+        // Win11 26xxx: the menu is added to the tree (and reports IsLoaded)
+        // before the flyout gives it its backdrop and before its template is
+        // applied. The property changed callback picks it up later.
+        if (!entry.loggedWaiting) {
+            Wh_Log(L"[ctxmenu] waiting for system backdrop (%s)", reason);
+            entry.loggedWaiting = true;
+        }
+        return;
+    }
+
+    if (ZenContextMenuIsOurs(menu, entry)) {
+        return;
+    }
+
+    if (!menu.IsLoaded() || !menu.XamlRoot()) {
+        Wh_Log(L"[ctxmenu] backdrop present, waiting for the menu to load (%s)",
+               reason);
+        ZenContextMenuWaitLoaded(key, menu, entry);
+        return;
+    }
+
+    ULONGLONG now = GetTickCount64();
+    entry.burst = (now - entry.lastApplyTick < 1000) ? entry.burst + 1 : 0;
+    entry.lastApplyTick = now;
+    if (entry.burst >= 4) {
+        Wh_Log(L"[ctxmenu] backdrop keeps being replaced, giving up for now");
         return;
     }
 
@@ -6274,16 +6338,187 @@ void ZenContextMenuApply(
                                         params.fallback)
             .as<winrt::Windows::Foundation::IInspectable>();
 
-    menu.SetValue(property, backdrop);
+    bool prevWriting = g_zenContextMenuWriting;
+    g_zenContextMenuWriting = true;
+    try {
+        menu.SetValue(property, backdrop);
+    } catch (...) {
+        g_zenContextMenuWriting = prevWriting;
+        throw;
+    }
+    g_zenContextMenuWriting = prevWriting;
 
-    entry.applied = true;
-    entry.originalValue = original;
+    // The value to restore is the latest one which isn't ours.
+    if (!entry.backdrop || original != entry.backdrop) {
+        entry.originalValue = original;
+    }
     entry.backdrop = backdrop;
+    entry.loggedWaiting = false;
 
-    Wh_Log(L"[ctxmenu] glass applied: tint #%02X%02X%02X, tint opacity %.2f, "
-           L"frost %.2f",
-           params.tint.R, params.tint.G, params.tint.B, params.tintOpacity,
-           params.luminosityOpacity);
+    Wh_Log(L"[ctxmenu] glass applied (%s): tint #%02X%02X%02X, tint opacity "
+           L"%.2f, frost %.2f",
+           reason, params.tint.R, params.tint.G, params.tint.B,
+           params.tintOpacity, params.luminosityOpacity);
+}
+
+void ZenContextMenuWaitLoaded(
+    void* key,
+    Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+    ZenContextMenuEntry& entry) {
+    if (entry.loadedToken) {
+        return;
+    }
+
+    entry.loadedToken = menu.Loaded(
+        [key](winrt::Windows::Foundation::IInspectable const&,
+              RoutedEventArgs const&) {
+            auto it = g_zenContextMenus.find(key);
+            if (it == g_zenContextMenus.end()) {
+                return;
+            }
+
+            auto menu = it->second.menu.get();
+            if (!menu) {
+                return;
+            }
+
+            try {
+                menu.Loaded(it->second.loadedToken);
+                it->second.loadedToken = {};
+                ZenContextMenuApply(key, menu, it->second, L"loaded");
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
+                       ex.message().c_str());
+            }
+        });
+}
+
+// Applies after the next layout pass of the menu: by then the change which
+// triggered this (a new backdrop, the template's backdrop roots) has been
+// fully processed by the control. A LayoutUpdated handler can be revoked on
+// unload, unlike a queued dispatcher task.
+void ZenContextMenuScheduleApply(
+    void* key,
+    Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+    ZenContextMenuEntry& entry,
+    PCWSTR reason) {
+    if (entry.layoutToken) {
+        return;
+    }
+
+    std::wstring reasonCopy = reason;
+    entry.layoutToken = menu.LayoutUpdated(
+        [key, reasonCopy](winrt::Windows::Foundation::IInspectable const&,
+                          winrt::Windows::Foundation::IInspectable const&) {
+            auto it = g_zenContextMenus.find(key);
+            if (it == g_zenContextMenus.end()) {
+                return;
+            }
+
+            auto menu = it->second.menu.get();
+            if (!menu) {
+                return;
+            }
+
+            try {
+                menu.LayoutUpdated(it->second.layoutToken);
+                it->second.layoutToken = {};
+                ZenContextMenuApply(key, menu, it->second, reasonCopy.c_str());
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
+                       ex.message().c_str());
+            }
+        });
+
+    // Make sure there is a layout pass even if nothing else changes.
+    menu.InvalidateArrange();
+}
+
+void ZenContextMenuRegisterBackdropCallback(
+    void* key,
+    Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+    ZenContextMenuEntry& entry) {
+    if (entry.backdropCallbackRegistered) {
+        return;
+    }
+
+    // Stays registered for the menu's lifetime (until restore): the same
+    // menu is reused for later opens, and the flyout may hand it a new
+    // backdrop each time.
+    entry.backdropCallbackToken = menu.RegisterPropertyChangedCallback(
+        Controls::Primitives::CommandBarFlyoutCommandBar::SystemBackdropProperty(),
+        [key](DependencyObject const&, DependencyProperty const&) {
+            if (g_zenContextMenuWriting) {
+                return;  // Our own write.
+            }
+
+            auto it = g_zenContextMenus.find(key);
+            if (it == g_zenContextMenus.end()) {
+                return;
+            }
+
+            auto menu = it->second.menu.get();
+            if (!menu) {
+                return;
+            }
+
+            try {
+                if (!menu.SystemBackdrop() ||
+                    ZenContextMenuIsOurs(menu, it->second)) {
+                    return;
+                }
+
+                // Read now, while the control's OnPropertyChanged has just
+                // run: with a XamlRoot it connected the new backdrop right
+                // away; without one it connects it in its Loaded handler.
+                bool hasXamlRoot = menu.XamlRoot() != nullptr;
+                Wh_Log(L"[ctxmenu] system backdrop appeared (xamlRoot=%d)",
+                       hasXamlRoot ? 1 : 0);
+                if (hasXamlRoot) {
+                    ZenContextMenuScheduleApply(key, menu, it->second,
+                                                L"backdrop appeared");
+                } else {
+                    ZenContextMenuWaitLoaded(key, menu, it->second);
+                }
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"[ctxmenu] callback error %08X: %s", ex.code(),
+                       ex.message().c_str());
+            }
+        });
+    entry.backdropCallbackRegistered = true;
+}
+
+// The template's backdrop root was added: the backdrop is wired up now, so
+// try again if the menu was still waiting (backup for the callback).
+void ZenContextMenuOnBackdropRootAdded(FrameworkElement const& element) {
+    if (g_zenContextMenus.empty()) {
+        return;
+    }
+
+    DependencyObject iter = element;
+    for (int depth = 0; iter && depth < 16; depth++) {
+        iter = Media::VisualTreeHelper::GetParent(iter);
+        auto menu =
+            iter ? iter.try_as<Controls::Primitives::CommandBarFlyoutCommandBar>()
+                 : nullptr;
+        if (!menu) {
+            continue;
+        }
+
+        void* key = winrt::get_abi(menu);
+        auto it = g_zenContextMenus.find(key);
+        if (it == g_zenContextMenus.end() || it->second.menu.get() != menu) {
+            return;
+        }
+
+        if (!ZenContextMenuIsOurs(menu, it->second)) {
+            Wh_Log(L"[ctxmenu] backdrop root added (backdrop %s)",
+                   menu.SystemBackdrop() ? L"present" : L"missing");
+            ZenContextMenuScheduleApply(key, menu, it->second,
+                                        L"backdrop root added");
+        }
+        return;
+    }
 }
 
 void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
@@ -6294,6 +6529,15 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
     auto menu =
         element.try_as<Controls::Primitives::CommandBarFlyoutCommandBar>();
     if (!menu) {
+        try {
+            auto name = element.Name();
+            if (name == L"PrimaryItemsSystemBackdropRoot") {
+                ZenContextMenuOnBackdropRootAdded(element);
+            }
+        } catch (winrt::hresult_error const& ex) {
+            Wh_Log(L"[ctxmenu] error %08X: %s", ex.code(),
+                   ex.message().c_str());
+        }
         return;
     }
 
@@ -6302,7 +6546,13 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
         if (auto it = g_zenContextMenus.find(key);
             it != g_zenContextMenus.end()) {
             if (it->second.menu.get() == menu) {
-                return;  // Already handled.
+                // The same menu opened again.
+                if (menu.IsLoaded()) {
+                    ZenContextMenuApply(key, menu, it->second, L"reopened");
+                } else {
+                    ZenContextMenuWaitLoaded(key, menu, it->second);
+                }
+                return;
             }
             g_zenContextMenus.erase(it);
         }
@@ -6319,37 +6569,16 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
         auto& entry = g_zenContextMenus[key];
         entry.menu = menu;
 
+        ZenContextMenuRegisterBackdropCallback(key, menu, entry);
+
         if (menu.IsLoaded()) {
             Wh_Log(L"[ctxmenu] menu found (loaded)");
-            ZenContextMenuApply(menu, entry);
+            ZenContextMenuApply(key, menu, entry, L"found");
             return;
         }
 
         Wh_Log(L"[ctxmenu] menu found, waiting for it to load");
-        entry.loadedToken = menu.Loaded(
-            [key](winrt::Windows::Foundation::IInspectable const& sender,
-                  RoutedEventArgs const&) {
-                auto it = g_zenContextMenus.find(key);
-                if (it == g_zenContextMenus.end()) {
-                    return;
-                }
-
-                auto menu = it->second.menu.get();
-                if (!menu || winrt::get_abi(menu) != winrt::get_abi(
-                                 sender.try_as<Controls::Primitives::
-                                                   CommandBarFlyoutCommandBar>())) {
-                    return;
-                }
-
-                try {
-                    menu.Loaded(it->second.loadedToken);
-                    it->second.loadedToken = {};
-                    ZenContextMenuApply(menu, it->second);
-                } catch (winrt::hresult_error const& ex) {
-                    Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
-                           ex.message().c_str());
-                }
-            });
+        ZenContextMenuWaitLoaded(key, menu, entry);
     } catch (winrt::hresult_error const& ex) {
         Wh_Log(L"[ctxmenu] error %08X: %s", ex.code(), ex.message().c_str());
     }
@@ -6367,31 +6596,45 @@ void ZenContextMenuRestoreAll() {
             continue;
         }
 
+        auto property = Controls::Primitives::CommandBarFlyoutCommandBar::
+            SystemBackdropProperty();
+
         try {
+            if (entry.backdropCallbackRegistered) {
+                menu.UnregisterPropertyChangedCallback(
+                    property, entry.backdropCallbackToken);
+                entry.backdropCallbackRegistered = false;
+            }
+
             if (entry.loadedToken) {
                 menu.Loaded(entry.loadedToken);
             }
 
-            if (!entry.applied) {
-                continue;
+            if (entry.layoutToken) {
+                menu.LayoutUpdated(entry.layoutToken);
             }
 
-            auto property = Controls::Primitives::CommandBarFlyoutCommandBar::
-                SystemBackdropProperty();
+            if (!entry.backdrop) {
+                continue;
+            }
 
             // Only if it's still ours: something else may have replaced it.
             if (menu.ReadLocalValue(property) != entry.backdrop) {
                 continue;
             }
 
+            bool prevWriting = g_zenContextMenuWriting;
+            g_zenContextMenuWriting = true;
             if (!entry.originalValue ||
                 entry.originalValue == DependencyProperty::UnsetValue()) {
                 menu.ClearValue(property);
             } else {
                 menu.SetValue(property, entry.originalValue);
             }
+            g_zenContextMenuWriting = prevWriting;
             restored++;
         } catch (winrt::hresult_error const& ex) {
+            g_zenContextMenuWriting = false;
             Wh_Log(L"[ctxmenu] restore error %08X: %s", ex.code(),
                    ex.message().c_str());
         }
