@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.4
+// @version         1.6.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -35,17 +35,18 @@
 // first reported element when no recognized window was created on it (tracked
 // for the restore). The rest of the code is unchanged from upstream.
 //
-// For bug reports and feature requests of the original mod, please open an
-// issue here:
-// https://github.com/ramensoftware/windhawk-mods/issues
+// For bug reports and feature requests, please open an issue here:
+// https://github.com/Liset999/ZenDesktop/issues
 //
-// For pull requests of the original mod, development takes place here:
+// The original mod by m417z is developed here:
 // https://github.com/m417z/my-windhawk-mods
 
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+> 原作者：**m417z**（[Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。
 
 # ZenDesktop: 文件管理器美化
 
@@ -83,11 +84,11 @@
 
 ## 更新日志
 
+- **1.6.5**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
 - **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
 - **1.6.2**：尝试用 WindhawkBlur 画刷做右键菜单玻璃（实际只是在系统亚克力上叠了一层色调和描边，已在 1.6.3 撤回）。
 - **1.6.1**：右键菜单玻璃改为替换菜单的系统背景材质。「模糊」改名「磨砂程度」，设置键和默认值不变。
-- **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
 
 ## 致谢与许可
 

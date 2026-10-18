@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.1
+// @version         4.2.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -16,15 +16,18 @@
 // Source code is published under The GNU General Public License v3.0.
 //
 // For bug reports and feature requests, please open an issue here:
-// https://github.com/ramensoftware/windhawk-mods/issues
+// https://github.com/Liset999/ZenDesktop/issues
 //
-// For pull requests, development takes place here:
+// Based on "Windows 11 Settings Styler" by m417z (https://github.com/m417z),
+// licensed under GPL-3.0. The original mod is developed here:
 // https://github.com/m417z/my-windhawk-mods
 
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+> 原作者：**m417z**（[Windows 11 Settings Styler](https://windhawk.net/mods/windows-11-settings-styler)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。
 
 # ZenDesktop: 设置美化
 
@@ -55,6 +58,7 @@
 
 ## 更新日志
 
+- **4.2.2**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.1**：液态玻璃主题去掉额外的圆角和边距，导航项与卡片保持 Windows 自带的形状。
 - **4.2.0**：修复窗口失去焦点后玻璃变成不透明纯色的问题；新增「浅色模式：白底」，浅色模式下导航栏和标题文字更清楚。
 - **4.1.1**：规范设置界面与说明文字，行为不变。

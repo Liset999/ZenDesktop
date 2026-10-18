@@ -101,10 +101,11 @@
 
 ```markdown
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
 ```
 
 - 基于他人 mod 的，在作者块之后紧跟一行原作者说明（如窗口动画：`> 原作者：**ReDrag**……`）。
+- 基于 m417z 的 Styler 系列的，原作者说明写成 `> 原作者：**m417z**（[原版名](https://windhawk.net/mods/<原版 id>)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。`源码头注释里的问题反馈地址同样指向 `https://github.com/Liset999/ZenDesktop/issues`，原作者的开发仓库链接保留。
 - 说明末尾不再单独写 `## 捐助支持` 一节，避免重复。
 
 - 元数据中加入 Windhawk 支持的 `@donateUrl`，指向爱发电：`https://ifdian.net/a/Lanboo`。基于他人 mod 且原版已有 `@donateUrl` 的（如窗口动画），保留原作者的链接，不替换；其说明开头的作者块照常写爱发电与微信赞赏链接。

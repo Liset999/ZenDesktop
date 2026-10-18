@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.6
+// @version         4.2.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -16,15 +16,18 @@
 // Source code is published under The GNU General Public License v3.0.
 //
 // For bug reports and feature requests, please open an issue here:
-// https://github.com/ramensoftware/windhawk-mods/issues
+// https://github.com/Liset999/ZenDesktop/issues
 //
-// For pull requests, development takes place here:
+// Based on "Windows 11 Taskbar Styler" by m417z (https://github.com/m417z),
+// licensed under GPL-3.0. The original mod is developed here:
 // https://github.com/m417z/my-windhawk-mods
 
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+> 原作者：**m417z**（[Windows 11 Taskbar Styler](https://windhawk.net/mods/windows-11-taskbar-styler)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。
 
 # ZenDesktop: 任务栏美化
 
@@ -42,7 +45,7 @@
 
 设置分为以下几个区：
 
-- **主题与文字**：主题、背景颜色、文字颜色。主题默认「液态玻璃」，其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
+- **主题与文字**：主题、背景颜色、文字颜色。主题默认「自定义玻璃」，其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
 - **任务栏背景**：模糊、不透明度、亮度。主要作用于「自定义玻璃」等使用通用背景的主题；液态玻璃使用自己的固定参数，这几项基本不起作用。
 - **统一设置**：默认开启，托盘溢出面板和音量/亮度浮窗跟随「任务栏背景」的三项，下方两个区被忽略。想单独调节时关闭。
 - **托盘溢出面板 / 音量/亮度浮窗**：分别对应托盘图标放不下时弹出的面板，以及调节音量、亮度时出现的滑条。仅在关闭「统一设置」后生效。
@@ -59,11 +62,11 @@
 
 ## 更新日志
 
+- **4.2.7**：默认主题改回「自定义玻璃」，已选的主题不变；问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明，微信赞赏链接改为指向 `main` 分支。
 - **4.2.6**：设置按区分组（主题与文字、任务栏背景、托盘溢出面板、音量/亮度浮窗、最大化时、高级），新增「统一设置」让弹窗跟随任务栏背景；旧版保存的设置继续生效。
 - **4.2.5**：Win+X 菜单和托盘溢出面板去掉额外描边，圆角跟 Windows 自带一致（自定义玻璃和液态玻璃主题都适用）；默认主题改为「液态玻璃」，已选的主题不变。
 - **4.2.4**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.2.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与开始菜单/通知中心对齐。
-- **4.2.1**：规范设置界面与说明文字，行为不变。
 
 ## 致谢与许可
 
@@ -561,11 +564,11 @@ from the **TranslucentTB** project.
 // ==WindhawkModSettings==
 /*
 - look:
-    - theme: "AppleLiquidGlass"
+    - theme: "TranslucentTaskbar"
       $name: "Theme"
       $name:zh-CN: "主题"
-      $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Liquid Glass."
-      $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为液态玻璃。"
+      $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Custom Glass."
+      $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为自定义玻璃。"
       $options:
       - "": "无"
       - TranslucentTaskbar: "自定义玻璃（Custom Glass）"
@@ -21623,7 +21626,8 @@ void ProcessAllStylesFromSettings() {
     std::vector<PCWSTR> overrideStyleConstants;
     // ZenDesktop: an empty theme means "None", unless the settings are
     // missing altogether, in which case use the default theme.
-    if (wcscmp(themeName, L"TranslucentTaskbar") == 0) {
+    if (wcscmp(themeName, L"TranslucentTaskbar") == 0 ||
+        (!*themeName && ZenSettingsUnseeded())) {
         theme = &g_themeTranslucentTaskbar;
     } else if (wcscmp(themeName, L"TranslucentTaskbar_Clear") == 0) {
         theme = &g_themeTranslucentTaskbar;
@@ -21758,8 +21762,7 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLiquidGlass;
     } else if (wcscmp(themeName, L"LiquidGlass_variant_Alternate") == 0) {
         theme = &g_themeLiquidGlass_variant_Alternate;
-    } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0 ||
-               (!*themeName && ZenSettingsUnseeded())) {
+    } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0) {
         theme = &g_themeAppleLiquidGlass;
     } else if (wcscmp(themeName, L"AppleLiquidGlass_variant_Alternate") == 0) {
         theme = &g_themeAppleLiquidGlass_variant_Alternate;

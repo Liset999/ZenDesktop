@@ -1,6 +1,6 @@
 # ZenDesktop Premium 🪟✨
 
-[![GitHub License](https://img.shields.io/github/license/Liset999/ZenDesktop?color=blue&style=flat-square)](LICENSE)
+[![License GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square)](LICENSE)
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
@@ -56,12 +56,12 @@
 
 ### 6. 🎨 macOS Genie Minimize Animation (`local@macos-minimize-animation` / `macOS 神奇效果最小化动画`)
 
-> v4.2 起已并入「窗口动画」(`local@windows-animations`) 的「macOS 神奇效果」最小化样式，deploy 不再安装本 mod；旧文件保留在 `legacy/`。
+> v4.2 起已并入「窗口动画」(`local@windows-animations`) 的「macOS 神奇效果」最小化样式，deploy 不再安装本 mod；旧文件保留在 `dev/legacy/`。
 * Fluid macOS-style Genie minimize and restore animations powered by a high-performance Direct2D mesh engine.
 
 ### 7. 📁 File Explorer Styler (`local@zen-explorer-styler` / `ZenDesktop: 文件管理器美化`)
 * Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color, plus optional WindhawkBlur glass on the Win11 desktop/Explorer context menu.
-* **Do not install ExplorerBlurMica alongside it.** If you registered EBM before, run `ExplorerBlurMica\uninstall.cmd` as Administrator, then enable this mod.
+* **Do not install ExplorerBlurMica alongside it.** If you registered it before, unregister it with its own `uninstall.cmd` (as Administrator), then enable this mod.
 
 ---
 
@@ -72,7 +72,6 @@
 | `ZenDesktop_OneKeyDeploy_v4.2.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
 | `ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
 | `ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
-| （无需单独的 ExplorerBlurMica 包） | 文件管理器透明请用包内的 `local@zen-explorer-styler`。若以前注册过 EBM，请先卸载再启用该 mod。 |
 
 > 三个 OneKeyDeploy 包只选一个。
 
@@ -152,24 +151,39 @@
 | 果冻窗口（可选） | 拖动窗口时像果冻一样晃动 |
 | 窗口动画（可选） | 关窗、最小化、还原、启动动画 |
 
-文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先管理员运行 `ExplorerBlurMica\uninstall.cmd` 再启用。
+文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先用它自带的 `uninstall.cmd`（管理员运行）取消注册，再启用。
 
 ### 卸载与恢复
 
-1. 在 Windhawk「已安装的 Mod」里，把 ZenDesktop 的 mod 关掉即可恢复系统原样；不想保留就点「移除」。
-2. 运行 `restart_explorer.bat`（或重启电脑），让任务栏、开始菜单恢复系统默认。
-3. 如果启用过开机自检：管理员运行 `deploy.ps1 -StartupCheck remove`。
-4. 如果接过 AI 状态：删除 `%LOCALAPPDATA%\ZenDesktop` 文件夹，并把当时粘贴到各 AI 助手配置里的片段删掉。
-5. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程。这些不影响系统，想还原可以在那里手动删掉。
+**一键卸载**：双击 **`uninstall.bat`**，在权限提示里点「是」。它会列出要移除的内容，确认后：
+
+- 从 Windhawk 移除全部 ZenDesktop mod（包括两个可选 mod 和 v4.1 的「macOS 神奇效果最小化动画」）：mod 源码、编译好的 DLL、Windhawk 里的 mod 记录和设置。
+- 删除开机自检计划任务（如果用 `-StartupCheck` 装过）。
+- 询问是否删除 `%LOCALAPPDATA%\ZenDesktop`（AI 状态文件和开机自检日志）。
+- 询问是否立即重启资源管理器，让任务栏、开始菜单恢复系统样式。
+
+**Windhawk 本身不会被卸载**，你自己装的其他 mod 也不受影响。无人值守时可以运行 `uninstall.bat -Yes`（不提示，保留数据文件夹），加 `-RemoveData` 一并删除数据文件夹。
+
+还需要手动处理的：
+
+1. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程。卸载脚本不会改动这两个列表，想还原请在那里手动删掉。
+2. 接过 AI 状态的，把当时粘贴到各 AI 助手配置里的 `zen-status` 片段删掉。
+
+只想暂时停用的话，在 Windhawk「已安装的 Mod」里把对应 mod 关掉即可，然后运行 `restart_explorer.bat`（或重启电脑）。
 
 ---
 
 ## 🩺 常见问题 / Troubleshooting
 
-- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 EBM，先 `uninstall.cmd` 再重启。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
+- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 ExplorerBlurMica，先用它自带的 `uninstall.cmd` 取消注册再重启。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
 
-## 📄 License
-This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details.
+## 📄 License / 许可证
+
+ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布，完整条款见仓库根目录和压缩包里的 `LICENSE`。大部分 mod 基于 m417z 的 GPL-3.0 项目修改，修改版同样以 GPL-3.0 发布。可选的「窗口动画」基于 ReDrag 的 MIT 项目，第三方署名与许可见 `optional/THIRD_PARTY_NOTICES.md` 和 `THIRD_PARTY_NOTICES-taskbar-lyrics.md`。
+
+问题反馈：[github.com/Liset999/ZenDesktop/issues](https://github.com/Liset999/ZenDesktop/issues)。
+
+This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details. Bug reports: https://github.com/Liset999/ZenDesktop/issues
 
 Developed with ❤️ by **Lanbo**.
 Special thanks to:
@@ -187,4 +201,4 @@ Special thanks to:
 
 ![微信赞赏码](docs/donate-wechat.png)
 
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
+图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png
