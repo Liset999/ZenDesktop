@@ -1,90 +1,20 @@
-# ZenDesktop Premium 🪟✨
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+# ZenDesktop 🪟✨
 
 [![License GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square)](LICENSE)
-[![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
-[![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
+[![Platform Windows 11](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://www.microsoft.com/windows)
+[![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk-ff69b4?style=flat-square)](https://windhawk.net)
+[![Release](https://img.shields.io/github/v/release/Liset999/ZenDesktop?style=flat-square)](https://github.com/Liset999/ZenDesktop/releases)
 
-**ZenDesktop Premium v5.0.0** is a desktop styling suite for Windows 11 built as native Win32/C++ Windhawk mods. File Explorer transparency uses **`zen-explorer-styler`** (no ExplorerBlurMica). Real-time options live in the Windhawk UI.
+ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://windhawk.net) 上：任务栏、开始菜单、通知栏、「设置」和文件管理器统一换成透明玻璃风格，任务栏左下角还能显示歌词和 AI 编程助手的工作状态。一共 9 个 mod，一键部署，所有效果都在 Windhawk 的设置页里调，改完立即生效。
 
-👨‍💻 **Developer Links & Support / 关注与支持**:
-- 📺 **Bilibili**: https://space.bilibili.com/1280632999
-- 🎵 **Douyin**: https://v.douyin.com/Isl7QPpKZZ4/
-- ⚡ **Afdian**: https://ifdian.net/a/Lanboo
-
-[简体中文](#-简体中文) | [English](#-english-features)
+[English](#english)
 
 ---
 
-## 🚀 Latest Updates / 最新更新 (v5.0.0)
-
-### 🌐 English
-* **Standardized Chinese Localization & Mod Naming**: Unified all core mod display names and descriptions with full bilingual settings translation in Windhawk.
-* **Modern Direct2D macOS Minimize Animation**: Integrated the latest Direct2D mesh warp genie engine by Abdullah Masood & Potassiumuncher, supporting customizable mesh resolution (8-96 tiles), taskbar auto-hide unhiding, and process exclusions.
-* **Windows Settings Light-Mode Transparency Fix**: Enhanced Settings Styler with full recursive border styling, resolving opaque white cards in light mode for a seamless frosted glass look.
-* **Refined One-Key Deploy Script (`deploy.ps1`)**: Auto-detects and deploys all core and optional mods, automatically cleans up legacy deprecated helper mods, and resets the UI cache for instant Chinese mod card display.
-
-### 🇨🇳 中文
-* **全系列模组命名与中文本地化规范**：模组统一采用规范的中文命名与中文简介（保留 `ZenDesktop: ` 前缀），所有配置项均已完成中英双语对照翻译。
-* **全新 Direct2D macOS 神奇效果动画引擎**：深度整合 Potassiumuncher & Abdullah Masood 的 Direct2D 网格变形引擎，支持网格细分密度调节、自动隐藏任务栏唤出、排除程序列表及多显示器适配。
-* **设置美化亮色模式全面透明优化**：彻底修复亮色模式下设置卡片泛白不透明的问题，统一 Glass 模式全景磨砂质感。
-* **一键部署引擎 (`deploy.ps1`) 升级**：自动扫描并注册全部核心与可选 Mod，自动清理历史废弃插件并重置 UI 缓存，确保在 Windhawk 中即刻展现全中文模组列表。
-
----
-
-## 🌟 English Features
-
-### 1. 🎛️ Taskbar Acrylic Styler (`local@zen-taskbar-acrylic` / `ZenDesktop: 任务栏美化`)
-* High-performance WinUI 3 acrylic and frosted glass effects for the Windows 11 taskbar.
-* Clear, Acrylic, and Apple Liquid Glass presets with integrated auto-adaptation for maximized windows.
-
-### 2. 🔔 Notification Center Acrylic Styler (`local@zen-notificationcenter-acrylic` / `ZenDesktop: 通知栏美化`)
-* Real-time acrylic and frosted glass effects for Notification Center, Calendar panel, and Quick Settings (Win+A).
-* Retains flawless WinUI shadows and smooth opening/closing transitions.
-
-### 3. 🚀 Start Menu Acrylic Styler (`local@zen-startmenu-acrylic` / `ZenDesktop: 开始菜单美化`)
-* Native acrylic blur overlays over the Windows 11 Start Menu, with built-in width/height custom sizing and independent folder opacity/blur controls.
-
-### 4a. 🎵 任务栏音乐与歌词 (`local@zen-taskbar-lyrics` / `ZenDesktop: 任务栏音乐与歌词`)
-
-小组件关掉以后，在任务栏左下角放音乐面板（封面、歌词、上一首／播放暂停／下一首），可选显示本机 AI 编程助手状态。接 AI 状态见 `tools/ai-status/README.md`。
-
-### 4. 🖱️ Desktop Icon Toggle (`local@zen-desktop-toggle-icons` / `ZenDesktop: 桌面双击隐藏图标`)
-* Double-click empty desktop space to instantly hide/show icons with smooth fade animations. State is saved and preserved across system restarts.
-
-### 5. ⚙️ Settings Acrylic Styler (`local@windows-11-settings-styler-fork` / `ZenDesktop: 设置美化`)
-* Full acrylic/frosted glass customization for the Windows 11 Settings app (Win+I), deeply adapted for both Light and Dark modes.
-
-### 6. 🎨 macOS Genie Minimize Animation (`local@macos-minimize-animation` / `macOS 神奇效果最小化动画`)
-
-> v4.2 起已并入「窗口动画」(`local@windows-animations`) 的「macOS 神奇效果」最小化样式，deploy 不再安装本 mod；旧文件保留在 `dev/legacy/`。
-* Fluid macOS-style Genie minimize and restore animations powered by a high-performance Direct2D mesh engine.
-
-### 7. 📁 File Explorer Styler (`local@zen-explorer-styler` / `ZenDesktop: 文件管理器美化`)
-* Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color, plus optional WindhawkBlur glass on the Win11 desktop/Explorer context menu.
-* **Do not install ExplorerBlurMica alongside it.** If you registered it before (e.g. from v4.1), run `tools/uninstall-ExplorerBlurMica.bat` first (it asks for admin rights and restarts Explorer), then enable this mod.
-
----
-
-## 📦 下载哪个压缩包？/ Which zip should I download?
-
-| 文件 | 适合谁 |
-|---|---|
-| `ZenDesktop_OneKeyDeploy_v5.0.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
-| `ZenDesktop_OneKeyDeploy_v5.0.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
-| `ZenDesktop_OneKeyDeploy_v5.0.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
-
-> 三个 OneKeyDeploy 包只选一个。
-
-## 🧩 可选 Mod（v5.0.0 新增）/ Optional mods
-
-`deploy.bat` 会把下面两个可选 mod 也装进 Windhawk，和其他 mod 一样默认关闭，想用就在 Windhawk 里自己打开：
-
-- **果冻窗口（Wobbly Windows）**：KDE/Compiz 风格果冻窗口。作者 lalimatyus，GPL-3.0。它要注入 `dwm.exe`，deploy 已经把 `dwm.exe` 加进 Windhawk 的「进程包含列表」，打开后需要重启整台电脑。
-- **窗口动画（Windows Animations）**：关窗与最小化/还原/启动动画（含 macOS 神奇效果与 v1.5 新样式）。作者 ReDrag 等，MIT。如果以前装过独立的「macOS 神奇效果最小化动画」，请关掉它，避免播两次。
-
-无人值守安装时可以直接打开指定的 mod：`deploy.bat -Optional "wobbly-windows,windows-animations"`；只会打开列出的 mod，其他 mod 的开关保持原样。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
-
-## 🖼️ 效果预览 / Previews
+## 效果预览
 
 **Windhawk 里的 ZenDesktop 全家桶**：9 个 mod 装好后的样子。
 
@@ -102,107 +32,246 @@
 
 ![半透明文件管理器与任务栏歌词](docs/screenshots/file-explorer-taskbar-lyrics.jpg)
 
-## 📥 Installation & Deployment Guide
+---
 
-> [!IMPORTANT]
-> The suite utilizes **pure local compilation** (`local@` prefix), which means your system compiles the C++ code natively. It is 100% offline-ready, safe, and completely bypasses official Windhawk mod server connection failures!
+## v5.0.0 更新亮点
 
-### Step 1: Run One-Key Deploy
-1. Right-click **`deploy.bat`** and select **Run as Administrator** (以管理员身份运行).
-2. The script will automatically configure Windhawk, register the 7 core mods and 2 optional mods (all disabled by default), initialize default settings, and restart the Windhawk service.
+完整更新日志见 [CHANGELOG_v5.0.0.md](CHANGELOG_v5.0.0.md)。
 
-### Step 2: Native Compilation in Windhawk
-1. Open the **Windhawk** UI dashboard.
-2. Click into each mod and click **Save / Compile** (保存并编译). The engine will compile the native C++ code in ~5-10 seconds.
-
-### Step 3: Configure via Windhawk UI
-1. In the **Windhawk** UI, open each mod's **Settings** page to customize visual options in real-time.
-2. Enable **ZenDesktop: 文件管理器美化** (`zen-explorer-styler`) in Windhawk. If ExplorerBlurMica was registered before (v4.1), run `tools/uninstall-ExplorerBlurMica.bat` first.
+- **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
+- **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify 等所有接入系统媒体控制的播放器。
+- **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
+- **两个可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果和多种新的打开/关闭样式）。
+- **浅色模式**：通知栏和「设置」加了白底并加深文字；开始菜单去掉了液态玻璃的白雾，修好了应用名称不显示。
+- **更像原生**：液态玻璃全部去掉额外描边，圆角与 Windows 一致；「设置」窗口失去焦点也保持透明。
+- **任务栏设置分区**：新增「统一设置」（默认打开），托盘和音量浮窗跟着任务栏一起调。
+- **一键卸载** `uninstall.bat`；部署脚本中英双语，不覆盖你已有的设置和开关；改用 GPL-3.0 许可证。
 
 ---
 
-## 🇨🇳 简体中文
+## Mod 介绍
 
-### 需要什么
+7 个核心 mod 加 2 个可选 mod。**部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。所有 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
 
-- Windows 11。
-- [Windhawk](https://windhawk.net)（建议用最新版）。没装的话，完整包里的 `deploy.bat` 会先打开包内的 Windhawk 安装程序；只含 Mod 的 `_Online` 包需要你先自己装好。
-- 管理员权限（deploy 要写 Windhawk 的系统设置）。
+### ZenDesktop: 任务栏美化
 
-### 快速开始
+给 Windows 11 任务栏换上亚克力、模糊或透明背景，颜色、模糊、不透明度和亮度都可调。
 
-1. 把压缩包**完整解压**到任意文件夹（路径里有空格或中文都可以），不要在压缩软件里直接运行。
-2. 双击 **`deploy.bat`**，在弹出的权限提示里点「是」。窗口最后显示「一键部署完成」后按任意键关闭。
-3. 打开 Windhawk，在「已安装的 Mod」里能看到以 `ZenDesktop:` 开头的几个 mod，**默认都是关闭的**。
-4. 想用哪个就点进去打开开关。Windhawk 提示需要编译时，按提示编译（或进入源码页点右上角「保存并编译」），等几秒即可。
-5. 在每个 mod 的「设置」页调整效果，保存后立即生效。全部调好后建议重启一次电脑。
+- 默认主题「自定义玻璃」，可切换「液态玻璃」及 30 多款社区主题（Dock 风格、Windows 7、Sun Valley 等）。
+- Win+X 菜单、托盘溢出面板、音量/亮度浮窗一起换成玻璃，没有额外描边，圆角与系统一致。
+- 设置按区分组；「统一设置」默认打开，弹窗跟随任务栏背景，关掉可单独调。
+- 可选「最大化时加深背景」：有窗口最大化时，那块屏幕的任务栏自动换成更实的背景。
+- 可选任务栏空白处点击穿透，适合 Dock 风格主题。
+- 核心 mod。基于 m417z 的 Windows 11 Taskbar Styler（GPL-3.0）。
 
-再次运行 `deploy.bat`（比如更新到新版本）是安全的：已打开的 mod 保持打开，已改过的设置不会被覆盖，只会补上新增设置的默认值。
+### ZenDesktop: 任务栏音乐与歌词
 
-### 包含的 Mod
+关掉小组件后，在任务栏左下角放一个音乐小面板：专辑封面、同步歌词和播放按钮。
 
-| Mod | 作用 |
+- 支持 Spotify 等所有接入系统媒体控制的播放器。
+- 歌词来源：网易云音乐、QQ 音乐、LRCLIB；第二行可显示翻译或「歌名 - 歌手」。
+- 上一首／播放暂停／下一首，点封面或文字可切到播放器；歌词默认提前 200 毫秒，可在设置里调偏移。
+- 面板嵌在任务栏里，跟着任务栏移动和自动隐藏，打开新程序时不会闪；没放歌时显示「未在播放」。
+- 可显示 AI 编程助手状态，见下方「AI 工作状态」。
+- 核心 mod。ZenDesktop 原创。使用前请在「设置 → 个性化 → 任务栏」里关掉小组件。
+
+### ZenDesktop: 开始菜单美化
+
+给 Windows 11 开始菜单和搜索页换上亚克力与透明背景。
+
+- 默认主题「自定义玻璃」，另有三款液态玻璃主题和多款社区主题。
+- 颜色、模糊、不透明度、亮度可调；展开的文件夹面板可以单独设置。
+- 可自定义开始菜单宽度和高度；应用名称可设为一直显示、隐藏或悬停显示。
+- 搜索页和开始菜单用同一套玻璃和文字颜色。
+- 浅色模式下液态玻璃不再发白，应用名称正常显示。
+- 核心 mod。基于 m417z 的 Windows 11 Start Menu Styler（GPL-3.0）。
+
+### ZenDesktop: 文件管理器美化
+
+让文件管理器整窗半透明模糊，命令栏、地址栏、标签栏透明，并美化右键菜单。
+
+- 默认主题「ZenDesktop 半透明」，另有「仅透明」主题和原版的社区主题。
+- 色调可从 11 种预设里选，也可以自定义颜色；色调浓度、地址栏和搜索框底色可调。
+- 适配浅色模式；改完设置，已打开的窗口立即刷新。
+- 桌面和文件管理器的新版右键菜单可换成可调磨砂程度的玻璃（默认开启，仍在测试）。
+- 取代 ExplorerBlurMica，**不要两个同时用**。
+- 核心 mod。基于 m417z 的 Windows 11 File Explorer Styler（GPL-3.0）。
+
+### ZenDesktop: 果冻窗口
+
+拖动、缩放或贴靠窗口时，窗口像果冻一样弹性晃动，效果仿照 Compiz 和 KDE Plasma。
+
+- 5 档弹性预设，从最轻到最强。
+- 也可以自定义刚度、速度保持和变形幅度。
+- 拖动、调整大小、贴靠和最大化都有弹性过渡。
+- 需要注入 `dwm.exe`，deploy 已自动加进 Windhawk 的进程包含列表；第一次打开后要重启电脑。
+- **可选 mod**，默认关闭。原作者 lalimatyus（Wobbly Windows，GPL-3.0），本版只做了中文化。
+
+### ZenDesktop: 桌面双击隐藏图标
+
+双击桌面空白处显示或隐藏图标，也可以在电脑闲置时自动隐藏。
+
+- 双击空白处切换；双击文件、文件夹、快捷方式照常打开。
+- 闲置自动隐藏默认开启，5 秒没有键盘鼠标操作就隐藏（3–60 秒可调，也可关掉）。
+- 自动隐藏后动一下鼠标或键盘就恢复；手动隐藏的不会被自动恢复。
+- 不打乱图标排列，资源管理器重启或换显示器后自动重新接上。
+- 核心 mod。ZenDesktop 原创。
+
+### ZenDesktop: 窗口动画
+
+给窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
+
+- 11 种关闭动画：方块碎裂、灭霸响指、柏林溶解、赛博故障、复古电视等。
+- 12 种最小化／还原／启动动画：macOS 神奇效果、Windows 10、墨水飞溅、弹性弹出等。
+- 每组可单独开关、选样式和时长，也可以每次随机。
+- 可按进程名排除指定程序，常见游戏和反作弊程序已默认排除。
+- **可选 mod**，默认关闭。原作者 ReDrag（Windows Animations，MIT），macOS 神奇效果来自 Abdullah Masood 的 macOS Minimize Animation。以前装过独立的「macOS 神奇效果最小化动画」请关掉，否则会播两次。
+
+### ZenDesktop: 设置美化
+
+给 Windows 11「设置」应用换上整窗透明玻璃背景，深色和浅色模式都适配。
+
+- 整窗同一层玻璃，侧栏和内容区没有色差。
+- 主题推荐「自定义玻璃」或「液态玻璃」，也保留了原版布局主题。
+- 窗口失去焦点时保持透明，不会变成纯色。
+- 浅色模式可加一层白底（默认 45%，30%–75% 可调或关闭），侧栏和标题文字更清楚。
+- 背景颜色、模糊、不透明度、亮度可调。
+- 核心 mod。基于 m417z 的 Windows 11 Settings Styler（GPL-3.0）。
+
+### ZenDesktop: 通知栏美化
+
+给通知中心、快捷设置（Win+A）和日历面板换上亚克力与透明背景。
+
+- 默认主题「自定义玻璃」，另有液态玻璃和原版的经典主题。
+- 颜色、模糊、不透明度、亮度预设可调。
+- 浅色模式自动加白底并加深文字，花哨壁纸上也看得清；「对比度增强」有轻、标准、强三档。
+- 支持 24H2 起快捷设置换到 `ShellHost.exe` 的新系统。
+- 核心 mod。基于 m417z 的 Windows 11 Notification Center Styler（GPL-3.0）。
+
+---
+
+## 下载
+
+到 [Releases](https://github.com/Liset999/ZenDesktop/releases) 下载，**三个压缩包选一个**：
+
+| 文件 | 适合谁 |
 |---|---|
-| 任务栏美化 | 任务栏透明/亚克力/液态玻璃，托盘溢出窗口和音量浮窗一起美化 |
-| 开始菜单美化 | 开始菜单与搜索页的透明玻璃效果，可调尺寸 |
-| 通知栏美化 | 通知中心、日历、快捷设置（Win+A）的玻璃效果，适配浅色模式 |
-| 设置美化 | 「设置」应用（Win+I）的玻璃背景，浅色模式可加白底 |
-| 文件管理器美化 | 文件管理器和右键菜单透明，可调色调与文字颜色 |
-| 任务栏音乐与歌词 | 任务栏左下角显示正在播放的歌曲、歌词和播放按钮，可选显示 AI 编程助手状态（见 `tools/ai-status/README.md`） |
-| 桌面双击隐藏图标 | 双击桌面空白处隐藏/显示图标 |
-| 果冻窗口（可选） | 拖动窗口时像果冻一样晃动 |
-| 窗口动画（可选） | 关窗、最小化、还原、启动动画 |
+| `ZenDesktop_OneKeyDeploy_v5.0.0.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
+| `ZenDesktop_OneKeyDeploy_v5.0.0_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
+| `ZenDesktop_OneKeyDeploy_v5.0.0_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
 
-文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先运行 `tools/uninstall-ExplorerBlurMica.bat` 卸载，再启用。
+## 安装
 
-### 卸载与恢复
+需要 Windows 11 和管理员权限。
 
-**一键卸载**：双击 **`uninstall.bat`**，在权限提示里点「是」。它会列出要移除的内容，确认后：
+1. 把压缩包**完整解压**到任意文件夹（路径有空格或中文都可以），不要在压缩软件里直接运行。
+2. 双击 **`deploy.bat`**，在权限提示里点「是」。没装 Windhawk 时，完整包和离线包会先打开包内的安装程序，装完自动继续；`_Online` 包请先从 [windhawk.net](https://windhawk.net) 装好 Windhawk。
+3. 窗口显示「一键部署完成」后按任意键关闭。
+4. 打开 Windhawk →「已安装的 Mod」，以 `ZenDesktop:` 开头的 mod **默认都是关闭的**。点进想用的 mod 打开开关，提示编译时按提示编译，几秒就好。
+5. 在每个 mod 的「设置」页调效果，保存后立即生效。全部调好后建议重启一次电脑。
 
-- 从 Windhawk 移除全部 ZenDesktop mod（包括两个可选 mod 和 v4.1 的「macOS 神奇效果最小化动画」）：mod 源码、编译好的 DLL、Windhawk 里的 mod 记录和设置。
+再次运行 `deploy.bat`（比如更新到新版本）是安全的：已打开的 mod 保持打开，改过的设置不会被覆盖，只补上新增设置的默认值。
+
+想在无人值守安装时直接打开可选 mod：`deploy.bat -Optional "wobbly-windows,windows-animations"`。只会打开列出的 mod，其他 mod 的开关保持原样。
+
+## 从 v4.1 升级
+
+1. 先双击 **`tools/uninstall-ExplorerBlurMica.bat`**，在权限提示里点「是」。它会卸载旧版 ExplorerBlurMica（EBM）并重启资源管理器。
+2. 再运行 `deploy.bat`，原有设置会保留。
+3. 文件管理器的透明效果改由「文件管理器美化」负责，在 Windhawk 里打开它即可。
+4. 以前装过独立的「macOS 神奇效果最小化动画」的，请关掉或删除它，这个效果已并入「窗口动画」。
+
+## AI 工作状态（可选）
+
+「任务栏音乐与歌词」可以显示本机 AI 编程助手当前在做什么。放歌时显示在第二行，没放歌时单独显示；多个助手可以排成一行，也可以轮流显示。
+
+- 支持 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness。
+- 在 PowerShell 里运行一次 `tools\ai-status\install.ps1`，它会把脚本复制到 `%LOCALAPPDATA%\ZenDesktop\ai-status-tools\` 并打印填好路径的配置片段。它不会改你的任何配置文件，片段需要你自己粘贴。
+- 包里已带编译好的 `zen-status.exe`，钩子几毫秒就跑完，不会拖慢助手。
+- 各助手的具体接法见 [tools/ai-status/README.md](tools/ai-status/README.md)。
+- Antigravity 第一次调用 `set_status` 会弹权限确认，请选「Always Allow／总是允许」。
+
+## 卸载
+
+双击 **`uninstall.bat`**，在权限提示里点「是」。它会先列出要删除的内容，确认后：
+
+- 从 Windhawk 移除全部 ZenDesktop mod（包括两个可选 mod 和 v4.1 的「macOS 神奇效果最小化动画」）及其设置。
 - 删除开机自检计划任务（如果用 `-StartupCheck` 装过）。
-- 询问是否删除 `%LOCALAPPDATA%\ZenDesktop`（AI 状态文件和开机自检日志）。
-- 询问是否立即重启资源管理器，让任务栏、开始菜单恢复系统样式。
+- 询问是否删除 `%LOCALAPPDATA%\ZenDesktop`（AI 状态文件和自检日志）。
+- 询问是否重启资源管理器，让任务栏、开始菜单恢复系统样式。
 
-**Windhawk 本身不会被卸载**，你自己装的其他 mod 也不受影响。无人值守时可以运行 `uninstall.bat -Yes`（不提示，保留数据文件夹），加 `-RemoveData` 一并删除数据文件夹。
+**Windhawk 本身不会被卸载**，你自己装的其他 mod 也不受影响。无人值守可以用 `uninstall.bat -Yes`（保留数据文件夹），加 `-RemoveData` 连数据文件夹一起删。
 
-还需要手动处理的：
+还需要手动处理的两处：
 
-1. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程。卸载脚本不会改动这两个列表，想还原请在那里手动删掉。
-2. 接过 AI 状态的，把当时粘贴到各 AI 助手配置里的 `zen-status` 片段删掉。
+1. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程，卸载不会改动，想还原请手动删掉。
+2. 接过 AI 状态的，把当时粘贴到各助手配置里的 `zen-status` 片段删掉。
 
-**从 v4.1 升级**：先双击 **`tools/uninstall-ExplorerBlurMica.bat`**，在权限提示里点「是」，卸载旧版 ExplorerBlurMica（EBM）。它会取消注册 EBM 的 DLL、清掉相关注册表项并重启资源管理器。然后再运行 `deploy.bat`。v4.2 的文件管理器透明由「文件管理器美化」mod 负责，不再需要 EBM。
+只想暂时停用：在 Windhawk 里关掉对应 mod，再运行 `restart_explorer.bat`（或重启电脑）。
 
-只想暂时停用的话，在 Windhawk「已安装的 Mod」里把对应 mod 关掉即可，然后运行 `restart_explorer.bat`（或重启电脑）。
+## 常见问题
+
+- **打开 mod 后没效果**：先确认 mod 已编译成功（Windhawk 里没有报错），再运行 `restart_explorer.bat` 或重启电脑。
+- **文件管理器不透明、命令栏发黑**：只用「文件管理器美化」，不要同时开 ExplorerBlurMica；还注册着 EBM 的，先运行 `tools/uninstall-ExplorerBlurMica.bat`。
+- **开机后托盘图标不透明**：在「任务栏美化」的「高级：XAML 诊断冲突处理」里改成「阻止其他程序」。TranslucentTB 等同类软件会和美化 mod 抢 XAML 诊断，建议不要同时用。
+- **歌词面板不显示或和小组件重叠**：在「设置 → 个性化 → 任务栏」里关掉小组件。
+- **歌词和音乐不同步**：在「任务栏音乐与歌词」设置里调「歌词偏移（毫秒）」，正数让歌词提前，负数推后。
+- **快捷设置（Win+A）没变透明**：24H2 起它在 `ShellHost.exe` 里，确认 Windhawk 高级设置的包含列表里有它，或重新运行一次 `deploy.bat`。
+- **果冻窗口没效果**：打开后需要重启电脑；确认 Windhawk 进程包含列表里有 `dwm.exe`。
+- **最小化动画播了两次**：关掉独立的「macOS 神奇效果最小化动画」，只留「窗口动画」。
+
+问题反馈：[github.com/Liset999/ZenDesktop/issues](https://github.com/Liset999/ZenDesktop/issues)
+
+## 致谢与许可证
+
+ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布。
+
+- [Windhawk](https://windhawk.net) 和任务栏、开始菜单、通知中心、设置、文件管理器的上游 Styler mod：[m417z](https://github.com/m417z)（GPL-3.0）。ZenDesktop 的修改版同样以 GPL-3.0 发布。
+- 内置的社区主题由各自作者贡献，详见各 Windows 11 styling guide 仓库。
+- 果冻窗口：[lalimatyus](https://github.com/lalimatyus/Wobbly-Windows)（GPL-3.0）。
+- 窗口动画：[ReDrag](https://github.com/redrag2105)（MIT）；macOS 神奇效果：Abdullah Masood、Potassiumuncher。
+- 玻璃画刷和控件树监听参考了 [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB)。
+- 歌词数据来自 LRCLIB、网易云音乐、QQ 音乐，版权归原权利人所有。
+
+第三方署名与许可见 [optional/THIRD_PARTY_NOTICES.md](optional/THIRD_PARTY_NOTICES.md) 和 [THIRD_PARTY_NOTICES-taskbar-lyrics.md](THIRD_PARTY_NOTICES-taskbar-lyrics.md)。
+
+## 捐助
+
+如果 ZenDesktop 对你有帮助，可以通过 [爱发电](https://ifdian.net/a/Lanboo) 或微信赞赏支持作者 Lanbo。
+
+<img src="docs/donate-wechat.png" alt="微信赞赏码" width="220">
 
 ---
 
-## 🩺 常见问题 / Troubleshooting
+<a id="english"></a>
 
-- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 ExplorerBlurMica，先运行 `tools/uninstall-ExplorerBlurMica.bat` 卸载。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
+<details>
+<summary><b>English</b></summary>
 
-## 📄 License / 许可证
+ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhawk.net) mods by Lanbo. It gives the taskbar, Start menu, notification center, Settings app and File Explorer a consistent translucent glass look, and adds a taskbar music/lyrics panel that can also show AI coding agent status.
 
-ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布，完整条款见仓库根目录和压缩包里的 `LICENSE`。大部分 mod 基于 m417z 的 GPL-3.0 项目修改，修改版同样以 GPL-3.0 发布。可选的「窗口动画」基于 ReDrag 的 MIT 项目，第三方署名与许可见 `optional/THIRD_PARTY_NOTICES.md` 和 `THIRD_PARTY_NOTICES-taskbar-lyrics.md`。
+**Mods** (all installed disabled; enable the ones you want in Windhawk):
 
-问题反馈：[github.com/Liset999/ZenDesktop/issues](https://github.com/Liset999/ZenDesktop/issues)。
+| Mod | What it does |
+|---|---|
+| 任务栏美化 (Taskbar) | Acrylic/blur/transparent taskbar; Custom Glass (default), Liquid Glass and 30+ community themes; Win+X menu, tray overflow and volume flyout styled too |
+| 任务栏音乐与歌词 (Music & Lyrics) | Media panel in the Widgets slot: album art, synced lyrics (NetEase, QQ Music, LRCLIB), playback buttons; works with Spotify and any player using system media controls; optional AI agent status |
+| 开始菜单美化 (Start menu) | Acrylic/transparent Start menu and search, custom size, separate folder panel settings |
+| 文件管理器美化 (File Explorer) | Translucent Explorer with adjustable tint and transparent chrome; glass context menus (experimental). Replaces ExplorerBlurMica |
+| 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
+| 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
+| 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
+| 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
+| 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
 
-This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details. Bug reports: https://github.com/Liset999/ZenDesktop/issues
+**Install:** download one zip from [Releases](https://github.com/Liset999/ZenDesktop/releases) (standard with Windhawk installer / `_Offline` / `_Online` without Windhawk), extract it, run `deploy.bat` as administrator, then enable mods in Windhawk. Re-running deploy keeps your toggles and settings.
 
-Developed with ❤️ by **Lanbo**.
-Special thanks to:
-* **m417z** for Windhawk and the upstream File Explorer / Taskbar Styler mods.
-* **Maplespe** for historical ExplorerBlurMica work (no longer bundled as the recommended path).
-* **Abdullah Masood & Potassiumuncher** for macOS Minimize Animation.
-* **lalimatyus** for Wobbly Windows (GPL-3.0, optional).
-* **ReDrag** for Windows Animations (MIT, optional).
+**Upgrading from v4.1:** run `tools/uninstall-ExplorerBlurMica.bat` first, then `deploy.bat`.
 
-## 捐助支持
+**AI status:** run `tools\ai-status\install.ps1` and follow [tools/ai-status/README.md](tools/ai-status/README.md). Supports Claude Code, Codex, opencode, Antigravity and DeepSeek Harness.
 
-如果 ZenDesktop 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
+**Uninstall:** run `uninstall.bat`. Windhawk itself is not removed.
 
-- [爱发电](https://ifdian.net/a/Lanboo)
+**License:** [GPL-3.0](LICENSE). Most mods are modified from m417z's GPL-3.0 Windhawk styler mods. Bug reports: [Issues](https://github.com/Liset999/ZenDesktop/issues). Support: [Afdian](https://ifdian.net/a/Lanboo).
 
-![微信赞赏码](docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png
+</details>

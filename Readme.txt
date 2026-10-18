@@ -13,15 +13,19 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 ========================================================================
 包含的 Mod（装好后默认全部关闭，在 Windhawk 里按需打开）
 ========================================================================
-  ZenDesktop: 任务栏美化         任务栏透明/亚克力/液态玻璃
+  ZenDesktop: 任务栏美化         任务栏玻璃背景（默认自定义玻璃，可选液态玻璃等），
+                                 Win+X 菜单、托盘溢出、音量浮窗一起美化
+  ZenDesktop: 任务栏音乐与歌词   任务栏左下角显示封面、歌词和播放按钮，支持 Spotify 等；
+                                 可显示 AI 编程助手状态（需先关掉小组件）
   ZenDesktop: 开始菜单美化       开始菜单与搜索页玻璃效果，可调尺寸
-  ZenDesktop: 通知栏美化         通知中心、日历、快捷设置玻璃效果
-  ZenDesktop: 设置美化           「设置」应用（Win+I）玻璃背景
-  ZenDesktop: 文件管理器美化     文件管理器与右键菜单透明
-  ZenDesktop: 任务栏音乐与歌词   任务栏左下角显示歌曲、歌词和播放按钮
-  ZenDesktop: 桌面双击隐藏图标   双击桌面空白处隐藏/显示图标
-  （可选）果冻窗口               拖动窗口时像果冻一样晃动
-  （可选）窗口动画               关窗、最小化、还原、启动动画
+  ZenDesktop: 文件管理器美化     文件管理器整窗半透明，右键菜单玻璃（测试中），取代 ExplorerBlurMica
+  ZenDesktop: 果冻窗口（可选）   拖动窗口时像果冻一样晃动，打开后需重启电脑
+  ZenDesktop: 桌面双击隐藏图标   双击桌面空白处隐藏/显示图标，闲置时可自动隐藏
+  ZenDesktop: 窗口动画（可选）   关窗、最小化、还原、启动、Alt+Tab 动画，含 macOS 神奇效果
+  ZenDesktop: 设置美化           「设置」应用（Win+I）玻璃背景，失焦不变纯色，浅色模式可加白底
+  ZenDesktop: 通知栏美化         通知中心、日历、快捷设置玻璃效果，浅色模式加白底
+
+  每个 mod 的详细介绍见 README.md。
 
 ========================================================================
 安装步骤
@@ -41,7 +45,7 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 
 从 v4.1 升级：先双击 tools\uninstall-ExplorerBlurMica.bat（会请求管理员权限），
 卸载旧版 ExplorerBlurMica（EBM），它会自动重启资源管理器；然后再运行 deploy.bat。
-v4.2 的文件管理器透明改由「文件管理器美化」mod 负责，不再需要 EBM。
+v5.0 的文件管理器透明改由「文件管理器美化」mod 负责，不再需要 EBM。
 
 ========================================================================
 卸载与恢复
@@ -91,3 +95,9 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
 - 各 mod 的详细许可见其说明中的「致谢与许可」，第三方许可见 optional\THIRD_PARTY_NOTICES.md。
 - ZenDesktop 以 GPL-3.0 发布，许可证全文见 LICENSE。
 ========================================================================
+
+English: ZenDesktop is a Windows 11 styling suite of 9 Windhawk mods.
+Extract the zip, run deploy.bat as administrator, then enable the mods you
+want in Windhawk (all are installed disabled). Upgrading from v4.1: run
+tools\uninstall-ExplorerBlurMica.bat first. Uninstall: run uninstall.bat.
+See README.md for details. License: GPL-3.0.
