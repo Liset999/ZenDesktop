@@ -74,10 +74,19 @@ if ((-not $useExe) -and $hookDirCmd.Contains(' ')) {
     Write-Host '         Use zen-status.exe from a folder without spaces, or the Antigravity hooks will fail.'
 }
 
+# DeepSeek Harness (dsh) runs hook commands as "pwsh -Command <command>" on Windows, so the command is
+# PowerShell code: call the exe with the & operator and a single-quoted path (spaces are fine, no 8.3 needed).
+$psExeCmd = "& '" + $exeDst.Replace("'", "''") + "'"
+$psHookCmd = "& powershell.exe -NoProfile -ExecutionPolicy Bypass -File '" + (Join-Path $dst 'agent-hook.ps1').Replace("'", "''") + "'"
+# Single-quoted YAML scalar (dsh cordis.patch.yml): backslashes stay literal, ' is doubled.
+$yamlDir = $dst.Replace("'", "''")
+
 $jsonPath = $dst.Replace('\', '\\')
 $jsonExe = $exeCmd.Replace('\', '\\').Replace('"', '\"')
 $jsonAgyExe = $agyExeCmd.Replace('\', '\\')
 $jsonHookDir = $hookDirCmd.Replace('\', '\\')
+$jsonPsExe = $psExeCmd.Replace('\', '\\').Replace('"', '\"')
+$jsonPsHook = $psHookCmd.Replace('\', '\\').Replace('"', '\"')
 $utf8 = New-Object Text.UTF8Encoding $false
 if ($useExe) { $sfx = '' } else { $sfx = '-powershell' }
 $map = @(
@@ -86,11 +95,14 @@ $map = @(
     @('codex\config-snippet.toml', 'codex-config.toml'),
     @('opencode\opencode-snippet.json', 'opencode.json'),
     @('antigravity\mcp_config-snippet.json', 'antigravity-mcp_config.json'),
-    @("antigravity\hooks$sfx.json", 'antigravity-hooks.json')
+    @("antigravity\hooks$sfx.json", 'antigravity-hooks.json'),
+    @('deepseek-harness\cordis.patch-snippet.yml', 'deepseek-harness-cordis.patch.yml'),
+    @("deepseek-harness\hooks$sfx.json", 'deepseek-harness-hooks.json'),
+    @('deepseek-harness\hooks-cordis.patch-snippet.yml', 'deepseek-harness-hooks-cordis.patch.yml')
 )
 foreach ($m in $map) {
     $text = [IO.File]::ReadAllText((Join-Path $src $m[0]), [Text.Encoding]::UTF8)
-    $text = $text.Replace('__AGY_EXE__', $jsonAgyExe).Replace('__HOOK_DIR__', $jsonHookDir).Replace('__ZEN_EXE__', $jsonExe).Replace('__TOOLS_DIR_RAW__', $dst).Replace('__TOOLS_DIR__', $jsonPath)
+    $text = $text.Replace('__PS_EXE__', $jsonPsExe).Replace('__PS_HOOK__', $jsonPsHook).Replace('__TOOLS_DIR_SQ__', $yamlDir).Replace('__AGY_EXE__', $jsonAgyExe).Replace('__HOOK_DIR__', $jsonHookDir).Replace('__ZEN_EXE__', $jsonExe).Replace('__TOOLS_DIR_RAW__', $dst).Replace('__TOOLS_DIR__', $jsonPath)
     [IO.File]::WriteAllText((Join-Path $snip $m[1]), $text, $utf8)
 }
 Copy-Item -LiteralPath (Join-Path $src 'AGENTS-snippet.md') -Destination $snip -Force
@@ -115,6 +127,13 @@ Write-Host ('  Rules: snippets\GEMINI-snippet.md  ->  append to ' + (Join-Path $
 foreach ($t in (Join-Path $home2 '.gemini\config\mcp_config.json'), (Join-Path $home2 '.gemini\config\hooks.json')) {
     if (Test-Path -LiteralPath $t) { Write-Host ('  exists, merge by hand: ' + $t) }
 }
+Write-Host ''
+Write-Host 'DeepSeek Harness / dsh (nothing was changed, merge these yourself):'
+Write-Host ('  MCP:   the "- insert:" item from snippets\deepseek-harness-cordis.patch.yml  ->  ' + (Join-Path $home2 '.dsh\cordis.patch.yml'))
+Write-Host '         (or $DSH_HOME\cordis.patch.yml; start a NEW session after dsh reloads)'
+Write-Host ('  Rules: snippets\AGENTS-snippet.md  ->  append to ' + (Join-Path $home2 '.dsh\AGENTS.md'))
+Write-Host '  Hooks (optional, experimental): see snippets\deepseek-harness-hooks-cordis.patch.yml'
+if (Test-Path -LiteralPath (Join-Path $home2 '.dsh\cordis.patch.yml')) { Write-Host ('  exists, merge by hand: ' + (Join-Path $home2 '.dsh\cordis.patch.yml')) }
 Write-Host ''
 Write-Host 'First set_status call: if your IDE/CLI asks for permission, choose "Always Allow",'
 Write-Host 'otherwise every status update interrupts you.'
