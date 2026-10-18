@@ -348,8 +348,34 @@ foreach ($file in $files) {
 
     if ($id -eq "local@zen-taskbar-acrylic") {
         $label = "Taskbar"
-        Set-RegValueIfMissing $settingsPath "theme" "AppleLiquidGlass" String $label
-        Set-RegValueIfMissing $settingsPath "maximizedTaskbarLayer" 0 DWord $label
+        # 4.2.6 grouped the settings. Copy values saved under the old flat keys
+        # to the grouped keys that are still missing; never overwrite.
+        $taskbarKeyMap = [ordered]@{
+            "theme" = "look.theme"; "bgColorMode" = "look.bgColorMode"; "textColorMode" = "look.textColorMode"
+            "blurPreset" = "taskbar.blurPreset"; "opacityPreset" = "taskbar.opacityPreset"; "luminosityPreset" = "taskbar.luminosityPreset"
+            "trayBlurPreset" = "tray.blurPreset"; "trayOpacityPreset" = "tray.opacityPreset"; "trayLuminosityPreset" = "tray.luminosityPreset"
+            "volumeBlurPreset" = "volume.blurPreset"; "volumeOpacityPreset" = "volume.opacityPreset"; "volumeLuminosityPreset" = "volume.luminosityPreset"
+            "maximizedTaskbarLayer" = "maximized.enabled"; "maximizedLayerBlur" = "maximized.blur"
+            "maximizedLayerOpacity" = "maximized.opacity"; "maximizedLayerLuminosity" = "maximized.luminosity"
+        }
+        if (Test-Path $settingsPath) {
+            $existing = Get-ItemProperty -Path $settingsPath -ErrorAction SilentlyContinue
+            $hadLegacy = $existing -and ($null -ne $existing.PSObject.Properties["bgColorMode"])
+            foreach ($oldKey in $taskbarKeyMap.Keys) {
+                $prop = if ($existing) { $existing.PSObject.Properties[$oldKey] } else { $null }
+                if ($null -ne $prop) {
+                    $kind = (Get-Item $settingsPath).GetValueKind($oldKey)
+                    $type = if ($kind -eq "DWord") { "DWord" } else { "String" }
+                    Set-RegValueIfMissing $settingsPath $taskbarKeyMap[$oldKey] $prop.Value $type $label
+                }
+            }
+            # Old saves had no unify option; keep their separate flyout values.
+            if ($hadLegacy) {
+                Set-RegValueIfMissing $settingsPath "unifyFlyouts" 0 DWord $label
+            }
+        }
+        Set-RegValueIfMissing $settingsPath "look.theme" "AppleLiquidGlass" String $label
+        Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
     }
 
     if ($id -eq "local@macos-minimize-animation") {

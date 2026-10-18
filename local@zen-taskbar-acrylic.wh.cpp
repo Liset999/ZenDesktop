@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.5
+// @version         4.2.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -33,16 +33,21 @@
 ## 功能
 
 - 背景颜色、模糊、不透明度、亮度预设，可与任意内置主题搭配。
-- 托盘溢出图标面板、音量/亮度浮窗使用独立的玻璃参数。
+- 设置按区分组；「统一设置」开启时，托盘溢出面板和音量/亮度浮窗跟随任务栏背景，关闭后可单独调节。
 - 可选「最大化时加深背景」：某个显示器上有最大化窗口时，该显示器的任务栏改用更实的背景。
 - 文字颜色与其他 ZenDesktop mod 共用同一套选项。
 - 可选任务栏空白处点击穿透，适合 Dock 风格主题。
 
 ## 设置说明
 
-- **主题**：默认「液态玻璃」。其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
-- **溢出面板 / 音量/亮度浮窗**：分别对应托盘图标放不下时弹出的面板，以及调节音量、亮度时出现的滑条。
-- **最大化时加深背景**：开启后，下方三项「最大化时」参数才生效；切换到其他虚拟桌面的窗口不计入。
+设置分为以下几个区：
+
+- **主题与文字**：主题、背景颜色、文字颜色。主题默认「液态玻璃」，其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
+- **任务栏背景**：模糊、不透明度、亮度。主要作用于「自定义玻璃」等使用通用背景的主题；液态玻璃使用自己的固定参数，这几项基本不起作用。
+- **统一设置**：默认开启，托盘溢出面板和音量/亮度浮窗跟随「任务栏背景」的三项，下方两个区被忽略。想单独调节时关闭。
+- **托盘溢出面板 / 音量/亮度浮窗**：分别对应托盘图标放不下时弹出的面板，以及调节音量、亮度时出现的滑条。仅在关闭「统一设置」后生效。
+- **最大化时**：开启「最大化时加深背景」后，下方三项才生效；切换到其他虚拟桌面的窗口不计入。同样主要作用于「自定义玻璃」类主题。
+- **旧版设置**：4.2.5 及更早版本保存的设置会继续生效（此时「统一设置」视为关闭，保留原来单独调的弹窗参数），直到在设置页保存一次，之后改用新的分组设置。
 - **高级：XAML 诊断冲突处理**：默认允许其他程序共存；开机后托盘图标不透明时可改为「阻止其他程序」。
 - **高级：样式常量 / 控件样式 / 资源变量**：用于编写自定义样式，语法见文末附录。一般无需修改。
 
@@ -54,11 +59,11 @@
 
 ## 更新日志
 
+- **4.2.6**：设置按区分组（主题与文字、任务栏背景、托盘溢出面板、音量/亮度浮窗、最大化时、高级），新增「统一设置」让弹窗跟随任务栏背景；旧版保存的设置继续生效。
 - **4.2.5**：Win+X 菜单和托盘溢出面板去掉额外描边，圆角跟 Windows 自带一致（自定义玻璃和液态玻璃主题都适用）；默认主题改为「液态玻璃」，已选的主题不变。
 - **4.2.4**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.2.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与开始菜单/通知中心对齐。
 - **4.2.1**：规范设置界面与说明文字，行为不变。
-- **4.2.0**：改用上游 v1.10 为基础；重写最大化状态层，按显示器和虚拟桌面判断；新增点击穿透；设置缺失时使用默认值。
 
 ## 致谢与许可
 
@@ -555,271 +560,301 @@ from the **TranslucentTB** project.
 
 // ==WindhawkModSettings==
 /*
-- theme: "AppleLiquidGlass"
-  $name: "Theme"
-  $name:zh-CN: "主题"
-  $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Liquid Glass."
-  $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为液态玻璃。"
-  $options:
-  - "": "无"
-  - TranslucentTaskbar: "自定义玻璃（Custom Glass）"
-  - WindowGlass: "圆角分段小组件布局（Window Glass Layout）"
-  - TintedGlass: "着色玻璃经典布局（Tinted Glass Layout）"
-  - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
-  - AppleLiquidGlassClassic: "液态玻璃 - 经典（Liquid Glass Classic）"
-  - SimplyTransparent: "纯粹透明（Simply Transparent）"
-  - TaskbarXII: "任务栏 XII（Taskbar XII）"
-  - Windows7: "Windows 7 风格"
-  - WinXP: "Windows XP 风格"
-  - LiquidGlass: "液态琉璃（LiquidGlass）"
-  - LiquidGlass_variant_Alternate: "液态琉璃 - 备选（LiquidGlass Alt）"
-  - AppleLiquidGlass_variant_Alternate: "液态玻璃 - 备选（Liquid Glass Alt）"
-  - AppleLiquidGlassClassic_variant_Alternate: "液态经典 - 备选（Liquid Classic Alt）"
-  - Borderless: "无边框（Borderless）"
-  - DockLike: "Dock 风格（DockLike）"
-  - Squircle: "圆角方块（Squircle）"
-  - Bubbles: "气泡风格（Bubbles）"
-  - Fluid: "流体风格（Fluid）"
-  - Surface: "Surface 风格"
-  - Aeris: "Aeris 风格"
-  - Plasma: "Plasma 风格"
-  - WinVista: "Windows Vista 风格（WinVista）"
-  - WinXP_variant_Zune: "Zune 风格（WinXP Zune）"
-  - SunValley: "Sun Valley 风格"
-  - 21996Taskbar: "Sun Valley 经典（SunValley Legacy）"
-  - CleanSlate: "干净简约（CleanSlate）"
-  - Lucent: "透明流光（Lucent）"
-  - Lucent_variant_Light: "透明流光 - 浅色（Lucent Light）"
-  - RosePine: "玫瑰松（RosePine）"
-  - xdark: "极暗（xdark）"
-  - WindowGlass_variant_Split: "窗口玻璃 - 分离（WindowGlass Split）"
-  - WindowGlass_variant_FullLength: "窗口玻璃 - 全长（WindowGlass Full）"
-  - Oversimplified&Accentuated: "极简强调（Oversimplified）"
-  - Luminosity_variant_Dock: "光度 - Dock（Luminosity Dock）"
-  - Luminosity_variant_Classic: "光度 - 经典（Luminosity Classic）"
-  - Luminosity_variant_Compact: "光度 - 紧凑（Luminosity Compact）"
-  - LayerMicaUI: "层叠云母（LayerMicaUI）"
-  - BottomDensy: "底部紧凑（BottomDensy）"
-  - BottomDensy_variant_NoInd: "底部紧凑 - 无指示（BottomDensy NoInd）"
-  - TaskbarToStatusbar: "状态栏化（TaskbarToStatusbar）"
-  - UltraWideFriendly: "超宽屏适配（UltraWideFriendly）"
-  - LiquidGlass2: "液态琉璃 2（LiquidGlass 2）"
-  - Command_Center: "控制中心（Command Center）"
-  - FluentGlass: "Fluent 玻璃（FluentGlass）"
-  - OS26_Liquid_Glass_variant_ClearMacDock: "OS26 液态玻璃 - 透明 Dock（Clear MacDock）"
-  - OS26_Liquid_Glass_variant_ClearMacDockCompact: "OS26 液态玻璃 - 透明紧凑 Dock（Clear MacDock Compact）"
-  - OS26_Liquid_Glass_variant_ClearTaskbar: "OS26 液态玻璃 - 透明任务栏（Clear Taskbar）"
-  - OS26_Liquid_Glass_variant_DarkMacDock: "OS26 液态玻璃 - 深色 Dock（Dark MacDock）"
-  - OS26_Liquid_Glass_variant_DarkMacDockCompact: "OS26 液态玻璃 - 深色紧凑 Dock（Dark MacDock Compact）"
-  - OS26_Liquid_Glass_variant_DarkTaskbar: "OS26 液态玻璃 - 深色任务栏（Dark Taskbar）"
-  - FrostyGlass: "霜雾玻璃（FrostyGlass）"
-  - FrostedAcrylic: "磨砂亚克力（FrostedAcrylic）"
-  - Pills: "胶囊（Pills）"
-  - Blob: "团块（Blob）"
-  - Minecraft_Hotbar: "我的世界快捷栏（Minecraft Hotbar）"
-  - One_UI_8_5_variant_Dock: "One UI 8.5 - Dock"
-  - One_UI_8_5_variant_Taskbar: "One UI 8.5 - 任务栏（Taskbar）"
-- bgColorMode: "Default"
-  $name: "Background color"
-  $name:zh-CN: "背景颜色"
-  $description: "Base tint of the background. \"Theme default\" uses the color built into the selected theme."
-  $description:zh-CN: "背景的基础色调。选「主题默认」时使用所选主题自带的颜色。"
-  $options:
-    - Default: "主题默认"
-    - Accent: "系统强调色"
-    - GlassWhite: "透白"
-    - MistGrey: "雾灰"
-    - DeepBlack: "深黑"
-    - OceanBlue: "海蓝"
-    - AuroraCyan: "极光青"
-    - RosePink: "玫瑰粉"
-    - BordeauxRed: "酒红"
-    - ForestGreen: "森林绿"
-    - RoyalPurple: "皇家紫"
-    - SunsetOrange: "落日橙"
-    - ChampagneGold: "香槟金"
-    - MorandiSage: "莫兰迪绿"
-- blurPreset: 30
-  $name: "Blur"
-  $name:zh-CN: "模糊"
-  $description: "Background blur strength, 0–60. Larger is blurrier."
-  $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
-- opacityPreset: 50
-  $name: "Opacity"
-  $name:zh-CN: "不透明度"
-  $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
-  $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
-- luminosityPreset: 20
-  $name: "Luminosity"
-  $name:zh-CN: "亮度"
-  $description: "Luminosity layer strength of the background, 0–150."
-  $description:zh-CN: "背景亮度层的强度，范围 0–150。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
-- textColorMode: "default"
-  $name: "Text color"
-  $name:zh-CN: "文字颜色"
-  $description: "Color of text and icons. Change it when text is hard to read on the current background."
-  $description:zh-CN: "文字与图标的颜色。当前背景下文字看不清时可以切换。"
-  $options:
-    - default: "主题默认"
-    - white: "白色"
-    - dark: "深色"
-    - system: "跟随系统"
-    - red: "红色"
-    - green: "绿色"
-    - blue: "蓝色"
-    - yellow: "黄色"
-    - orange: "橙色"
-    - purple: "紫色"
-    - pink: "粉色"
-    - cyan: "青色"
-- trayOpacityPreset: 50
-  $name: "Overflow panel: opacity"
-  $name:zh-CN: "溢出面板：不透明度"
-  $description: "Fill strength of the overflow icon panel (the flyout shown when tray icons do not fit, not the clock), 0–100%. Default: 50%."
-  $description:zh-CN: "溢出图标面板（托盘图标放不下时弹出的面板，不是时钟）的颜色浓度，范围 0–100%。默认 50%。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
-- trayLuminosityPreset: 20
-  $name: "Overflow panel: luminosity"
-  $name:zh-CN: "溢出面板：亮度"
-  $description: "Luminosity layer strength of the overflow icon panel, 0–150. Default: 20."
-  $description:zh-CN: "溢出图标面板亮度层的强度，范围 0–150。默认 20。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
-- trayBlurPreset: 30
-  $name: "Overflow panel: blur"
-  $name:zh-CN: "溢出面板：模糊"
-  $description: "Blur strength of the overflow icon panel, independent of the taskbar, 0–60. Default: 30."
-  $description:zh-CN: "溢出图标面板的模糊强度，独立于任务栏本身，范围 0–60。默认 30。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
-- volumeOpacityPreset: 50
-  $name: "Volume/brightness OSD: opacity"
-  $name:zh-CN: "音量/亮度浮窗：不透明度"
-  $description: "Fill strength of the slider shown when changing volume or brightness (not the Win+A panel), 0–100%. Default: 50%."
-  $description:zh-CN: "调节音量或亮度时弹出的滑条（不是 Win+A 面板）的颜色浓度，范围 0–100%。默认 50%。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
-- volumeLuminosityPreset: 20
-  $name: "Volume/brightness OSD: luminosity"
-  $name:zh-CN: "音量/亮度浮窗：亮度"
-  $description: "Luminosity layer strength of the volume/brightness slider, 0–150. Default: 20."
-  $description:zh-CN: "音量/亮度滑条亮度层的强度，范围 0–150。默认 20。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
-- volumeBlurPreset: 30
-  $name: "Volume/brightness OSD: blur"
-  $name:zh-CN: "音量/亮度浮窗：模糊"
-  $description: "Blur strength of the volume/brightness slider, 0–60. Default: 30."
-  $description:zh-CN: "音量/亮度滑条的模糊强度，范围 0–60。默认 30。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
-- maximizedTaskbarLayer: false
-  $name: "Maximized window layer"
-  $name:zh-CN: "最大化时加深背景"
-  $description: "When a monitor has a maximized window, its taskbar switches to the denser background defined by the three settings below. Default: off."
-  $description:zh-CN: "某个显示器上有最大化窗口时，该显示器的任务栏改用下方三项定义的更实的背景。默认关闭。"
-- maximizedLayerOpacity: 72
-  $name: "Maximized: opacity"
-  $name:zh-CN: "最大化时：不透明度"
-  $description: "Used only when the maximized window layer is on, 0–100%. Default: 72%."
-  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–100%。默认 72%。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 72: "72%：较厚"
-    - 85: "85%：厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
-- maximizedLayerLuminosity: 20
-  $name: "Maximized: luminosity"
-  $name:zh-CN: "最大化时：亮度"
-  $description: "Used only when the maximized window layer is on, 0–150. Default: 20."
-  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–150。默认 20。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
-- maximizedLayerBlur: 24
-  $name: "Maximized: blur"
-  $name:zh-CN: "最大化时：模糊"
-  $description: "Used only when the maximized window layer is on, 0–60. Default: 24."
-  $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–60。默认 24。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 24: "24：中等偏强"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
+- look:
+    - theme: "AppleLiquidGlass"
+      $name: "Theme"
+      $name:zh-CN: "主题"
+      $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Liquid Glass."
+      $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为液态玻璃。"
+      $options:
+      - "": "无"
+      - TranslucentTaskbar: "自定义玻璃（Custom Glass）"
+      - WindowGlass: "圆角分段小组件布局（Window Glass Layout）"
+      - TintedGlass: "着色玻璃经典布局（Tinted Glass Layout）"
+      - AppleLiquidGlass: "液态玻璃（Liquid Glass）"
+      - AppleLiquidGlassClassic: "液态玻璃 - 经典（Liquid Glass Classic）"
+      - SimplyTransparent: "纯粹透明（Simply Transparent）"
+      - TaskbarXII: "任务栏 XII（Taskbar XII）"
+      - Windows7: "Windows 7 风格"
+      - WinXP: "Windows XP 风格"
+      - LiquidGlass: "液态琉璃（LiquidGlass）"
+      - LiquidGlass_variant_Alternate: "液态琉璃 - 备选（LiquidGlass Alt）"
+      - AppleLiquidGlass_variant_Alternate: "液态玻璃 - 备选（Liquid Glass Alt）"
+      - AppleLiquidGlassClassic_variant_Alternate: "液态经典 - 备选（Liquid Classic Alt）"
+      - Borderless: "无边框（Borderless）"
+      - DockLike: "Dock 风格（DockLike）"
+      - Squircle: "圆角方块（Squircle）"
+      - Bubbles: "气泡风格（Bubbles）"
+      - Fluid: "流体风格（Fluid）"
+      - Surface: "Surface 风格"
+      - Aeris: "Aeris 风格"
+      - Plasma: "Plasma 风格"
+      - WinVista: "Windows Vista 风格（WinVista）"
+      - WinXP_variant_Zune: "Zune 风格（WinXP Zune）"
+      - SunValley: "Sun Valley 风格"
+      - 21996Taskbar: "Sun Valley 经典（SunValley Legacy）"
+      - CleanSlate: "干净简约（CleanSlate）"
+      - Lucent: "透明流光（Lucent）"
+      - Lucent_variant_Light: "透明流光 - 浅色（Lucent Light）"
+      - RosePine: "玫瑰松（RosePine）"
+      - xdark: "极暗（xdark）"
+      - WindowGlass_variant_Split: "窗口玻璃 - 分离（WindowGlass Split）"
+      - WindowGlass_variant_FullLength: "窗口玻璃 - 全长（WindowGlass Full）"
+      - Oversimplified&Accentuated: "极简强调（Oversimplified）"
+      - Luminosity_variant_Dock: "光度 - Dock（Luminosity Dock）"
+      - Luminosity_variant_Classic: "光度 - 经典（Luminosity Classic）"
+      - Luminosity_variant_Compact: "光度 - 紧凑（Luminosity Compact）"
+      - LayerMicaUI: "层叠云母（LayerMicaUI）"
+      - BottomDensy: "底部紧凑（BottomDensy）"
+      - BottomDensy_variant_NoInd: "底部紧凑 - 无指示（BottomDensy NoInd）"
+      - TaskbarToStatusbar: "状态栏化（TaskbarToStatusbar）"
+      - UltraWideFriendly: "超宽屏适配（UltraWideFriendly）"
+      - LiquidGlass2: "液态琉璃 2（LiquidGlass 2）"
+      - Command_Center: "控制中心（Command Center）"
+      - FluentGlass: "Fluent 玻璃（FluentGlass）"
+      - OS26_Liquid_Glass_variant_ClearMacDock: "OS26 液态玻璃 - 透明 Dock（Clear MacDock）"
+      - OS26_Liquid_Glass_variant_ClearMacDockCompact: "OS26 液态玻璃 - 透明紧凑 Dock（Clear MacDock Compact）"
+      - OS26_Liquid_Glass_variant_ClearTaskbar: "OS26 液态玻璃 - 透明任务栏（Clear Taskbar）"
+      - OS26_Liquid_Glass_variant_DarkMacDock: "OS26 液态玻璃 - 深色 Dock（Dark MacDock）"
+      - OS26_Liquid_Glass_variant_DarkMacDockCompact: "OS26 液态玻璃 - 深色紧凑 Dock（Dark MacDock Compact）"
+      - OS26_Liquid_Glass_variant_DarkTaskbar: "OS26 液态玻璃 - 深色任务栏（Dark Taskbar）"
+      - FrostyGlass: "霜雾玻璃（FrostyGlass）"
+      - FrostedAcrylic: "磨砂亚克力（FrostedAcrylic）"
+      - Pills: "胶囊（Pills）"
+      - Blob: "团块（Blob）"
+      - Minecraft_Hotbar: "我的世界快捷栏（Minecraft Hotbar）"
+      - One_UI_8_5_variant_Dock: "One UI 8.5 - Dock"
+      - One_UI_8_5_variant_Taskbar: "One UI 8.5 - 任务栏（Taskbar）"
+    - bgColorMode: "Default"
+      $name: "Background color"
+      $name:zh-CN: "背景颜色"
+      $description: "Base tint of the background. \"Theme default\" uses the color built into the selected theme."
+      $description:zh-CN: "背景的基础色调。选「主题默认」时使用所选主题自带的颜色。"
+      $options:
+        - Default: "主题默认"
+        - Accent: "系统强调色"
+        - GlassWhite: "透白"
+        - MistGrey: "雾灰"
+        - DeepBlack: "深黑"
+        - OceanBlue: "海蓝"
+        - AuroraCyan: "极光青"
+        - RosePink: "玫瑰粉"
+        - BordeauxRed: "酒红"
+        - ForestGreen: "森林绿"
+        - RoyalPurple: "皇家紫"
+        - SunsetOrange: "落日橙"
+        - ChampagneGold: "香槟金"
+        - MorandiSage: "莫兰迪绿"
+    - textColorMode: "default"
+      $name: "Text color"
+      $name:zh-CN: "文字颜色"
+      $description: "Color of text and icons. Change it when text is hard to read on the current background."
+      $description:zh-CN: "文字与图标的颜色。当前背景下文字看不清时可以切换。"
+      $options:
+        - default: "主题默认"
+        - white: "白色"
+        - dark: "深色"
+        - system: "跟随系统"
+        - red: "红色"
+        - green: "绿色"
+        - blue: "蓝色"
+        - yellow: "黄色"
+        - orange: "橙色"
+        - purple: "紫色"
+        - pink: "粉色"
+        - cyan: "青色"
+  $name: "Theme and text"
+  $name:zh-CN: "主题与文字"
+  $description: "Overall theme, background tint and text color."
+  $description:zh-CN: "整体主题、背景色调和文字颜色。"
+- taskbar:
+    - blurPreset: 30
+      $name: "Blur"
+      $name:zh-CN: "模糊"
+      $description: "Background blur strength, 0–60. Larger is blurrier."
+      $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
+      $options:
+        - 0: "0：不模糊"
+        - 10: "10：轻微"
+        - 20: "20：中等"
+        - 30: "30：较强"
+        - 45: "45：强"
+        - 60: "60：最强"
+    - opacityPreset: 50
+      $name: "Opacity"
+      $name:zh-CN: "不透明度"
+      $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
+      $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
+      $options:
+        - 0: "0%：完全透明"
+        - 10: "10%：很薄"
+        - 25: "25%：较薄"
+        - 50: "50%：适中"
+        - 75: "75%：较厚"
+        - 90: "90%：很厚"
+        - 100: "100%：完全不透明"
+    - luminosityPreset: 20
+      $name: "Luminosity"
+      $name:zh-CN: "亮度"
+      $description: "Luminosity layer strength of the background, 0–150."
+      $description:zh-CN: "背景亮度层的强度，范围 0–150。"
+      $options:
+        - 0: "0：最低"
+        - 20: "20：低"
+        - 25: "25：较低"
+        - 50: "50：中"
+        - 75: "75：较高"
+        - 100: "100：标准"
+        - 125: "125：高"
+        - 150: "150：最高"
+  $name: "Taskbar background"
+  $name:zh-CN: "任务栏背景"
+  $description: "Blur, opacity and luminosity of the taskbar background. Mainly for Custom Glass and other themes that use the shared background; Liquid Glass uses its own fixed values."
+  $description:zh-CN: "任务栏背景的模糊、不透明度和亮度。主要作用于「自定义玻璃」等使用通用背景的主题，液态玻璃使用自己的固定参数，这几项基本不起作用。"
+- unifyFlyouts: true
+  $name: "Unify flyouts"
+  $name:zh-CN: "统一设置"
+  $description: "The overflow panel and the volume/brightness OSD use the taskbar background's blur, opacity and luminosity; their own groups below are ignored. Default: on."
+  $description:zh-CN: "托盘溢出面板和音量/亮度浮窗跟随「任务栏背景」的模糊、不透明度和亮度，下方两组各自的设置被忽略。默认开启。"
+- tray:
+    - blurPreset: 30
+      $name: "Blur"
+      $name:zh-CN: "模糊"
+      $description: "Blur strength of the overflow icon panel, independent of the taskbar, 0–60. Default: 30."
+      $description:zh-CN: "溢出图标面板的模糊强度，独立于任务栏本身，范围 0–60。默认 30。"
+      $options:
+        - 0: "0：不模糊"
+        - 10: "10：轻微"
+        - 20: "20：中等"
+        - 30: "30：较强"
+        - 45: "45：强"
+        - 60: "60：最强"
+    - opacityPreset: 50
+      $name: "Opacity"
+      $name:zh-CN: "不透明度"
+      $description: "Fill strength of the overflow icon panel (the flyout shown when tray icons do not fit, not the clock), 0–100%. Default: 50%."
+      $description:zh-CN: "溢出图标面板（托盘图标放不下时弹出的面板，不是时钟）的颜色浓度，范围 0–100%。默认 50%。"
+      $options:
+        - 0: "0%：完全透明"
+        - 10: "10%：很薄"
+        - 25: "25%：较薄"
+        - 50: "50%：适中"
+        - 75: "75%：较厚"
+        - 90: "90%：很厚"
+        - 100: "100%：完全不透明"
+    - luminosityPreset: 20
+      $name: "Luminosity"
+      $name:zh-CN: "亮度"
+      $description: "Luminosity layer strength of the overflow icon panel, 0–150. Default: 20."
+      $description:zh-CN: "溢出图标面板亮度层的强度，范围 0–150。默认 20。"
+      $options:
+        - 0: "0：最低"
+        - 20: "20：低"
+        - 25: "25：较低"
+        - 50: "50：中"
+        - 75: "75：较高"
+        - 100: "100：标准"
+        - 125: "125：高"
+        - 150: "150：最高"
+  $name: "Overflow panel"
+  $name:zh-CN: "托盘溢出面板"
+  $description: "The panel shown when tray icons do not fit (not the clock). Ignored while \"Unify flyouts\" is on."
+  $description:zh-CN: "托盘图标放不下时弹出的面板（不是时钟）。开启「统一设置」时忽略此组。"
+- volume:
+    - blurPreset: 30
+      $name: "Blur"
+      $name:zh-CN: "模糊"
+      $description: "Blur strength of the volume/brightness slider, 0–60. Default: 30."
+      $description:zh-CN: "音量/亮度滑条的模糊强度，范围 0–60。默认 30。"
+      $options:
+        - 0: "0：不模糊"
+        - 10: "10：轻微"
+        - 20: "20：中等"
+        - 30: "30：较强"
+        - 45: "45：强"
+        - 60: "60：最强"
+    - opacityPreset: 50
+      $name: "Opacity"
+      $name:zh-CN: "不透明度"
+      $description: "Fill strength of the slider shown when changing volume or brightness (not the Win+A panel), 0–100%. Default: 50%."
+      $description:zh-CN: "调节音量或亮度时弹出的滑条（不是 Win+A 面板）的颜色浓度，范围 0–100%。默认 50%。"
+      $options:
+        - 0: "0%：完全透明"
+        - 10: "10%：很薄"
+        - 25: "25%：较薄"
+        - 50: "50%：适中"
+        - 75: "75%：较厚"
+        - 90: "90%：很厚"
+        - 100: "100%：完全不透明"
+    - luminosityPreset: 20
+      $name: "Luminosity"
+      $name:zh-CN: "亮度"
+      $description: "Luminosity layer strength of the volume/brightness slider, 0–150. Default: 20."
+      $description:zh-CN: "音量/亮度滑条亮度层的强度，范围 0–150。默认 20。"
+      $options:
+        - 0: "0：最低"
+        - 20: "20：低"
+        - 25: "25：较低"
+        - 50: "50：中"
+        - 75: "75：较高"
+        - 100: "100：标准"
+        - 125: "125：高"
+        - 150: "150：最高"
+  $name: "Volume/brightness OSD"
+  $name:zh-CN: "音量/亮度浮窗"
+  $description: "The slider shown when changing volume or brightness (not the Win+A panel). Ignored while \"Unify flyouts\" is on."
+  $description:zh-CN: "调节音量或亮度时弹出的滑条（不是 Win+A 面板）。开启「统一设置」时忽略此组。"
+- maximized:
+    - enabled: false
+      $name: "Maximized window layer"
+      $name:zh-CN: "最大化时加深背景"
+      $description: "When a monitor has a maximized window, its taskbar switches to the denser background defined by the three settings below. Default: off."
+      $description:zh-CN: "某个显示器上有最大化窗口时，该显示器的任务栏改用下方三项定义的更实的背景。默认关闭。"
+    - blur: 24
+      $name: "Blur"
+      $name:zh-CN: "模糊"
+      $description: "Used only when the maximized window layer is on, 0–60. Default: 24."
+      $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–60。默认 24。"
+      $options:
+        - 0: "0：不模糊"
+        - 10: "10：轻微"
+        - 20: "20：中等"
+        - 24: "24：中等偏强"
+        - 30: "30：较强"
+        - 45: "45：强"
+        - 60: "60：最强"
+    - opacity: 72
+      $name: "Opacity"
+      $name:zh-CN: "不透明度"
+      $description: "Used only when the maximized window layer is on, 0–100%. Default: 72%."
+      $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–100%。默认 72%。"
+      $options:
+        - 0: "0%：完全透明"
+        - 10: "10%：很薄"
+        - 25: "25%：较薄"
+        - 50: "50%：适中"
+        - 72: "72%：较厚"
+        - 85: "85%：厚"
+        - 90: "90%：很厚"
+        - 100: "100%：完全不透明"
+    - luminosity: 20
+      $name: "Luminosity"
+      $name:zh-CN: "亮度"
+      $description: "Used only when the maximized window layer is on, 0–150. Default: 20."
+      $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–150。默认 20。"
+      $options:
+        - 0: "0：最低"
+        - 20: "20：低"
+        - 25: "25：较低"
+        - 50: "50：中"
+        - 75: "75：较高"
+        - 100: "100：标准"
+        - 125: "125：高"
+        - 150: "150：最高"
+  $name: "Maximized window"
+  $name:zh-CN: "最大化时"
+  $description: "Denser taskbar background on monitors with a maximized window. Mainly for Custom Glass and other themes that use the shared background."
+  $description:zh-CN: "有最大化窗口时让任务栏背景更实。主要作用于「自定义玻璃」等使用通用背景的主题。"
 - styleConstants: [""]
   $name: "Advanced: style constants"
   $name:zh-CN: "高级：样式常量"
@@ -21294,9 +21329,70 @@ constexpr std::pair<PCWSTR, PCWSTR> kZenTextColorPresets[] = {
 // value means it is missing. Windhawk writes all settings together, so then
 // the int presets are missing too: Wh_GetIntSetting would return 0, which is a
 // valid but non-default choice for them (fully transparent, no blur).
+//
+// Since 4.2.6 the settings are grouped (look.theme, taskbar.blurPreset, ...).
+// Settings saved by older versions use flat keys (theme, blurPreset, ...).
+// Windhawk writes all settings together, so whether look.bgColorMode exists
+// tells which layout is stored; with the old layout, the flat keys are read.
+enum class ZenSettingsLayout { kUnseeded, kLegacy, kNested };
+
+ZenSettingsLayout ZenGetSettingsLayout() {
+    string_setting_unique_ptr nested(Wh_GetStringSetting(L"look.bgColorMode"));
+    if (*nested.get()) {
+        return ZenSettingsLayout::kNested;
+    }
+    string_setting_unique_ptr legacy(Wh_GetStringSetting(L"bgColorMode"));
+    return *legacy.get() ? ZenSettingsLayout::kLegacy
+                         : ZenSettingsLayout::kUnseeded;
+}
+
 bool ZenSettingsUnseeded() {
-    string_setting_unique_ptr bgColorMode(Wh_GetStringSetting(L"bgColorMode"));
-    return !*bgColorMode.get();
+    return ZenGetSettingsLayout() == ZenSettingsLayout::kUnseeded;
+}
+
+// Reads a string setting by its grouped key, falling back to the flat key
+// from older versions. Unseeded settings may still have a key seeded by the
+// installer under either name.
+PCWSTR ZenGetStringSetting(PCWSTR nestedName, PCWSTR legacyName) {
+    switch (ZenGetSettingsLayout()) {
+        case ZenSettingsLayout::kNested:
+            return Wh_GetStringSetting(nestedName);
+        case ZenSettingsLayout::kLegacy:
+            return Wh_GetStringSetting(legacyName);
+        default:
+            break;
+    }
+    PCWSTR value = Wh_GetStringSetting(nestedName);
+    if (*value) {
+        return value;
+    }
+    Wh_FreeStringSetting(value);
+    return Wh_GetStringSetting(legacyName);
+}
+
+int ZenGetIntSettingCompat(PCWSTR nestedName, PCWSTR legacyName) {
+    switch (ZenGetSettingsLayout()) {
+        case ZenSettingsLayout::kNested:
+            return Wh_GetIntSetting(nestedName);
+        case ZenSettingsLayout::kLegacy:
+            return Wh_GetIntSetting(legacyName);
+        default:
+            return Wh_GetIntSetting(nestedName) || Wh_GetIntSetting(legacyName);
+    }
+}
+
+// Whether the flyouts follow the taskbar background. Off for settings saved
+// by older versions, which had no such option, so that their separate flyout
+// values keep working.
+bool ZenUnifyFlyouts() {
+    switch (ZenGetSettingsLayout()) {
+        case ZenSettingsLayout::kNested:
+            return Wh_GetIntSetting(L"unifyFlyouts") != 0;
+        case ZenSettingsLayout::kLegacy:
+            return false;
+        default:
+            return true;
+    }
 }
 
 // Set by ZenApplyBrushPresets for the current pass.
@@ -21305,21 +21401,23 @@ thread_local bool g_zenSettingsUnseeded;
 // Int settings are stored as numbers, so Wh_GetIntSetting is the right reader.
 // Falls back to the settings-block default when the settings are missing or
 // the value is out of range.
-int ZenGetIntSettingInRange(PCWSTR name,
+int ZenGetIntSettingInRange(PCWSTR nestedName,
+                            PCWSTR legacyName,
                             int minValue,
                             int maxValue,
                             int fallback) {
     if (g_zenSettingsUnseeded) {
         return fallback;
     }
-    int value = Wh_GetIntSetting(name);
+    int value = ZenGetIntSettingCompat(nestedName, legacyName);
     return value >= minValue && value <= maxValue ? value : fallback;
 }
 
 template <size_t N>
 PCWSTR ZenLookupPreset(const std::pair<PCWSTR, PCWSTR> (&presets)[N],
-                       PCWSTR settingName) {
-    string_setting_unique_ptr value(Wh_GetStringSetting(settingName));
+                       PCWSTR nestedName,
+                       PCWSTR legacyName) {
+    string_setting_unique_ptr value(ZenGetStringSetting(nestedName, legacyName));
     for (const auto& [key, presetValue] : presets) {
         if (wcscmp(value.get(), key) == 0) {
             return presetValue;
@@ -21425,16 +21523,16 @@ void ZenApplyBrushPresets(StyleConstants& styleConstants) {
         }
     }
 
-    PCWSTR colorPreset = ZenLookupPreset(kZenBgColorPresets, L"bgColorMode");
+    PCWSTR colorPreset = ZenLookupPreset(kZenBgColorPresets, L"look.bgColorMode", L"bgColorMode");
     std::wstring color =
         colorPreset ? std::wstring(colorPreset)
                     : ZenExtractTintColor(
                           styleConstants,
                           bgConstant ? bgConstant->second : std::wstring());
 
-    int blur = ZenGetIntSettingInRange(L"blurPreset", 0, 100, 30);
-    int opacity = ZenGetIntSettingInRange(L"opacityPreset", 0, 100, 50);
-    int luminosity = ZenGetIntSettingInRange(L"luminosityPreset", 0, 150, 20);
+    int blur = ZenGetIntSettingInRange(L"taskbar.blurPreset", L"blurPreset", 0, 100, 30);
+    int opacity = ZenGetIntSettingInRange(L"taskbar.opacityPreset", L"opacityPreset", 0, 100, 50);
+    int luminosity = ZenGetIntSettingInRange(L"taskbar.luminosityPreset", L"luminosityPreset", 0, 150, 20);
 
     std::wstring baseBrush = ZenBuildBgBrush(blur, opacity, color, luminosity);
 
@@ -21444,10 +21542,10 @@ void ZenApplyBrushPresets(StyleConstants& styleConstants) {
     g_zenMaximizedBgBrush.clear();
     if (g_zenMaxLayerEnabled) {
         g_zenMaximizedBgBrush = ZenBuildBgBrush(
-            ZenGetIntSettingInRange(L"maximizedLayerBlur", 0, 100, 24),
-            ZenGetIntSettingInRange(L"maximizedLayerOpacity", 0, 100, 72),
+            ZenGetIntSettingInRange(L"maximized.blur", L"maximizedLayerBlur", 0, 100, 24),
+            ZenGetIntSettingInRange(L"maximized.opacity", L"maximizedLayerOpacity", 0, 100, 72),
             color,
-            ZenGetIntSettingInRange(L"maximizedLayerLuminosity", 0, 150, 20));
+            ZenGetIntSettingInRange(L"maximized.luminosity", L"maximizedLayerLuminosity", 0, 150, 20));
         g_zenBaseBgBrush = std::move(baseBrush);
         baseBrush =
             std::wstring(L"{{") + kZenRuntimeBgBrushVariable + L"}}";
@@ -21460,21 +21558,27 @@ void ZenApplyBrushPresets(StyleConstants& styleConstants) {
                                      std::move(baseBrush));
     }
 
-    auto panelBrush = [&](PCWSTR opacityName, PCWSTR luminosityName,
-                          PCWSTR blurName) {
+    bool unifyFlyouts = ZenUnifyFlyouts();
+    auto panelBrush = [&](PCWSTR group, PCWSTR legacyPrefix) {
+        if (unifyFlyouts) {
+            return ZenBuildBgBrush(blur, opacity, color, luminosity);
+        }
+        auto get = [&](PCWSTR key, PCWSTR legacyKey, int maxValue,
+                       int fallback) {
+            std::wstring nested = std::wstring(group) + L"." + key;
+            std::wstring legacy = std::wstring(legacyPrefix) + legacyKey;
+            return ZenGetIntSettingInRange(nested.c_str(), legacy.c_str(), 0,
+                                           maxValue, fallback);
+        };
         return ZenBuildBgBrush(
-            ZenGetIntSettingInRange(blurName, 0, 100, blur),
-            ZenGetIntSettingInRange(opacityName, 0, 100, opacity), color,
-            ZenGetIntSettingInRange(luminosityName, 0, 150, luminosity));
+            get(L"blurPreset", L"BlurPreset", 100, blur),
+            get(L"opacityPreset", L"OpacityPreset", 100, opacity), color,
+            get(L"luminosityPreset", L"LuminosityPreset", 150, luminosity));
     };
-    ZenAddStyleConstantIfMissing(
-        styleConstants, L"TrayBgBrush",
-        panelBrush(L"trayOpacityPreset", L"trayLuminosityPreset",
-                   L"trayBlurPreset"));
-    ZenAddStyleConstantIfMissing(
-        styleConstants, L"VolumeBgBrush",
-        panelBrush(L"volumeOpacityPreset", L"volumeLuminosityPreset",
-                   L"volumeBlurPreset"));
+    ZenAddStyleConstantIfMissing(styleConstants, L"TrayBgBrush",
+                                 panelBrush(L"tray", L"tray"));
+    ZenAddStyleConstantIfMissing(styleConstants, L"VolumeBgBrush",
+                                 panelBrush(L"volume", L"volume"));
 
     if (blur == 0) {
         try {
@@ -21498,7 +21602,8 @@ void ZenAddExtraStyles() {
                                      {L"Background=Transparent"});
 
         if (PCWSTR foreground =
-                ZenLookupPreset(kZenTextColorPresets, L"textColorMode")) {
+                ZenLookupPreset(kZenTextColorPresets, L"look.textColorMode",
+                                L"textColorMode")) {
             std::vector<std::wstring> styles{std::wstring(L"Foreground=") +
                                              foreground};
             for (PCWSTR target :
@@ -21512,7 +21617,7 @@ void ZenAddExtraStyles() {
 }
 
 void ProcessAllStylesFromSettings() {
-    PCWSTR themeName = Wh_GetStringSetting(L"theme");
+    PCWSTR themeName = ZenGetStringSetting(L"look.theme", L"theme");
     const Theme* theme = nullptr;
     // ZenDesktop: legacy TranslucentTaskbar_* presets from earlier versions.
     std::vector<PCWSTR> overrideStyleConstants;
@@ -22456,7 +22561,8 @@ bool StartStatsTimer() {
         [](PTP_CALLBACK_INSTANCE, PVOID, PTP_TIMER) {
             Wh_Log(L">");
 
-            string_setting_unique_ptr themeName(Wh_GetStringSetting(L"theme"));
+            string_setting_unique_ptr themeName(
+                ZenGetStringSetting(L"look.theme", L"theme"));
             if (!*themeName.get()) {
                 return;
             }
@@ -22546,7 +22652,8 @@ void StopStatsTimer() {
 
 void LoadSettings() {
     g_settings.clickThroughTaskbar = Wh_GetIntSetting(L"clickThroughTaskbar");
-    g_zenMaxLayerEnabled = Wh_GetIntSetting(L"maximizedTaskbarLayer") != 0;
+    g_zenMaxLayerEnabled =
+        ZenGetIntSettingCompat(L"maximized.enabled", L"maximizedTaskbarLayer") != 0;
 
     PCWSTR xamlDiagnosticsHandling =
         Wh_GetStringSetting(L"xamlDiagnosticsHandling");
