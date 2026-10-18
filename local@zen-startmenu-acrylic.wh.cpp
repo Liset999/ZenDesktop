@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.3
+// @version         4.1.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -36,11 +36,12 @@
 - 可自定义开始菜单宽度和高度。
 - 应用名称可显示、隐藏或悬停时显示。
 - 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 搜索页（在开始菜单里打字后出现的页面）与开始菜单使用同一套玻璃、描边和文字颜色。
 
 ## 设置说明
 
 - **主题**：默认「自定义玻璃」。其余为原版内置的社区主题，括号内为原名。
-- **控件深色/浅色**：解决浅色模式下开始菜单出现白雾的问题，推荐保持「自动」。
+- **控件深色/浅色**：解决浅色模式下开始菜单和搜索页出现白雾的问题，推荐保持「自动」。
 - **开始菜单宽度 / 高度**：单位为像素，0 为系统默认。
 - **自定义文件夹面板**：开启后，四项「文件夹：」设置才生效。
 - **高级：搜索 WebView 样式 / 脚本**：作用于搜索面板中的网页内容，写法见附录。
@@ -50,13 +51,16 @@
 
 - 适用于 Windows 11，注入 `StartMenuExperienceHost.exe`、`SearchHost.exe`、`SearchApp.exe`。
 - 修改搜索 WebView 脚本后，如需清除副作用，清空脚本并结束 `SearchHost.exe`，系统会自动重启它。
+- 搜索页由 `SearchHost.exe` 显示：搜索框和外框是 XAML，下面的结果、预览、筛选标签和右键菜单是网页（WebView）。网页无法模糊桌面，所以结果区是透出外框的玻璃，卡片与菜单用半透明填充近似；必应网页结果里的图片、小组件和部分图标保持原样。
+- 搜索页的统一材质作用于「自定义玻璃」系列、TranslucentStartMenu 和三个液态玻璃主题；其他社区主题保留原作者的搜索页设计，只同步文字颜色和「控件深色/浅色」。
+- 改完设置后搜索页没有变化时，结束 `SearchHost.exe` 让系统重启它。
 
 ## 更新日志
 
+- **4.1.4**：统一搜索页材质：搜索框、结果、预览、筛选标签和右键菜单与开始菜单使用同一套玻璃和文字颜色；「控件深色/浅色」对搜索页同样生效，修复浅色模式下搜索页发白、搜索框叠两层。
 - **4.1.3**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/通知中心对齐。
 - **4.1.2**：规范设置界面与说明文字，行为不变。
 - **4.1.1**：新增「控件深色/浅色」设置，修复浅色模式下的白雾。
-- **4.1.0**：随 ZenDesktop v4.1 发布。
 
 ## 致谢与许可
 
@@ -544,8 +548,8 @@ from the **TranslucentTB** project.
 - controlTheme: auto
   $name: "Control theme"
   $name:zh-CN: "控件深色/浅色"
-  $description: "In light mode, cards, buttons and lists not covered by the theme turn into a white haze. \"Auto\" keeps them dark when text is white; \"Follow system\" is the old behavior. Default: auto."
-  $description:zh-CN: "系统为浅色模式时，主题没有覆盖到的卡片、按钮和列表会变成一层白雾。「自动」在文字为白色时把这些控件固定为深色样式，文字为深色时不改；「跟随系统」为旧版行为。背景色调仍由「背景颜色」决定。默认为自动。"
+  $description: "In light mode, cards, buttons and lists not covered by the theme turn into a white haze. \"Auto\" keeps them dark when text is white, also on the search page; \"Follow system\" is the old behavior. Default: auto."
+  $description:zh-CN: "系统为浅色模式时，主题没有覆盖到的卡片、按钮和列表会变成一层白雾。「自动」在文字为白色时把这些控件固定为深色样式（搜索页同样生效），文字为深色时不改；「跟随系统」为旧版行为。背景色调仍由「背景颜色」决定。默认为自动。"
   $options:
     - auto: "自动（推荐）"
     - dark: "始终深色"
@@ -8247,6 +8251,9 @@ std::unordered_map<std::wstring, std::vector<StyleVariableConsumer>>
 
 std::wstring g_webContentCss;
 std::wstring g_webContentJs;
+// ZenDesktop: search page material unification, generated per settings.
+std::wstring g_zenWebContentCss;
+std::wstring g_zenWebContentJs;
 
 struct WebViewCustomizationState {
     winrt::weak_ref<FrameworkElement> element;
@@ -12588,6 +12595,15 @@ PCWSTR CreateWebViewJsCodeForClear() {
         if (style) {
             style.parentNode.removeChild(style);
         }
+        if (window.__zenSearchThemeSwap) {
+            window.__zenSearchThemeSwap.disconnect();
+            window.__zenSearchThemeSwap = null;
+            document.querySelectorAll("[data-zen-theme-swapped]").forEach(el => {
+                el.classList.remove("darkTheme");
+                el.classList.add("lightTheme");
+                el.removeAttribute("data-zen-theme-swapped");
+            });
+        }
         })();
     )";
 
@@ -13194,6 +13210,8 @@ void ProcessWebStylesFromSettings(
         webContentCss += L"}\n";
     }
 
+    const size_t themeCssLength = webContentCss.size();
+
     for (int i = 0;; i++) {
         string_setting_unique_ptr targetStringSetting(
             Wh_GetStringSetting(L"webContentStyles[%d].target", i));
@@ -13226,8 +13244,15 @@ void ProcessWebStylesFromSettings(
         webContentCss += L"}\n";
     }
 
+    // ZenDesktop rules go between the theme's own web styles (above) and the
+    // user's custom web styles, so the user can still override them.
+    if (!g_zenWebContentCss.empty()) {
+        webContentCss.insert(themeCssLength, g_zenWebContentCss);
+    }
+
     g_webContentCss = std::move(webContentCss);
     g_webContentJs =
+        g_zenWebContentJs +
         string_setting_unique_ptr(Wh_GetStringSetting(L"webContentCustomJs"))
             .get();
 }
@@ -13518,6 +13543,406 @@ void MergeResourceVariables() {
             g_uiSettings.ColorValuesChanged([dispatcherQueue](auto&&, auto&&) {
                 dispatcherQueue.TryEnqueue(RefreshThemeResourceEntries);
             });
+    }
+}
+
+// ZenDesktop: search page material unification.
+//
+// When typing in the Start menu, the results are shown by a different process
+// (SearchHost.exe) in a different XAML tree (Cortana.UI.Views.TaskbarSearchPage),
+// and everything below the search box is a WebView with its own HTML/CSS. The
+// glass themes only covered the XAML frame (Border#AppBorder), so:
+// - The element theme fix (controlTheme) only ran in StartMenuExperienceHost,
+//   leaving the search page in light mode with light control fills.
+// - The search box got two stacked layers (TaskbarSearchBackground plus the
+//   text box's own BorderElement, which the generic Border#BorderElement
+//   rules turn into another blur), with the system fill coming back in the
+//   ActiveInput state.
+// - The WebView kept its own light/dark CSS: opaque-ish preview card, context
+//   menu and filter tabs, and text that ignores textColorMode.
+// The helpers below generate matching XAML rules and WebView CSS.
+
+enum class ZenSearchFamily {
+    None,
+    Translucent,  // TranslucentStartMenu and the custom glass variants.
+    Liquid,       // AppleLiquidGlass, AppleLiquidGlassClassic, LiquidGlass.
+};
+
+enum class ZenSearchDesign {
+    Dark,   // Light text on dark glass.
+    Light,  // Dark text on light glass.
+    Auto,   // Follow the system theme.
+};
+
+bool ZenIsDarkTextBrush(const std::wstring& brush) {
+    return brush == L"Black" ||
+           (brush.size() == 9 && brush[0] == L'#' &&
+            brush.ends_with(L"000000"));
+}
+
+// Converts a XAML color ("White", "Black", "#RRGGBB", "#AARRGGBB") to CSS
+// rgba() with an extra alpha multiplier. Returns an empty string for anything
+// else, such as {ThemeResource ...}.
+std::wstring ZenXamlColorToCss(const std::wstring& color, double alphaScale) {
+    unsigned a = 255, r = 0, g = 0, b = 0;
+    if (color == L"White") {
+        r = g = b = 255;
+    } else if (color == L"Black") {
+        r = g = b = 0;
+    } else if ((color.size() == 7 || color.size() == 9) && color[0] == L'#') {
+        unsigned long value = wcstoul(color.c_str() + 1, nullptr, 16);
+        if (color.size() == 9) {
+            a = (value >> 24) & 0xFF;
+        }
+        r = (value >> 16) & 0xFF;
+        g = (value >> 8) & 0xFF;
+        b = value & 0xFF;
+    } else {
+        return L"";
+    }
+
+    wchar_t buffer[64];
+    swprintf_s(buffer, L"rgba(%u, %u, %u, %.3f)", r, g, b,
+               (a / 255.0) * alphaScale);
+    return buffer;
+}
+
+struct ZenSearchWebPalette {
+    PCWSTR tile;
+    PCWSTR hover;
+    PCWSTR pressed;
+    PCWSTR stroke;
+    PCWSTR highlight;  // box-shadow for the specular edge, or "none".
+    PCWSTR menu;
+};
+
+ZenSearchWebPalette ZenGetSearchWebPalette(ZenSearchFamily family,
+                                           bool darkDesign) {
+    if (darkDesign) {
+        return {
+            L"rgba(255, 255, 255, 0.06)",
+            L"rgba(255, 255, 255, 0.10)",
+            L"rgba(255, 255, 255, 0.16)",
+            L"rgba(255, 255, 255, 0.12)",
+            family == ZenSearchFamily::Liquid
+                ? L"inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 "
+                  L"rgba(0, 0, 0, 0.16)"
+                : L"none",
+            L"rgba(36, 36, 38, 0.78)",
+        };
+    }
+
+    return {
+        L"rgba(255, 255, 255, 0.30)",
+        L"rgba(0, 0, 0, 0.05)",
+        L"rgba(0, 0, 0, 0.09)",
+        L"rgba(0, 0, 0, 0.08)",
+        family == ZenSearchFamily::Liquid
+            ? L"inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -1px 0 "
+              L"rgba(0, 0, 0, 0.06)"
+            : L"none",
+        L"rgba(249, 249, 251, 0.80)",
+    };
+}
+
+std::wstring ZenBuildSearchWebMaterialCss(ZenSearchFamily family,
+                                          bool darkDesign,
+                                          std::wstring_view prefix) {
+    const auto palette = ZenGetSearchWebPalette(family, darkDesign);
+    const PCWSTR itemRadius =
+        family == ZenSearchFamily::Liquid ? L"10px" : L"8px";
+    const PCWSTR cardRadius =
+        family == ZenSearchFamily::Liquid ? L"18px" : L"14px";
+
+    std::wstring p(prefix);
+    std::wstring css;
+
+    // Result rows: transparent at rest, theme fill on hover / selection, the
+    // same as the Start menu list items.
+    css += p + L".suggestion:hover, " + p + L".suggestion.selectable:hover {\n";
+    css += L"background-color: " + std::wstring(palette.hover) +
+           L" !important;\nborder-radius: " + itemRadius + L" !important;\n}\n";
+    css += p + L".suggestion[aria-selected=\"true\"] {\n";
+    css += L"background-color: " + std::wstring(palette.pressed) +
+           L" !important;\nborder-radius: " + itemRadius + L" !important;\n}\n";
+
+    // Top apps tiles.
+    css += p + L"div[data-region=\"TopApps\"] .suggestion {\n";
+    css += L"background-color: " + std::wstring(palette.tile) +
+           L" !important;\nborder-radius: " + itemRadius +
+           L" !important;\nbox-shadow: " + palette.highlight +
+           L" !important;\n}\n";
+    css += p + L"div[data-region=\"TopApps\"] .suggestion:hover {\n";
+    css += L"background-color: " + std::wstring(palette.hover) +
+           L" !important;\n}\n";
+
+    // Preview pane card.
+    css += p + L"#qfPreviewPane .previewContainer, " + p +
+           L".previewContainer {\n";
+    css += L"background-color: " + std::wstring(palette.tile) +
+           L" !important;\nbackground-image: none !important;\n";
+    css += L"border: 1px solid " + std::wstring(palette.stroke) +
+           L" !important;\nborder-radius: " + cardRadius +
+           L" !important;\nbox-shadow: " + palette.highlight +
+           L" !important;\n}\n";
+
+    // Filter tabs (All / Apps / Documents / Web ...).
+    css += p + L".scope-tile > div {\n";
+    css += L"background-color: transparent !important;\nborder-radius: " +
+           std::wstring(itemRadius) + L" !important;\n}\n";
+    css += p + L".scope-tile:hover > div {\n";
+    css += L"background-color: " + std::wstring(palette.hover) +
+           L" !important;\n}\n";
+    css += p + L".scope-tile--selected > div, " + p +
+           L".scope-tile--selected .scope-tile__title {\n";
+    css += L"background-color: " + std::wstring(palette.pressed) +
+           L" !important;\nborder-radius: " + itemRadius + L" !important;\n}\n";
+
+    // Context menu of a result. The web content can't blur the desktop, so
+    // it's a translucent panel blurred over the results.
+    css += p + L"#menuContainer, " + p + L".contextMenu {\n";
+    css += L"background: " + std::wstring(palette.menu) + L" !important;\n";
+    css += L"-webkit-backdrop-filter: blur(24px) saturate(1.6) !important;\n";
+    css += L"backdrop-filter: blur(24px) saturate(1.6) !important;\n";
+    css += L"border: 1px solid " + std::wstring(palette.stroke) +
+           L" !important;\nborder-radius: " + itemRadius + L" !important;\n";
+    css += L"box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;\n}\n";
+    css += p + L"ul.contextMenu::before {\n";
+    css += L"display: none !important;\n}\n";
+
+    return css;
+}
+
+void ZenBuildSearchWebContent(ZenSearchFamily family,
+                              ZenSearchDesign design,
+                              const std::wstring& fgBrush,
+                              bool swapToDarkTheme) {
+    std::wstring css;
+
+    if (family != ZenSearchFamily::None) {
+        // Let the XAML glass (Border#AppBorder) show through everywhere.
+        css +=
+            L"html, body, #root, #qfContainer, .suggsListContainer, "
+            L".suggsList, .suggContainer, .groupContainer, #scopesHeader, "
+            L".scope-with-background {\n"
+            L"background-color: transparent !important;\n}\n";
+
+        if (design == ZenSearchDesign::Auto) {
+            css += ZenBuildSearchWebMaterialCss(family, true, L".darkTheme ");
+            css += ZenBuildSearchWebMaterialCss(family, false, L".lightTheme ");
+        } else {
+            css += ZenBuildSearchWebMaterialCss(
+                family, design == ZenSearchDesign::Dark, L"");
+        }
+    }
+
+    // Text color, the same as the XAML text (textColorMode or the custom glass
+    // default). Applies to all themes.
+    std::wstring fg = ZenXamlColorToCss(fgBrush, 1.0);
+    if (!fg.empty()) {
+        std::wstring fgSecondary = ZenXamlColorToCss(fgBrush, 0.72);
+        css +=
+            L"#root, #root div, #root span, #root p, #root h1, #root h2, "
+            L"#root h3, #root h4, #root h5, #root li, #root a, #root button, "
+            L"#root .cortanaFontIcon, #root .iconContent {\n"
+            L"color: " + fg + L" !important;\n}\n";
+        css +=
+            L"#root .secondaryText, #root .annotation, "
+            L"#root .additionalInfoText, #root .secondaryText * {\n"
+            L"color: " + fgSecondary + L" !important;\n}\n";
+    }
+
+    g_zenWebContentCss = std::move(css);
+
+    // With the dark element theme forced for the XAML part (controlTheme),
+    // make the web content use its dark theme too, so the icons and states
+    // that the CSS above doesn't cover match. Reverted by the clear script.
+    if (swapToDarkTheme) {
+        g_zenWebContentJs = LR"(
+        (() => {
+        if (window.__zenSearchThemeSwap) {
+            return;
+        }
+        const swap = el => {
+            if (el.classList && el.classList.contains("lightTheme")) {
+                el.classList.remove("lightTheme");
+                el.classList.add("darkTheme");
+                el.setAttribute("data-zen-theme-swapped", "1");
+            }
+        };
+        const scan = node => {
+            swap(node);
+            if (node.querySelectorAll) {
+                node.querySelectorAll(".lightTheme").forEach(swap);
+            }
+        };
+        scan(document.documentElement);
+        const observer = new MutationObserver(mutations => {
+            for (const m of mutations) {
+                if (m.type === "attributes") {
+                    swap(m.target);
+                } else {
+                    m.addedNodes.forEach(n => {
+                        if (n.nodeType === 1) {
+                            scan(n);
+                        }
+                    });
+                }
+            }
+        });
+        observer.observe(document.documentElement, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+        window.__zenSearchThemeSwap = observer;
+        })();
+)";
+    } else {
+        g_zenWebContentJs.clear();
+    }
+}
+
+void ZenAddSearchMaterialRules(const Theme* theme,
+                               ZenSearchFamily family,
+                               ZenSearchDesign design,
+                               const std::wstring& fgBrush,
+                               const StyleConstants& styleConstants) {
+    auto add = [&](PCWSTR target, std::vector<std::wstring> styles) {
+        try {
+            for (auto& s : styles) {
+                s = ApplyStyleConstants(s, styleConstants);
+            }
+            AddElementCustomizationRules(target, std::move(styles));
+        } catch (winrt::hresult_error const& ex) {
+            Wh_Log(L"[ZenDesktop] Search rule error %08X: %s", ex.code(),
+                   target);
+        } catch (std::exception const& ex) {
+            Wh_Log(L"[ZenDesktop] Search rule error %S: %s", ex.what(),
+                   target);
+        }
+    };
+
+    if (g_target == Target::SearchHost) {
+        // Typed text follows textColorMode like the rest of the text.
+        if (!fgBrush.empty()) {
+            add(L"Cortana.UI.Views.CortanaRichSearchBox#SearchTextBox",
+                {L"Foreground=" + fgBrush});
+        }
+
+        // Themes that style the Start menu background but not the search
+        // page (Down Aero) get the same frame on the search page.
+        if (theme) {
+            bool hasSearchFrame = false;
+            const ThemeTargetStyles* acrylicRule = nullptr;
+            for (const auto& rule : theme->targetStyles) {
+                std::wstring_view target = rule.target;
+                if (target.find(L"AppBorder") != target.npos ||
+                    target.find(L"OuterBorderGrid") != target.npos) {
+                    hasSearchFrame = true;
+                }
+                if (target == L"Border#AcrylicBorder") {
+                    acrylicRule = &rule;
+                }
+            }
+            if (!hasSearchFrame && acrylicRule) {
+                std::vector<std::wstring> styles;
+                for (PCWSTR style : acrylicRule->styles) {
+                    std::wstring_view sv = style;
+                    if (sv.starts_with(L"Background") ||
+                        sv.starts_with(L"BorderBrush") ||
+                        sv.starts_with(L"BorderThickness") ||
+                        sv.starts_with(L"CornerRadius")) {
+                        styles.push_back(style);
+                    }
+                }
+                if (!styles.empty()) {
+                    add(L"Cortana.UI.Views.TaskbarSearchPage > Grid#RootGrid > "
+                        L"Grid#OuterBorderGrid > Grid#BorderGrid > "
+                        L"Border#AppBorder",
+                        std::move(styles));
+                }
+            }
+        }
+    }
+
+    if (family == ZenSearchFamily::None) {
+        return;
+    }
+
+    // The search box: one layer with the theme's element material, the same in
+    // the Start menu and on the search page.
+    std::wstring field, fieldHover, fieldActive, stroke, thickness, radius;
+    if (family == ZenSearchFamily::Liquid) {
+        std::wstring prefix =
+            theme == &g_themeLiquidGlass ? L"$" : L"$Apple_";
+        field = prefix + L"ElementBackground";
+        fieldHover = prefix + L"AccentBackground";
+        fieldActive = prefix + L"ElementBackground2";
+        stroke = prefix + L"ElementBorderBrush";
+        thickness = prefix + L"ElementBorderThickness";
+        radius = prefix + L"ElementCornerRadius";
+    } else {
+        std::wstring color = design == ZenSearchDesign::Dark ? L"#FFFFFF"
+                             : design == ZenSearchDesign::Light
+                                 ? L"#000000"
+                                 : L"{ThemeResource SystemBaseHighColor}";
+        auto solid = [&](PCWSTR opacity) {
+            return L"<SolidColorBrush Color=\"" + color + L"\" Opacity=\"" +
+                   opacity + L"\" />";
+        };
+        field = solid(design == ZenSearchDesign::Light ? L"0.04" : L"0.07");
+        fieldHover = solid(design == ZenSearchDesign::Light ? L"0.06" : L"0.10");
+        fieldActive = solid(design == ZenSearchDesign::Light ? L"0.06" : L"0.10");
+        stroke = design == ZenSearchDesign::Dark
+                     ? L"<LinearGradientBrush StartPoint=\"0,0\" "
+                       L"EndPoint=\"0,1\"><GradientStop Color=\"#33FFFFFF\" "
+                       L"Offset=\"0\" /><GradientStop Color=\"#0FFFFFFF\" "
+                       L"Offset=\"0.5\" /><GradientStop Color=\"#1F000000\" "
+                       L"Offset=\"1\" /></LinearGradientBrush>"
+                     : solid(L"0.10");
+        thickness = L"1";
+        radius = L"12";
+    }
+
+    if (g_target == Target::SearchHost) {
+        add(L"Border#TaskbarSearchBackground",
+            {L"Background:=" + field, L"BorderBrush:=" + stroke,
+             L"BorderThickness=" + thickness, L"CornerRadius=" + radius});
+        add(L"Grid@SearchBoxInputStates > Border#TaskbarSearchBackground",
+            {L"Background@NoFocus:=" + field,
+             L"Background@SearchBoxHover:=" + fieldHover,
+             L"Background@ActiveInput:=" + fieldActive,
+             L"BorderBrush:=" + stroke, L"BorderThickness=" + thickness,
+             L"CornerRadius=" + radius,
+             L"BackgroundTransition:=<BrushTransition Duration=\"0:0:0.083\" />"});
+
+        // The text box inside it must not paint a second layer, also not in
+        // its focused state (the system fill is opaque white in light mode).
+        add(L"Cortana.UI.Views.CortanaRichSearchBox#SearchTextBox > Grid > "
+            L"Border#BorderElement",
+            {L"Background=Transparent", L"BorderBrush=Transparent",
+             L"BorderThickness=0"});
+        add(L"Cortana.UI.Views.CortanaRichSearchBox#SearchTextBox > "
+            L"Grid@CommonStates > Border#BorderElement",
+            {L"Background@Normal=Transparent",
+             L"Background@PointerOver=Transparent",
+             L"Background@Focused=Transparent",
+             L"Background@Disabled=Transparent",
+             L"BorderBrush@Normal=Transparent",
+             L"BorderBrush@PointerOver=Transparent",
+             L"BorderBrush@Focused=Transparent",
+             L"BorderBrush@Disabled=Transparent", L"BorderThickness=0"});
+    } else {
+        for (PCWSTR target : {
+                 L"StartMenu.SearchBoxToggleButton > Grid > Border#BorderElement",
+                 L"StartDocked.SearchBoxToggleButton > Grid > Border#BorderElement",
+             }) {
+            add(target,
+                {L"Background:=" + field, L"BorderBrush:=" + stroke,
+                 L"BorderThickness=" + thickness, L"CornerRadius=" + radius});
+        }
     }
 }
 
@@ -14074,9 +14499,12 @@ void ProcessAllStylesFromSettings() {
     // (the same way as upstream's Windows10 and Everblush themes) makes light
     // mode resolve the same values as dark mode. The background tint still
     // comes from bgColorMode, so a light glass is still available.
-    if (g_target == Target::StartMenu) {
+    //
+    // The search page (SearchHost.exe) gets the same treatment, otherwise it
+    // stays in light mode next to a dark Start menu.
+    bool forceDark = false;
+    {
         PCWSTR controlTheme = Wh_GetStringSetting(L"controlTheme");
-        bool forceDark = false;
         if (wcscmp(controlTheme, L"dark") == 0) {
             forceDark = true;
         } else if (wcscmp(controlTheme, L"system") != 0) {
@@ -14084,9 +14512,7 @@ void ProcessAllStylesFromSettings() {
             // ("Black" or #xx000000) mean a light design, which is left alone.
             // "{ThemeResource ...}" text follows the forced theme and stays
             // readable.
-            bool darkText = newFgBrush == L"Black" ||
-                            (newFgBrush.size() == 9 && newFgBrush[0] == L'#' &&
-                             newFgBrush.ends_with(L"000000"));
+            bool darkText = ZenIsDarkTextBrush(newFgBrush);
             forceDark = isCustomTheme && !newFgBrush.empty() && !darkText;
         }
         Wh_FreeStringSetting(controlTheme);
@@ -14096,6 +14522,35 @@ void ProcessAllStylesFromSettings() {
             // ElementTheme::Dark.
             std::vector<std::wstring> themeStyles = {L"RequestedTheme=2"};
             AddElementCustomizationRules(L"Grid", std::move(themeStyles));
+        }
+    }
+
+    // ZenDesktop: give the search page the same material as the Start menu.
+    {
+        ZenSearchFamily searchFamily = ZenSearchFamily::None;
+        if (theme == &g_themeTranslucentStartMenu ||
+            theme == &g_themeTranslucentStartMenu_variant_ClassicStartMenu) {
+            searchFamily = ZenSearchFamily::Translucent;
+        } else if (theme == &g_themeAppleLiquidGlass ||
+                   theme == &g_themeAppleLiquidGlass_variant_Classic ||
+                   theme == &g_themeLiquidGlass) {
+            searchFamily = ZenSearchFamily::Liquid;
+        }
+
+        ZenSearchDesign searchDesign = ZenSearchDesign::Auto;
+        if (forceDark) {
+            searchDesign = ZenSearchDesign::Dark;
+        } else if (!newFgBrush.empty() && newFgBrush[0] != L'{') {
+            searchDesign = ZenIsDarkTextBrush(newFgBrush)
+                               ? ZenSearchDesign::Light
+                               : ZenSearchDesign::Dark;
+        }
+
+        ZenAddSearchMaterialRules(theme, searchFamily, searchDesign,
+                                  newFgBrush, styleConstants);
+        if (g_target == Target::SearchHost) {
+            ZenBuildSearchWebContent(searchFamily, searchDesign, newFgBrush,
+                                     forceDark);
         }
     }
 
