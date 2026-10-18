@@ -7,6 +7,7 @@ common_files = [
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
     'local@zen-explorer-styler.wh.cpp',
+    'local@zen-taskbar-lyrics.wh.cpp',
     'local@windows-11-settings-styler-fork.wh.cpp',
     'local@macos-minimize-animation.wh.cpp',
     'deploy.bat',
@@ -14,7 +15,9 @@ common_files = [
     'Readme.txt',
     'README.md',
     'restart_explorer.bat',
+    'THIRD_PARTY_NOTICES-taskbar-lyrics.md',
     'tools/ZenDesktop-StartupCheck.ps1',  # optional, installed only with -StartupCheck
+    'tools/ai-status',
     # v4.2: optional mods (installed only on opt-in by deploy.ps1)
     'optional/local@wobbly-windows.wh.cpp',
     'optional/local@windows-animations.wh.cpp',

@@ -10,7 +10,7 @@
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32
+// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32 -luuid
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -347,6 +347,8 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 // ==/WindhawkModSettings==
 
 #include <windows.h>
+#include <initguid.h>
+#include <knownfolders.h>
 #include <winhttp.h>
 #include <shlobj.h>
 #include <shobjidl.h>

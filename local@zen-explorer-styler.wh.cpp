@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.1
+// @version         1.6.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -81,6 +81,7 @@
 
 ## 更新日志
 
+- **1.6.2**：修复右键菜单玻璃因 WinUI 2.8 缺少 SystemBackdrop 导致解析失败、以及浮动弹窗线程未初始化的问题；改用稳定的 WindhawkBlur 材质与浮动窗口检测。
 - **1.6.1**：修复右键菜单玻璃完全不生效：菜单的毛玻璃是系统背景材质，旧版只在上面叠了一层几乎看不出的画刷；现改为直接替换这层材质（展开的子菜单暂不改）。「模糊」改名「磨砂程度」，设置键和默认值不变。
 - **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
 - **1.5.1**：规范设置界面与说明文字，行为不变。
@@ -1851,6 +1852,7 @@ void ApplyCustomizations(ElementId elementId,
 void CleanupCustomizations(ElementId elementId);
 void QueueDiagnosticsRelease(InstanceHandle handle);
 void FlushDiagnosticsReleasesIfQuiet();
+void InitializeForCurrentThread();
 
 HMODULE GetCurrentModuleHandle() {
     HMODULE module;
@@ -2075,8 +2077,7 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
 
     if (!g_initializedForThread)
     {
-        Wh_Log(L"Not initialized for thread %u", GetCurrentThreadId());
-        return S_OK;
+        InitializeForCurrentThread();
     }
 
     // Caught here rather than by the handler below, so that the bookkeeping
@@ -10428,8 +10429,10 @@ TargetWindowType GetTargetWindowType(HWND hWnd) {
         return TargetWindowType::FileExplorer;
     }
 
-    // Used by the desktop context menu.
-    if (_wcsicmp(className, L"XamlExplorerHostIslandWindow_WASDK") == 0) {
+    // Used by desktop and File Explorer modern context menus and flyouts.
+    if (_wcsicmp(className, L"Xaml_WindowedPopupClass") == 0 ||
+        _wcsicmp(className, L"XamlExplorerHostIslandWindow") == 0 ||
+        _wcsicmp(className, L"XamlExplorerHostIslandWindow_WASDK") == 0) {
         return TargetWindowType::XamlExplorerHost;
     }
 
@@ -11731,54 +11734,59 @@ void ApplyZenContextMenuStyles() {
 
     bool dark = IsAppsDarkTheme();
 
-    // accentGradientColor / GetAccentGradientColor: AABBGGRR → #AARRGGBB. The
-    // alpha comes from tintOpacity.
     int accent = GetAccentGradientColor(dark);
     unsigned a = (static_cast<unsigned>(accent) >> 24) & 0xFFu;
     unsigned b = (static_cast<unsigned>(accent) >> 16) & 0xFFu;
     unsigned g = (static_cast<unsigned>(accent) >> 8) & 0xFFu;
     unsigned r = static_cast<unsigned>(accent) & 0xFFu;
 
-    // Frost 0–60 → luminosity opacity 0.0–0.9. The stock menu is about 0.9+,
-    // so the default 30 (0.45) is clearly more see-through than the stock menu.
-    float luminosity = frost * 0.9f / 60.0f;
+    if (a == 0) {
+        a = dark ? 0x24 : 0x14;
+    }
 
-    WCHAR backdrop[256];
-    swprintf_s(backdrop,
-               L"SystemBackdrop:=<WindhawkAcrylicBackdrop "
-               L"TintColor=\"#%02X%02X%02X%02X\" LuminosityOpacity=\"%.2f\" "
-               L"FallbackColor=\"%s\"/>",
-               a, r, g, b, luminosity, dark ? L"#FF2C2C2C" : L"#FFF9F9F9");
+    WCHAR tintHex[16];
+    swprintf_s(tintHex, L"#%02X%02X%02X%02X", a, r, g, b);
 
-    // On its own, so that a Windows build whose menu lacks the SystemBackdrop
-    // property only loses this one rule.
-    //
-    // Submenus (MenuFlyoutPresenter) are left alone on purpose: their
-    // SystemBackdrop is copied to the flyout's Popup on open, outside of what
-    // the restore logic tracks, and long-lived flyouts (e.g. File Explorer's
-    // command bar menus) would keep a reference to this mod's object after
-    // the mod is unloaded.
-    AddElementCustomizationRules(
-        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
-        {backdrop});
+    WCHAR bgBrush[192];
+    swprintf_s(bgBrush,
+               L"<WindhawkBlur BlurAmount=\"%d\" TintColor=\"%s\"/>", frost,
+               tintHex);
 
-    // The XAML background over the backdrop is #00000000 by default; make sure
-    // no build or theme paints it opaque.
-    AddElementCustomizationRules(
-        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
-        {L"Background=Transparent"});
+    std::wstring background = L"Background:=" + std::wstring(bgBrush);
 
-    // A light glass edge.
     std::wstring borderBrush =
         dark ? L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
                L"Opacity=\"0.14\"/>"
              : L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
                L"Opacity=\"0.55\"/>";
-    AddElementCustomizationRules(
+
+    std::vector<std::wstring> rootStyles = {
+        background,
+        L"BorderThickness=1",
+        borderBrush,
+        L"CornerRadius=8",
+    };
+
+    static constexpr PCWSTR kRoots[] = {
+        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
+        L"Grid#OuterOverflowContentRootV2 > Grid#OverflowContentRoot > "
+        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
+        L"MenuFlyoutPresenter > Border",
         L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar > "
         L"Grid#LayoutRoot > Grid#OuterContentRoot > Grid#ContentRoot > "
         L"Grid#PrimaryItemsRoot",
-        {borderBrush});
+        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter > "
+        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter",
+    };
+
+    for (PCWSTR target : kRoots) {
+        AddElementCustomizationRules(target, rootStyles);
+    }
+
+    AddElementCustomizationRules(
+        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
+        {L"Background=Transparent"});
+
     AddElementCustomizationRules(
         L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot > "
         L"Border",
