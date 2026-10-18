@@ -536,6 +536,14 @@ if (Test-Path $exePath) {
 }
 Write-Status "Windhawk restarted successfully." "Green"
 
+# The search page (SearchHost.exe) is prelaunched at sign-in and stays
+# suspended in the background, so it keeps the old Start menu mod until it is
+# restarted. Windows relaunches it automatically the next time search opens.
+if (Get-Process -Name SearchHost -ErrorAction SilentlyContinue) {
+    Write-Status "Restarting the search page (SearchHost.exe) to load the Start menu mod..."
+    Stop-Process -Name SearchHost -Force -ErrorAction SilentlyContinue
+}
+
 # 7. Optional startup self-check (scheduled task, current user, at logon).
 $zenTaskName = "StartupCheck"
 $zenTaskPath = "\ZenDesktop\"
