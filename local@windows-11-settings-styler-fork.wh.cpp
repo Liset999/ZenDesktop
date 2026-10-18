@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.1.2
+// @version         4.2.0
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -42,7 +42,8 @@
 
 - **主题**：推荐「自定义玻璃」或「液态玻璃」。「紧凑布局」「经典搜索栏」「商店边框风格」「深海静蓝」为原版布局主题。
 - **背景颜色**：「跟随主题」随深色/浅色模式切换。
-- **不透明度**：浅色模式下即使设为 0%，也会保留约 42% 的白色底，保证深色文字清晰；深色模式保持完全通透。
+- **不透明度**：玻璃背景颜色的浓度。浅色模式下的最低值由「浅色模式：白底」决定；深色模式保持完全通透。
+- **浅色模式：白底**：浅色模式下给整窗玻璃垫一层白色并加深灰色文字，壁纸较花时左侧导航和「推荐设置」等标题更清楚。设为「关闭」恢复完全通透。只影响窗口底色，卡片按原设置显示。
 - **亮度**：本 mod 中数值越大背景越暗，推荐保持 0%。
 - **高级：样式常量 / 控件样式 / 资源变量**：写法与原版 Settings Styler 相同。
 
@@ -50,10 +51,11 @@
 
 - 适用于 Windows 11，注入 `SystemSettings.exe`。
 - 设置是 WinUI/UWP 应用，Translucent Windows 等 DWM 类 mod 对它无效，需使用本 mod。
-- 窗口失去焦点时仍保持亚克力效果，不会切换为纯色。
+- 窗口失去焦点时仍保持亚克力效果，不会切换为纯色（Windows 默认会在失焦时把亚克力换成纯色，本 mod 让应用始终按前台状态绘制）。
 
 ## 更新日志
 
+- **4.2.0**：修复窗口失去焦点后玻璃变成不透明纯色的问题；新增「浅色模式：白底」，浅色模式下导航栏和标题文字更清楚。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
 
@@ -144,6 +146,17 @@
     - 100: "100%：暗"
     - 125: "125%：较暗"
     - 150: "150%：最暗"
+- lightModeBase: 45
+  $name: "Light mode: white base"
+  $name:zh-CN: "浅色模式：白底"
+  $description: "In light mode, keeps at least this much white under the glass and darkens gray text, so the navigation pane and headings stay readable over busy wallpapers. No effect in dark mode. Default: 45%."
+  $description:zh-CN: "浅色模式下在玻璃下保留至少这么多的白色底，并加深灰色文字，让左侧导航和标题在花哨壁纸上也看得清。深色模式不受影响。默认为 45%。"
+  $options:
+    - 0: "关闭"
+    - 30: "30%：较薄"
+    - 45: "45%：适中（推荐）"
+    - 60: "60%：较厚"
+    - 75: "75%：厚"
 - textColorMode: "default"
   $name: "Text color"
   $name:zh-CN: "文字颜色"
@@ -1861,6 +1874,7 @@ using namespace std::string_view_literals;
 #include <winrt/Windows.System.Power.h>
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.UI.Composition.h>
+#include <winrt/Windows.UI.Core.h>
 #include <winrt/Windows.UI.Text.h>
 #include <winrt/Windows.UI.ViewManagement.h>
 #include <winrt/Windows.UI.Xaml.Controls.h>
@@ -6909,6 +6923,7 @@ void MergeResourceVariables() {
 #endif
 
 HWND GetCoreWnd();  // defined later
+void ApplySafeSystemBackdrop(int backdropType);  // defined later
 
 std::atomic<int> g_safeBackdropMode = DWMSBT_AUTO;
 
@@ -7086,6 +7101,180 @@ void RemoveZenGlassFocusFix() {
         g_zenSubclassRoot = nullptr;
     }
     Wh_Log(L"[zen-glass] focus-fix OFF");
+}
+
+// ---------------------------------------------------------------------------
+// 4.2.0: keep XAML acrylic in its "active" state when the window loses focus.
+//
+// The glass is a XAML AcrylicBrush with BackgroundSource=HostBackdrop. XAML
+// switches such a brush to its solid FallbackColor whenever the CoreWindow is
+// not active: on every Window.Activated it re-reads CoreWindow.ActivationMode
+// and falls back unless it is ActivatedInForeground / ActivatedNotForeground.
+// The DWM tricks above (WM_NCACTIVATE, FORCE_ACTIVEWINDOW_APPEARANCE) only act
+// on HWNDs and never reach that check; the Settings frame window also belongs
+// to ApplicationFrameHost.exe, so its activation cannot be faked from here.
+//
+// We hook ICoreWindow5::get_ActivationMode of this process' CoreWindow and
+// report ActivatedInForeground while the glass is on. Only calls on our own
+// CoreWindow pointer are changed (compared by address, never dereferenced),
+// so other objects sharing the same function body are unaffected.
+// ---------------------------------------------------------------------------
+
+constexpr int32_t kZenActivationModeActivatedInForeground = 3;
+constexpr int32_t kZenActivationStateDeactivated = 1;
+
+using CoreWindow_get_ActivationMode_t = int32_t(WINAPI*)(void* pThis,
+                                                         int32_t* value);
+CoreWindow_get_ActivationMode_t CoreWindow_get_ActivationMode_Original;
+std::atomic<void*> g_zenCoreWindow5Abi{nullptr};
+std::atomic<bool> g_zenActivationHookInstalled{false};
+std::atomic<uint32_t> g_zenActivationModeQueries{0};
+winrt::Windows::UI::Core::CoreWindow g_zenCoreWindow{nullptr};
+winrt::event_token g_zenCoreWindowActivatedToken{};
+uint32_t g_zenQueriesAtLastActivation = 0;
+
+int32_t WINAPI CoreWindow_get_ActivationMode_Hook(void* pThis,
+                                                  int32_t* value) {
+    int32_t hr = CoreWindow_get_ActivationMode_Original(pThis, value);
+    if (hr >= 0 && value && pThis &&
+        pThis == g_zenCoreWindow5Abi.load(std::memory_order_relaxed) &&
+        g_zenForceActiveGlass.load(std::memory_order_relaxed)) {
+        g_zenActivationModeQueries.fetch_add(1, std::memory_order_relaxed);
+        *value = kZenActivationModeActivatedInForeground;
+    }
+    return hr;
+}
+
+// Must run on the Settings UI thread (CoreWindow::GetForCurrentThread).
+bool InstallZenAcrylicActivationHook() {
+    winrt::Windows::UI::Core::CoreWindow coreWindow{nullptr};
+    try {
+        coreWindow = winrt::Windows::UI::Core::CoreWindow::GetForCurrentThread();
+    } catch (...) {
+    }
+    if (!coreWindow) {
+        Wh_Log(L"[zen-glass] activation hook: no CoreWindow on this thread yet");
+        return false;
+    }
+
+    void* abi5 = nullptr;
+    try {
+        auto cw5 = coreWindow.as<winrt::Windows::UI::Core::ICoreWindow5>();
+        abi5 = winrt::get_abi(cw5);
+    } catch (...) {
+        Wh_Log(L"[zen-glass] activation hook: ICoreWindow5 unavailable");
+        return true;  // Old OS: nothing to hook, do not retry.
+    }
+    g_zenCoreWindow5Abi = abi5;
+
+    if (!g_zenActivationHookInstalled.load()) {
+        void** vtable = *(void***)abi5;
+        void* target = vtable[7];  // ICoreWindow5::get_ActivationMode
+        if (Wh_SetFunctionHook(target, (void*)CoreWindow_get_ActivationMode_Hook,
+                               (void**)&CoreWindow_get_ActivationMode_Original)) {
+            Wh_ApplyHookOperations();
+            g_zenActivationHookInstalled = true;
+            Wh_Log(L"[zen-glass] activation hook ON (get_ActivationMode=%p)",
+                   target);
+        } else {
+            Wh_Log(L"[zen-glass] activation hook FAILED (get_ActivationMode=%p)",
+                   target);
+        }
+    }
+
+    // Diagnostics only: log whether XAML consulted ActivationMode when the
+    // window was deactivated, so a remaining solid fallback can be traced.
+    if (!g_zenCoreWindow) {
+        try {
+            g_zenCoreWindow = coreWindow;
+            g_zenQueriesAtLastActivation = g_zenActivationModeQueries.load();
+            g_zenCoreWindowActivatedToken = coreWindow.Activated(
+                [](winrt::Windows::UI::Core::CoreWindow const&,
+                   winrt::Windows::UI::Core::WindowActivatedEventArgs const&
+                       args) {
+                    int32_t state = (int32_t)args.WindowActivationState();
+                    uint32_t queries = g_zenActivationModeQueries.load();
+                    uint32_t delta = queries - g_zenQueriesAtLastActivation;
+                    g_zenQueriesAtLastActivation = queries;
+                    if (state == kZenActivationStateDeactivated) {
+                        Wh_Log(L"[zen-glass] window deactivated, forced "
+                               L"ActivationMode answers=%u%s",
+                               delta,
+                               delta ? L""
+                                     : L" (XAML did not ask; acrylic may "
+                                       L"still fall back to solid)");
+                    }
+                });
+        } catch (...) {
+            g_zenCoreWindow = nullptr;
+        }
+    }
+    return true;
+}
+
+void RemoveZenAcrylicActivationDiagnostics() {
+    if (g_zenCoreWindow) {
+        try {
+            g_zenCoreWindow.Activated(g_zenCoreWindowActivatedToken);
+        } catch (...) {
+        }
+        g_zenCoreWindow = nullptr;
+        g_zenCoreWindowActivatedToken = {};
+    }
+}
+
+// The CoreWindow is often not parented / not created yet when styles are first
+// processed (window-creation hook), so finish the glass setup from a thread
+// timer on the UI thread once it exists.
+std::atomic<bool> g_zenGlassWanted{false};
+std::atomic<bool> g_zenGlassAcrylic{false};
+UINT_PTR g_zenGlassRetryTimer = 0;
+int g_zenGlassRetryCount = 0;
+
+bool TryFinishZenGlassSetup() {
+    if (!g_zenGlassWanted.load()) {
+        return true;
+    }
+    HWND hCore = GetCoreWnd();
+    if (!hCore) {
+        return false;
+    }
+    if (g_safeBackdropMode.load() != DWMSBT_NONE) {
+        ApplySafeSystemBackdrop(DWMSBT_NONE);
+    }
+    if (!g_zenGlassAcrylic.load()) {
+        return true;
+    }
+    if (!g_zenSubclassCore) {
+        InstallZenGlassFocusFix();
+    }
+    return InstallZenAcrylicActivationHook();
+}
+
+void StopZenGlassRetryTimer() {
+    if (g_zenGlassRetryTimer) {
+        KillTimer(nullptr, g_zenGlassRetryTimer);
+        g_zenGlassRetryTimer = 0;
+    }
+}
+
+void CALLBACK ZenGlassRetryTimerProc(HWND, UINT, UINT_PTR, DWORD) {
+    if (TryFinishZenGlassSetup() || ++g_zenGlassRetryCount >= 60) {
+        Wh_Log(L"[zen-glass] deferred setup finished after %d tries",
+               g_zenGlassRetryCount);
+        StopZenGlassRetryTimer();
+    }
+}
+
+void ScheduleZenGlassSetup() {
+    if (TryFinishZenGlassSetup()) {
+        return;
+    }
+    if (!g_zenGlassRetryTimer) {
+        g_zenGlassRetryCount = 0;
+        g_zenGlassRetryTimer =
+            SetTimer(nullptr, 0, 250, ZenGlassRetryTimerProc);
+    }
 }
 
 void ApplySafeSystemBackdropToHwnd(HWND hWnd, int backdropType) {
@@ -7301,6 +7490,8 @@ void ProcessAllStylesFromSettings() {
     // Strip stock Mica so HostBackdrop can sample the desktop.
     // Acrylic themes also install the always-active focus fix so HostBackdrop
     // does not solid-fill when SystemSettings loses focus.
+    g_zenGlassWanted = acrylicTheme || clearTheme;
+    g_zenGlassAcrylic = acrylicTheme;
     if (acrylicTheme || clearTheme) {
         ApplySafeSystemBackdrop(DWMSBT_NONE);
         if (acrylicTheme) {
@@ -7308,7 +7499,11 @@ void ProcessAllStylesFromSettings() {
         } else {
             RemoveZenGlassFocusFix();
         }
+        // Finishes the backdrop / focus fix / activation hook now, or from a
+        // UI-thread timer once the CoreWindow exists.
+        ScheduleZenGlassSetup();
     } else {
+        StopZenGlassRetryTimer();
         RestoreSafeSystemBackdrop();
         RemoveZenGlassFocusFix();
     }
@@ -7361,8 +7556,19 @@ void ProcessAllStylesFromSettings() {
             finalColor = lightTheme ? L"#B8C4B0" : L"#4E5E50";
         }
 
+        // 4.2.0: light mode white base so text over busy wallpapers stays
+        // readable. Raises the window tint to at least this opacity; cards
+        // keep their own settings. Dark mode is unaffected.
+        int lightBase = Wh_GetIntSetting(L"lightModeBase");
+        if (lightBase < 0) lightBase = 0;
+        if (lightBase > 100) lightBase = 100;
+        int chromeOpVal = opVal;
+        if (lightTheme && lightBase > chromeOpVal) {
+            chromeOpVal = lightBase;
+        }
+
         // HostBackdrop Acrylic chrome (unified single layer) + force-active belt.
-        int chromeOp = opVal;
+        int chromeOp = chromeOpVal;
         int paneOp = chromeOp;
         int cardOp = (blurVal > 0) ? (std::max)(0, (int)(opVal * 0.55)) : (std::max)(0, (int)(opVal * 0.40));
         int cardBlur = blurVal;
@@ -7378,8 +7584,10 @@ void ProcessAllStylesFromSettings() {
         ReplaceStyleConstant(styleConstants, L"PaneBgBrush", pane);
         ReplaceStyleConstant(styleConstants, L"CardBgBrush", card);
 
-        Wh_Log(L"[zen-glass] chrome light=%d color=%s op=%d lum=%d cardBlur=%d",
-               lightTheme ? 1 : 0, finalColor.c_str(), opVal, lumVal, cardBlur);
+        Wh_Log(L"[zen-glass] chrome light=%d color=%s op=%d chromeOp=%d "
+               L"lightBase=%d lum=%d cardBlur=%d",
+               lightTheme ? 1 : 0, finalColor.c_str(), opVal, chromeOp,
+               lightBase, lumVal, cardBlur);
 
         Wh_FreeStringSetting(bgColorMode);
     }
@@ -7454,9 +7662,22 @@ void ProcessAllStylesFromSettings() {
         }
     }
 
+    std::vector<PCWSTR> themeResourceVariables =
+        theme ? theme->themeResourceVariables : std::vector<PCWSTR>{};
+    // 4.2.0: with the light mode white base on, darken gray (secondary /
+    // tertiary) text in light mode only. User resource variables still win.
+    if (acrylicTheme && Wh_GetIntSetting(L"lightModeBase") > 0) {
+        themeResourceVariables.push_back(
+            L"TextFillColorPrimaryBrush@Light:=<SolidColorBrush Color=\"#F2000000\" />");
+        themeResourceVariables.push_back(
+            L"TextFillColorSecondaryBrush@Light:=<SolidColorBrush Color=\"#CC000000\" />");
+        themeResourceVariables.push_back(
+            L"TextFillColorTertiaryBrush@Light:=<SolidColorBrush Color=\"#A3000000\" />");
+        themeResourceVariables.push_back(
+            L"SystemControlForegroundBaseMediumBrush@Light:=<SolidColorBrush Color=\"#CC000000\" />");
+    }
     g_resourceVariables = ProcessResourceVariablesFromSettings(
-        styleConstants,
-        theme ? theme->themeResourceVariables : std::vector<PCWSTR>{});
+        styleConstants, themeResourceVariables);
 }
 
 void UninitializeResourceVariables() {
@@ -7599,6 +7820,9 @@ void SoftReloadStylesKeepingTap() {
 }
 
 void UninitializeSettingsAndTap() {
+    g_zenGlassWanted = false;
+    StopZenGlassRetryTimer();
+    RemoveZenAcrylicActivationDiagnostics();
     RemoveZenGlassFocusFix();
     RestoreSafeSystemBackdrop();
     g_failedImageBrushesForThread.failedImageBrushes.clear();
