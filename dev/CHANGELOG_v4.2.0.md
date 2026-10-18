@@ -12,7 +12,7 @@
 - **Wobbly Windows 果冻窗口**（作者 lalimatyus，GPL-3.0）：KDE/Compiz 风格，拖动窗口会像果冻一样晃。需要在 Windhawk 进程包含列表里加入 `dwm.exe`。
 - **Windows Animations 关窗动画**（作者 ReDrag，MIT）：碎裂、溶解、老电视关机等关窗效果。ZenDesktop 默认**只开关窗效果**，最小化、还原（含神灯）、启动和 Alt+Tab 切换动画默认关闭；检测到已启用 macOS 最小化动画时，部署脚本会强制关掉它的最小化/还原，避免两个 Mod 抢同一个窗口。
 - 两个第三方 Mod 保留上游版本号（1.3.7 / 0.115），简介第一行标注「ZenDesktop v4.2 收录」。
-- 部署时逐个询问是否安装，默认不装；也支持 `deploy.bat -Optional "wobbly-windows,windows-animations"` 无人值守安装。
+- 部署时两个可选 Mod 和其他 Mod 一样装进 Windhawk，默认关闭，由你在 Windhawk 里自己打开；无人值守时可用 `deploy.bat -Optional "wobbly-windows,windows-animations"` 直接打开指定的 Mod。
 
 ## 🧪 测试顺序（发布前）
 1. 只开 Wobbly Windows（果冻窗口），**重启整台电脑**（不要只重启资源管理器）。
