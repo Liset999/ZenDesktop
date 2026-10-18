@@ -4,7 +4,7 @@
 [![Platform Windows](https://img.shields.io/badge/Platform-Windows%2011-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk%20C%2B%2B-ff69b4?style=flat-square)](https://windhawk.net)
 
-**ZenDesktop Premium v4.2** is a desktop styling suite for Windows 11 built as native Win32/C++ Windhawk mods. File Explorer transparency uses **`zen-explorer-styler`** (no ExplorerBlurMica). Real-time options live in the Windhawk UI.
+**ZenDesktop Premium v5.0.0** is a desktop styling suite for Windows 11 built as native Win32/C++ Windhawk mods. File Explorer transparency uses **`zen-explorer-styler`** (no ExplorerBlurMica). Real-time options live in the Windhawk UI.
 
 👨‍💻 **Developer Links & Support / 关注与支持**:
 - 📺 **Bilibili**: https://space.bilibili.com/1280632999
@@ -15,7 +15,7 @@
 
 ---
 
-## 🚀 Latest Updates / 最新更新 (v4.2)
+## 🚀 Latest Updates / 最新更新 (v5.0.0)
 
 ### 🌐 English
 * **Standardized Chinese Localization & Mod Naming**: Unified all core mod display names and descriptions with full bilingual settings translation in Windhawk.
@@ -69,13 +69,13 @@
 
 | 文件 | 适合谁 |
 |---|---|
-| `ZenDesktop_OneKeyDeploy_v4.2.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
-| `ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
-| `ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
+| `ZenDesktop_OneKeyDeploy_v5.0.0.zip` | **大多数人选这个**。内含 Windhawk 安装器（联网安装）+ 全部 Mod |
+| `ZenDesktop_OneKeyDeploy_v5.0.0_Offline.zip` | 网络差 / 装 Windhawk 总失败的人。内含离线版 Windhawk 安装器，体积更大 |
+| `ZenDesktop_OneKeyDeploy_v5.0.0_Online.zip` | **已经装好 Windhawk** 的人。只含 Mod 和部署脚本，最小 |
 
 > 三个 OneKeyDeploy 包只选一个。
 
-## 🧩 可选 Mod（v4.2 新增）/ Optional mods
+## 🧩 可选 Mod（v5.0.0 新增）/ Optional mods
 
 `deploy.bat` 会把下面两个可选 mod 也装进 Windhawk，和其他 mod 一样默认关闭，想用就在 Windhawk 里自己打开：
 

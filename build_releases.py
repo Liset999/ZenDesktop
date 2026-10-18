@@ -15,6 +15,7 @@ common_files = [
     'uninstall.ps1',
     'LICENSE',
     'Readme.txt',
+    'CHANGELOG_v5.0.0.md',
     'README.md',
     'docs/donate-wechat.png',
     'docs/screenshots',  # README.md preview images
@@ -30,9 +31,9 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v4.2.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.2.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v4.2.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v5.0.0.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.0.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.0.0_Online.zip': common_files
 }
 
 for zip_name, file_list in releases.items():

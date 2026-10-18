@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v4.2.0 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.0.0 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -54,7 +54,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v4.2.0" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.0.0" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -553,7 +553,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v4.2.0 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.0.0 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："
