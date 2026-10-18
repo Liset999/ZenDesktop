@@ -4,13 +4,13 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.3.3
+// @version         0.4.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi
+// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -33,6 +33,7 @@
 - 没在放歌时默认显示「未在播放」，也可改成隐藏。全屏游戏、视频、PPT 时默认不隐藏，可在设置里开启。
 - 文字颜色默认跟随系统深浅色（浅色模式用深色字），可选的颜色和其他 ZenDesktop mod 一样。
 - 位置：任务栏图标居中时放在最左边；图标靠左时自动挪到托盘左边（和系统小组件按钮的规则一样），不会压住开始按钮。
+- 常驻：面板直接嵌在任务栏里，跟着任务栏移动、自动隐藏，打开新程序时不会被任务栏盖住而闪烁。
 - AI 助手状态：读取 `%LOCALAPPDATA%\ZenDesktop\ai-status\` 里每个助手一个的 JSON 文件。放歌时显示在第二行，没放歌时单独显示。多个助手可以排成一行，也可以轮流显示。
 
 ## AI 助手状态怎么接
@@ -97,10 +98,10 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 水平偏移：按 100% 缩放的像素，高 DPI 自动放大，范围 -500–2000。
 - 没在放歌时：默认显示「未在播放」，可选隐藏面板。有 AI 助手在工作时仍会显示。
 - 面板宽度：紧凑 260、标准 340、宽 440、超宽 560，或自定义 120–2000。
-- 面板玻璃：默认开启。用系统亚克力模糊做面板背景，浓淡由「面板底色」决定；关闭后回到原来的透明／底色绘制。
+- 面板玻璃：默认开启。只对「淡淡一层」「卡片」有用：开启时是叠在任务栏玻璃上的一层半透明色，关闭时是几乎不透明的底色。选「无底色」时这个开关没有作用。
 - 多显示器：默认关闭（只主屏）。开启后每个任务栏各显示一个面板，媒体与 AI 状态共用。
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
-- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色：玻璃开启时是玻璃的浓淡（无底色最通透、淡淡一层、卡片最浓），玻璃关闭时是画出来的底色。
+- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色默认「无底色」：完全透明，没有底色、边框和阴影，文字、封面和按钮直接画在任务栏上，看起来就是任务栏的一部分，只有鼠标移上去时有很淡的高亮。
 - 歌词偏移：毫秒，正数提前，范围 -60000–60000。
 - 全屏和游戏时隐藏：默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏（多显示器只藏全屏那块屏）。
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示。
@@ -109,18 +110,19 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 支持 Windows 11 任务栏（底部）。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
-- 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色和「面板底色」换色调和浓淡；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时「面板底色」改为直接画出来的底色。
-- 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的；默认是显示「未在播放」。
+- 面板是任务栏（`Shell_TrayWnd`／`Shell_SecondaryTrayWnd`）的子窗口，排在任务栏自己的 XAML 内容上面。子窗口用不了系统亚克力，所以面板自己不做模糊，透出来的是任务栏本身的材质；「淡淡一层」「卡片」是在上面叠一层半透明色。
+- 文字颜色选得和任务栏深浅接近时（比如浅色模式选白色），会自动加一层很淡的阴影保证看得清；默认颜色不加。
+- 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因；正常时会有一行 `attached as child of Shell_TrayWnd`。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的；默认是显示「未在播放」。
 - 点「打开播放器」只能切换到有可见窗口的播放器；缩到托盘里的播放器切不出来。
 - 网易云、QQ 音乐的歌词接口是非官方的，随时可能失效。
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.0**：面板改为嵌在任务栏里的子窗口（在任务栏自己的线程上创建），不再浮在任务栏上面，打开新程序时不再闪烁，跟着任务栏移动和自动隐藏。「无底色」改为完全透明，没有底色、边框和阴影，和任务栏材质一致。「面板玻璃」改为只决定「淡淡一层」「卡片」是半透明还是不透明。
 - **0.3.3**：修复打开新程序时面板闪一下（任务栏把面板压到下面、切歌瞬间误判没在放歌、玻璃模式下先涂黑再画字）；「面板底色」在玻璃开启时改为调玻璃浓淡，三档都能看出区别；「没在放歌时」挪到设置第三项。
 - **0.3.2**：默认改为没在放歌时显示「未在播放」（不再默认隐藏）；「全屏和游戏时隐藏」改为默认关闭。
 - **0.3.1**：修复「开了没反应」：桌面或最大化窗口（Windhawk、网易云、微信等）在前台时被误判成全屏而隐藏；面板改为不挂靠任务栏的置顶窗口（参考 Taskbar Music Lounge），在每个环节写 Windhawk 日志，方便排查。
 - **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
-- **0.2.0**：改成小组件位置的音乐面板，加入专辑封面、播放控制、深浅色跟随、文字颜色预设、AI 助手状态。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
@@ -225,8 +227,8 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - panelBackground: none
   $name: Panel background
   $name:zh-CN: 面板底色
-  $description: Follows light/dark mode. With panel glass on it sets how strong the glass tint is; with glass off it is a painted background.
-  $description:zh-CN: 底色跟随系统深浅色。开着「面板玻璃」时决定玻璃的浓淡：无底色最通透，卡片最浓；关掉玻璃时画在面板下面。
+  $description: None = fully transparent, drawn straight on the taskbar's own material. Subtle and card follow light/dark mode.
+  $description:zh-CN: 「无底色」完全透明，没有底色和边框，直接画在任务栏上。「淡淡一层」「卡片」跟随系统深浅色。
   $options:
   - none: 无底色（最通透）
   - subtle: 淡淡一层
@@ -276,8 +278,8 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - panelGlass: true
   $name: Panel glass
   $name:zh-CN: 面板玻璃
-  $description: Acrylic blur behind the panel via AccentBlurBehind. Default on. The panel background setting picks the tint strength.
-  $description:zh-CN: 面板背后使用亚克力模糊（AccentBlurBehind）。默认开启。玻璃的浓淡由「面板底色」决定。
+  $description: Only for Subtle and Card: on = a translucent layer over the taskbar glass, off = a nearly solid background. No effect with None. Default on.
+  $description:zh-CN: 只对「淡淡一层」「卡片」有用：开启时是叠在任务栏玻璃上的半透明色，关闭时是几乎不透明的底色。「无底色」时不起作用。默认开启。
 - multiMonitor: false
   $name: Multi-monitor
   $name:zh-CN: 多显示器
@@ -334,6 +336,9 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 #include <gdiplus.h>
 #include <dwmapi.h>
 #include <tlhelp32.h>
+#include <commctrl.h>
+
+#include <windhawk_utils.h>
 
 #undef GetCurrentTime
 #include <winrt/base.h>
@@ -1694,19 +1699,60 @@ static Gdiplus::ARGB AiStateColor(AiState s) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Display: one popup per taskbar (primary Shell_TrayWnd, optional secondary
-// Shell_SecondaryTrayWnd). Two paint paths:
-//   - Glass on: AccentBlurBehind acrylic + WM_PAINT / BitBlt (no UpdateLayeredWindow)
-//   - Glass off: layered 32-bit PARGB + UpdateLayeredWindow (original path)
+// Display (0.4.0): one layered CHILD window per taskbar (primary Shell_TrayWnd, optional
+// Shell_SecondaryTrayWnd), created on the taskbar's own UI thread via RunFromWindowThread
+// (the WH_CALLWNDPROC + registered-message helper used by taskbar-tray-show-on-hover /
+// taskbar-multirow in windhawk-mods). Up to 0.3.3 the panel was a topmost popup laid over
+// the taskbar (Taskbar Music Lounge style); the taskbar re-raises itself whenever it
+// re-lays out, so the popup lost the z-order race and blinked. As a child placed HWND_TOP
+// among the taskbar's children (above the XAML island's DesktopWindowContentBridge, the
+// same embedding TrafficMonitor uses on Win11) the panel moves, auto-hides and hides with
+// the taskbar and can't be covered by it. DWM acrylic doesn't apply to child windows, so
+// the panel is per-pixel alpha (WS_EX_LAYERED child + UpdateLayeredWindow, Win8+): with
+// "no background" only text / art / buttons are drawn over the taskbar's own material.
+// Window procedures for the panels run on the taskbar thread; our own UI thread only
+// scans for taskbars (2 s timer, TaskbarCreated, settings) and marshals create / destroy.
 // Media session and AI status are shared; fullscreen hide is per-monitor when possible.
 // ─────────────────────────────────────────────────────────────────────────────
 static const wchar_t kWndClass[] = L"ZenTaskbarLyricsWnd";
+static const wchar_t kHelperClass[] = L"ZenTaskbarLyricsHelper";
 static std::atomic<DWORD> g_uiThreadId{0};
-static constexpr UINT WM_ZEN_SETTINGS = WM_APP + 1;
-static constexpr UINT WM_ZEN_SYNC = WM_APP + 2;
+static constexpr UINT WM_ZEN_SETTINGS = WM_APP + 1;  // thread message to our UI thread
+static constexpr UINT WM_ZEN_SYNC = WM_APP + 2;      // thread message to our UI thread
+static constexpr UINT WM_ZEN_REFRESH = WM_APP + 3;   // posted to a panel: wParam 1 = force re-render
 static constexpr UINT_PTR TIMER_TICK = 1;
 static constexpr UINT_PTR TIMER_SYNC = 2;
-static constexpr UINT_PTR TIMER_ZFOLLOW = 3;  // short follow-up z-order checks after a foreground change
+
+// Same helper as ramensoftware/windhawk-mods taskbar-tray-show-on-hover.wh.cpp.
+using RunFromWindowThreadProc_t = void(WINAPI*)(void* parameter);
+static bool RunFromWindowThread(HWND hWnd, RunFromWindowThreadProc_t proc, void* procParam) {
+    static const UINT runMsg = RegisterWindowMessageW(L"Windhawk_RunFromWindowThread_" WH_MOD_ID);
+    struct RUN_PARAM { RunFromWindowThreadProc_t proc; void* procParam; };
+    DWORD tid = GetWindowThreadProcessId(hWnd, nullptr);
+    if (!tid) return false;
+    if (tid == GetCurrentThreadId()) {
+        proc(procParam);
+        return true;
+    }
+    HHOOK hook = SetWindowsHookExW(
+        WH_CALLWNDPROC,
+        [](int nCode, WPARAM wParam, LPARAM lParam) -> LRESULT {
+            if (nCode == HC_ACTION) {
+                const CWPSTRUCT* cwp = (const CWPSTRUCT*)lParam;
+                if (cwp->message == runMsg) {
+                    RUN_PARAM* p = (RUN_PARAM*)cwp->lParam;
+                    p->proc(p->procParam);
+                }
+            }
+            return CallNextHookEx(nullptr, nCode, wParam, lParam);
+        },
+        nullptr, tid);
+    if (!hook) return false;
+    RUN_PARAM param{proc, procParam};
+    SendMessageW(hWnd, runMsg, 0, (LPARAM)&param);
+    UnhookWindowsHookEx(hook);
+    return true;
+}
 
 static const wchar_t* const kGameProcs[] = {
     L"League of Legends.exe", L"VALORANT-Win64-Shipping.exe", L"YuanShen.exe", L"GenshinImpact.exe",
@@ -1771,40 +1817,35 @@ static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting, const wchar_
 
 // Windhawk injects into every explorer.exe, including "separate process" folder windows.
 // Only the process that owns the taskbar shows the panel, otherwise there would be two.
+// Enumerate instead of FindWindow: status-bar tools (YASB etc.) also register Shell_TrayWnd
+// (windhawk-mods issue #1704).
 static bool OwnedByThisProcess(HWND h) {
     DWORD pid = 0;
     return h && GetWindowThreadProcessId(h, &pid) && pid == GetCurrentProcessId();
 }
-static HWND FindPrimaryTaskbar() {
-    HWND h = FindWindowW(L"Shell_TrayWnd", nullptr);
-    return OwnedByThisProcess(h) ? h : nullptr;
+
+static bool IsSecondaryTaskbar(HWND h) {
+    wchar_t cls[64]{};
+    return h && GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0;
 }
 
 static std::vector<HWND> FindTaskbars(bool multi) {
-    std::vector<HWND> out;
-    HWND primary = FindPrimaryTaskbar();
-    if (primary) out.push_back(primary);
-    if (!multi) return out;
+    struct Ctx { std::vector<HWND> primary, secondary; } ctx;
     EnumWindows(
         [](HWND h, LPARAM lp) -> BOOL {
+            auto* c = reinterpret_cast<Ctx*>(lp);
             wchar_t cls[64]{};
-            if (GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0 && OwnedByThisProcess(h))
-                reinterpret_cast<std::vector<HWND>*>(lp)->push_back(h);
+            if (!GetClassNameW(h, cls, 64) || !OwnedByThisProcess(h)) return TRUE;
+            if (_wcsicmp(cls, L"Shell_TrayWnd") == 0) c->primary.push_back(h);
+            else if (_wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0) c->secondary.push_back(h);
             return TRUE;
         },
-        reinterpret_cast<LPARAM>(&out));
+        reinterpret_cast<LPARAM>(&ctx));
+    std::vector<HWND> out;
+    if (!ctx.primary.empty()) out.push_back(ctx.primary[0]);
+    if (multi) out.insert(out.end(), ctx.secondary.begin(), ctx.secondary.end());
     return out;
 }
-
-static bool TaskbarMostlyOffscreen(HWND tray, const RECT& tr) {
-    MONITORINFO mi{};
-    mi.cbSize = sizeof(mi);
-    if (!GetMonitorInfoW(MonitorFromWindow(tray, MONITOR_DEFAULTTONEAREST), &mi)) return false;
-    RECT vis{};
-    if (!IntersectRect(&vis, &tr, &mi.rcMonitor)) return true;
-    return (vis.bottom - vis.top) * 2 < (tr.bottom - tr.top);
-}
-
 static DWORD ReadDword(const wchar_t* subkey, const wchar_t* value, DWORD def) {
     DWORD v = 0, cb = sizeof(v);
     if (RegGetValueW(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, nullptr, &v, &cb) == ERROR_SUCCESS) return v;
@@ -2005,39 +2046,35 @@ struct UiState {
     std::unique_ptr<Gdiplus::Bitmap> art;
     unsigned artVersion = ~0u;
     int artPx = 0;
-    ULONGLONG lastZ = 0;
-    bool glassApplied = false;
-    int glassTint = 0;            // AABBGGRR last passed to the accent policy
-    int lastW = 0, lastH = 0, lastRad = 0;
-    int posX = INT_MIN, posY = INT_MIN, posW = 0, posH = 0;  // last SetWindowPos rect
-    ULONGLONG hideSince = 0;      // first tick a soft hide reason was seen (debounce)
-    HBITMAP back = nullptr;       // glass path back buffer, also used by WM_PAINT
-    int backW = 0, backH = 0;
+    int posX = INT_MIN, posY = INT_MIN;  // last position, client coordinates of the taskbar
+    ULONGLONG hideSince = 0;             // first tick a soft hide reason was seen (debounce)
+    unsigned zFixes = 0;                 // times a taskbar child was found above the panel
 };
 
-static void FreeBackBuffer(UiState& ui) {
-    if (ui.back) DeleteObject(ui.back);
-    ui.back = nullptr;
-    ui.backW = ui.backH = 0;
-}
-
 struct Panel {
-    HWND hwnd = nullptr;
+    HWND hwnd = nullptr;   // child of tray, owned by the taskbar thread
     HWND tray = nullptr;
     bool secondary = false;
+    bool subclassed = false;
     UiState ui;
     std::wstring lastWhy;  // last hide reason / "shown" key, so the log only records changes
 };
 
-static std::vector<Panel> g_panels;  // UI thread only
-static bool g_panelsGlass = true;    // style used when panels were created
+// Panels are touched from the taskbar thread (window procedures, create / destroy) and,
+// read-only plus erasing dead entries, from our UI thread. Never hold this lock while
+// marshalling to another thread.
+static std::recursive_mutex g_panelsLock;
+static std::vector<std::unique_ptr<Panel>> g_panels;
 static HINSTANCE g_uiInst = nullptr;
 
 static Panel* PanelOf(HWND hwnd) {
-    for (auto& p : g_panels) if (p.hwnd == hwnd) return &p;
+    for (auto& p : g_panels) if (p->hwnd == hwnd) return p.get();
     return nullptr;
 }
-
+static Panel* PanelOfTray(HWND tray) {
+    for (auto& p : g_panels) if (p->tray == tray) return p.get();
+    return nullptr;
+}
 static std::unique_ptr<Gdiplus::Bitmap> DecodeArt(const std::vector<BYTE>& bytes, int px, Gdiplus::REAL radius) {
     IStream* stm = SHCreateMemStream(bytes.data(), (UINT)bytes.size());
     if (!stm) return nullptr;
@@ -2069,14 +2106,16 @@ static std::unique_ptr<Gdiplus::Bitmap> DecodeArt(const std::vector<BYTE>& bytes
     return out;
 }
 
+// shadow = 0: none. Only used when the text has little contrast with the taskbar.
 static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font& font, const Gdiplus::RectF& r,
-                     Gdiplus::ARGB textColor, bool shadow) {
+                     Gdiplus::ARGB textColor, Gdiplus::ARGB shadow, Gdiplus::REAL shadowOff) {
     Gdiplus::StringFormat fmt(Gdiplus::StringFormat::GenericTypographic());
     fmt.SetLineAlignment(Gdiplus::StringAlignmentCenter);
     fmt.SetFormatFlags(Gdiplus::StringFormatFlagsNoWrap | Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
     fmt.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
     Gdiplus::REAL x = r.X;
-    Gdiplus::SolidBrush sh{Gdiplus::Color(WithAlpha(0xFF000000, (BYTE)(((textColor >> 24) & 255) / 3)))};
+    BYTE ta = (BYTE)((textColor >> 24) & 255);
+    Gdiplus::SolidBrush sh{Gdiplus::Color(WithAlpha(shadow, (BYTE)(((shadow >> 24) & 255) * ta / 255)))};
     for (size_t i = 0; i < line.size(); ++i) {
         const Seg& sg = line[i];
         Gdiplus::REAL avail = r.X + r.Width - x;
@@ -2086,7 +2125,7 @@ static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font
         Gdiplus::RectF dst(x, r.Y, std::min(box.Width + 1, avail), r.Height);
         Gdiplus::ARGB col = sg.color ? sg.color : textColor;
         if (shadow && !sg.dot) {
-            Gdiplus::RectF ds(dst.X + 1, dst.Y + 1, dst.Width, dst.Height);
+            Gdiplus::RectF ds(dst.X, dst.Y + shadowOff, dst.Width, dst.Height);
             g.DrawString(sg.text.c_str(), -1, &font, ds, &fmt, &sh);
         }
         Gdiplus::SolidBrush b{Gdiplus::Color(col)};
@@ -2096,73 +2135,30 @@ static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font
     }
 }
 
-// Glass tint per "panel background" preset, AABBGGRR. Before 0.3.3 the glass path used a
-// fixed 0xA0 tint and ignored the preset, so all three presets looked the same (and fairly
-// solid). Now the preset is the tint strength: none = clearest, card = densest.
-static int GlassTint(PanelBg bg, bool light) {
-    int rgb = light ? 0x00F3F3F3 : 0x00202020;
-    int a = bg == PanelBg::Card ? 0xD8 : bg == PanelBg::Subtle ? 0x90 : 0x38;
-    return (int)(((unsigned)a << 24) | (unsigned)rgb);
-}
-
-// AccentBlurBehind (AABBGGRR GradientColor). Same family as zen-explorer-styler.
-static void ApplyPanelGlass(HWND hwnd, bool enable, int tint) {
-    using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, void*);
-    static auto pSet = (SetWindowCompositionAttribute_t)GetProcAddress(GetModuleHandleW(L"user32.dll"),
-                                                                       "SetWindowCompositionAttribute");
-
-    HRGN hRgn = enable ? CreateRectRgn(0, 0, -1, -1) : nullptr;
-    DWM_BLURBEHIND bb{};
-    bb.dwFlags = DWM_BB_ENABLE | (enable ? DWM_BB_BLURREGION : 0u);
-    bb.fEnable = enable ? TRUE : FALSE;
-    bb.hRgnBlur = hRgn;
-    DwmEnableBlurBehindWindow(hwnd, &bb);
-    if (hRgn) DeleteObject(hRgn);
-
-    if (!pSet) return;
-
-    struct ACCENT_POLICY { int AccentState; int AccentFlags; int GradientColor; int AnimationId; };
-    struct WINDOWCOMPOSITIONATTRIBDATA { DWORD Attrib; PVOID pvData; SIZE_T cbData; };
-    constexpr int ACCENT_ENABLE_ACRYLICBLURBEHIND = 4;
-    constexpr int ACCENT_DISABLED = 0;
-    constexpr DWORD WCA_ACCENT_POLICY = 19;
-
-    ACCENT_POLICY policy{};
-    if (enable) {
-        policy.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
-        policy.AccentFlags = 2;
-        policy.GradientColor = tint;
-    } else {
-        policy.AccentState = ACCENT_DISABLED;
+// What is drawn under the content. "none" draws nothing at all: no tint, no blur, no
+// border, so the panel is just text / art / buttons on the taskbar's own material.
+// With panel glass on, subtle / card are translucent layers of the taskbar's own glass;
+// with it off they are the older, nearly opaque painted backgrounds.
+struct PanelLook { Gdiplus::ARGB fill = 0, edge = 0; };
+static PanelLook LookFor(PanelBg bg, bool glass, bool light) {
+    if (bg == PanelBg::None) return {};
+    if (glass) {
+        if (bg == PanelBg::Subtle) return light ? PanelLook{0x40FFFFFF, 0x12000000} : PanelLook{0x14FFFFFF, 0x14FFFFFF};
+        return light ? PanelLook{0x99FFFFFF, 0x1E000000} : PanelLook{0x66141414, 0x22FFFFFF};
     }
-    WINDOWCOMPOSITIONATTRIBDATA data{WCA_ACCENT_POLICY, &policy, sizeof(policy)};
-    pSet(hwnd, &data);
-}
-
-static void ApplyRoundRgn(HWND hwnd, int w, int h, int radiusPx) {
-    if (w <= 0 || h <= 0) return;
-    int d = std::max(2, radiusPx * 2);
-    HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, d, d);
-    SetWindowRgn(hwnd, rgn, TRUE);
-}
-
-static void HidePanel(Panel& panel) {
-    if (panel.hwnd && IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_HIDE);
-    panel.ui.visible = false;
-    panel.ui.hideSince = 0;
-    panel.ui.lastSig.clear();
-    panel.ui.hover = panel.ui.pressed = HitNone;
+    if (bg == PanelBg::Subtle) return light ? PanelLook{0x8CFFFFFF, 0x1C000000} : PanelLook{0x60000000, 0x1CFFFFFF};
+    return light ? PanelLook{0xEEF9F9F9, 0x38000000} : PanelLook{0xE8262626, 0x38FFFFFF};
 }
 
 struct Layout {
-    int x = 0, y = 0, w = 0, h = 0;
+    int cx = 0, cy = 0, w = 0, h = 0;  // client coordinates inside the taskbar
     int dpi = 96;
     int pad = 0, art = 0, btn = 0, cur = 0, textRight = 0;
     RECT artRc{};
     RECT btnRc[3]{};
     bool showArt = false, showButtons = false, bodyClickable = false;
     Gdiplus::ARGB text = 0xFFFFFFFF;
-    bool shadow = false;
+    Gdiplus::ARGB shadow = 0;
     bool light = false;
     Content content;
 };
@@ -2171,10 +2167,10 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     RefreshEnv(forceEnv);
     HWND tray = panel.tray;
     if (!tray || !IsWindow(tray)) { *why = L"taskbar window gone"; return false; }
-    RECT tr{};
-    if (!GetWindowRect(tray, &tr)) { *why = L"GetWindowRect(taskbar) failed"; return false; }
+    RECT tr{}, cr{};
+    if (!GetWindowRect(tray, &tr) || !GetClientRect(tray, &cr)) { *why = L"GetWindowRect(taskbar) failed"; return false; }
     if (!IsWindowVisible(tray)) { *why = L"taskbar not visible"; return false; }
-    if (TaskbarMostlyOffscreen(tray, tr)) { *why = L"taskbar auto-hidden / offscreen"; return false; }
+    // Auto-hide needs no check any more: the child slides out with the taskbar.
 
     L.content = BuildContent(s);
     bool nothing = !L.content.media && !L.content.aiOnly && !L.content.idle;
@@ -2190,26 +2186,32 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     if (!dpi) dpi = 96;
     L.dpi = (int)dpi;
     auto D = [dpi](double v) { return (int)(v * dpi / 96.0 + 0.5); };
+    int cw = cr.right - cr.left;
     L.w = D(s.width);
-    L.h = tr.bottom - tr.top;
-    if (L.h <= 0 || L.h > 1000 || L.w <= 0) { *why = L"bad taskbar height or panel width"; return false; }
+    L.h = cr.bottom - cr.top;
+    if (L.h <= 0 || L.h > 1000 || L.w <= 0 || cw <= 0) { *why = L"bad taskbar height or panel width"; return false; }
+    L.w = std::min(L.w, cw);
     int gap = MulDiv(s.xOffset, (int)dpi, 96);
     bool trayMode = s.posMode == PosMode::Tray || (s.posMode == PosMode::Widgets && g_env.alignLeft);
-    L.x = tr.left + gap;
+    POINT origin{0, 0};
+    ClientToScreen(tray, &origin);  // tray notify area rect is in screen coordinates
+    int x = gap;
     if (trayMode) {
         HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
         RECT nr{};
         if (notify && GetWindowRect(notify, &nr) && nr.right - nr.left > D(40) && nr.left > tr.left && nr.right <= tr.right)
-            L.x = nr.left - L.w - gap;
+            x = (nr.left - origin.x) - L.w - gap;
         else
-            L.x = tr.right - L.w - gap - D(260);
+            x = cw - L.w - gap - D(260);
     }
-    L.x = std::clamp(L.x, (int)tr.left, std::max((int)tr.left, (int)tr.right - L.w));
-    L.y = tr.top;
+    L.cx = std::clamp(x, 0, std::max(0, cw - L.w));
+    L.cy = 0;
 
     L.light = g_env.lightTaskbar;
     L.text = ResolveTextColor(s.textColorMode, L.light);
-    L.shadow = IsLightColor(L.text) && !(s.panelGlass) && s.panelBg != PanelBg::Card;
+    // Default colors follow light/dark mode and need no shadow (looks native). A soft
+    // shadow / glow only when the chosen color is close to the taskbar's brightness.
+    if (IsLightColor(L.text) == L.light) L.shadow = IsLightColor(L.text) ? 0x80000000 : 0x70FFFFFF;
 
     L.pad = D(6);
     L.showArt = s.showArt && (L.content.media || L.content.aiOnly);
@@ -2251,67 +2253,47 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     return true;
 }
 
-static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, const Layout& L, bool glass) {
+static Gdiplus::RectF ToRectF(const RECT& r) {
+    return Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top, (Gdiplus::REAL)(r.right - r.left),
+                          (Gdiplus::REAL)(r.bottom - r.top));
+}
+
+static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, const Layout& L) {
     auto D = [&](double v) { return (int)(v * L.dpi / 96.0 + 0.5); };
     g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
     g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
-    g.SetTextRenderingHint(glass ? Gdiplus::TextRenderingHintClearTypeGridFit
-                                 : Gdiplus::TextRenderingHintAntiAlias);
-    // Layered/ULW path needs a fully cleared PARGB buffer. Glass path paints onto a
-    // black-cleared window DC so AccentBlurBehind shows through untouched pixels.
-    if (!glass) g.Clear(Gdiplus::Color(0, 0, 0, 0));
+    g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);  // ClearType can't blend onto alpha
+    g.Clear(Gdiplus::Color(0, 0, 0, 0));
 
     Gdiplus::REAL fw = (Gdiplus::REAL)L.w, fh = (Gdiplus::REAL)L.h;
     Gdiplus::RectF panelRc((Gdiplus::REAL)D(2), (Gdiplus::REAL)D(4), fw - D(4), fh - D(8));
     Gdiplus::REAL rad = (Gdiplus::REAL)D(8);
 
-    if (glass) {
-        // The tint strength comes from the accent policy (GlassTint); here only a soft edge,
-        // a bit stronger for Card so the card shape reads on acrylic.
+    PanelLook look = LookFor(s.panelBg, s.panelGlass, L.light);
+    if (look.fill) FillRound(g, look.fill, panelRc, rad);
+    if (look.edge) {
         Gdiplus::GraphicsPath p;
         RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
-        BYTE ea = s.panelBg == PanelBg::Card ? 0x40 : s.panelBg == PanelBg::Subtle ? 0x2C : 0x1C;
-        Gdiplus::Pen pen(Gdiplus::Color(WithAlpha(L.light ? 0xFF000000 : 0xFFFFFFFF, ea)), 1.0f);
+        Gdiplus::Pen pen(Gdiplus::Color(look.edge), 1.0f);
         g.DrawPath(&pen, &p);
-    } else if (s.panelBg == PanelBg::Subtle) {
-        FillRound(g, L.light ? 0x8CFFFFFF : 0x60000000, panelRc, rad);
-        Gdiplus::GraphicsPath p;
-        RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
-        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x1C000000 : 0x1CFFFFFF), 1.0f);
-        g.DrawPath(&pen, &p);
-    } else if (s.panelBg == PanelBg::Card) {
-        FillRound(g, L.light ? 0xEEF9F9F9 : 0xE8262626, panelRc, rad);
-        Gdiplus::GraphicsPath p;
-        RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
-        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x38000000 : 0x38FFFFFF), 1.0f);
-        g.DrawPath(&pen, &p);
-    } else if (L.bodyClickable) {
-        FillRound(g, 0x01000000, panelRc, rad);
     }
 
-    if (!glass) {
-        for (int i = 0; i < 3; ++i)
-            if (panel.ui.hitEnabled[i]) {
-                const RECT& r = L.btnRc[i];
-                FillRound(g, 0x01000000,
-                          Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
-                                         (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)),
-                          rad);
-            }
-    }
+    // Alpha 1 (invisible) under clickable areas: fully transparent pixels of a layered
+    // window are click-through, so without this the "none" preset could not be clicked.
+    if (panel.ui.hitEnabled[HitBody]) FillRound(g, 0x01000000, ToRectF(panel.ui.hitRects[HitBody]), rad);
+    for (int i = 0; i < 3; ++i)
+        if (panel.ui.hitEnabled[i]) FillRound(g, 0x01000000, ToRectF(L.btnRc[i]), (Gdiplus::REAL)D(6));
 
     if (panel.ui.hover != HitNone) {
-        BYTE a = panel.ui.pressed == panel.ui.hover ? 0x40 : 0x22;
-        const RECT& r = panel.ui.hitRects[panel.ui.hover];
-        FillRound(g, WithAlpha(L.text, a),
-                  Gdiplus::RectF((Gdiplus::REAL)r.left, (Gdiplus::REAL)r.top,
-                                 (Gdiplus::REAL)(r.right - r.left), (Gdiplus::REAL)(r.bottom - r.top)),
+        bool bare = s.panelBg == PanelBg::None;  // only a faint highlight while hovered
+        bool down = panel.ui.pressed == panel.ui.hover;
+        BYTE a = bare ? (down ? 0x2A : 0x16) : (down ? 0x40 : 0x22);
+        FillRound(g, WithAlpha(L.text, a), ToRectF(panel.ui.hitRects[panel.ui.hover]),
                   panel.ui.hover == HitBody ? rad : (Gdiplus::REAL)D(6));
     }
 
     if (L.showArt && L.artRc.right > L.artRc.left) {
-        Gdiplus::RectF ar((Gdiplus::REAL)L.artRc.left, (Gdiplus::REAL)L.artRc.top, (Gdiplus::REAL)L.art,
-                          (Gdiplus::REAL)L.art);
+        Gdiplus::RectF ar = ToRectF(L.artRc);
         if (panel.ui.art && L.content.media) {
             g.DrawImage(panel.ui.art.get(), ar.X, ar.Y, ar.Width, ar.Height);
         } else {
@@ -2338,13 +2320,14 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     Gdiplus::Font font1(useFam, px1, style, Gdiplus::UnitPixel);
     Gdiplus::Font font2(useFam, px2, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
     Gdiplus::REAL tx = (Gdiplus::REAL)L.cur, tw = (Gdiplus::REAL)(L.textRight - L.cur);
+    Gdiplus::REAL so = std::max<Gdiplus::REAL>(1.0f, (Gdiplus::REAL)L.dpi / 96.0f);
     if (tw > 8) {
         if (two) {
             Gdiplus::REAL h1 = px1 * 1.32f, h2 = px2 * 1.32f, top = (fh - h1 - h2) / 2;
-            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, top, tw, h1), L.text, L.shadow);
-            DrawLine(g, L.content.line2, font2, Gdiplus::RectF(tx, top + h1, tw, h2), WithAlpha(L.text, 0xB8), L.shadow);
+            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, top, tw, h1), L.text, L.shadow, so);
+            DrawLine(g, L.content.line2, font2, Gdiplus::RectF(tx, top + h1, tw, h2), WithAlpha(L.text, 0xB8), L.shadow, so);
         } else {
-            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, 0, tw, fh), L.text, L.shadow);
+            DrawLine(g, L.content.line1, font1, Gdiplus::RectF(tx, 0, tw, fh), L.text, L.shadow, so);
         }
     }
 
@@ -2359,57 +2342,52 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     g.Flush(Gdiplus::FlushIntentionSync);
 }
 
+// Screen position is left out on purpose: while the taskbar auto-hides the child slides
+// with it and nothing needs redrawing.
 static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
-    return std::to_wstring(L.x) + L"," + std::to_wstring(L.y) + L"," + std::to_wstring(L.w) + L"," +
+    return std::to_wstring(L.cx) + L"," + std::to_wstring(L.cy) + L"," + std::to_wstring(L.w) + L"," +
            std::to_wstring(L.h) + L"," + std::to_wstring(L.dpi) + L"," + std::to_wstring(L.text) + L"," +
+           std::to_wstring(L.shadow) + L"," + (L.light ? L"L" : L"D") +
            std::to_wstring(panel.ui.hover) + std::to_wstring(panel.ui.pressed) + (L.content.playing ? L"P" : L"p") +
            (L.content.canPrev ? L"1" : L"0") + (L.content.canNext ? L"1" : L"0") +
            (L.content.canPlayPause ? L"1" : L"0") + std::to_wstring(L.content.thumbVersion) +
-           (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") +
+           (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") + (L.bodyClickable ? L"C" : L"c") +
            std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
            (s.bold ? L"B" : L"b") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
 }
 
-// True when the taskbar sits above this panel in the z-order. The taskbar re-asserts
-// topmost whenever it re-lays out (a new app adds a button, foreground changes); 0.3.2
-// only fixed that every 500 ms, so the panel vanished behind the taskbar for up to half
-// a second each time a program started. Walking up from the panel is cheap (only the
-// topmost band is above us) and lets us re-raise only when actually needed.
-static bool TaskbarAbovePanel(const Panel& panel) {
-    HWND h = panel.hwnd;
-    for (int i = 0; i < 256 && h; ++i) {
-        h = GetWindow(h, GW_HWNDPREV);
-        if (h == panel.tray) return true;
+// Keep the panel the top child of the taskbar (above the XAML island). Only acts when
+// another child is above it; no hide / show, so nothing blinks.
+static void EnsureTopChild(Panel& panel) {
+    if (!panel.hwnd || !panel.tray) return;
+    HWND top = GetWindow(panel.tray, GW_CHILD);
+    if (!top || top == panel.hwnd) return;
+    SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    ++panel.ui.zFixes;
+    if (panel.ui.zFixes <= 3 || panel.ui.zFixes % 100 == 0) {
+        wchar_t cls[96]{};
+        GetClassNameW(top, cls, 96);
+        Wh_Log(L"[ui] panel %p raised back above taskbar child %p (%s), count %u", panel.hwnd, top, cls,
+               panel.ui.zFixes);
     }
-    return false;
 }
 
-static void EnsureAboveTaskbar(Panel& panel) {
-    if (!panel.hwnd || !panel.ui.visible || !panel.tray) return;
-    if (!TaskbarAbovePanel(panel)) return;
-    SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
-    panel.ui.lastZ = GetTickCount64();
+static void HidePanel(Panel& panel) {
+    if (panel.hwnd && IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_HIDE);
+    panel.ui.visible = false;
+    panel.ui.hideSince = 0;
+    panel.ui.lastSig.clear();
+    panel.ui.hover = panel.ui.pressed = HitNone;
 }
 
-static void EnsureAllAboveTaskbar();
-
-// Hide reasons that must apply at once (the taskbar itself went away / auto-hid). Anything
-// else (fullscreen check, nothing to show) has to persist before the panel hides, so a
-// splash screen or a session switch while an app starts doesn't make it blink.
+// Hide reasons that must apply at once (the taskbar itself went away). Anything else
+// (fullscreen check, nothing to show) has to persist before the panel hides, so a splash
+// screen or a session switch while an app starts doesn't make it blink.
 static bool IsImmediateHide(const wchar_t* why) {
     return wcsncmp(why, L"taskbar", 7) == 0 || wcsncmp(why, L"GetWindowRect", 13) == 0 || wcsncmp(why, L"bad", 3) == 0;
 }
 
-static void BlitBack(Panel& panel, HDC hdc) {
-    if (!panel.ui.back || !hdc) return;
-    HDC mem = CreateCompatibleDC(hdc);
-    if (!mem) return;
-    HGDIOBJ old = SelectObject(mem, panel.ui.back);
-    BitBlt(hdc, 0, 0, panel.ui.backW, panel.ui.backH, mem, 0, 0, SRCCOPY);
-    SelectObject(mem, old);
-    DeleteDC(mem);
-}
-
+// Taskbar thread only (called from the panel's window procedure or creation).
 static void RenderPanel(Panel& panel, bool force = false) {
     if (!panel.hwnd || !IsWindow(panel.hwnd)) return;
     Settings s = GetSettings();
@@ -2420,10 +2398,7 @@ static void RenderPanel(Panel& panel, bool force = false) {
         if (panel.ui.visible && !IsImmediateHide(why)) {
             if (!panel.ui.hideSince) panel.ui.hideSince = now;
             DWORD wait = wcsncmp(why, L"fullscreen", 10) == 0 ? 700 : 450;
-            if (now - panel.ui.hideSince < wait) {
-                EnsureAboveTaskbar(panel);
-                return;  // keep what is on screen until the reason persists
-            }
+            if (now - panel.ui.hideSince < wait) return;  // keep what is on screen until the reason persists
         }
         if (panel.lastWhy != why) {
             panel.lastWhy = why;
@@ -2434,131 +2409,66 @@ static void RenderPanel(Panel& panel, bool force = false) {
     }
     panel.ui.hideSince = 0;
 
-    const bool glass = s.panelGlass;
     std::wstring sig = MakeSig(L, panel, s);
     if (!force && panel.ui.visible && sig == panel.ui.lastSig) {
-        EnsureAboveTaskbar(panel);
+        EnsureTopChild(panel);
         return;
     }
 
-    const bool moved = panel.ui.posX != L.x || panel.ui.posY != L.y || panel.ui.posW != L.w || panel.ui.posH != L.h;
-    if (glass) {
-        int tint = GlassTint(s.panelBg, L.light);
-        if (!panel.ui.glassApplied || panel.ui.glassTint != tint) {
-            ApplyPanelGlass(panel.hwnd, true, tint);
-            panel.ui.glassApplied = true;
-            panel.ui.glassTint = tint;
-        }
-        int rad = (int)(8.0 * L.dpi / 96.0 + 0.5);
-        if (panel.ui.lastW != L.w || panel.ui.lastH != L.h || panel.ui.lastRad != rad) {
-            // Win11 DWM rounding (as Taskbar Music Lounge does) keeps the acrylic intact;
-            // a window region is only the fallback for builds without the attribute.
-            DWM_WINDOW_CORNER_PREFERENCE pref = DWMWCP_ROUND;
-            if (FAILED(DwmSetWindowAttribute(panel.hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref))))
-                ApplyRoundRgn(panel.hwnd, L.w, L.h, rad);
-            panel.ui.lastW = L.w;
-            panel.ui.lastH = L.h;
-            panel.ui.lastRad = rad;
-        }
-        if (moved) {
-            SetWindowPos(panel.hwnd, nullptr, L.x, L.y, L.w, L.h,
-                         SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOREDRAW);
-        }
-
-        // Black client + opaque GDI+ content: AccentBlurBehind supplies the acrylic where we
-        // do not paint. 0.3.2 drew straight onto the window DC (FillRect black, then the text),
-        // so DWM could present the black-only frame: the text blinked on every redraw. Now the
-        // frame is composed off-screen and copied in one BitBlt; WM_PAINT re-blits it.
-        HDC hdc = GetDC(panel.hwnd);
-        if (!hdc) return;
-        if (!panel.ui.back || panel.ui.backW != L.w || panel.ui.backH != L.h) {
-            FreeBackBuffer(panel.ui);
-            panel.ui.back = CreateCompatibleBitmap(hdc, L.w, L.h);
-            if (panel.ui.back) {
-                panel.ui.backW = L.w;
-                panel.ui.backH = L.h;
-            }
-        }
-        if (!panel.ui.back) {
-            ReleaseDC(panel.hwnd, hdc);
-            return;
-        }
-        HDC mem = CreateCompatibleDC(hdc);
-        HGDIOBJ old = SelectObject(mem, panel.ui.back);
-        RECT rc{0, 0, L.w, L.h};
-        FillRect(mem, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
-        {
-            Gdiplus::Graphics g(mem);
-            Gdiplus::Bitmap canvas(L.w, L.h, PixelFormat32bppPARGB);
-            {
-                Gdiplus::Graphics cg(&canvas);
-                PaintContent(cg, panel, s, L, true);
-            }
-            g.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
-            g.DrawImage(&canvas, 0, 0, L.w, L.h);
-        }
-        SelectObject(mem, old);
-        DeleteDC(mem);
-        BlitBack(panel, hdc);
-        ReleaseDC(panel.hwnd, hdc);
-    } else {
-        if (panel.ui.glassApplied) {
-            ApplyPanelGlass(panel.hwnd, false, 0);
-            SetWindowRgn(panel.hwnd, nullptr, TRUE);
-            panel.ui.glassApplied = false;
-            panel.ui.lastW = panel.ui.lastH = panel.ui.lastRad = 0;
-        }
-        FreeBackBuffer(panel.ui);
-        HDC screen = GetDC(nullptr);
-        HDC mem = CreateCompatibleDC(screen);
-        BITMAPINFO bi{};
-        bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bi.bmiHeader.biWidth = L.w;
-        bi.bmiHeader.biHeight = -L.h;
-        bi.bmiHeader.biPlanes = 1;
-        bi.bmiHeader.biBitCount = 32;
-        bi.bmiHeader.biCompression = BI_RGB;
-        void* bits = nullptr;
-        HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
-        if (!bmp || !bits) {
-            if (bmp) DeleteObject(bmp);
-            DeleteDC(mem);
-            ReleaseDC(nullptr, screen);
-            return;
-        }
-        HGDIOBJ old = SelectObject(mem, bmp);
-        {
-            Gdiplus::Bitmap canvas(L.w, L.h, L.w * 4, PixelFormat32bppPARGB, (BYTE*)bits);
-            Gdiplus::Graphics g(&canvas);
-            PaintContent(g, panel, s, L, false);
-        }
-        POINT ptDst{L.x, L.y}, ptSrc{0, 0};
-        SIZE sz{L.w, L.h};
-        BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-        if (!UpdateLayeredWindow(panel.hwnd, screen, &ptDst, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA))
-            Wh_Log(L"[ui] UpdateLayeredWindow failed %u", GetLastError());
-        SelectObject(mem, old);
-        DeleteObject(bmp);
-        DeleteDC(mem);
+    // Per-pixel alpha frame, composed off-screen and handed to DWM in one call.
+    HDC screen = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(screen);
+    BITMAPINFO bi{};
+    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bi.bmiHeader.biWidth = L.w;
+    bi.bmiHeader.biHeight = -L.h;
+    bi.bmiHeader.biPlanes = 1;
+    bi.bmiHeader.biBitCount = 32;
+    bi.bmiHeader.biCompression = BI_RGB;
+    void* bits = nullptr;
+    HBITMAP bmp = mem ? CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0) : nullptr;
+    if (!bmp || !bits) {
+        if (bmp) DeleteObject(bmp);
+        if (mem) DeleteDC(mem);
         ReleaseDC(nullptr, screen);
+        Wh_Log(L"[ui] CreateDIBSection %dx%d failed", L.w, L.h);
+        return;
     }
-    panel.ui.posX = L.x;
-    panel.ui.posY = L.y;
-    panel.ui.posW = L.w;
-    panel.ui.posH = L.h;
+    HGDIOBJ old = SelectObject(mem, bmp);
+    {
+        Gdiplus::Bitmap canvas(L.w, L.h, L.w * 4, PixelFormat32bppPARGB, (BYTE*)bits);
+        Gdiplus::Graphics g(&canvas);
+        PaintContent(g, panel, s, L);
+    }
+    // pptDst stays null: for a child it would be ambiguous (screen vs parent client);
+    // the position is set with SetWindowPos in parent client coordinates instead.
+    POINT ptSrc{0, 0};
+    SIZE sz{L.w, L.h};
+    BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+    if (!UpdateLayeredWindow(panel.hwnd, screen, nullptr, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA))
+        Wh_Log(L"[ui] UpdateLayeredWindow failed %u", GetLastError());
+    SelectObject(mem, old);
+    DeleteObject(bmp);
+    DeleteDC(mem);
+    ReleaseDC(nullptr, screen);
 
-    panel.ui.lastSig = sig;
-    if (!IsWindowVisible(panel.hwnd)) {
-        SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
-        panel.ui.lastZ = now;
+    if (panel.ui.posX != L.cx || panel.ui.posY != L.cy) {
+        SetWindowPos(panel.hwnd, nullptr, L.cx, L.cy, 0, 0,
+                     SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+        panel.ui.posX = L.cx;
+        panel.ui.posY = L.cy;
     }
+    panel.ui.lastSig = sig;
+    if (!IsWindowVisible(panel.hwnd))
+        SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
     panel.ui.visible = true;
-    EnsureAboveTaskbar(panel);
+    EnsureTopChild(panel);
     {
         wchar_t key[160];
-        swprintf_s(key, L"shown %d,%d %dx%d dpi=%d glass=%d bg=%d %s", L.x, L.y, L.w, L.h, L.dpi, glass ? 1 : 0,
-                   (int)s.panelBg, L.content.media ? L"media" : L.content.aiOnly ? L"ai" : L"idle");
+        swprintf_s(key, L"shown at %d,%d %dx%d dpi=%d bg=%d glass=%d shadow=%d %s", L.cx, L.cy, L.w, L.h, L.dpi,
+                   (int)s.panelBg, s.panelGlass ? 1 : 0, L.shadow ? 1 : 0,
+                   L.content.media ? L"media" : L.content.aiOnly ? L"ai" : L"idle");
         if (panel.lastWhy != key) {
             panel.lastWhy = key;
             Wh_Log(L"[ui] panel %p %s visible=%d", panel.hwnd, key, IsWindowVisible(panel.hwnd) ? 1 : 0);
@@ -2572,150 +2482,56 @@ static int HitTestClient(Panel& panel, POINT pt) {
     return HitNone;
 }
 
-static void DestroyPanelWindow(Panel& panel) {
-    if (panel.hwnd && IsWindow(panel.hwnd)) {
-        KillTimer(panel.hwnd, TIMER_TICK);
-        DestroyWindow(panel.hwnd);
-    }
-    panel.hwnd = nullptr;
-    FreeBackBuffer(panel.ui);
-    panel.ui = UiState{};
-}
-
-// Same window recipe as Taskbar Music Lounge (windhawk-mods/mods/taskbar-music-lounge.wh.cpp):
-// an unowned WS_EX_TOPMOST tool popup placed over the taskbar rect. 0.3.0 made the
-// taskbar its owner from our own thread, which ties our input queue to the taskbar
-// thread and depends on owner z-order rules; topmost + periodic re-assert is simpler.
-static HWND CreatePanelWindow(HWND tray, bool glass) {
-    DWORD ex = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST;
-    if (!glass) ex |= WS_EX_LAYERED;
-    HWND hwnd = CreateWindowExW(ex, kWndClass, L"ZenDesktop Taskbar Music", WS_POPUP, 0, 0, 1, 1, nullptr, nullptr,
-                                g_uiInst, nullptr);
-    if (!hwnd) {
-        Wh_Log(L"[ui] CreateWindowEx failed %u (tray %p)", GetLastError(), tray);
-        return nullptr;
-    }
-    if (glass) ApplyPanelGlass(hwnd, true, GlassTint(GetSettings().panelBg, g_env.lightTaskbar));
-    SetTimer(hwnd, TIMER_TICK, 100, nullptr);
-    RECT tr{};
-    GetWindowRect(tray, &tr);
-    Wh_Log(L"[ui] panel %p created for tray %p (%d,%d-%d,%d) glass=%d ex=0x%08X dpi=%u", hwnd, tray, tr.left, tr.top,
-           tr.right, tr.bottom, glass ? 1 : 0, (unsigned)GetWindowLongW(hwnd, GWL_EXSTYLE), GetDpiForWindow(tray));
-    return hwnd;
-}
-
-static void SyncPanels(bool forceRecreate) {
-    Settings s = GetSettings();
-    RefreshEnv(true);
-    bool wantGlass = s.panelGlass;
-    if (forceRecreate || wantGlass != g_panelsGlass) {
-        for (auto& p : g_panels) DestroyPanelWindow(p);
-        g_panels.clear();
-        g_panelsGlass = wantGlass;
-    }
-
-    auto trays = FindTaskbars(s.multiMonitor);
-    {
-        static int lastCount = -1;
-        static bool loggedForeign = false;
-        if ((int)trays.size() != lastCount) {
-            lastCount = (int)trays.size();
-            Wh_Log(L"[ui] taskbars found: %d (multiMonitor=%d)", lastCount, s.multiMonitor ? 1 : 0);
-        }
-        static bool loggedMissing = false;
-        if (trays.empty() && !loggedForeign) {
-            HWND any = FindWindowW(L"Shell_TrayWnd", nullptr);
-            if (any) {
-                loggedForeign = true;
-                Wh_Log(L"[ui] Shell_TrayWnd %p belongs to another explorer.exe; this process (pid %u) stays idle", any,
-                       GetCurrentProcessId());
-            } else if (!loggedMissing) {
-                loggedMissing = true;
-                Wh_Log(L"[ui] Shell_TrayWnd not found yet, retrying every 2s");
+// Subclass on Shell_TrayWnd / Shell_SecondaryTrayWnd: whenever the taskbar moves, resizes,
+// changes DPI / theme or gets a new child, ask the panel to re-check layout and z-order.
+static LRESULT CALLBACK TraySubclassProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp, DWORD_PTR) {
+    LRESULT r = DefSubclassProc(hwnd, msg, wp, lp);
+    switch (msg) {
+        case WM_WINDOWPOSCHANGED:
+        case WM_SIZE:
+        case WM_PARENTNOTIFY:
+        case WM_DPICHANGED:
+        case WM_SETTINGCHANGE:
+        case WM_THEMECHANGED:
+        case WM_DISPLAYCHANGE:
+        case WM_NCDESTROY: {
+            std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+            if (Panel* p = PanelOfTray(hwnd)) {
+                if (msg == WM_NCDESTROY) p->subclassed = false;  // the Windhawk wrapper removes it
+                else if (p->hwnd && !g_stop) {
+                    bool force = msg == WM_DPICHANGED || msg == WM_SETTINGCHANGE || msg == WM_THEMECHANGED ||
+                                 msg == WM_DISPLAYCHANGE;
+                    PostMessageW(p->hwnd, WM_ZEN_REFRESH, force ? 1 : 0, 0);
+                }
             }
+            break;
         }
     }
-    // Drop panels whose tray is gone.
-    for (auto it = g_panels.begin(); it != g_panels.end();) {
-        bool alive = false;
-        for (HWND t : trays)
-            if (t == it->tray) {
-                alive = true;
-                break;
-            }
-        if (!alive || !it->hwnd || !IsWindow(it->hwnd) || !IsWindow(it->tray)) {
-            DestroyPanelWindow(*it);
-            it = g_panels.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    // Add missing trays.
-    HWND primary = FindPrimaryTaskbar();
-    for (HWND tray : trays) {
-        bool have = false;
-        for (auto& p : g_panels)
-            if (p.tray == tray) {
-                have = true;
-                break;
-            }
-        if (have) continue;
-        HWND hwnd = CreatePanelWindow(tray, g_panelsGlass);
-        if (!hwnd) continue;
-        Panel panel;
-        panel.hwnd = hwnd;
-        panel.tray = tray;
-        panel.secondary = (tray != primary);
-        g_panels.push_back(std::move(panel));
-        RenderPanel(g_panels.back(), true);
-    }
-}
-
-static void RenderAll(bool force) {
-    for (auto& p : g_panels) RenderPanel(p, force);
-}
-
-static void EnsureAllAboveTaskbar() {
-    for (auto& p : g_panels) EnsureAboveTaskbar(p);
-}
-
-// Foreground changes (a new program opening) are exactly when the taskbar re-raises itself.
-// Check z-order right away and a few more times over the next ~300 ms instead of waiting
-// for the next tick. Out-of-context hook: runs on this UI thread from GetMessage.
-static HWND g_msgHwnd = nullptr;
-static int g_zFollowLeft = 0;
-static void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD, HWND, LONG idObject, LONG, DWORD, DWORD) {
-    if (idObject != OBJID_WINDOW || g_stop) return;
-    EnsureAllAboveTaskbar();
-    g_zFollowLeft = 6;
-    if (g_msgHwnd) SetTimer(g_msgHwnd, TIMER_ZFOLLOW, 50, nullptr);
+    return r;
 }
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
     Panel* panel = PanelOf(hwnd);
     switch (msg) {
         case WM_TIMER:
-            if (g_stop) {
-                DestroyWindow(hwnd);
-                return 0;
-            }
-            if (wp == TIMER_TICK && panel) RenderPanel(*panel);
+            if (wp == TIMER_TICK && panel && !g_stop) RenderPanel(*panel);
             return 0;
-        case WM_PAINT: {
-            // Re-blit the last composed frame; no re-render (and no black fill) here.
+        case WM_ZEN_REFRESH:
+            if (panel && !g_stop) {
+                EnsureTopChild(*panel);
+                RenderPanel(*panel, wp != 0);
+            }
+            return 0;
+        case WM_PAINT: {  // layered (UpdateLayeredWindow) windows keep their own surface
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            if (panel && panel->ui.back) BlitBack(*panel, hdc);
+            BeginPaint(hwnd, &ps);
             EndPaint(hwnd, &ps);
-            if (panel && !panel->ui.back) RenderPanel(*panel, true);
             return 0;
         }
         case WM_ERASEBKGND:
             return 1;
-        case WM_DISPLAYCHANGE:
-        case WM_DPICHANGED:
-            if (panel) RenderPanel(*panel, true);
-            return 0;
+        case WM_DPICHANGED_AFTERPARENT:
         case WM_SETTINGCHANGE:
             if (panel) RenderPanel(*panel, true);
             return 0;
@@ -2772,6 +2588,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             RenderPanel(*panel);
             return 0;
         }
+        case WM_RBUTTONUP:
+            return 0;  // don't let the taskbar's own menu pop up over the panel
         case WM_CAPTURECHANGED:
             if (panel && panel->ui.pressed != HitNone) {
                 panel->ui.pressed = HitNone;
@@ -2781,10 +2599,171 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_DESTROY:
             KillTimer(hwnd, TIMER_TICK);
             if (panel) {
-                FreeBackBuffer(panel->ui);
                 panel->hwnd = nullptr;
                 panel->ui = UiState{};
             }
+            return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wp, lp);
+}
+
+// ── Runs on the taskbar thread (via RunFromWindowThread) ─────────────────────
+struct CreateParam { HWND tray; bool ok; };
+static void WINAPI CreatePanelOnTrayThread(void* pv) {
+    auto* cp = (CreateParam*)pv;
+    std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+    if (g_stop || !IsWindow(cp->tray)) return;
+    if (Panel* existing = PanelOfTray(cp->tray)) {
+        cp->ok = existing->hwnd != nullptr;
+        return;
+    }
+    HWND topBefore = GetWindow(cp->tray, GW_CHILD);
+    wchar_t topCls[96]{};
+    if (topBefore) GetClassNameW(topBefore, topCls, 96);
+    HWND hwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY, kWndClass,
+                                L"ZenDesktop Taskbar Music", WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 1, 1, cp->tray, nullptr,
+                                g_uiInst, nullptr);
+    if (!hwnd) {
+        Wh_Log(L"[ui] CreateWindowEx(child of %p) failed %u", cp->tray, GetLastError());
+        return;
+    }
+    auto panel = std::make_unique<Panel>();
+    panel->hwnd = hwnd;
+    panel->tray = cp->tray;
+    panel->secondary = IsSecondaryTaskbar(cp->tray);
+    panel->subclassed = WindhawkUtils::SetWindowSubclassFromAnyThread(cp->tray, TraySubclassProc, 0) != FALSE;
+    if (!panel->subclassed) Wh_Log(L"[ui] subclassing taskbar %p failed; z-order only checked on the 100 ms tick", cp->tray);
+    g_panels.push_back(std::move(panel));
+    Panel& p = *g_panels.back();
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    SetTimer(hwnd, TIMER_TICK, 100, nullptr);
+    RECT cr{};
+    GetClientRect(cp->tray, &cr);
+    Wh_Log(L"[ui] panel %p attached as child of %s %p (taskbar thread %u, client %dx%d, dpi %u, top child before: %s)",
+           hwnd, p.secondary ? L"Shell_SecondaryTrayWnd" : L"Shell_TrayWnd", cp->tray, GetCurrentThreadId(),
+           cr.right - cr.left, cr.bottom - cr.top, GetDpiForWindow(cp->tray), topBefore ? topCls : L"none");
+    RenderPanel(p, true);
+    cp->ok = true;
+}
+
+// pv = the tray whose panel to destroy.
+static void WINAPI DestroyPanelOnTrayThread(void* pv) {
+    HWND tray = (HWND)pv;
+    std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+    for (auto it = g_panels.begin(); it != g_panels.end(); ++it) {
+        Panel& p = **it;
+        if (p.tray != tray) continue;
+        if (p.subclassed && IsWindow(tray)) WindhawkUtils::RemoveWindowSubclassFromAnyThread(tray, TraySubclassProc);
+        p.subclassed = false;
+        if (p.hwnd && IsWindow(p.hwnd)) {
+            HWND h = p.hwnd;
+            KillTimer(h, TIMER_TICK);
+            DestroyWindow(h);
+            Wh_Log(L"[ui] panel %p destroyed (taskbar %p)", h, tray);
+        }
+        p.hwnd = nullptr;
+        g_panels.erase(it);
+        return;
+    }
+}
+
+static void WINAPI ForceRenderOnTrayThread(void* pv) {
+    std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+    if (Panel* p = PanelOfTray((HWND)pv)) {
+        if (p->hwnd) {
+            p->lastWhy.clear();
+            RenderPanel(*p, true);
+        }
+    }
+}
+
+// ── Our UI thread ────────────────────────────────────────────────────────────
+static void SyncPanels(bool forceRender) {
+    if (g_stop) return;
+    Settings s = GetSettings();
+    auto trays = FindTaskbars(s.multiMonitor);
+    {
+        static int lastCount = -1;
+        static bool loggedForeign = false, loggedMissing = false;
+        if ((int)trays.size() != lastCount) {
+            lastCount = (int)trays.size();
+            Wh_Log(L"[ui] taskbars found: %d (multiMonitor=%d)", lastCount, s.multiMonitor ? 1 : 0);
+        }
+        if (trays.empty() && !loggedForeign) {
+            HWND any = FindWindowW(L"Shell_TrayWnd", nullptr);
+            if (any && !OwnedByThisProcess(any)) {
+                loggedForeign = true;
+                Wh_Log(L"[ui] Shell_TrayWnd %p belongs to another process; this explorer.exe (pid %u) stays idle", any,
+                       GetCurrentProcessId());
+            } else if (!any && !loggedMissing) {
+                loggedMissing = true;
+                Wh_Log(L"[ui] Shell_TrayWnd not found yet, retrying every 2s");
+            }
+        }
+    }
+    auto wanted = [&](HWND t) { return std::find(trays.begin(), trays.end(), t) != trays.end(); };
+
+    std::vector<HWND> have, drop;
+    {
+        std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+        for (auto it = g_panels.begin(); it != g_panels.end();) {
+            Panel& p = **it;
+            bool trayAlive = IsWindow(p.tray) != FALSE;
+            bool childAlive = p.hwnd && IsWindow(p.hwnd);
+            if (!trayAlive) {  // taskbar recreated: the child died with it, subclass auto-removed
+                Wh_Log(L"[ui] taskbar %p is gone, panel will be re-attached", p.tray);
+                it = g_panels.erase(it);
+                continue;
+            }
+            if (!childAlive || !wanted(p.tray)) drop.push_back(p.tray);
+            else have.push_back(p.tray);
+            ++it;
+        }
+    }
+    for (HWND t : drop) RunFromWindowThread(t, DestroyPanelOnTrayThread, t);
+    for (HWND t : trays) {
+        if (g_stop) return;
+        if (std::find(have.begin(), have.end(), t) != have.end()) {
+            if (forceRender) RunFromWindowThread(t, ForceRenderOnTrayThread, t);
+            continue;
+        }
+        CreateParam cp{t, false};
+        if (!RunFromWindowThread(t, CreatePanelOnTrayThread, &cp))
+            Wh_Log(L"[ui] could not reach the thread of taskbar %p (SetWindowsHookEx failed %u)", t, GetLastError());
+        else if (!cp.ok)
+            Wh_Log(L"[ui] panel for taskbar %p not created", t);
+    }
+}
+
+static void DestroyAllPanels() {
+    std::vector<HWND> trays;
+    {
+        std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+        for (auto& p : g_panels)
+            if (IsWindow(p->tray)) trays.push_back(p->tray);
+    }
+    for (HWND t : trays) RunFromWindowThread(t, DestroyPanelOnTrayThread, t);
+    std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+    for (auto& p : g_panels)
+        if (p->hwnd && IsWindow(p->hwnd)) Wh_Log(L"[ui] warning: panel %p could not be destroyed", p->hwnd);
+    g_panels.clear();
+}
+
+static UINT g_taskbarCreatedMsg = 0;
+
+// Hidden top-level window (message-only windows don't get the TaskbarCreated broadcast).
+static LRESULT CALLBACK HelperProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (g_taskbarCreatedMsg && msg == g_taskbarCreatedMsg) {
+        Wh_Log(L"[ui] TaskbarCreated received, re-attaching panels");
+        PostThreadMessageW(GetCurrentThreadId(), WM_ZEN_SYNC, 0, 0);
+        return 0;
+    }
+    switch (msg) {
+        case WM_TIMER:
+            if (wp == TIMER_SYNC) SyncPanels(false);
+            return 0;
+        case WM_DISPLAYCHANGE:
+            PostThreadMessageW(GetCurrentThreadId(), WM_ZEN_SYNC, 0, 0);
             return 0;
     }
     return DefWindowProcW(hwnd, msg, wp, lp);
@@ -2796,7 +2775,7 @@ static void UiThread() {
     PeekMessageW(&m, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     Gdiplus::GdiplusStartupInput gsi;
-    ULONG_PTR gdipToken = 0;
+    ULONG_PTR gdipToken = 0;  // process-wide; the taskbar thread paints with it too
     if (Gdiplus::GdiplusStartup(&gdipToken, &gsi, nullptr) != Gdiplus::Ok) {
         Wh_Log(L"[ui] GdiplusStartup failed, panel disabled");
         return;
@@ -2810,57 +2789,45 @@ static void UiThread() {
     wc.hInstance = g_uiInst;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.lpszClassName = kWndClass;
-    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
         Wh_Log(L"[ui] RegisterClass failed %u", GetLastError());
+    WNDCLASSW hc{};
+    hc.lpfnWndProc = HelperProc;
+    hc.hInstance = g_uiInst;
+    hc.lpszClassName = kHelperClass;
+    if (!RegisterClassW(&hc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        Wh_Log(L"[ui] RegisterClass(helper) failed %u", GetLastError());
 
-    HWND msgHwnd = CreateWindowExW(0, kWndClass, L"ZenLyricsMsg", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
-                                   g_uiInst, nullptr);
-    if (msgHwnd) SetTimer(msgHwnd, TIMER_SYNC, 2000, nullptr);
-    else Wh_Log(L"[ui] message window failed %u; taskbar will not be re-scanned", GetLastError());
-    g_msgHwnd = msgHwnd;
-    HWINEVENTHOOK fgHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr,
-                                           ForegroundEventProc, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNTHREAD);
-    if (!fgHook) Wh_Log(L"[ui] SetWinEventHook failed %u; z-order only checked on the 100 ms tick", GetLastError());
+    g_taskbarCreatedMsg = RegisterWindowMessageW(L"TaskbarCreated");
+    HWND helper = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, kHelperClass, L"ZenLyricsHelper", WS_POPUP, 0, 0,
+                                  0, 0, nullptr, nullptr, g_uiInst, nullptr);
+    if (helper) SetTimer(helper, TIMER_SYNC, 2000, nullptr);
+    else Wh_Log(L"[ui] helper window failed %u; taskbar will not be re-scanned", GetLastError());
 
-    SyncPanels(true);
+    SyncPanels(false);
 
     while (!g_stop) {
         BOOL r = GetMessageW(&m, nullptr, 0, 0);
         if (r <= 0) break;
         if (m.message == WM_ZEN_SETTINGS) {
             SyncPanels(true);
-            RenderAll(true);
             continue;
         }
         if (m.message == WM_ZEN_SYNC) {
             SyncPanels(false);
             continue;
         }
-        if (m.hwnd == msgHwnd && m.message == WM_TIMER && m.wParam == TIMER_SYNC) {
-            SyncPanels(false);
-            continue;
-        }
-        if (m.hwnd == msgHwnd && m.message == WM_TIMER && m.wParam == TIMER_ZFOLLOW) {
-            EnsureAllAboveTaskbar();
-            if (--g_zFollowLeft <= 0) KillTimer(msgHwnd, TIMER_ZFOLLOW);
-            continue;
-        }
         TranslateMessage(&m);
         DispatchMessageW(&m);
     }
 
-    if (fgHook) UnhookWinEvent(fgHook);
-    if (msgHwnd) {
-        KillTimer(msgHwnd, TIMER_SYNC);
-        KillTimer(msgHwnd, TIMER_ZFOLLOW);
-        DestroyWindow(msgHwnd);
+    if (helper) {
+        KillTimer(helper, TIMER_SYNC);
+        DestroyWindow(helper);
     }
-    g_msgHwnd = nullptr;
-    g_zFollowLeft = 0;
-    for (auto& p : g_panels) DestroyPanelWindow(p);
-    g_panels.clear();
+    DestroyAllPanels();  // on each taskbar's own thread; removes the taskbar subclass too
     UnregisterClassW(kWndClass, g_uiInst);
+    UnregisterClassW(kHelperClass, g_uiInst);
     Gdiplus::GdiplusShutdown(gdipToken);
     g_uiInst = nullptr;
 }
@@ -2871,7 +2838,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.3.3 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.4.0 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
