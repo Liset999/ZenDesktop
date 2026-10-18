@@ -23,9 +23,9 @@ https://github.com/user-attachments/assets/84b8e62c-c719-47fc-97f6-78e7bbea6100
 
 **演示视频**（约 1 分钟，展示歌词、窗口动画、文件管理器玻璃颜色、果冻窗口、开始菜单、通知栏、设置美化）：
 
-https://github.com/Liset999/ZenDesktop/raw/main/docs/showcase.mp4
+[![ZenDesktop 演示视频](docs/showcase.mp4)](https://github.com/Liset999/ZenDesktop/releases/download/v5.0.0/ZenDesktop-showcase.mp4)
 
-也可从 [Releases · v5.0.0](https://github.com/Liset999/ZenDesktop/releases/download/v5.0.0/ZenDesktop-showcase.mp4) 下载同一文件。
+也可直接 [下载演示视频](https://github.com/Liset999/ZenDesktop/releases/download/v5.0.0/ZenDesktop-showcase.mp4)（约 62 MB）。
 
 **Windhawk 里的 ZenDesktop 全家桶**：9 个 mod 装好后的样子。
 
