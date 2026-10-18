@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.3.0
+// @version         0.3.1
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -110,11 +110,13 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
 - 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色换色调；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时仍可用「面板底色」的无底色／淡淡一层／卡片。
+- 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的。
 - 点「打开播放器」只能切换到有可见窗口的播放器；缩到托盘里的播放器切不出来。
 - 网易云、QQ 音乐的歌词接口是非官方的，随时可能失效。
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.3.1**：修复「开了没反应」：桌面或最大化窗口（Windhawk、网易云、微信等）在前台时被误判成全屏而隐藏；面板改为不挂靠任务栏的置顶窗口（参考 Taskbar Music Lounge），在每个环节写 Windhawk 日志，方便排查。
 - **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
 - **0.2.0**：改成小组件位置的音乐面板，加入专辑封面、播放控制、深浅色跟随、文字颜色预设、AI 助手状态。
 - **0.1.0**：任务栏歌词（未发布）。
@@ -1341,14 +1343,18 @@ static void MediaThread() {
     } catch (...) {
     }
     GlobalSystemMediaTransportControlsSessionManager mgr{nullptr};
-    std::wstring lastKey;
+    std::wstring lastKey, lastLoggedApp;
+    bool loggedNoSession = false;
     long long lastReportedPos = -1;
     ULONGLONG trackSince = 0, lastThumbTry = 0;
     int thumbTries = 0;
     bool thumbLoaded = false, thumbRefreshed = false;
     while (!g_stop) {
         try {
-            if (!mgr) mgr = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().get();
+            if (!mgr) {
+                mgr = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().get();
+                Wh_Log(L"[media] GSMTC manager %s", mgr ? L"ready" : L"null");
+            }
             if (MediaCmd c = (MediaCmd)g_pendingCmd.exchange(0); c != MediaCmd::None) {
                 try { RunMediaCmd(mgr, c); } catch (winrt::hresult_error const& e) {
                     Wh_Log(L"command %d failed 0x%08X", (int)c, (unsigned)e.code());
@@ -1359,6 +1365,11 @@ static void MediaThread() {
             GlobalSystemMediaTransportControlsSession session{nullptr};
             if (mgr) session = mgr.GetCurrentSession();
             if (!session) {
+                if (!lastLoggedApp.empty() || !loggedNoSession) {
+                    Wh_Log(L"[media] no media session (player not running or no system media controls)");
+                    lastLoggedApp.clear();
+                    loggedNoSession = true;
+                }
                 std::lock_guard<std::mutex> lk(g_stateLock);
                 g_state.hasSession = false;
             } else {
@@ -1368,6 +1379,11 @@ static void MediaThread() {
                 auto ctl = pb.Controls();
                 std::wstring title{props.Title()}, artist{props.Artist()}, album{props.AlbumTitle()};
                 std::wstring app{session.SourceAppUserModelId()};
+                if (app != lastLoggedApp) {
+                    Wh_Log(L"[media] session: %s, title empty=%d", app.c_str(), title.empty() ? 1 : 0);
+                    lastLoggedApp = app;
+                    loggedNoSession = false;
+                }
                 long long posMs = tl.Position().count() / 10000;
                 long long durMs = (tl.EndTime() - tl.StartTime()).count() / 10000;
                 bool playing = pb.PlaybackStatus() == GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing;
@@ -1437,6 +1453,7 @@ static void MediaThread() {
             Wh_Log(L"GSMTC error 0x%08X", (unsigned)e.code());
             mgr = nullptr;  // re-request after sleep/resume or service restart
         } catch (...) {
+            Wh_Log(L"[media] unknown exception, re-requesting GSMTC");
             mgr = nullptr;
         }
         HANDLE waits[2] = {g_stopEvent, g_cmdEvent};
@@ -1682,34 +1699,59 @@ static bool ForegroundIsGame() {
 }
 
 // Hide this panel only when fullscreen / game is on the same monitor (or global presentation).
-static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting) {
+// 0.3.0 treated any captionless window covering 90% of the monitor as fullscreen. That
+// matched the desktop (Progman/WorkerW, which is foreground after clicking the desktop)
+// and every maximized frameless app (Windhawk, NetEase Cloud Music, WeChat, VS Code), so
+// the panel was hidden almost all the time. Now: the shell's own windows never count, and
+// the window must cover the whole monitor rect (a maximized window stops at the work area).
+static bool IsShellWindow(HWND h) {
+    wchar_t cls[64]{};
+    if (!h || !GetClassNameW(h, cls, 64)) return false;
+    return _wcsicmp(cls, L"Progman") == 0 || _wcsicmp(cls, L"WorkerW") == 0 ||
+           _wcsicmp(cls, L"Shell_TrayWnd") == 0 || _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0 ||
+           _wcsicmp(cls, kWndClass) == 0;
+}
+
+static bool CoversWholeMonitor(HWND fg, HMONITOR mon) {
+    MONITORINFO mi{sizeof(mi)};
+    RECT wr{};
+    if (!GetMonitorInfoW(mon, &mi) || !GetWindowRect(fg, &wr)) return false;
+    if (IsZoomed(fg) && (GetWindowLongW(fg, GWL_STYLE) & WS_CAPTION)) return false;
+    return wr.left <= mi.rcMonitor.left && wr.top <= mi.rcMonitor.top && wr.right >= mi.rcMonitor.right &&
+           wr.bottom >= mi.rcMonitor.bottom;
+}
+
+static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting, const wchar_t** why) {
     if (!hideSetting) return false;
     QUERY_USER_NOTIFICATION_STATE st = QUNS_NOT_PRESENT;
     bool haveSt = SUCCEEDED(SHQueryUserNotificationState(&st));
-    if (haveSt && st == QUNS_PRESENTATION_MODE) return true;
+    if (haveSt && st == QUNS_PRESENTATION_MODE) { *why = L"fullscreen: presentation mode"; return true; }
 
     HWND fg = GetForegroundWindow();
-    HMONITOR fgMon = fg ? MonitorFromWindow(fg, MONITOR_DEFAULTTONULL) : nullptr;
-    bool sameMon = fg && fgMon && fgMon == mon;
+    if (!fg || IsShellWindow(fg)) return false;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(fg, &pid);
+    if (pid == GetCurrentProcessId()) return false;  // desktop, taskbar, Explorer windows
+    HMONITOR fgMon = MonitorFromWindow(fg, MONITOR_DEFAULTTONULL);
+    if (!fgMon || fgMon != mon) return false;
 
-    if (ForegroundIsGame()) return sameMon;
-    if (haveSt && (st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_BUSY)) return sameMon;
-
-    // Fallback: foreground window covers most of this monitor.
-    if (sameMon && fg && !(GetWindowLongW(fg, GWL_STYLE) & WS_CAPTION)) {
-        RECT mr{}, wr{};
-        MONITORINFO mi{sizeof(mi)};
-        if (GetMonitorInfoW(mon, &mi) && GetWindowRect(fg, &wr)) {
-            mr = mi.rcMonitor;
-            int mw = mr.right - mr.left, mh = mr.bottom - mr.top;
-            int ww = wr.right - wr.left, wh = wr.bottom - wr.top;
-            if (mw > 0 && mh > 0 && ww * 10 >= mw * 9 && wh * 10 >= mh * 9) return true;
-        }
-    }
+    if (ForegroundIsGame()) { *why = L"fullscreen: known game in foreground"; return true; }
+    bool covers = CoversWholeMonitor(fg, mon);
+    if (haveSt && st == QUNS_RUNNING_D3D_FULL_SCREEN) { *why = L"fullscreen: D3D exclusive"; return true; }
+    if (covers) { *why = L"fullscreen: foreground window covers the whole monitor"; return true; }
     return false;
 }
 
-static HWND FindPrimaryTaskbar() { return FindWindowW(L"Shell_TrayWnd", nullptr); }
+// Windhawk injects into every explorer.exe, including "separate process" folder windows.
+// Only the process that owns the taskbar shows the panel, otherwise there would be two.
+static bool OwnedByThisProcess(HWND h) {
+    DWORD pid = 0;
+    return h && GetWindowThreadProcessId(h, &pid) && pid == GetCurrentProcessId();
+}
+static HWND FindPrimaryTaskbar() {
+    HWND h = FindWindowW(L"Shell_TrayWnd", nullptr);
+    return OwnedByThisProcess(h) ? h : nullptr;
+}
 
 static std::vector<HWND> FindTaskbars(bool multi) {
     std::vector<HWND> out;
@@ -1719,7 +1761,7 @@ static std::vector<HWND> FindTaskbars(bool multi) {
     EnumWindows(
         [](HWND h, LPARAM lp) -> BOOL {
             wchar_t cls[64]{};
-            if (GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0)
+            if (GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0 && OwnedByThisProcess(h))
                 reinterpret_cast<std::vector<HWND>*>(lp)->push_back(h);
             return TRUE;
         },
@@ -1947,6 +1989,7 @@ struct Panel {
     HWND tray = nullptr;
     bool secondary = false;
     UiState ui;
+    std::wstring lastWhy;  // last hide reason / "shown" key, so the log only records changes
 };
 
 static std::vector<Panel> g_panels;  // UI thread only
@@ -2079,20 +2122,24 @@ struct Layout {
     Content content;
 };
 
-static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool forceEnv) {
+static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool forceEnv, const wchar_t** why) {
     RefreshEnv(forceEnv);
     HWND tray = panel.tray;
-    if (!tray || !IsWindow(tray)) return false;
+    if (!tray || !IsWindow(tray)) { *why = L"taskbar window gone"; return false; }
     RECT tr{};
-    if (!GetWindowRect(tray, &tr) || !IsWindowVisible(tray)) return false;
-    if (TaskbarMostlyOffscreen(tray, tr)) return false;
+    if (!GetWindowRect(tray, &tr)) { *why = L"GetWindowRect(taskbar) failed"; return false; }
+    if (!IsWindowVisible(tray)) { *why = L"taskbar not visible"; return false; }
+    if (TaskbarMostlyOffscreen(tray, tr)) { *why = L"taskbar auto-hidden / offscreen"; return false; }
 
     L.content = BuildContent(s);
     bool nothing = !L.content.media && !L.content.aiOnly && !L.content.idle;
-    if (nothing) return false;
+    if (nothing) {
+        *why = L"nothing to show: no media session and no AI status (whenIdle=hide). Play something in a player that supports system media controls";
+        return false;
+    }
 
     HMONITOR mon = MonitorFromWindow(tray, MONITOR_DEFAULTTONEAREST);
-    if (ShouldHideForFullscreen(mon, s.hideInFullscreen)) return false;
+    if (ShouldHideForFullscreen(mon, s.hideInFullscreen, why)) return false;
 
     UINT dpi = GetDpiForWindow(tray);
     if (!dpi) dpi = 96;
@@ -2100,7 +2147,7 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     auto D = [dpi](double v) { return (int)(v * dpi / 96.0 + 0.5); };
     L.w = D(s.width);
     L.h = tr.bottom - tr.top;
-    if (L.h <= 0 || L.h > 1000 || L.w <= 0) return false;
+    if (L.h <= 0 || L.h > 1000 || L.w <= 0) { *why = L"bad taskbar height or panel width"; return false; }
     int gap = MulDiv(s.xOffset, (int)dpi, 96);
     bool trayMode = s.posMode == PosMode::Tray || (s.posMode == PosMode::Widgets && g_env.alignLeft);
     L.x = tr.left + gap;
@@ -2276,7 +2323,12 @@ static void RenderPanel(Panel& panel, bool force = false) {
     if (!panel.hwnd || !IsWindow(panel.hwnd)) return;
     Settings s = GetSettings();
     Layout L;
-    if (!ComputeLayout(panel, s, L, force)) {
+    const wchar_t* why = L"unknown";
+    if (!ComputeLayout(panel, s, L, force, &why)) {
+        if (panel.lastWhy != why) {
+            panel.lastWhy = why;
+            Wh_Log(L"[ui] panel %p hidden: %s", panel.hwnd, why);
+        }
         HidePanel(panel);
         return;
     }
@@ -2285,8 +2337,9 @@ static void RenderPanel(Panel& panel, bool force = false) {
     std::wstring sig = MakeSig(L, panel, s);
     ULONGLONG now = GetTickCount64();
     if (!force && panel.ui.visible && sig == panel.ui.lastSig) {
-        if (now - panel.ui.lastZ > 1000) {
-            SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        if (now - panel.ui.lastZ > 500) {
+            // The taskbar re-asserts topmost when clicked; put ourselves back above it.
+            SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
             panel.ui.lastZ = now;
         }
         return;
@@ -2300,12 +2353,16 @@ static void RenderPanel(Panel& panel, bool force = false) {
         }
         int rad = (int)(8.0 * L.dpi / 96.0 + 0.5);
         if (panel.ui.lastW != L.w || panel.ui.lastH != L.h || panel.ui.lastRad != rad) {
-            ApplyRoundRgn(panel.hwnd, L.w, L.h, rad);
+            // Win11 DWM rounding (as Taskbar Music Lounge does) keeps the acrylic intact;
+            // a window region is only the fallback for builds without the attribute.
+            DWM_WINDOW_CORNER_PREFERENCE pref = DWMWCP_ROUND;
+            if (FAILED(DwmSetWindowAttribute(panel.hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref))))
+                ApplyRoundRgn(panel.hwnd, L.w, L.h, rad);
             panel.ui.lastW = L.w;
             panel.ui.lastH = L.h;
             panel.ui.lastRad = rad;
         }
-        SetWindowPos(panel.hwnd, HWND_TOP, L.x, L.y, L.w, L.h, SWP_NOACTIVATE);
+        SetWindowPos(panel.hwnd, HWND_TOPMOST, L.x, L.y, L.w, L.h, SWP_NOACTIVATE);
 
         // Black client + opaque GDI+ content: AccentBlurBehind supplies the acrylic
         // where we do not paint. Avoid UpdateLayeredWindow / BitBlt of PARGB zeros
@@ -2362,7 +2419,8 @@ static void RenderPanel(Panel& panel, bool force = false) {
         POINT ptDst{L.x, L.y}, ptSrc{0, 0};
         SIZE sz{L.w, L.h};
         BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-        UpdateLayeredWindow(panel.hwnd, screen, &ptDst, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA);
+        if (!UpdateLayeredWindow(panel.hwnd, screen, &ptDst, &sz, mem, &ptSrc, 0, &bf, ULW_ALPHA))
+            Wh_Log(L"[ui] UpdateLayeredWindow failed %u", GetLastError());
         SelectObject(mem, old);
         DeleteObject(bmp);
         DeleteDC(mem);
@@ -2372,7 +2430,16 @@ static void RenderPanel(Panel& panel, bool force = false) {
     panel.ui.lastSig = sig;
     if (!IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_SHOWNOACTIVATE);
     panel.ui.visible = true;
-    SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    {
+        wchar_t key[160];
+        swprintf_s(key, L"shown %d,%d %dx%d dpi=%d glass=%d %s", L.x, L.y, L.w, L.h, L.dpi, glass ? 1 : 0,
+                   L.content.media ? L"media" : L.content.aiOnly ? L"ai" : L"idle");
+        if (panel.lastWhy != key) {
+            panel.lastWhy = key;
+            Wh_Log(L"[ui] panel %p %s visible=%d", panel.hwnd, key, IsWindowVisible(panel.hwnd) ? 1 : 0);
+        }
+    }
     panel.ui.lastZ = now;
 }
 
@@ -2391,17 +2458,25 @@ static void DestroyPanelWindow(Panel& panel) {
     panel.ui = UiState{};
 }
 
+// Same window recipe as Taskbar Music Lounge (windhawk-mods/mods/taskbar-music-lounge.wh.cpp):
+// an unowned WS_EX_TOPMOST tool popup placed over the taskbar rect. 0.3.0 made the
+// taskbar its owner from our own thread, which ties our input queue to the taskbar
+// thread and depends on owner z-order rules; topmost + periodic re-assert is simpler.
 static HWND CreatePanelWindow(HWND tray, bool glass) {
-    DWORD ex = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+    DWORD ex = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST;
     if (!glass) ex |= WS_EX_LAYERED;
-    HWND hwnd = CreateWindowExW(ex, kWndClass, L"ZenDesktop Taskbar Music", WS_POPUP, 0, 0, 1, 1, tray, nullptr,
+    HWND hwnd = CreateWindowExW(ex, kWndClass, L"ZenDesktop Taskbar Music", WS_POPUP, 0, 0, 1, 1, nullptr, nullptr,
                                 g_uiInst, nullptr);
     if (!hwnd) {
-        Wh_Log(L"CreateWindowEx failed %u", GetLastError());
+        Wh_Log(L"[ui] CreateWindowEx failed %u (tray %p)", GetLastError(), tray);
         return nullptr;
     }
     if (glass) ApplyPanelGlass(hwnd, true, g_env.lightTaskbar);
     SetTimer(hwnd, TIMER_TICK, 100, nullptr);
+    RECT tr{};
+    GetWindowRect(tray, &tr);
+    Wh_Log(L"[ui] panel %p created for tray %p (%d,%d-%d,%d) glass=%d ex=0x%08X dpi=%u", hwnd, tray, tr.left, tr.top,
+           tr.right, tr.bottom, glass ? 1 : 0, (unsigned)GetWindowLongW(hwnd, GWL_EXSTYLE), GetDpiForWindow(tray));
     return hwnd;
 }
 
@@ -2416,6 +2491,26 @@ static void SyncPanels(bool forceRecreate) {
     }
 
     auto trays = FindTaskbars(s.multiMonitor);
+    {
+        static int lastCount = -1;
+        static bool loggedForeign = false;
+        if ((int)trays.size() != lastCount) {
+            lastCount = (int)trays.size();
+            Wh_Log(L"[ui] taskbars found: %d (multiMonitor=%d)", lastCount, s.multiMonitor ? 1 : 0);
+        }
+        static bool loggedMissing = false;
+        if (trays.empty() && !loggedForeign) {
+            HWND any = FindWindowW(L"Shell_TrayWnd", nullptr);
+            if (any) {
+                loggedForeign = true;
+                Wh_Log(L"[ui] Shell_TrayWnd %p belongs to another explorer.exe; this process (pid %u) stays idle", any,
+                       GetCurrentProcessId());
+            } else if (!loggedMissing) {
+                loggedMissing = true;
+                Wh_Log(L"[ui] Shell_TrayWnd not found yet, retrying every 2s");
+            }
+        }
+    }
     // Drop panels whose tray is gone.
     for (auto it = g_panels.begin(); it != g_panels.end();) {
         bool alive = false;
@@ -2560,7 +2655,11 @@ static void UiThread() {
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     Gdiplus::GdiplusStartupInput gsi;
     ULONG_PTR gdipToken = 0;
-    if (Gdiplus::GdiplusStartup(&gdipToken, &gsi, nullptr) != Gdiplus::Ok) return;
+    if (Gdiplus::GdiplusStartup(&gdipToken, &gsi, nullptr) != Gdiplus::Ok) {
+        Wh_Log(L"[ui] GdiplusStartup failed, panel disabled");
+        return;
+    }
+    Wh_Log(L"[ui] thread started (pid %u)", GetCurrentProcessId());
 
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                        (LPCWSTR)&WndProc, &g_uiInst);
@@ -2570,11 +2669,13 @@ static void UiThread() {
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.lpszClassName = kWndClass;
     wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    RegisterClassW(&wc);
+    if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        Wh_Log(L"[ui] RegisterClass failed %u", GetLastError());
 
     HWND msgHwnd = CreateWindowExW(0, kWndClass, L"ZenLyricsMsg", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
                                    g_uiInst, nullptr);
     if (msgHwnd) SetTimer(msgHwnd, TIMER_SYNC, 2000, nullptr);
+    else Wh_Log(L"[ui] message window failed %u; taskbar will not be re-scanned", GetLastError());
 
     SyncPanels(true);
 
@@ -2615,7 +2716,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init");
+    Wh_Log(L"Init 0.3.1 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
