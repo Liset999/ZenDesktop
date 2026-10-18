@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.6
+// @version         4.1.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -60,11 +60,11 @@
 
 ## 更新日志
 
+- **4.1.7**：修复浅色模式下液态玻璃主题中间的应用区域蒙着一层白雾的问题：应用区域不再额外叠一层玻璃，跟四周边缘一样通透；液态玻璃 - 原版同样去掉系统的浅色底；搜索页浅色模式下的卡片和预览也调得更通透。
 - **4.1.6**：修复液态玻璃主题下固定应用、推荐项的名称不显示（只在鼠标悬停时出现）的问题，名称现在像系统一样一直显示，文字颜色跟随系统深浅色或「文字颜色」设置。
 - **4.1.5**：液态玻璃主题去掉额外描边和镜面高光边，圆角恢复为 Windows 自带的大小（面板 8、元素 4），搜索页同步；保留玻璃模糊和底色。
 - **4.1.4**：统一搜索页材质：搜索框、结果、预览、筛选标签和右键菜单与开始菜单使用同一套玻璃和文字颜色；「控件深色/浅色」对搜索页同样生效，修复浅色模式下搜索页发白、搜索框叠两层。
 - **4.1.3**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/通知中心对齐。
-- **4.1.2**：规范设置界面与说明文字，行为不变。
 
 ## 致谢与许可
 
@@ -5343,6 +5343,16 @@ const Theme g_themeOversimplified_Accentuated = {{
 }};
 
 const Theme g_themeLiquidGlass = {{
+    // Inner pane: no fill of its own (the system one is a white layer in light
+    // mode), so it shows the same glass as the margins around it.
+    ThemeTargetStyles{L"Border#BorderElement", {
+        L"Background=Transparent",
+        L"BorderThickness=0"}},
+    ThemeTargetStyles{L"StartMenu.StartInnerFrame", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Border#LayerBorder", {
+        L"Background=Transparent",
+        L"BorderThickness=0"}},
     ThemeTargetStyles{L"Border#AcrylicOverlay", {
         L"Visibility=Visible",
         L"CornerRadius=$CornerRadius",
@@ -5554,11 +5564,17 @@ const Theme g_themeAppleLiquidGlass = {{
         L"BorderBrush:=$Apple_BorderBrush",
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // -- Inner container (override system acrylic, aligned corners) --
+    // -- Inner pane (pinned/recommended area): no fill of its own. A second
+    //    blur here stacked on top of AcrylicBorder (blur + tint + luminosity
+    //    twice), which made the inner pane milky in light mode while the
+    //    margins around it stayed clear. Clearing it also replaces the system
+    //    light fill. --
     ThemeTargetStyles{L"Border#BorderElement", {
-        L"Background:=$Apple_Background",
+        L"Background=Transparent",
         L"BorderThickness=0",
         L"CornerRadius=$Apple_InnerCornerRadius"}},
+    ThemeTargetStyles{L"StartMenu.StartInnerFrame", {
+        L"Background=Transparent"}},
     // -- Make LayerBorder transparent but keep it visible to fill corner gaps --
     ThemeTargetStyles{L"Border#LayerBorder", {
         L"Background=Transparent",
@@ -5818,11 +5834,17 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"BorderBrush:=$Apple_BorderBrush",
         L"BorderThickness=$Apple_BorderThickness",
         L"CornerRadius=$Apple_CornerRadius"}},
-    // -- Inner container (override system acrylic, aligned corners) --
+    // -- Inner pane (pinned/recommended area): no fill of its own. A second
+    //    blur here stacked on top of AcrylicBorder (blur + tint + luminosity
+    //    twice), which made the inner pane milky in light mode while the
+    //    margins around it stayed clear. Clearing it also replaces the system
+    //    light fill. --
     ThemeTargetStyles{L"Border#BorderElement", {
-        L"Background:=$Apple_Background",
+        L"Background=Transparent",
         L"BorderThickness=0",
         L"CornerRadius=$Apple_InnerCornerRadius"}},
+    ThemeTargetStyles{L"StartMenu.StartInnerFrame", {
+        L"Background=Transparent"}},
     // -- Make LayerBorder transparent but keep it visible to fill corner gaps --
     ThemeTargetStyles{L"Border#LayerBorder", {
         L"Background=Transparent",
@@ -13586,7 +13608,7 @@ struct ZenSearchWebPalette {
 
 ZenSearchWebPalette ZenGetSearchWebPalette(ZenSearchFamily family,
                                            bool darkDesign) {
-    (void)family;  // Liquid no longer adds a specular edge.
+    // Liquid no longer adds a specular edge.
     if (darkDesign) {
         return {
             L"rgba(255, 255, 255, 0.06)",
@@ -13599,7 +13621,10 @@ ZenSearchWebPalette ZenGetSearchWebPalette(ZenSearchFamily family,
     }
 
     return {
-        L"rgba(255, 255, 255, 0.30)",
+        // Liquid Glass stays clear in light mode too: a 30% white tile/preview
+        // card read as a white haze over the glass.
+        family == ZenSearchFamily::Liquid ? L"rgba(255, 255, 255, 0.08)"
+                                          : L"rgba(255, 255, 255, 0.30)",
         L"rgba(0, 0, 0, 0.05)",
         L"rgba(0, 0, 0, 0.09)",
         L"rgba(0, 0, 0, 0.08)",
