@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.5
+// @version         4.1.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -60,11 +60,11 @@
 
 ## 更新日志
 
+- **4.1.6**：修复液态玻璃主题下固定应用、推荐项的名称不显示（只在鼠标悬停时出现）的问题，名称现在像系统一样一直显示，文字颜色跟随系统深浅色或「文字颜色」设置。
 - **4.1.5**：液态玻璃主题去掉额外描边和镜面高光边，圆角恢复为 Windows 自带的大小（面板 8、元素 4），搜索页同步；保留玻璃模糊和底色。
 - **4.1.4**：统一搜索页材质：搜索框、结果、预览、筛选标签和右键菜单与开始菜单使用同一套玻璃和文字颜色；「控件深色/浅色」对搜索页同样生效，修复浅色模式下搜索页发白、搜索框叠两层。
 - **4.1.3**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/通知中心对齐。
 - **4.1.2**：规范设置界面与说明文字，行为不变。
-- **4.1.1**：新增「控件深色/浅色」设置，修复浅色模式下的白雾。
 
 ## 致谢与许可
 
@@ -5773,15 +5773,8 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
-    // -- Text foreground (respects textColorMode setting) --
-    ThemeTargetStyles{L"TextBlock", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#AppDisplayName", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#HeaderText", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
+    // -- Text foreground: left to the system (and to textColorMode, applied
+    //    in code), so names stay visible at rest like native Windows. --
 }, {
     // Zen Liquid Glass shared language (aligned with Taskbar / Notification)
     L"Apple_BorderThickness=0",
@@ -5798,7 +5791,6 @@ const Theme g_themeAppleLiquidGlass = {{
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.06\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.14\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.22\" />",
-    L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
 }, {}, {
     ThemeTargetStyles{L"*", {
         L"transition: background-color 0.083s ease-in-out !important"}},
@@ -6045,15 +6037,8 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
-    // -- Text foreground (respects textColorMode setting) --
-    ThemeTargetStyles{L"TextBlock", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#AppDisplayName", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#HeaderText", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
-    ThemeTargetStyles{L"TextBlock#RecommendedItemLabel", {
-        L"Foreground:=$Apple_ForegroundBrush"}},
+    // -- Text foreground: left to the system (and to textColorMode, applied
+    //    in code), so names stay visible at rest like native Windows. --
 }, {
     // Zen Liquid Glass Classic — thinner refraction, same specular language
     L"Apple_BorderThickness=0",
@@ -6070,7 +6055,6 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     L"Apple_ElementTileBG=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.06\" />",
     L"Apple_ElementTileBGHover=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.14\" />",
     L"Apple_ElementTileBGPressed=<SolidColorBrush Color=\"{ThemeResource SystemChromeMediumColor}\" Opacity=\"0.22\" />",
-    L"Apple_ForegroundBrush={ThemeResource SystemControlForegroundBaseHighBrush}",
 }, {}, {
     ThemeTargetStyles{L"*", {
         L"transition: background-color 0.083s ease-in-out !important"}},
