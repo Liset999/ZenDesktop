@@ -17,23 +17,39 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Helper function to print colorful status
+# Every status line is also written with a timestamp to %TEMP%\ZenDeploy.log,
+# so a slow step can be found afterwards.
+$script:ZenLogPath = Join-Path $env:TEMP "ZenDeploy.log"
+try { Set-Content -LiteralPath $script:ZenLogPath -Value "ZenDeploy $(Get-Date -Format s)" -Encoding UTF8 } catch {}
 function Write-Status ($text, $color = "Cyan") {
     Write-Host "[ZenDeploy] $text" -ForegroundColor $color
+    try { Add-Content -LiteralPath $script:ZenLogPath -Value "$(Get-Date -Format 'HH:mm:ss.fff') $text" -Encoding UTF8 } catch {}
 }
 
 # Settings rule: deploy only seeds a value that does not exist yet (fresh
 # install). An existing value, including an empty string or 0 chosen by the
 # user, is never overwritten.
+# Uses the .NET registry API directly: the PowerShell registry provider
+# (Test-Path / Get-ItemProperty -Name with a missing value) is slow, and also
+# treats [ ] * ? in value names as wildcards.
+function Open-HklmKey ($path) {
+    $sub = $path -replace '^HKLM:\\', ''
+    return [Microsoft.Win32.Registry]::LocalMachine.CreateSubKey($sub)
+}
+
 function Set-RegValueIfMissing ($path, $name, $value, $type, $label = "") {
-    if (-not (Test-Path $path)) {
-        New-Item -Path $path -Force | Out-Null
-    }
-    $prop = Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
-    if ($null -eq $prop) {
-        if ($label) {
-            Write-Status "         [Settings] Seeding $label $name -> $value" "Yellow"
+    $key = Open-HklmKey $path
+    try {
+        if ($key.GetValueNames() -notcontains $name) {
+            if ($label) {
+                Write-Status "         [Settings] Seeding $label $name -> $value" "Yellow"
+            }
+            $kind = if ($type -eq "DWord") { [Microsoft.Win32.RegistryValueKind]::DWord } else { [Microsoft.Win32.RegistryValueKind]::String }
+            if ($type -eq "DWord") { $value = [int]$value } else { $value = [string]$value }
+            $key.SetValue($name, $value, $kind)
         }
-        Set-ItemProperty -Path $path -Name $name -Value $value -Type $type
+    } finally {
+        $key.Close()
     }
 }
 
@@ -252,6 +268,7 @@ foreach ($file in $files) {
     # Example: 'local@zen-taskbar-acrylic.wh.cpp' -> 'local@zen-taskbar-acrylic'
     $id = $file.BaseName -replace '\.wh$', ''
     Write-Status "Deploying Mod: $id ($($file.Name))..." "Cyan"
+    $modTimer = [System.Diagnostics.Stopwatch]::StartNew()
     
     # Copy source code to Windhawk
     Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $modsSource $file.Name) -Force
@@ -292,11 +309,10 @@ foreach ($file in $files) {
     
     Write-Status "         [Metadata] Version=$version | Arch=$arch | Include=$includeStr" "Gray"
     
+    Write-Status "         [Registry] Writing mod entry and default settings..." "Gray"
     # Registry path under Windhawk Engine
     $regPath = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\$id"
-    if (-not (Test-Path $regPath)) {
-        New-Item -Path $regPath -Force | Out-Null
-    }
+    $modKey = Open-HklmKey $regPath
 
     # Determine Disabled state:
     # 核心原则：deploy 不负责编译，也不负责开启！只负责把 mod 装到 Windhawk 里面。
@@ -304,11 +320,8 @@ foreach ($file in $files) {
     # 用户在 Windhawk UI 中自行按需开启开关并在提示时编译。
     # 若用户此前已在 Windhawk 中手动调整过开关状态，则予以保留。
     $currentDisabled = $null
-    try {
-        $prop = Get-ItemProperty -Path $regPath -Name "Disabled" -ErrorAction SilentlyContinue
-        if ($null -ne $prop) { $currentDisabled = $prop.Disabled }
-    } catch {
-        $currentDisabled = $null
+    if ($modKey.GetValueNames() -contains "Disabled") {
+        $currentDisabled = $modKey.GetValue("Disabled")
     }
 
     # -Optional only turns ON the listed mods; every other mod keeps the
@@ -327,13 +340,15 @@ foreach ($file in $files) {
 
     
     # Populate the registry with metadata
-    Set-ItemProperty -Path $regPath -Name "Disabled" -Value $targetDisabled -Type DWord
+    $str = [Microsoft.Win32.RegistryValueKind]::String
+    $modKey.SetValue("Disabled", [int]$targetDisabled, [Microsoft.Win32.RegistryValueKind]::DWord)
+    $modKey.SetValue("Include", [string]$includeStr, $str)
+    $modKey.SetValue("Exclude", [string]$excludeStr, $str)
+    $modKey.SetValue("Architecture", [string]$arch, $str)
+    $modKey.SetValue("Version", [string]$version, $str)
+    $modKey.SetValue("LibraryFileName", "", $str)
+    $modKey.Close()
     Set-RegValueIfMissing $regPath "LoggingEnabled" 0 DWord
-    Set-ItemProperty -Path $regPath -Name "Include" -Value $includeStr -Type String
-    Set-ItemProperty -Path $regPath -Name "Exclude" -Value $excludeStr -Type String
-    Set-ItemProperty -Path $regPath -Name "Architecture" -Value $arch -Type String
-    Set-ItemProperty -Path $regPath -Name "Version" -Value $version -Type String
-    Set-ItemProperty -Path $regPath -Name "LibraryFileName" -Value "" -Type String
 
     # Default settings for a fresh install: only seeded when missing, never
     # overwriting the user's settings. Registry-deployed mods get no defaults
@@ -355,6 +370,7 @@ foreach ($file in $files) {
 
     if ($id -eq "local@zen-taskbar-acrylic") {
         $label = "Taskbar"
+        Write-Status "         [Settings] Checking saved taskbar settings..." "Gray"
         # 4.2.6 grouped the settings. Copy values saved under the old flat keys
         # to the grouped keys that are still missing; never overwrite.
         $taskbarKeyMap = [ordered]@{
@@ -365,21 +381,23 @@ foreach ($file in $files) {
             "maximizedTaskbarLayer" = "maximized.enabled"; "maximizedLayerBlur" = "maximized.blur"
             "maximizedLayerOpacity" = "maximized.opacity"; "maximizedLayerLuminosity" = "maximized.luminosity"
         }
-        if (Test-Path $settingsPath) {
-            $existing = Get-ItemProperty -Path $settingsPath -ErrorAction SilentlyContinue
-            $hadLegacy = $existing -and ($null -ne $existing.PSObject.Properties["bgColorMode"])
+        $tbKey = Open-HklmKey $settingsPath
+        try {
+            $names = @($tbKey.GetValueNames())
+            $hadLegacy = $names -contains "bgColorMode"
             foreach ($oldKey in $taskbarKeyMap.Keys) {
-                $prop = if ($existing) { $existing.PSObject.Properties[$oldKey] } else { $null }
-                if ($null -ne $prop) {
-                    $kind = (Get-Item $settingsPath).GetValueKind($oldKey)
-                    $type = if ($kind -eq "DWord") { "DWord" } else { "String" }
-                    Set-RegValueIfMissing $settingsPath $taskbarKeyMap[$oldKey] $prop.Value $type $label
+                if ($names -contains $oldKey) {
+                    $kind = $tbKey.GetValueKind($oldKey)
+                    $type = if ($kind -eq [Microsoft.Win32.RegistryValueKind]::DWord) { "DWord" } else { "String" }
+                    Set-RegValueIfMissing $settingsPath $taskbarKeyMap[$oldKey] $tbKey.GetValue($oldKey) $type $label
                 }
             }
-            # Old saves had no unify option; keep their separate flyout values.
-            if ($hadLegacy) {
-                Set-RegValueIfMissing $settingsPath "unifyFlyouts" 0 DWord $label
-            }
+        } finally {
+            $tbKey.Close()
+        }
+        # Old saves had no unify option; keep their separate flyout values.
+        if ($hadLegacy) {
+            Set-RegValueIfMissing $settingsPath "unifyFlyouts" 0 DWord $label
         }
         Set-RegValueIfMissing $settingsPath "look.theme" "TranslucentTaskbar" String $label
         Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
@@ -491,8 +509,11 @@ foreach ($file in $files) {
 
     # Initialize ModsWritable runtime key
     $regWritablePath = "HKLM:\SOFTWARE\Windhawk\Engine\ModsWritable\$id"
-    if (-not (Test-Path $regWritablePath)) {
-        New-Item -Path $regWritablePath -Force | Out-Null
+    (Open-HklmKey $regWritablePath).Close()
+
+    $modTimer.Stop()
+    if ($modTimer.Elapsed.TotalSeconds -ge 3) {
+        Write-Status ("         [Done] {0:N1} s (slow step; please report this line if it keeps happening)" -f $modTimer.Elapsed.TotalSeconds) "Yellow"
     }
 }
 Write-Status "Active mods successfully registered into Windhawk Engine." "Green"
@@ -505,7 +526,7 @@ if (Test-Path $cacheFile) {
 }
 
 # 6. Restart Windhawk Service and UI
-Write-Status "Starting Windhawk Service..."
+Write-Status "Starting Windhawk Service (this can take up to a minute)..."
 Start-Service -Name Windhawk -ErrorAction SilentlyContinue
 
 $exePath = Join-Path $windhawkDir "windhawk.exe"
