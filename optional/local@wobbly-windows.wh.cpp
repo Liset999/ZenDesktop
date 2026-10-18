@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 果冻窗口
 // @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
 // @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
-// @version         0.115.2
+// @version         0.115.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
@@ -18,6 +18,8 @@
 /*
 > **作者：Lanbo**
 > [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+
+> 原作者：**lalimatyus**（[Wobbly Windows](https://github.com/lalimatyus/Wobbly-Windows)，GPL-3.0）。本版由 Lanbo 做中文本地化与文字整理。
 
 # ZenDesktop: 果冻窗口
 
@@ -46,12 +48,14 @@
 
 ## 更新日志
 
+- **0.115.3**：说明开头补上原作者说明，原版链接改为指向仓库。
+- **0.115.2**：说明开头加入作者信息与捐助链接。
 - **0.115.1**：规范设置界面与说明文字，行为不变。
 - **0.115**：基于原版 Wobbly Windows v0.115，补充中文本地化。
 
 ## 致谢与许可
 
-- 原作者：lalimatyus（[Wobbly Windows](https://github.com/lalimatyus) v0.115）。
+- 原作者：lalimatyus（[Wobbly Windows](https://github.com/lalimatyus/Wobbly-Windows) v0.115）。
 - 许可证：[GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html)。Hook 代码原样保留，源码随包公开。
 - ZenDesktop 修改：仅中文本地化与文字整理。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）

@@ -1,84 +1,76 @@
-========================================================================
-             ZenDesktop Premium One-Key Deploy Package v4.1.0
-========================================================================
-
-欢迎使用 ZenDesktop 极简桌面美化套件 v4.1.0！
-
-👨‍💻 开发者信息 & 关注支持：
-- 📺 哔哩哔哩：https://space.bilibili.com/1280632999
-- 🎵 抖音：https://v.douyin.com/Isl7QPpKZZ4/
-- ⚡ 爱发电：https://ifdian.net/a/Lanboo
-
-本套件包含以下 6 大核心本地插件与 1 个外部透明增强程序：
-1. ZenDesktop: 任务栏美化 (精细化亚克力/毛玻璃任务栏，支持多档透明度与最大化自适应)
-2. ZenDesktop: 通知栏美化 (精细化亚克力通知中心、快捷设置和日历面板)
-3. ZenDesktop: 开始菜单美化 (精细化亚克力开始菜单，支持尺寸自定义与文件夹独立调节)
-4. ZenDesktop: 桌面双击隐藏图标 (双击空白处显示/隐藏图标，支持闲置自动隐藏与平滑淡入淡出)
-5. ZenDesktop: 设置美化 (Windows 11 设置 Win+I 界面全透明/磨砂玻璃，深度适配亮色/暗色模式)
-6. macOS 神奇效果最小化动画 (基于 Direct2D 网格变形的 macOS 经典 Genie 神奇缩放动画)
-7. zen-explorer-styler: 文件管理器美化（Windhawk mod，替代 ExplorerBlurMica）
-
-========================================================================
-✨ v4.1.0 重磅更新说明：
-========================================================================
-* 🆕 【全系列模组命名与中文本地化规范】
-  - 模组统一采用规范的中文命名与中文简介，保留 `ZenDesktop: ` 前缀。
-  - 所有模组设置项均完成双语对照翻译，包括提示说明、选项下拉框与范围限制。
-* 🆕 【全新 Direct2D macOS 神奇效果动画引擎】
-  - 引入原作者最新 Direct2D 网格变形引擎（Potassiumuncher & Abdullah Masood）。
-  - 支持网格细分密度调节（8-96）、自动隐藏任务栏唤出、排除程序列表及多显示器适配。
-* 🆕 【设置美化亮色模式全面透明优化】
-  - 彻底修复亮色模式下设置卡片泛白不透明的问题，统一 Glass 模式全景磨砂质感。
-* 🆕 【一键部署脚本 (deploy.ps1) 深度重构】
-  - 自动清理历史废弃插件并重置 UI 缓存，确保在 Windhawk 中即刻展现全中文模组列表。
-
-========================================================================
-安装与部署指南（最简 3 步）：
+﻿========================================================================
+             ZenDesktop 一键部署包 v4.2.0
 ========================================================================
 
-第一步：一键部署 Windhawk 插件
-   鼠标右键点击 【deploy.bat】，选择【以管理员身份运行】 (Run as Administrator)。
-   * 如果您的电脑上未安装 Windhawk，脚本会自动唤起安装程序，请按提示完成安装。
-   * 脚本会自动停止服务并极速导入 6 个本地美化 Mod 并完成初始化配置。
+作者：Lanbo
+- 哔哩哔哩：https://space.bilibili.com/1280632999
+- 抖音：https://v.douyin.com/Isl7QPpKZZ4/
+- 爱发电：https://ifdian.net/a/Lanboo
 
-第二步：在 Windhawk 中保存并编译
-   1. 打开 Windhawk 软件，进入“已安装的 Mods”界面。
-   2. 依次进入各个插件的源码页面，点击右上角的【保存并编译】 (Save / Compile) 按钮。
-   3. 编译完成后，插件即刻被激活。
-
-第三步：在 Windhawk 中调整参数并启用文件管理器美化
-   1. 打开 Windhawk 软件，进入各美化插件的设置页面，调整透明色、浓度、模糊等参数，保存即生效。
-   2. 文件管理器透明：在 Windhawk 中编译并启用「ZenDesktop: 文件管理器美化」。
-   3. 若以前注册过 ExplorerBlurMica：管理员运行 ExplorerBlurMica\uninstall.cmd 取消注册后再启用 styler。
-   4. 色调、不透明度等请在 Windhawk 该 mod 的设置页调整。
+ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 
 ========================================================================
-文件说明：
+包含的 Mod（装好后默认全部关闭，在 Windhawk 里按需打开）
 ========================================================================
-  windhawk_setup.exe                          - Windhawk 官方在线安装包
-  windhawk_setup_offline.exe                  - Windhawk 官方离线安装包 (仅离线包提供)
-  deploy.bat                                  - 一键自适应智能部署脚本（以管理员身份运行）
-  deploy.ps1                                  - 部署脚本核心逻辑 (v4.1.0)
-  build_releases.py                           - 一键打包发布脚本 (v4.1.0)
-  ExplorerBlurMica/                           - 【历史遗留，v4.2 不推荐使用】原 ExplorerBlurMica 目录 (Maplespe)
-    ├─ ExplorerBlurMica.dll                   - （请改用 zen-explorer-styler；若已注册请 uninstall.cmd）
-    ├─ config-editor-wpf.exe                 - 可视化透明设置编辑器
-    ├─ register.cmd                           - 【勿用】历史注册脚本；请改用 uninstall.cmd 取消注册
-    └─ uninstall.cmd                          - 注销并还原透明的脚本
-  local@zen-taskbar-acrylic.wh.cpp            - 任务栏美化插件源码
-  local@zen-notificationcenter-acrylic.wh.cpp - 通知中心美化插件源码
-  local@zen-startmenu-acrylic.wh.cpp          - 开始菜单美化插件源码
-  local@zen-desktop-toggle-icons.wh.cpp        - 桌面双击隐藏图标插件源码
-  local@windows-11-settings-styler-fork.wh.cpp- 设置应用美化插件源码
-  local@macos-minimize-animation.wh.cpp        - macOS 神奇效果最小化动画源码
-  Readme.txt                                  - 本说明文件
-  README.md                                   - 仓库主页文件
+  ZenDesktop: 任务栏美化         任务栏透明/亚克力/液态玻璃
+  ZenDesktop: 开始菜单美化       开始菜单与搜索页玻璃效果，可调尺寸
+  ZenDesktop: 通知栏美化         通知中心、日历、快捷设置玻璃效果
+  ZenDesktop: 设置美化           「设置」应用（Win+I）玻璃背景
+  ZenDesktop: 文件管理器美化     文件管理器与右键菜单透明
+  ZenDesktop: 任务栏音乐与歌词   任务栏左下角显示歌曲、歌词和播放按钮
+  ZenDesktop: 桌面双击隐藏图标   双击桌面空白处隐藏/显示图标
+  （可选）果冻窗口               拖动窗口时像果冻一样晃动
+  （可选）窗口动画               关窗、最小化、还原、启动动画
 
 ========================================================================
-特别鸣谢：
+安装步骤
 ========================================================================
-1. 文件管理器透明现以 zen-explorer-styler 为准；历史版本曾使用 Maplespe 的 ExplorerBlurMica，致谢保留。
-2. 感谢 Windhawk 官方作者 m417z 创作的 Windhawk 基础框架及系列 Mod。
-3. 感谢 Abdullah Masood & Potassiumuncher 创作的 MacOS Minimize Animation 神奇动画。
+1. 把压缩包完整解压到任意文件夹（路径有空格、中文都可以）。
+2. 双击 deploy.bat，在权限提示里点「是」。
+   - 如果电脑上还没装 Windhawk，并且包里带有 windhawk_setup.exe，
+     脚本会先打开它，按提示装完后脚本会自动继续。
+   - 只含 Mod 的 _Online 包不带安装程序，请先从 https://windhawk.net 安装 Windhawk。
+3. 窗口显示「一键部署完成」后按任意键关闭。
+4. 打开 Windhawk →「已安装的 Mod」，点进想用的 mod 打开开关；
+   提示需要编译时按提示编译（或在源码页点右上角「保存并编译」）。
+5. 在各 mod 的「设置」页调整效果，保存即生效。全部调好后建议重启一次电脑。
+
+再次运行 deploy.bat（例如更新新版本）不会关掉你已打开的 mod，
+也不会覆盖你改过的设置，只补上新设置的默认值。
+
 ========================================================================
-© 2026 Lanbo. All rights reserved.
+卸载与恢复
+========================================================================
+1. 在 Windhawk 里关掉（或移除）ZenDesktop 的 mod。
+2. 运行 restart_explorer.bat 或重启电脑。
+3. 启用过开机自检的：管理员运行  deploy.ps1 -StartupCheck remove
+4. 接过 AI 状态的：删除 %LOCALAPPDATA%\ZenDesktop 文件夹，
+   并删掉当时粘贴到 AI 助手配置里的片段。
+
+========================================================================
+文件说明
+========================================================================
+  deploy.bat / deploy.ps1         一键部署（把 mod 装进 Windhawk，不编译、不自动打开）
+  restart_explorer.bat            重启资源管理器
+  local@*.wh.cpp                  各 mod 源码
+  optional\                       可选 mod（果冻窗口、窗口动画）及第三方许可说明
+  tools\ai-status\                任务栏 AI 编程助手状态（可选，见其中的 README.md）
+  tools\ZenDesktop-StartupCheck.ps1  开机自检（可选，deploy.ps1 -StartupCheck check）
+  windhawk_setup*.exe             Windhawk 官方安装程序（仅完整包/离线包）
+
+========================================================================
+注意
+========================================================================
+- 文件管理器美化不要和 ExplorerBlurMica 同时使用。以前注册过的，
+  请先用 ExplorerBlurMica 自带的 uninstall.cmd 取消注册。
+- 果冻窗口需要注入 dwm.exe，deploy 已把它加进 Windhawk 的进程包含列表，
+  打开果冻窗口后要重启整台电脑。
+
+========================================================================
+致谢与许可
+========================================================================
+- Windhawk 与上游 Styler 系列 mod：m417z（GPL-3.0）。
+- 果冻窗口：lalimatyus（GPL-3.0）。
+- 窗口动画：ReDrag（MIT），macOS 神奇效果：Abdullah Masood、Potassiumuncher。
+- 各 mod 的详细许可见其说明中的「致谢与许可」，第三方许可见 optional\THIRD_PARTY_NOTICES.md。
+========================================================================

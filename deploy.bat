@@ -33,4 +33,6 @@ if %errorLevel% neq 0 (
     exit /b %errorLevel%
 )
 
+:: Elevated runs open a new window: keep it open so the summary can be read (interactive runs only).
+if "%~1"=="" pause
 exit /b 0

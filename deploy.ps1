@@ -60,48 +60,53 @@ Write-Status "================================================" "Green"
 # 1. Enforce Administrator Privileges
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "This script must be executed with Administrator privileges. Please run deploy.bat as Administrator."
+    Write-Error "需要管理员权限：请右键 deploy.bat，选择「以管理员身份运行」。 (This script must be executed with Administrator privileges. Please run deploy.bat as Administrator.)"
     Exit 1
 }
 
 # 2. Detect Windhawk Paths
-Write-Status "Detecting Windhawk installation..."
-$windhawkDir = $null
-
-# Registry check
-$regPaths = @(
-    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk",
-    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk"
-)
-foreach ($regPath in $regPaths) {
-    if (Test-Path $regPath) {
-        $windhawkDir = Get-ItemPropertyValue -Path $regPath -Name "InstallLocation" -ErrorAction SilentlyContinue
-        if ($windhawkDir) { break }
+function Find-WindhawkDir {
+    # Registry check
+    $regPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk"
+    )
+    foreach ($regPath in $regPaths) {
+        if (Test-Path $regPath) {
+            $dir = Get-ItemPropertyValue -Path $regPath -Name "InstallLocation" -ErrorAction SilentlyContinue
+            if ($dir -and (Test-Path -LiteralPath (Join-Path $dir "windhawk.exe"))) { return $dir }
+        }
     }
-}
-
-# Active process fallback
-if (-not $windhawkDir) {
+    # Active process fallback
     $proc = Get-Process windhawk -ErrorAction SilentlyContinue | Where-Object { $_.Path } | Select-Object -First 1
-    if ($proc -and $proc.Path) {
-        $windhawkDir = Split-Path $proc.Path
+    if ($proc -and $proc.Path) { return (Split-Path $proc.Path) }
+    # Standard paths fallbacks
+    $fallbacks = @()
+    if ($env:ProgramFiles) { $fallbacks += (Join-Path $env:ProgramFiles "Windhawk") }
+    $fallbacks += @("C:\Program Files\Windhawk", (Join-Path $PSScriptRoot "Windhawk"), $PSScriptRoot)
+    foreach ($fallback in $fallbacks) {
+        if (Test-Path -LiteralPath (Join-Path $fallback "windhawk.exe")) { return $fallback }
     }
+    return $null
 }
 
-# Standard paths fallbacks
-$fallbacks = @(
-    "C:\Program Files\Windhawk",
-    "$PSScriptRoot\Windhawk",
-    $PSScriptRoot
-)
-foreach ($fallback in $fallbacks) {
-    if (-not $windhawkDir -and (Test-Path (Join-Path $fallback "windhawk.exe"))) {
-        $windhawkDir = $fallback
+Write-Status "Detecting Windhawk installation..."
+$windhawkDir = Find-WindhawkDir
+
+# Not installed: run the Windhawk installer shipped in the package (if any), then detect again.
+if (-not $windhawkDir) {
+    $setup = @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter "windhawk_setup*.exe" -ErrorAction SilentlyContinue) | Select-Object -First 1
+    if ($setup) {
+        Write-Status "未检测到 Windhawk，正在打开包内的安装程序 $($setup.Name)，请按提示装完后关闭安装窗口..." "Yellow"
+        Write-Status "Windhawk not found, launching the bundled installer $($setup.Name). Finish the setup to continue..." "Yellow"
+        try { Start-Process -FilePath $setup.FullName -Wait } catch { Write-Status "无法启动安装程序: $($_.Exception.Message)" "Red" }
+        Start-Sleep -Seconds 2
+        $windhawkDir = Find-WindhawkDir
     }
 }
 
 if (-not $windhawkDir) {
-    Write-Error "Windhawk executable could not be resolved! Please ensure Windhawk is installed."
+    Write-Error "未找到 Windhawk：请先从 https://windhawk.net 下载安装 Windhawk（或使用带 windhawk_setup.exe 的完整包），装好后再运行 deploy.bat。 (Windhawk could not be found. Install it from https://windhawk.net, then run deploy.bat again.)"
     Exit 1
 }
 
@@ -110,7 +115,7 @@ $windhawkDir = $windhawkDir.TrimEnd('\')
 Write-Status "Windhawk Home: $windhawkDir" "DarkGreen"
 
 # Determine data root by parsing windhawk.ini if it exists (Standard vs Portable)
-$windhawkData = "C:\ProgramData\Windhawk" # Standard default fallback
+$windhawkData = if ($env:ProgramData) { Join-Path $env:ProgramData "Windhawk" } else { "C:\ProgramData\Windhawk" } # Standard default fallback
 $iniPath = Join-Path $windhawkDir "windhawk.ini"
 if (Test-Path $iniPath) {
     Write-Status "Parsing windhawk.ini for active storage configuration..." "Gray"
@@ -215,9 +220,9 @@ if ($windhawkData -ne "$windhawkDir\AppData" -and (Test-Path "$windhawkDir\AppDa
     Remove-Item -Path "$windhawkDir\AppData\ModsSource\local@windows-11-settings-*" -Force -ErrorAction SilentlyContinue
 }
 
-$files = @(Get-ChildItem -Path $PSScriptRoot -Filter "local@*.wh.cpp")
+$files = @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter "local@*.wh.cpp")
 if ($files.Count -eq 0) {
-    Write-Error "No local@*.wh.cpp mod files found in script directory! Checked: $PSScriptRoot"
+    Write-Error "部署目录里没有找到 local@*.wh.cpp：请先把压缩包完整解压，再运行解压目录里的 deploy.bat。 (No local@*.wh.cpp mod files found in: $PSScriptRoot. Extract the whole zip first.)"
     Exit 1
 }
 
@@ -235,8 +240,8 @@ if ($Optional) {
     }
 }
 $dwmModSelected = $false
-if (Test-Path $optionalDir) {
-    $optFiles = @(Get-ChildItem -Path $optionalDir -Filter "local@*.wh.cpp")
+if (Test-Path -LiteralPath $optionalDir) {
+    $optFiles = @(Get-ChildItem -LiteralPath $optionalDir -Filter "local@*.wh.cpp")
     foreach ($optFile in $optFiles) {
         $files += $optFile
     }
@@ -249,10 +254,10 @@ foreach ($file in $files) {
     Write-Status "Deploying Mod: $id ($($file.Name))..." "Cyan"
     
     # Copy source code to Windhawk
-    Copy-Item -Path $file.FullName -Destination (Join-Path $modsSource $file.Name) -Force
+    Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $modsSource $file.Name) -Force
     
     # Read and parse metadata directly from the source code headers
-    $content = Get-Content -Path $file.FullName -Raw
+    $content = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
     
     # @version
     $version = "4.1.0"
@@ -306,9 +311,11 @@ foreach ($file in $files) {
         $currentDisabled = $null
     }
 
+    # -Optional only turns ON the listed mods; every other mod keeps the
+    # user's existing toggle (or stays off on a fresh install).
     $targetDisabled = 1
-    if ($Optional) {
-        $targetDisabled = if ($preselected -contains $id) { 0 } else { 1 }
+    if ($Optional -and ($preselected -contains $id)) {
+        $targetDisabled = 0
     } elseif ($null -ne $currentDisabled) {
         $targetDisabled = $currentDisabled
     } else {
@@ -518,12 +525,12 @@ if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
     }
 } elseif ($StartupCheck -eq "check" -or $StartupCheck -eq "restart") {
     $checkSrc = Join-Path $PSScriptRoot "tools\ZenDesktop-StartupCheck.ps1"
-    if (Test-Path $checkSrc) {
+    if (Test-Path -LiteralPath $checkSrc) {
         try {
             $checkDir = Join-Path $env:LOCALAPPDATA "ZenDesktop"
             if (-not (Test-Path $checkDir)) { New-Item -ItemType Directory -Path $checkDir -Force | Out-Null }
             $checkDst = Join-Path $checkDir "ZenDesktop-StartupCheck.ps1"
-            Copy-Item -Path $checkSrc -Destination $checkDst -Force
+            Copy-Item -LiteralPath $checkSrc -Destination $checkDst -Force
             $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
             $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$checkDst`" -Mode $StartupCheck -DelaySec 15"
             $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
