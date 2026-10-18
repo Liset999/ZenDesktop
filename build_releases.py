@@ -9,11 +9,11 @@ common_files = [
     'local@zen-explorer-styler.wh.cpp',
     'local@zen-taskbar-lyrics.wh.cpp',
     'local@windows-11-settings-styler-fork.wh.cpp',
-    'local@macos-minimize-animation.wh.cpp',
     'deploy.bat',
     'deploy.ps1',
     'Readme.txt',
     'README.md',
+    'docs/donate-wechat.png',
     'restart_explorer.bat',
     'THIRD_PARTY_NOTICES-taskbar-lyrics.md',
     'tools/ZenDesktop-StartupCheck.ps1',  # optional, installed only with -StartupCheck

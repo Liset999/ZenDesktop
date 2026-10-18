@@ -21,13 +21,13 @@
 * **Standardized Chinese Localization & Mod Naming**: Unified all core mod display names and descriptions with full bilingual settings translation in Windhawk.
 * **Modern Direct2D macOS Minimize Animation**: Integrated the latest Direct2D mesh warp genie engine by Abdullah Masood & Potassiumuncher, supporting customizable mesh resolution (8-96 tiles), taskbar auto-hide unhiding, and process exclusions.
 * **Windows Settings Light-Mode Transparency Fix**: Enhanced Settings Styler with full recursive border styling, resolving opaque white cards in light mode for a seamless frosted glass look.
-* **Refined One-Key Deploy Script (`deploy.ps1`)**: Auto-detects and deploys all 6 active mods, automatically cleans up legacy deprecated helper mods, and resets the UI cache for instant Chinese mod card display.
+* **Refined One-Key Deploy Script (`deploy.ps1`)**: Auto-detects and deploys all core and optional mods, automatically cleans up legacy deprecated helper mods, and resets the UI cache for instant Chinese mod card display.
 
 ### 🇨🇳 中文
 * **全系列模组命名与中文本地化规范**：模组统一采用规范的中文命名与中文简介（保留 `ZenDesktop: ` 前缀），所有配置项均已完成中英双语对照翻译。
 * **全新 Direct2D macOS 神奇效果动画引擎**：深度整合 Potassiumuncher & Abdullah Masood 的 Direct2D 网格变形引擎，支持网格细分密度调节、自动隐藏任务栏唤出、排除程序列表及多显示器适配。
 * **设置美化亮色模式全面透明优化**：彻底修复亮色模式下设置卡片泛白不透明的问题，统一 Glass 模式全景磨砂质感。
-* **一键部署引擎 (`deploy.ps1`) 升级**：自动扫描并注册 6 大核心 Mod，自动清理历史废弃插件并重置 UI 缓存，确保在 Windhawk 中即刻展现全中文模组列表。
+* **一键部署引擎 (`deploy.ps1`) 升级**：自动扫描并注册全部核心与可选 Mod，自动清理历史废弃插件并重置 UI 缓存，确保在 Windhawk 中即刻展现全中文模组列表。
 
 ---
 
@@ -78,12 +78,12 @@
 
 ## 🧩 可选 Mod（v4.2 新增）/ Optional mods
 
-运行 `deploy.bat` 时会逐个询问是否安装（默认不装）：
+`deploy.bat` 会把下面两个可选 mod 也装进 Windhawk，和其他 mod 一样默认关闭，想用就在 Windhawk 里自己打开：
 
-- **Wobbly Windows**：KDE/Compiz 风格果冻窗口。作者 lalimatyus，GPL-3.0。需要在 Windhawk「设置 → 高级设置 → 进程包含列表」里加入 `dwm.exe`，然后注销或重启。
-- **Windows Animations**：关窗与最小化/还原/启动动画（含 macOS 神奇效果与 v1.5 新样式）。作者 ReDrag 等，MIT。请关闭旧的独立 mac 最小化 mod，避免播两次。
+- **果冻窗口（Wobbly Windows）**：KDE/Compiz 风格果冻窗口。作者 lalimatyus，GPL-3.0。它要注入 `dwm.exe`，deploy 已经把 `dwm.exe` 加进 Windhawk 的「进程包含列表」，打开后需要重启整台电脑。
+- **窗口动画（Windows Animations）**：关窗与最小化/还原/启动动画（含 macOS 神奇效果与 v1.5 新样式）。作者 ReDrag 等，MIT。如果以前装过独立的「macOS 神奇效果最小化动画」，请关掉它，避免播两次。
 
-无人值守安装：`deploy.bat -Optional "wobbly-windows,windows-animations"` 或 `-Optional none`。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
+无人值守安装时可以直接打开指定的 mod：`deploy.bat -Optional "wobbly-windows,windows-animations"`；只会打开列出的 mod，其他 mod 的开关保持原样。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
 
 ## 🖼️ 效果预览 / Previews (#10)
 
@@ -108,7 +108,7 @@
 
 ### Step 1: Run One-Key Deploy
 1. Right-click **`deploy.bat`** and select **Run as Administrator** (以管理员身份运行).
-2. The script will automatically configure Windhawk, register the 6 local mods, initialize default settings, and restart the Windhawk service.
+2. The script will automatically configure Windhawk, register the 7 core mods and 2 optional mods (all disabled by default), initialize default settings, and restart the Windhawk service.
 
 ### Step 2: Native Compilation in Windhawk
 1. Open the **Windhawk** UI dashboard.
@@ -122,25 +122,51 @@
 
 ## 🇨🇳 简体中文
 
-### 🛠️ 快速开始
-1. 鼠标右键点击 **`deploy.bat`**，选择 **以管理员身份运行**。
-2. 脚本将自动检测 Windhawk、部署 6 大核心本地 Mod、清理历史插件并刷新缓存。
-3. 打开 Windhawk 软件，依次进入各插件源码页面，点击右上角的 **保存并编译** 即可完成激活！
-4. 在 Windhawk 中启用 **ZenDesktop: 文件管理器美化**。若以前注册过 ExplorerBlurMica，请先管理员运行 `ExplorerBlurMica\uninstall.cmd` 再启用。
+### 需要什么
+
+- Windows 11。
+- [Windhawk](https://windhawk.net)（建议用最新版）。没装的话，完整包里的 `deploy.bat` 会先打开包内的 Windhawk 安装程序；只含 Mod 的 `_Online` 包需要你先自己装好。
+- 管理员权限（deploy 要写 Windhawk 的系统设置）。
+
+### 快速开始
+
+1. 把压缩包**完整解压**到任意文件夹（路径里有空格或中文都可以），不要在压缩软件里直接运行。
+2. 双击 **`deploy.bat`**，在弹出的权限提示里点「是」。窗口最后显示「一键部署完成」后按任意键关闭。
+3. 打开 Windhawk，在「已安装的 Mod」里能看到以 `ZenDesktop:` 开头的几个 mod，**默认都是关闭的**。
+4. 想用哪个就点进去打开开关。Windhawk 提示需要编译时，按提示编译（或进入源码页点右上角「保存并编译」），等几秒即可。
+5. 在每个 mod 的「设置」页调整效果，保存后立即生效。全部调好后建议重启一次电脑。
+
+再次运行 `deploy.bat`（比如更新到新版本）是安全的：已打开的 mod 保持打开，已改过的设置不会被覆盖，只会补上新增设置的默认值。
+
+### 包含的 Mod
+
+| Mod | 作用 |
+|---|---|
+| 任务栏美化 | 任务栏透明/亚克力/液态玻璃，托盘溢出窗口和音量浮窗一起美化 |
+| 开始菜单美化 | 开始菜单与搜索页的透明玻璃效果，可调尺寸 |
+| 通知栏美化 | 通知中心、日历、快捷设置（Win+A）的玻璃效果，适配浅色模式 |
+| 设置美化 | 「设置」应用（Win+I）的玻璃背景，浅色模式可加白底 |
+| 文件管理器美化 | 文件管理器和右键菜单透明，可调色调与文字颜色 |
+| 任务栏音乐与歌词 | 任务栏左下角显示正在播放的歌曲、歌词和播放按钮，可选显示 AI 编程助手状态（见 `tools/ai-status/README.md`） |
+| 桌面双击隐藏图标 | 双击桌面空白处隐藏/显示图标 |
+| 果冻窗口（可选） | 拖动窗口时像果冻一样晃动 |
+| 窗口动画（可选） | 关窗、最小化、还原、启动动画 |
+
+文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先管理员运行 `ExplorerBlurMica\uninstall.cmd` 再启用。
+
+### 卸载与恢复
+
+1. 在 Windhawk「已安装的 Mod」里，把 ZenDesktop 的 mod 关掉即可恢复系统原样；不想保留就点「移除」。
+2. 运行 `restart_explorer.bat`（或重启电脑），让任务栏、开始菜单恢复系统默认。
+3. 如果启用过开机自检：管理员运行 `deploy.ps1 -StartupCheck remove`。
+4. 如果接过 AI 状态：删除 `%LOCALAPPDATA%\ZenDesktop` 文件夹，并把当时粘贴到各 AI 助手配置里的片段删掉。
+5. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程。这些不影响系统，想还原可以在那里手动删掉。
 
 ---
 
 ## 🩺 常见问题 / Troubleshooting
 
 - **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 EBM，先 `uninstall.cmd` 再重启。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
-
-## 💖 Support / 赞助支持
-
-- 📺 **哔哩哔哩**: https://space.bilibili.com/1280632999
-- 🎵 **抖音**: https://v.douyin.com/Isl7QPpKZZ4/
-- ⚡ **爱发电**: https://ifdian.net/a/Lanboo
-
----
 
 ## 📄 License
 This project is licensed under the GPL-3.0 License. See the [LICENSE](LICENSE) file for details.

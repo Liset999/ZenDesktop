@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面双击隐藏图标
 // @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
 // @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
-// @version         4.1.3
+// @version         4.1.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -44,6 +44,8 @@
 
 ## 更新日志
 
+- **4.1.4**：日志里的版本号改为与 mod 版本一致。
+- **4.1.3**：说明开头加入作者信息与捐助链接。
 - **4.1.2**：补充开机隐藏图标的使用说明；核对设置与说明文字。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
 - **4.1.0**：随 ZenDesktop v4.1 发布。
@@ -626,7 +628,7 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
 // ─────────────────────────────────────────────────────────────────────────────
 BOOL Wh_ModInit()
 {
-    Wh_Log(L"[ZenDesktop] === Wh_ModInit v3.4.0 ===");
+    Wh_Log(L"[ZenDesktop] === Wh_ModInit v4.1.4 ===");
     g_msgRefreshTimer = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.RefreshTimer");
     g_msgManualToggle = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.ManualToggle");
     g_msgAutoHide = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.AutoHide");
