@@ -17,6 +17,7 @@ common_files = [
     'Readme.txt',
     'README.md',
     'docs/donate-wechat.png',
+    'docs/screenshots',  # README.md preview images
     'restart_explorer.bat',
     'THIRD_PARTY_NOTICES-taskbar-lyrics.md',
     'tools/ZenDesktop-StartupCheck.ps1',  # optional, installed only with -StartupCheck

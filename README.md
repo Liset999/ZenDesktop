@@ -84,21 +84,23 @@
 
 无人值守安装时可以直接打开指定的 mod：`deploy.bat -Optional "wobbly-windows,windows-animations"`；只会打开列出的 mod，其他 mod 的开关保持原样。署名与许可见 `optional/THIRD_PARTY_NOTICES.md`。
 
-## 🖼️ 效果预览 / Previews (#10)
+## 🖼️ 效果预览 / Previews
 
-> TODO：截图/动图待补，放在 `docs/previews/` 下。
+**Windhawk 里的 ZenDesktop 全家桶**：9 个 mod 装好后的样子。
 
-| Mod | 预览 |
-|---|---|
-| 任务栏美化 | `docs/previews/taskbar.png`（待补） |
-| 通知栏美化 | `docs/previews/notification-center.png`（待补） |
-| 开始菜单美化 | `docs/previews/start-menu.png`（待补） |
-| 桌面双击隐藏图标 | `docs/previews/toggle-icons.gif`（待补） |
-| 设置美化 | `docs/previews/settings.png`（待补） |
-| macOS 神奇效果最小化 | `docs/previews/genie-minimize.gif`（待补） |
-| 文件管理器美化 | `docs/previews/explorer.png`（待补） |
-| Wobbly Windows（可选） | `docs/previews/wobbly.gif`（待补） |
-| Windows Animations（可选） | `docs/previews/close-animation.gif`（待补） |
+![Windhawk 中的 ZenDesktop mod 列表](docs/screenshots/windhawk-mod-list.jpg)
+
+**开始菜单美化 + 任务栏美化 + 任务栏音乐与歌词**：液态玻璃开始菜单，左下角是歌词面板。
+
+![开始菜单、任务栏与歌词面板](docs/screenshots/start-menu-taskbar-lyrics.jpg)
+
+**通知栏美化**：快速设置面板与媒体卡片（右侧），同屏还有开始菜单和歌词面板。
+
+![快速设置、媒体卡片与开始菜单](docs/screenshots/start-menu-quick-settings-media.jpg)
+
+**文件管理器美化**：半透明模糊的资源管理器窗口，底部是任务栏和歌词面板。
+
+![半透明文件管理器与任务栏歌词](docs/screenshots/file-explorer-taskbar-lyrics.jpg)
 
 ## 📥 Installation & Deployment Guide
 
