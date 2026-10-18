@@ -435,7 +435,7 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "fontPreset" "msyh" String $label
         Set-RegValueIfMissing $settingsPath "fontSize" 12 DWord $label
         Set-RegValueIfMissing $settingsPath "bold" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "offsetMs" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "offsetMs" 200 DWord $label
         Set-RegValueIfMissing $settingsPath "hideInFullscreen" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "panelGlass" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "multiMonitor" 0 DWord $label

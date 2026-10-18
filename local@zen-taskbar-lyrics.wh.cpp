@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.3
+// @version         0.4.4
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -135,7 +135,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 多显示器：默认关闭（只主屏）。开启后每个任务栏各显示一个面板，媒体与 AI 状态共用。
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
 - 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色默认「无底色」：完全透明，没有底色、边框和阴影，文字、封面和按钮直接画在任务栏上，看起来就是任务栏的一部分，只有鼠标移上去时有很淡的高亮。
-- 歌词偏移：毫秒，正数提前，范围 -60000–60000。
+- 歌词偏移：毫秒，正数提前，默认 200（抵消播放器报进度和刷新的延迟），范围 -60000–60000。
 - 全屏和游戏时隐藏：默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏（多显示器只藏全屏那块屏）。
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示（默认填了 Antigravity 和 DeepSeek Harness 桌面版，清空即可关闭）。
 
@@ -151,11 +151,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.4**：歌词偏移默认改为 +200 毫秒，抵消播放器报进度和面板刷新的延迟，歌词不再慢半拍。之前保存过设置的不会自动改，可以手动设成 200。换句改为按下一句的开始时间精确定时，不再最多晚 100 毫秒。修复播放器很久没更新进度时，刚打开面板歌词位置不对的问题。
 - **0.4.3**：DeepSeek Harness 成为正式支持的助手：显示名「DeepSeek Harness」，「按进程名显示」默认加上桌面版的 `DeepSeek Harness.exe`。说明里补充它的 MCP（`~/.dsh/cordis.patch.yml`）、`AGENTS.md` 和可选钩子的接法。
 - **0.4.2**：修复设置页显示「当前Mod无设置」的问题（「面板玻璃」说明里的冒号导致设置解析失败）。
 - **0.4.1**：Antigravity 成为正式支持的助手：显示名「Antigravity」，「按进程名显示」默认填入 `Antigravity.exe`，已用钩子或 MCP 汇报的助手不再重复显示「运行中」。说明里补充 Antigravity 的 MCP、钩子和 GEMINI.md 接法、「总是允许」权限提示，以及更快的钩子程序 `zen-status.exe`。
 - **0.4.0**：面板改为嵌在任务栏里的子窗口（在任务栏自己的线程上创建），不再浮在任务栏上面，打开新程序时不再闪烁，跟着任务栏移动和自动隐藏。「无底色」改为完全透明，没有底色、边框和阴影，和任务栏材质一致。「面板玻璃」改为只决定「淡淡一层」「卡片」是半透明还是不透明。
-- **0.3.3**：修复打开新程序时面板闪一下（任务栏把面板压到下面、切歌瞬间误判没在放歌、玻璃模式下先涂黑再画字）；「面板底色」在玻璃开启时改为调玻璃浓淡，三档都能看出区别；「没在放歌时」挪到设置第三项。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
@@ -298,11 +298,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
   $name:zh-CN: 粗体
   $description: Bold first line.
   $description:zh-CN: 第一行用粗体。
-- offsetMs: 0
+- offsetMs: 200
   $name: Lyrics offset (ms)
   $name:zh-CN: 歌词偏移（毫秒）
-  $description: Positive shows lyrics earlier, negative later. Range -60000–60000.
-  $description:zh-CN: 正数让歌词提前显示，负数推后。范围 -60000–60000。
+  $description: Positive shows lyrics earlier, negative later. Default 200 makes up for the delay of the player's progress report and the panel redraw. Range -60000–60000.
+  $description:zh-CN: 正数让歌词提前显示，负数推后。默认 200，用来抵消播放器报进度和面板刷新的延迟。范围 -60000–60000。
 - hideInFullscreen: false
   $name: Hide in fullscreen and games
   $name:zh-CN: 全屏和游戏时隐藏
@@ -423,7 +423,7 @@ struct Settings {
     std::wstring font = L"Microsoft YaHei UI";
     int fontSize = 12;
     bool bold = false;
-    int offsetMs = 0;
+    int offsetMs = 200;  // compensates player progress-report + redraw latency (tested by Lanbo)
     bool hideInFullscreen = false;
     bool panelGlass = true;
     bool multiMonitor = false;
@@ -1494,7 +1494,11 @@ static void MediaThread() {
                         ++g_state.thumbVersion;
                     }
                     if (posMs != lastReportedPos || newTrack || !playing) {
-                        if (ageMs < 0 || ageMs > 60000 || !playing) ageMs = 0;
+                        // LastUpdatedTime is when posMs was true. Players that report rarely can make
+                        // it minutes old on the first poll; trust it as long as it stays inside the
+                        // track (the old 60 s cap fell back to a stale position => lyrics lagged).
+                        long long maxAge = durMs > 0 ? (long long)((double)(durMs - posMs) / rate) + 2000 : 600000;
+                        if (ageMs < 0 || ageMs > maxAge || !playing) ageMs = 0;
                         g_state.positionMs = posMs;
                         g_state.sampledAtTick = now - (ULONGLONG)ageMs;
                         lastReportedPos = posMs;
@@ -1764,6 +1768,7 @@ static constexpr UINT WM_ZEN_SYNC = WM_APP + 2;      // thread message to our UI
 static constexpr UINT WM_ZEN_REFRESH = WM_APP + 3;   // posted to a panel: wParam 1 = force re-render
 static constexpr UINT_PTR TIMER_TICK = 1;
 static constexpr UINT_PTR TIMER_SYNC = 2;
+static constexpr UINT_PTR TIMER_LINE = 3;  // one-shot, fires right when the next lyric line starts
 
 // Same helper as ramensoftware/windhawk-mods taskbar-tray-show-on-hover.wh.cpp.
 using RunFromWindowThreadProc_t = void(WINAPI*)(void* parameter);
@@ -1949,6 +1954,7 @@ struct Content {
     Line line1, line2;
     std::shared_ptr<const std::vector<BYTE>> thumb;
     unsigned thumbVersion = 0;
+    int nextLineInMs = -1;  // wall-clock ms until the next lyric line starts; -1 = none / not playing
 };
 
 static Line AiLine(const std::vector<AiEntry>& ai, const Settings& s, bool forFirstLine, Line* second) {
@@ -2005,6 +2011,15 @@ static Content BuildContent(const Settings& s) {
                 if (g_state.playing) pos += (long long)((double)(GetTickCount64() - g_state.sampledAtTick) * g_state.rate);
                 pos += s.offsetMs;
                 pos = std::clamp<long long>(pos, INT_MIN / 2, INT_MAX / 2);
+                if (g_state.playing) {
+                    const auto& ls = g_state.lyrics->lines;
+                    auto nx = std::upper_bound(ls.begin(), ls.end(), (int)pos,
+                                               [](int v, const LyricLine& x) { return v < x.timeMs; });
+                    if (nx != ls.end()) {
+                        double ms = (double)(nx->timeMs - pos) / g_state.rate;
+                        c.nextLineInMs = (int)std::min(ms + 1.0, 600000.0);
+                    }
+                }
                 if (const LyricLine* l = FindLine(g_state.lyrics->lines, (int)pos)) {
                     haveLyric = true;
                     lyric = l->text.empty() ? std::wstring(L"\x266A") : l->text;
@@ -2451,6 +2466,12 @@ static void RenderPanel(Panel& panel, bool force = false) {
     }
     panel.ui.hideSince = 0;
 
+    // The 100 ms tick alone would show a new line up to ~100 ms late (more when Explorer's
+    // thread is busy). When the next line starts before the tick after next, arm a one-shot
+    // timer for that exact moment; re-arming on each tick keeps it aligned with the clock.
+    if (L.content.nextLineInMs >= 0 && L.content.nextLineInMs <= 220)
+        SetTimer(panel.hwnd, TIMER_LINE, (UINT)std::max(L.content.nextLineInMs, 10), nullptr);
+
     std::wstring sig = MakeSig(L, panel, s);
     if (!force && panel.ui.visible && sig == panel.ui.lastSig) {
         EnsureTopChild(panel);
@@ -2557,7 +2578,8 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     Panel* panel = PanelOf(hwnd);
     switch (msg) {
         case WM_TIMER:
-            if (wp == TIMER_TICK && panel && !g_stop) RenderPanel(*panel);
+            if (wp == TIMER_LINE) KillTimer(hwnd, TIMER_LINE);
+            if ((wp == TIMER_TICK || wp == TIMER_LINE) && panel && !g_stop) RenderPanel(*panel);
             return 0;
         case WM_ZEN_REFRESH:
             if (panel && !g_stop) {
@@ -2640,6 +2662,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         case WM_DESTROY:
             KillTimer(hwnd, TIMER_TICK);
+            KillTimer(hwnd, TIMER_LINE);
             if (panel) {
                 panel->hwnd = nullptr;
                 panel->ui = UiState{};
@@ -2700,6 +2723,7 @@ static void WINAPI DestroyPanelOnTrayThread(void* pv) {
         if (p.hwnd && IsWindow(p.hwnd)) {
             HWND h = p.hwnd;
             KillTimer(h, TIMER_TICK);
+            KillTimer(h, TIMER_LINE);
             DestroyWindow(h);
             Wh_Log(L"[ui] panel %p destroyed (taskbar %p)", h, tray);
         }
@@ -2880,7 +2904,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.4.2 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.4.4 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
