@@ -53,8 +53,10 @@ jobs:
       - name: Commit prebuilt exe back to the branch
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name 'Liset999'
+          git config user.email '218059571+Liset999@users.noreply.github.com'
+          export GIT_AUTHOR_NAME='Liset999' GIT_COMMITTER_NAME='Liset999'
+          export GIT_AUTHOR_EMAIL='218059571+Liset999@users.noreply.github.com' GIT_COMMITTER_EMAIL='218059571+Liset999@users.noreply.github.com'
           git add -f tools/ai-status/zen-status.exe
           if git diff --cached --quiet; then
             echo 'zen-status.exe unchanged, nothing to commit'
