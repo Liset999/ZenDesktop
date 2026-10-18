@@ -41,6 +41,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 文件管理器美化
 
 自定义 Windows 11 文件管理器的外观。默认的「ZenDesktop 半透明」主题让整个窗口半透明模糊，色调颜色和不透明度可调，命令栏、地址栏、标签栏等 WinUI 区域背景透明；并可给桌面与资源管理器的现代右键菜单加上玻璃效果。基于 m417z 的 Windows 11 File Explorer Styler v1.7。
@@ -289,16 +294,6 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
 ```
 
 部分主题使用样式常量方便自定义，具体有哪些常量请看对应主题的页面。
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 

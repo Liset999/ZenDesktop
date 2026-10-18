@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面双击隐藏图标
 // @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
 // @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
-// @version         4.1.2
+// @version         4.1.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -15,6 +15,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 桌面双击隐藏图标
 
 双击桌面空白处即可显示或隐藏桌面图标，也可以在系统闲置一段时间后自动隐藏。直接运行在 `explorer.exe` 中，不需要额外的后台程序。如果想要开机就不显示图标，请先在桌面空白处右键 →「查看」，取消勾选「显示桌面图标」。
@@ -49,16 +54,6 @@
 
 - ZenDesktop 原创 mod。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 

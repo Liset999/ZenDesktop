@@ -15,6 +15,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 任务栏音乐与歌词
 
 ## 简介
@@ -117,17 +122,6 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
 - 歌词数据来自 LRCLIB、网易云音乐、QQ 音乐，版权归原权利人所有。
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以用下面两种方式支持作者 Lanbo：
-
-- 爱发电：https://ifdian.net/a/Lanboo
-- 微信扫码赞赏：
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 

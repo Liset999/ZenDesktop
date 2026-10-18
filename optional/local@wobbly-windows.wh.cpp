@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 果冻窗口
 // @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
 // @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
-// @version         0.115.1
+// @version         0.115.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
@@ -16,6 +16,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 果冻窗口
 
 拖动、缩放或贴靠窗口时，窗口会像果冻一样弹性晃动，效果参考 Compiz 和 KDE Plasma。本 mod 注入 `dwm.exe`。
@@ -52,16 +57,6 @@
 - 许可证：[GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html)。Hook 代码原样保留，源码随包公开。
 - ZenDesktop 修改：仅中文本地化与文字整理。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 

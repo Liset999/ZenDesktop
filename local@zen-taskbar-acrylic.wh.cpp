@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.2
+// @version         4.2.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -23,6 +23,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 任务栏美化
 
 为 Windows 11 任务栏提供亚克力、模糊和透明背景，颜色、模糊、不透明度和亮度可调。基于 m417z 的 Windows 11 Taskbar Styler v1.10。
@@ -545,16 +550,6 @@ code from the **TranslucentTB** project.
 The `WindhawkBlur` brush object implementation is based on
 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)
 from the **TranslucentTB** project.
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
