@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.5
+// @version         1.6.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,11 +84,11 @@
 
 ## 更新日志
 
+- **1.6.6**：修复开机后顶部标签栏／地址栏／命令栏不透明的问题：XAML 诊断只会挂到第一个连接，开机时常常先挂到桌面侧，文件管理器顶部那片晚出现的岛就漏了。现在会挂上所有已有连接，并在窗口创建后延迟再扫几次，接上晚出现的岛。
 - **1.6.5**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
 - **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
 - **1.6.2**：尝试用 WindhawkBlur 画刷做右键菜单玻璃（实际只是在系统亚克力上叠了一层色调和描边，已在 1.6.3 撤回）。
-- **1.6.1**：右键菜单玻璃改为替换菜单的系统背景材质。「模糊」改名「磨砂程度」，设置键和默认值不变。
 
 ## 致谢与许可
 
@@ -2179,10 +2179,23 @@ HRESULT VisualTreeWatcher::OnElementStateChanged(InstanceHandle, VisualElementSt
 
 #include <ocidl.h>
 
+#include <mutex>
+#include <string>
+#include <unordered_set>
+
 // Read by the UI threads while the thread which injects or uninitializes the TAP
 // replaces it.
-[[clang::no_destroy]] winrt::com_ptr<VisualTreeWatcher> g_visualTreeWatcher;
+// ZenDesktop: File Explorer hosts multiple WinUI islands (desktop host,
+// tabs/address/command bar, …), each with its own WinUIVisualDiagConnection.
+// Upstream kept a single watcher and InjectWindhawkTAP stopped at the first
+// connection, so a reboot often attached to an early desktop island and left
+// the toolbar opaque until the mod was toggled. Keep one watcher per
+// connection and attach to every connection that exists.
+[[clang::no_destroy]] std::vector<winrt::com_ptr<VisualTreeWatcher>>
+    g_visualTreeWatchers;
 SRWLOCK g_visualTreeWatcherLock = SRWLOCK_INIT;
+[[clang::no_destroy]] std::mutex g_zenAttachedConnectionsMutex;
+[[clang::no_destroy]] std::unordered_set<std::wstring> g_zenAttachedConnections;
 
 // {C85D8CC7-5463-40E8-A432-F5916B6427E5}
 static constexpr CLSID CLSID_WindhawkTAP = { 0xc85d8cc7, 0x5463, 0x40e8, { 0xa4, 0x32, 0xf5, 0x91, 0x6b, 0x64, 0x27, 0xe5 } };
@@ -2195,36 +2208,56 @@ public:
 
 private:
     winrt::com_ptr<IUnknown> site;
+    winrt::com_ptr<VisualTreeWatcher> watcher;
 };
 
 #pragma endregion  // tap_hpp
 
 #pragma region tap_cpp
 
-winrt::com_ptr<VisualTreeWatcher> GetVisualTreeWatcher()
+std::vector<winrt::com_ptr<VisualTreeWatcher>> GetVisualTreeWatchers()
 {
     AcquireSRWLockShared(&g_visualTreeWatcherLock);
-    auto watcher = g_visualTreeWatcher;
+    auto watchers = g_visualTreeWatchers;
     ReleaseSRWLockShared(&g_visualTreeWatcherLock);
-    return watcher;
+    return watchers;
 }
 
-// Hands the previous watcher back to be unadvised and released outside the
-// lock: both can wait on the UI threads, which take it.
-winrt::com_ptr<VisualTreeWatcher> ExchangeVisualTreeWatcher(winrt::com_ptr<VisualTreeWatcher> watcher)
+void AddVisualTreeWatcher(winrt::com_ptr<VisualTreeWatcher> watcher)
 {
     AcquireSRWLockExclusive(&g_visualTreeWatcherLock);
-    std::swap(g_visualTreeWatcher, watcher);
+    g_visualTreeWatchers.push_back(std::move(watcher));
     ReleaseSRWLockExclusive(&g_visualTreeWatcherLock);
-    return watcher;
+}
+
+void RemoveVisualTreeWatcher(VisualTreeWatcher* watcher)
+{
+    AcquireSRWLockExclusive(&g_visualTreeWatcherLock);
+    g_visualTreeWatchers.erase(
+        std::remove_if(g_visualTreeWatchers.begin(), g_visualTreeWatchers.end(),
+                       [watcher](auto const& w) { return w.get() == watcher; }),
+        g_visualTreeWatchers.end());
+    ReleaseSRWLockExclusive(&g_visualTreeWatcherLock);
+}
+
+std::vector<winrt::com_ptr<VisualTreeWatcher>> TakeAllVisualTreeWatchers()
+{
+    AcquireSRWLockExclusive(&g_visualTreeWatcherLock);
+    std::vector<winrt::com_ptr<VisualTreeWatcher>> watchers;
+    watchers.swap(g_visualTreeWatchers);
+    ReleaseSRWLockExclusive(&g_visualTreeWatcherLock);
+    return watchers;
 }
 
 HRESULT WindhawkTAP::SetSite(IUnknown *pUnkSite) try
 {
-    // Only ever 1 VTW at once.
-    if (auto previous = ExchangeVisualTreeWatcher(nullptr))
+    // ZenDesktop: one TAP instance per WinUI diagnostics connection. Keep each
+    // watcher instead of replacing the previous one.
+    if (watcher)
     {
-        previous->UnadviseVisualTreeChange();
+        RemoveVisualTreeWatcher(watcher.get());
+        watcher->UnadviseVisualTreeChange();
+        watcher = nullptr;
     }
 
     site.copy_from(pUnkSite);
@@ -2234,7 +2267,8 @@ HRESULT WindhawkTAP::SetSite(IUnknown *pUnkSite) try
         // Decrease refcount increased by InitializeXamlDiagnosticsEx.
         FreeLibrary(GetCurrentModuleHandle());
 
-        ExchangeVisualTreeWatcher(winrt::make_self<VisualTreeWatcher>(site));
+        watcher = winrt::make_self<VisualTreeWatcher>(site);
+        AddVisualTreeWatcher(watcher);
     }
 
     return S_OK;
@@ -2368,24 +2402,66 @@ HRESULT InjectWindhawkTAP() noexcept
     // I didn't find a better way than trying many connections until one works.
     // Reference:
     // https://github.com/microsoft/microsoft-ui-xaml/blob/d74a0332cf0d5e58f12eddce1070fa7a79b4c2db/src/dxaml/xcp/dxaml/lib/DXamlCore.cpp#L2782
+    // ZenDesktop: attach to every connection that exists, not just the first.
+    // File Explorer creates separate islands for the desktop host and for the
+    // toolbar; stopping at the first left the toolbar unstyled after reboot.
     g_inInjectWindhawkTAP = true;
 
-    HRESULT hr;
+    // Connection numbers grow as islands are created and destroyed, so there
+    // can be gaps. Until one connection is found the whole range is scanned,
+    // like upstream; after that, stop once 256 numbers in a row are free.
+    HRESULT lastHr = HRESULT_FROM_WIN32(ERROR_NOT_FOUND);
+    int attached = 0;
+    bool foundAny = false;
+    int consecutiveNotFound = 0;
     for (int i = 0; i < 10000; i++)
     {
+        if (foundAny && consecutiveNotFound > 256)
+        {
+            break;
+        }
+
         WCHAR connectionName[256];
         wsprintf(connectionName, L"WinUIVisualDiagConnection%d", i + 1);
 
-        hr = ixde(connectionName, GetCurrentProcessId(), L"", location, CLSID_WindhawkTAP, nullptr);
-        if (hr != HRESULT_FROM_WIN32(ERROR_NOT_FOUND))
         {
-            break;
+            std::lock_guard<std::mutex> guard(g_zenAttachedConnectionsMutex);
+            if (g_zenAttachedConnections.contains(connectionName))
+            {
+                foundAny = true;
+                consecutiveNotFound = 0;
+                continue;
+            }
+        }
+
+        HRESULT hr = ixde(connectionName, GetCurrentProcessId(), L"", location,
+                          CLSID_WindhawkTAP, nullptr);
+        if (hr == HRESULT_FROM_WIN32(ERROR_NOT_FOUND))
+        {
+            consecutiveNotFound++;
+            continue;
+        }
+
+        foundAny = true;
+        consecutiveNotFound = 0;
+        lastHr = hr;
+        if (SUCCEEDED(hr))
+        {
+            std::lock_guard<std::mutex> guard(g_zenAttachedConnectionsMutex);
+            g_zenAttachedConnections.insert(connectionName);
+            attached++;
+            Wh_Log(L"Attached TAP to %s", connectionName);
+        }
+        else
+        {
+            Wh_Log(L"InitializeXamlDiagnosticsEx(%s) failed: %08X",
+                   connectionName, hr);
         }
     }
 
     g_inInjectWindhawkTAP = false;
-
-    return hr;
+    Wh_Log(L"InjectWindhawkTAP: %d new connection(s)", attached);
+    return attached > 0 ? S_OK : lastHr;
 }
 
 #pragma endregion  // api_cpp
@@ -9577,8 +9653,8 @@ void FlushDiagnosticsReleases() {
     auto pending = std::move(g_pendingDiagnosticsRelease);
     g_pendingDiagnosticsRelease.clear();
 
-    auto visualTreeWatcher = GetVisualTreeWatcher();
-    if (!visualTreeWatcher) {
+    auto visualTreeWatchers = GetVisualTreeWatchers();
+    if (visualTreeWatchers.empty()) {
         return;
     }
 
@@ -9592,8 +9668,13 @@ void FlushDiagnosticsReleases() {
             continue;
         }
 
-        if (visualTreeWatcher->ReleaseDiagnosticsReference(handle)) {
-            ForgetElementId(handle);
+        // ZenDesktop: the handle belongs to one of several diagnostics
+        // connections; try each watcher until UnregisterInstance succeeds.
+        for (auto const& visualTreeWatcher : visualTreeWatchers) {
+            if (visualTreeWatcher->ReleaseDiagnosticsReference(handle)) {
+                ForgetElementId(handle);
+                break;
+            }
         }
     }
 
@@ -10842,8 +10923,14 @@ void UninitializeForCurrentThread() {
 }
 
 void UninitializeSettingsAndTap() {
-    if (auto watcher = ExchangeVisualTreeWatcher(nullptr)) {
+    auto watchers = TakeAllVisualTreeWatchers();
+    for (auto const& watcher : watchers) {
         watcher->UnadviseVisualTreeChange();
+    }
+
+    {
+        std::lock_guard<std::mutex> guard(g_zenAttachedConnectionsMutex);
+        g_zenAttachedConnections.clear();
     }
 
     g_initialized = false;
@@ -10860,13 +10947,19 @@ void InitializeForCurrentThread() {
 }
 
 void InitializeSettingsAndTap() {
-    if (g_initialized.exchange(true)) {
-        return;
-    }
+    // ZenDesktop: always try to attach — new File Explorer islands appear
+    // after the first inject, and already-attached connections are skipped.
+    g_initialized.store(true);
 
     HRESULT hr = InjectWindhawkTAP();
     if (FAILED(hr)) {
         Wh_Log(L"Error %08X", hr);
+        AcquireSRWLockShared(&g_visualTreeWatcherLock);
+        bool any = !g_visualTreeWatchers.empty();
+        ReleaseSRWLockShared(&g_visualTreeWatcherLock);
+        if (!any) {
+            g_initialized = false;
+        }
     }
 }
 
@@ -12359,6 +12452,9 @@ void TriggerWindowCompositionUpdate(HWND hWnd) {
                  RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
 }
 
+void ZenScheduleExplorerStyleRetry();
+void ZenStopExplorerStyleRetry();
+
 void OnWindowCreated(HWND hWnd, PCSTR funcName) {
     TargetWindowType windowType = GetTargetWindowType(hWnd);
     if (windowType != TargetWindowType::None) {
@@ -12371,6 +12467,12 @@ void OnWindowCreated(HWND hWnd, PCSTR funcName) {
 
         InitializeForCurrentThread();
         InitializeSettingsAndTap();
+
+        // ZenDesktop: toolbar islands are often created shortly after the
+        // CabinetWClass window; keep attaching and periodically reinject.
+        if (windowType == TargetWindowType::FileExplorer) {
+            ZenScheduleExplorerStyleRetry();
+        }
     }
 }
 
@@ -13076,6 +13178,139 @@ void LoadThemeSettings() {
         theme ? theme->explorerFrameContainerHeight : 0;
 }
 
+// ZenDesktop: after reboot the toolbar islands often appear a second or two
+// after the first TAP inject. Keep trying to attach to new connections, and
+// once or twice do a full re-advise so the now-complete tree is dumped again —
+// the same effect as toggling the mod off and on.
+PTP_TIMER g_zenExplorerStyleRetryTimer = nullptr;
+std::atomic<int> g_zenExplorerStyleRetryAttempt{0};
+std::mutex g_zenExplorerStyleRetryMutex;
+// Full reinjects only during the first cycle (boot / first window), so that
+// opening more windows later doesn't restyle the ones already open.
+std::atomic<bool> g_zenExplorerStyleRetryFirstCycleDone{false};
+
+void ZenStopExplorerStyleRetry() {
+    std::lock_guard<std::mutex> guard(g_zenExplorerStyleRetryMutex);
+    if (g_zenExplorerStyleRetryTimer) {
+        SetThreadpoolTimer(g_zenExplorerStyleRetryTimer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(g_zenExplorerStyleRetryTimer, TRUE);
+        CloseThreadpoolTimer(g_zenExplorerStyleRetryTimer);
+        g_zenExplorerStyleRetryTimer = nullptr;
+    }
+    g_zenExplorerStyleRetryAttempt.store(0);
+    g_zenExplorerStyleRetryFirstCycleDone = false;
+}
+
+void ZenRunExplorerStyleRetryFromWindowThread(PVOID) {
+    Wh_Log(L"[boot-retry] re-attaching XAML diagnostics on thread %u",
+           GetCurrentThreadId());
+    InitializeForCurrentThread();
+    InitializeSettingsAndTap();
+}
+
+void ZenExplorerStyleRetryTick() {
+    int attempt = g_zenExplorerStyleRetryAttempt.fetch_add(1) + 1;
+    Wh_Log(L"[boot-retry] attempt %d", attempt);
+
+    auto hTargetWnds = GetTargetWnds();
+    if (hTargetWnds.empty()) {
+        Wh_Log(L"[boot-retry] no target windows yet");
+    } else {
+        // Every other attempt (2nd, 4th): full reinject so AdviseVisualTreeChange
+        // re-dumps trees that were incomplete on first attach. Odd attempts only
+        // pick up brand-new connections.
+        if (attempt % 2 == 0 && !g_zenExplorerStyleRetryFirstCycleDone) {
+            Wh_Log(L"[boot-retry] full reinject");
+            UninitializeSettingsAndTap();
+            for (auto hTargetWnd : hTargetWnds) {
+                RunFromWindowThread(
+                    hTargetWnd,
+                    [](PVOID param) {
+                        HWND hTargetWnd = (HWND)param;
+                        UninitializeForCurrentThread();
+                        InitializeForCurrentThread();
+                        if (GetTargetWindowType(hTargetWnd) ==
+                            TargetWindowType::FileExplorer) {
+                            ApplyBackgroundTranslucentEffect(hTargetWnd);
+                            TriggerWindowCompositionUpdate(hTargetWnd);
+                        }
+                    },
+                    (PVOID)hTargetWnd);
+            }
+        }
+
+        for (auto hTargetWnd : hTargetWnds) {
+            RunFromWindowThread(hTargetWnd,
+                                ZenRunExplorerStyleRetryFromWindowThread,
+                                nullptr);
+        }
+    }
+
+    // Schedule next delay: 1.5s, 3s, 6s, then stop (4 attempts total).
+    // Do not call ZenStopExplorerStyleRetry from this timer callback — waiting
+    // for the callback would deadlock.
+    constexpr int kMaxAttempts = 4;
+    if (attempt >= kMaxAttempts) {
+        Wh_Log(L"[boot-retry] done after %d attempts", attempt);
+        if (!hTargetWnds.empty()) {
+            g_zenExplorerStyleRetryFirstCycleDone = true;
+        }
+        return;
+    }
+
+    std::lock_guard<std::mutex> guard(g_zenExplorerStyleRetryMutex);
+    if (!g_zenExplorerStyleRetryTimer) {
+        return;
+    }
+    ULONGLONG delayMs = (attempt == 1) ? 1500ULL
+                        : (attempt == 2) ? 3000ULL
+                                         : 6000ULL;
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += delayMs * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_zenExplorerStyleRetryTimer, &ft, 0, 0);
+}
+
+void ZenScheduleExplorerStyleRetry() {
+    std::lock_guard<std::mutex> guard(g_zenExplorerStyleRetryMutex);
+    if (g_zenExplorerStyleRetryTimer) {
+        // Already scheduled; bump so a fresh File Explorer window still gets
+        // at least one more full cycle if we already finished.
+        if (g_zenExplorerStyleRetryAttempt.load() >= 4) {
+            g_zenExplorerStyleRetryAttempt.store(0);
+        } else {
+            return;
+        }
+    } else {
+        g_zenExplorerStyleRetryAttempt.store(0);
+        g_zenExplorerStyleRetryTimer = CreateThreadpoolTimer(
+            [](PTP_CALLBACK_INSTANCE, PVOID, PTP_TIMER) {
+                ZenExplorerStyleRetryTick();
+            },
+            nullptr, nullptr);
+        if (!g_zenExplorerStyleRetryTimer) {
+            Wh_Log(L"[boot-retry] CreateThreadpoolTimer failed");
+            return;
+        }
+    }
+
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += 1500ULL * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_zenExplorerStyleRetryTimer, &ft, 0, 0);
+    Wh_Log(L"[boot-retry] scheduled");
+}
+
 BOOL Wh_ModInit() {
     Wh_Log(L">");
 
@@ -13198,11 +13433,18 @@ void Wh_ModAfterInit() {
     if (hTargetWnds.size() > 0) {
         Wh_Log(L"Initializing - Found target windows");
         InitializeSettingsAndTap();
+        ZenScheduleExplorerStyleRetry();
+    } else {
+        // Explorer may not have created CabinetWClass yet at login; still
+        // retry so we attach once the first window appears.
+        ZenScheduleExplorerStyleRetry();
     }
 }
 
 void Wh_ModUninit() {
     Wh_Log(L">");
+
+    ZenStopExplorerStyleRetry();
 
     StopStatsTimer();
 
