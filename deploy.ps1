@@ -386,6 +386,11 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "lightModeBase" 45 DWord $label
     }
 
+    if ($id -eq "local@zen-notificationcenter-acrylic") {
+        $label = "NotificationCenter Acrylic"
+        Set-RegValueIfMissing $settingsPath "lightModeContrast" "standard" String $label
+    }
+
 
     if ($id -eq "local@zen-taskbar-lyrics") {
         $label = "Taskbar Lyrics"
