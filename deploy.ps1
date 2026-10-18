@@ -348,7 +348,7 @@ foreach ($file in $files) {
 
     if ($id -eq "local@zen-taskbar-acrylic") {
         $label = "Taskbar"
-        Set-RegValueIfMissing $settingsPath "theme" "TranslucentTaskbar" String $label
+        Set-RegValueIfMissing $settingsPath "theme" "AppleLiquidGlass" String $label
         Set-RegValueIfMissing $settingsPath "maximizedTaskbarLayer" 0 DWord $label
     }
 
