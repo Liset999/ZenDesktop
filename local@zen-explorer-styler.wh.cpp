@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.7
+// @version         1.6.8
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,11 +84,11 @@
 
 ## 更新日志
 
-- **1.6.7**：修复深色模式下窗口跨到另一块显示器时材质不统一：文件列表、导航栏、状态栏的深色底（约 #191919–#222222）之前没有被替换成透明，在部分显示器上会叠出一层发灰、发亮的矩形，滚动条那几条却是干净的。现在深色模式的底色和浅色模式的白底一样会被换成透明，各块显示器上看起来一致。
+- **1.6.8**：加固内容底色清理：深色模式覆盖到系统三级底 #282828，浅色模式一并清掉靠近白的灰底（如 #F3F3F3）；补上 `Rectangle` 绘制路径。单显示器上发灰发亮的色块与跨屏材质不统一是同一类问题。
+- **1.6.7**：修复深色模式下内容底色未清成透明，跨显示器时材质不统一；单显示器上也会叠出灰块。
 - **1.6.6**：修复开机后顶部标签栏／地址栏／命令栏不透明的问题：XAML 诊断只会挂到第一个连接，开机时常常先挂到桌面侧，文件管理器顶部那片晚出现的岛就漏了。现在会挂上所有已有连接，并在窗口创建后延迟再扫几次，接上晚出现的岛。
 - **1.6.5**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
-- **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
 
 ## 致谢与许可
 
@@ -11117,29 +11117,41 @@ bool IsAppsDarkTheme();
 // so that the paint hooks don't read the registry.
 std::atomic<bool> g_zenDarkContent{false};
 
-// ZenDesktop: in dark mode the content background isn't COLOR_WINDOW (which
-// stays white) but near-black greys, about #191919 for the items view and
-// navigation pane and up to #222222 for the status bar and the empty pane
-// area. GDI leaves them with zero alpha, which isn't valid premultiplied
-// alpha: DWM may drop them on one monitor and add them on top of the blur on
-// another, so the glass looks uneven across monitors. They're replaced with
-// transparent black like the light mode white.
-bool IsDarkContentBackgroundColor(COLORREF color) {
-    if (!g_zenDarkContent.load(std::memory_order_relaxed)) {
-        return false;
-    }
-
+// ZenDesktop: the content background isn't always COLOR_WINDOW. In dark mode
+// COLOR_WINDOW stays white (system colors don't follow the app theme), and
+// Explorer paints near-black greys instead: about #191919 / #1C1C1C for the
+// items view and navigation pane, #202020 for SolidBackgroundFillColorBase,
+// and up to #282828 for SolidBackgroundFillColorTertiary (status bar / empty
+// areas). In light mode it may also paint near-whites such as #F3F3F3 or
+// #F0F0F0 (COLOR_BTNFACE) instead of pure white. GDI leaves those fills with
+// zero alpha, which isn't valid premultiplied alpha: DWM may drop them on one
+// display path and add them on top of the blur on another, so the glass looks
+// milky or uneven — on a single monitor as well as across monitors. They're
+// replaced with transparent black. Hover / selection greys start around
+// #2A2A2A, so the dark band stops at #282828.
+bool IsNeutralGreyInRange(COLORREF color, int minChannel, int maxChannel) {
     int r = GetRValue(color);
     int g = GetGValue(color);
     int b = GetBValue(color);
     int hi = std::max({r, g, b});
     int lo = std::min({r, g, b});
-    return hi - lo <= 2 && lo >= 0x10 && hi <= 0x24;
+    return hi - lo <= 2 && lo >= minChannel && hi <= maxChannel;
+}
+
+bool IsDarkContentBackgroundColor(COLORREF color) {
+    return g_zenDarkContent.load(std::memory_order_relaxed) &&
+           IsNeutralGreyInRange(color, 0x00, 0x28);
+}
+
+bool IsLightContentBackgroundColor(COLORREF color) {
+    return !g_zenDarkContent.load(std::memory_order_relaxed) &&
+           IsNeutralGreyInRange(color, 0xF0, 0xFF);
 }
 
 bool IsContentBackgroundColor(COLORREF color) {
     return color == GetSysColor(COLOR_WINDOW) ||
-           IsDarkContentBackgroundColor(color);
+           IsDarkContentBackgroundColor(color) ||
+           IsLightContentBackgroundColor(color);
 }
 
 bool IsFileExplorerWindowPart(HWND hWnd) {
@@ -11279,6 +11291,25 @@ BOOL WINAPI PatBlt_Hook(HDC hdc, int x, int y, int w, int h, DWORD rop) {
     }
 
     return PatBlt_Original(hdc, x, y, w, h, rop);
+}
+
+// ZenDesktop: some shell / comctl32 paths fill with Rectangle instead of
+// FillRect / PatBlt. Same brush check; the stock black brush has no outline.
+using Rectangle_t = decltype(&Rectangle);
+Rectangle_t Rectangle_Original;
+BOOL WINAPI Rectangle_Hook(HDC hdc, int left, int top, int right, int bottom) {
+    if (IsEntireWindowEffectDC(hdc) &&
+        IsWindowBackgroundBrush(hdc,
+                                (HBRUSH)GetCurrentObject(hdc, OBJ_BRUSH))) {
+        HGDIOBJ prevBrush = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+        HGDIOBJ prevPen = SelectObject(hdc, GetStockObject(NULL_PEN));
+        BOOL result = Rectangle_Original(hdc, left, top, right, bottom);
+        SelectObject(hdc, prevPen);
+        SelectObject(hdc, prevBrush);
+        return result;
+    }
+
+    return Rectangle_Original(hdc, left, top, right, bottom);
 }
 
 bool FillRectWithAlpha(HDC hdc, const RECT* rect, COLORREF color, BYTE alpha) {
@@ -13385,6 +13416,9 @@ BOOL Wh_ModInit() {
     WindhawkUtils::SetFunctionHook(FillRect, FillRect_Hook, &FillRect_Original);
 
     WindhawkUtils::SetFunctionHook(PatBlt, PatBlt_Hook, &PatBlt_Original);
+
+    WindhawkUtils::SetFunctionHook(Rectangle, Rectangle_Hook,
+                                   &Rectangle_Original);
 
     WindhawkUtils::SetFunctionHook(Polyline, Polyline_Hook, &Polyline_Original);
 
