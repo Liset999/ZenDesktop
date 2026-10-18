@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.3.2
+// @version         0.3.3
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -95,13 +95,13 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 ## 设置说明
 - 位置：小组件位置（推荐）、固定在最左边、固定在托盘左边。
 - 水平偏移：按 100% 缩放的像素，高 DPI 自动放大，范围 -500–2000。
+- 没在放歌时：默认显示「未在播放」，可选隐藏面板。有 AI 助手在工作时仍会显示。
 - 面板宽度：紧凑 260、标准 340、宽 440、超宽 560，或自定义 120–2000。
-- 面板玻璃：默认开启。用系统亚克力模糊做面板背景；关闭后回到原来的透明／底色绘制。
+- 面板玻璃：默认开启。用系统亚克力模糊做面板背景，浓淡由「面板底色」决定；关闭后回到原来的透明／底色绘制。
 - 多显示器：默认关闭（只主屏）。开启后每个任务栏各显示一个面板，媒体与 AI 状态共用。
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
-- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。玻璃开启时「面板底色」不生效。
+- 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色：玻璃开启时是玻璃的浓淡（无底色最通透、淡淡一层、卡片最浓），玻璃关闭时是画出来的底色。
 - 歌词偏移：毫秒，正数提前，范围 -60000–60000。
-- 没在放歌时：默认显示「未在播放」，可选隐藏面板。有 AI 助手在工作时仍会显示。
 - 全屏和游戏时隐藏：默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏（多显示器只藏全屏那块屏）。
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示。
 
@@ -109,18 +109,18 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 支持 Windows 11 任务栏（底部）。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
-- 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色换色调；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时仍可用「面板底色」的无底色／淡淡一层／卡片。
+- 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色和「面板底色」换色调和浓淡；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时「面板底色」改为直接画出来的底色。
 - 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的；默认是显示「未在播放」。
 - 点「打开播放器」只能切换到有可见窗口的播放器；缩到托盘里的播放器切不出来。
 - 网易云、QQ 音乐的歌词接口是非官方的，随时可能失效。
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.3.3**：修复打开新程序时面板闪一下（任务栏把面板压到下面、切歌瞬间误判没在放歌、玻璃模式下先涂黑再画字）；「面板底色」在玻璃开启时改为调玻璃浓淡，三档都能看出区别；「没在放歌时」挪到设置第三项。
 - **0.3.2**：默认改为没在放歌时显示「未在播放」（不再默认隐藏）；「全屏和游戏时隐藏」改为默认关闭。
 - **0.3.1**：修复「开了没反应」：桌面或最大化窗口（Windhawk、网易云、微信等）在前台时被误判成全屏而隐藏；面板改为不挂靠任务栏的置顶窗口（参考 Taskbar Music Lounge），在每个环节写 Windhawk 日志，方便排查。
 - **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
 - **0.2.0**：改成小组件位置的音乐面板，加入专辑封面、播放控制、深浅色跟随、文字颜色预设、AI 助手状态。
-- **0.1.0**：任务栏歌词（未发布）。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
@@ -144,6 +144,14 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
   $name:zh-CN: 水平偏移（像素）
   $description: Distance from the taskbar edge or tray, in 100% scale pixels. Range -500–2000. Default 12.
   $description:zh-CN: 离任务栏左边或托盘的距离，按 100% 缩放的像素算，高 DPI 自动放大。范围 -500–2000。默认 12。
+- whenIdle: show
+  $name: When nothing is playing
+  $name:zh-CN: 没在放歌时
+  $description: Default shows "Not playing". AI status still shows when an agent is active.
+  $description:zh-CN: 默认为显示「未在播放」。有 AI 助手在工作时仍会显示。
+  $options:
+  - hide: 隐藏面板
+  - show: 显示「未在播放」
 - sizePreset: standard
   $name: Panel width
   $name:zh-CN: 面板宽度
@@ -188,14 +196,6 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
   - translation: 只显示翻译
   - info: 歌名和歌手
   - none: 不显示，只要一行
-- whenIdle: show
-  $name: When nothing is playing
-  $name:zh-CN: 没在放歌时
-  $description: Default shows "Not playing". AI status still shows when an agent is active.
-  $description:zh-CN: 默认为显示「未在播放」。有 AI 助手在工作时仍会显示。
-  $options:
-  - hide: 隐藏面板
-  - show: 显示「未在播放」
 - clickAction: open
   $name: Click on art or text
   $name:zh-CN: 点封面或文字
@@ -225,12 +225,12 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - panelBackground: none
   $name: Panel background
   $name:zh-CN: 面板底色
-  $description: Follows light/dark mode. No background looks most natural with the ZenDesktop glass taskbar.
-  $description:zh-CN: 底色跟随系统深浅色。和 ZenDesktop 玻璃任务栏一起用时，「无底色」最自然。
+  $description: Follows light/dark mode. With panel glass on it sets how strong the glass tint is; with glass off it is a painted background.
+  $description:zh-CN: 底色跟随系统深浅色。开着「面板玻璃」时决定玻璃的浓淡：无底色最通透，卡片最浓；关掉玻璃时画在面板下面。
   $options:
-  - none: 无底色
+  - none: 无底色（最通透）
   - subtle: 淡淡一层
-  - card: 卡片
+  - card: 卡片（最浓）
 - fontPreset: msyh
   $name: Font
   $name:zh-CN: 字体
@@ -276,8 +276,8 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - panelGlass: true
   $name: Panel glass
   $name:zh-CN: 面板玻璃
-  $description: Acrylic blur behind the panel via AccentBlurBehind. Default on. When off, the panel background setting is used instead.
-  $description:zh-CN: 面板背后使用亚克力模糊（AccentBlurBehind）。默认开启。关闭后改用「面板底色」。
+  $description: Acrylic blur behind the panel via AccentBlurBehind. Default on. The panel background setting picks the tint strength.
+  $description:zh-CN: 面板背后使用亚克力模糊（AccentBlurBehind）。默认开启。玻璃的浓淡由「面板底色」决定。
 - multiMonitor: false
   $name: Multi-monitor
   $name:zh-CN: 多显示器
@@ -1353,6 +1353,19 @@ static void MediaThread() {
     ULONGLONG trackSince = 0, lastThumbTry = 0;
     int thumbTries = 0;
     bool thumbLoaded = false, thumbRefreshed = false;
+    // When a new app starts (browser, game launcher, video player) Windows may briefly make
+    // its empty session "current", or the player republishes its session with an empty
+    // title. 0.3.2 cleared hasSession on the first such poll, so the panel flashed to
+    // "Not playing" (or hid) and back. Only report "no media" once it lasts 1.5 s.
+    ULONGLONG noMediaSince = 0;
+    auto markNoMedia = [&]() {
+        ULONGLONG now = GetTickCount64();
+        if (!noMediaSince) noMediaSince = now;
+        if (now - noMediaSince >= 1500) {
+            std::lock_guard<std::mutex> lk(g_stateLock);
+            g_state.hasSession = false;
+        }
+    };
     while (!g_stop) {
         try {
             if (!mgr) {
@@ -1374,8 +1387,7 @@ static void MediaThread() {
                     lastLoggedApp.clear();
                     loggedNoSession = true;
                 }
-                std::lock_guard<std::mutex> lk(g_stateLock);
-                g_state.hasSession = false;
+                markNoMedia();
             } else {
                 auto props = session.TryGetMediaPropertiesAsync().get();
                 auto tl = session.GetTimelineProperties();
@@ -1388,6 +1400,14 @@ static void MediaThread() {
                     lastLoggedApp = app;
                     loggedNoSession = false;
                 }
+                if (title.empty()) {
+                    // Transient (session switching / player republishing); keep the last track.
+                    markNoMedia();
+                    HANDLE w2[2] = {g_stopEvent, g_cmdEvent};
+                    if (WaitForMultipleObjects(2, w2, FALSE, 500) == WAIT_OBJECT_0) break;
+                    continue;
+                }
+                noMediaSince = 0;
                 long long posMs = tl.Position().count() / 10000;
                 long long durMs = (tl.EndTime() - tl.StartTime()).count() / 10000;
                 bool playing = pb.PlaybackStatus() == GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing;
@@ -1415,7 +1435,7 @@ static void MediaThread() {
                 }
                 {
                     std::lock_guard<std::mutex> lk(g_stateLock);
-                    g_state.hasSession = !title.empty();
+                    g_state.hasSession = true;
                     g_state.playing = playing;
                     g_state.rate = rate;
                     g_state.title = title;
@@ -1686,6 +1706,7 @@ static constexpr UINT WM_ZEN_SETTINGS = WM_APP + 1;
 static constexpr UINT WM_ZEN_SYNC = WM_APP + 2;
 static constexpr UINT_PTR TIMER_TICK = 1;
 static constexpr UINT_PTR TIMER_SYNC = 2;
+static constexpr UINT_PTR TIMER_ZFOLLOW = 3;  // short follow-up z-order checks after a foreground change
 
 static const wchar_t* const kGameProcs[] = {
     L"League of Legends.exe", L"VALORANT-Win64-Shipping.exe", L"YuanShen.exe", L"GenshinImpact.exe",
@@ -1732,7 +1753,9 @@ static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting, const wchar_
     if (haveSt && st == QUNS_PRESENTATION_MODE) { *why = L"fullscreen: presentation mode"; return true; }
 
     HWND fg = GetForegroundWindow();
-    if (!fg || IsShellWindow(fg)) return false;
+    if (!fg || IsShellWindow(fg) || !IsWindowVisible(fg)) return false;
+    DWORD cloaked = 0;  // a starting app's window can be foreground while still cloaked
+    if (SUCCEEDED(DwmGetWindowAttribute(fg, DWMWA_CLOAKED, &cloaked, sizeof(cloaked))) && cloaked) return false;
     DWORD pid = 0;
     GetWindowThreadProcessId(fg, &pid);
     if (pid == GetCurrentProcessId()) return false;  // desktop, taskbar, Explorer windows
@@ -1984,9 +2007,19 @@ struct UiState {
     int artPx = 0;
     ULONGLONG lastZ = 0;
     bool glassApplied = false;
-    bool glassLight = false;
+    int glassTint = 0;            // AABBGGRR last passed to the accent policy
     int lastW = 0, lastH = 0, lastRad = 0;
+    int posX = INT_MIN, posY = INT_MIN, posW = 0, posH = 0;  // last SetWindowPos rect
+    ULONGLONG hideSince = 0;      // first tick a soft hide reason was seen (debounce)
+    HBITMAP back = nullptr;       // glass path back buffer, also used by WM_PAINT
+    int backW = 0, backH = 0;
 };
+
+static void FreeBackBuffer(UiState& ui) {
+    if (ui.back) DeleteObject(ui.back);
+    ui.back = nullptr;
+    ui.backW = ui.backH = 0;
+}
 
 struct Panel {
     HWND hwnd = nullptr;
@@ -2063,8 +2096,17 @@ static void DrawLine(Gdiplus::Graphics& g, const Line& line, const Gdiplus::Font
     }
 }
 
+// Glass tint per "panel background" preset, AABBGGRR. Before 0.3.3 the glass path used a
+// fixed 0xA0 tint and ignored the preset, so all three presets looked the same (and fairly
+// solid). Now the preset is the tint strength: none = clearest, card = densest.
+static int GlassTint(PanelBg bg, bool light) {
+    int rgb = light ? 0x00F3F3F3 : 0x00202020;
+    int a = bg == PanelBg::Card ? 0xD8 : bg == PanelBg::Subtle ? 0x90 : 0x38;
+    return (int)(((unsigned)a << 24) | (unsigned)rgb);
+}
+
 // AccentBlurBehind (AABBGGRR GradientColor). Same family as zen-explorer-styler.
-static void ApplyPanelGlass(HWND hwnd, bool enable, bool light) {
+static void ApplyPanelGlass(HWND hwnd, bool enable, int tint) {
     using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, void*);
     static auto pSet = (SetWindowCompositionAttribute_t)GetProcAddress(GetModuleHandleW(L"user32.dll"),
                                                                        "SetWindowCompositionAttribute");
@@ -2085,13 +2127,11 @@ static void ApplyPanelGlass(HWND hwnd, bool enable, bool light) {
     constexpr int ACCENT_DISABLED = 0;
     constexpr DWORD WCA_ACCENT_POLICY = 19;
 
-    // AABBGGRR — readable over glass in both themes.
-    int color = light ? (int)0xA0F5F5F5 : (int)0xA0181818;
     ACCENT_POLICY policy{};
     if (enable) {
         policy.AccentState = ACCENT_ENABLE_ACRYLICBLURBEHIND;
         policy.AccentFlags = 2;
-        policy.GradientColor = color;
+        policy.GradientColor = tint;
     } else {
         policy.AccentState = ACCENT_DISABLED;
     }
@@ -2109,6 +2149,7 @@ static void ApplyRoundRgn(HWND hwnd, int w, int h, int radiusPx) {
 static void HidePanel(Panel& panel) {
     if (panel.hwnd && IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_HIDE);
     panel.ui.visible = false;
+    panel.ui.hideSince = 0;
     panel.ui.lastSig.clear();
     panel.ui.hover = panel.ui.pressed = HitNone;
 }
@@ -2225,18 +2266,24 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     Gdiplus::REAL rad = (Gdiplus::REAL)D(8);
 
     if (glass) {
-        // Soft inset highlight so buttons stay readable on acrylic; no solid card fill.
+        // The tint strength comes from the accent policy (GlassTint); here only a soft edge,
+        // a bit stronger for Card so the card shape reads on acrylic.
         Gdiplus::GraphicsPath p;
         RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
-        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x28000000 : 0x28FFFFFF), 1.0f);
+        BYTE ea = s.panelBg == PanelBg::Card ? 0x40 : s.panelBg == PanelBg::Subtle ? 0x2C : 0x1C;
+        Gdiplus::Pen pen(Gdiplus::Color(WithAlpha(L.light ? 0xFF000000 : 0xFFFFFFFF, ea)), 1.0f);
         g.DrawPath(&pen, &p);
     } else if (s.panelBg == PanelBg::Subtle) {
-        FillRound(g, L.light ? 0x40FFFFFF : 0x30000000, panelRc, rad);
-    } else if (s.panelBg == PanelBg::Card) {
-        FillRound(g, L.light ? 0xB8F7F7F7 : 0xB8202020, panelRc, rad);
+        FillRound(g, L.light ? 0x8CFFFFFF : 0x60000000, panelRc, rad);
         Gdiplus::GraphicsPath p;
         RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
-        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x30000000 : 0x30FFFFFF), 1.0f);
+        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x1C000000 : 0x1CFFFFFF), 1.0f);
+        g.DrawPath(&pen, &p);
+    } else if (s.panelBg == PanelBg::Card) {
+        FillRound(g, L.light ? 0xEEF9F9F9 : 0xE8262626, panelRc, rad);
+        Gdiplus::GraphicsPath p;
+        RoundRectPath(p, panelRc.X, panelRc.Y, panelRc.Width, panelRc.Height, rad);
+        Gdiplus::Pen pen(Gdiplus::Color(L.light ? 0x38000000 : 0x38FFFFFF), 1.0f);
         g.DrawPath(&pen, &p);
     } else if (L.bodyClickable) {
         FillRound(g, 0x01000000, panelRc, rad);
@@ -2323,12 +2370,61 @@ static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
            (s.bold ? L"B" : L"b") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
 }
 
+// True when the taskbar sits above this panel in the z-order. The taskbar re-asserts
+// topmost whenever it re-lays out (a new app adds a button, foreground changes); 0.3.2
+// only fixed that every 500 ms, so the panel vanished behind the taskbar for up to half
+// a second each time a program started. Walking up from the panel is cheap (only the
+// topmost band is above us) and lets us re-raise only when actually needed.
+static bool TaskbarAbovePanel(const Panel& panel) {
+    HWND h = panel.hwnd;
+    for (int i = 0; i < 256 && h; ++i) {
+        h = GetWindow(h, GW_HWNDPREV);
+        if (h == panel.tray) return true;
+    }
+    return false;
+}
+
+static void EnsureAboveTaskbar(Panel& panel) {
+    if (!panel.hwnd || !panel.ui.visible || !panel.tray) return;
+    if (!TaskbarAbovePanel(panel)) return;
+    SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    panel.ui.lastZ = GetTickCount64();
+}
+
+static void EnsureAllAboveTaskbar();
+
+// Hide reasons that must apply at once (the taskbar itself went away / auto-hid). Anything
+// else (fullscreen check, nothing to show) has to persist before the panel hides, so a
+// splash screen or a session switch while an app starts doesn't make it blink.
+static bool IsImmediateHide(const wchar_t* why) {
+    return wcsncmp(why, L"taskbar", 7) == 0 || wcsncmp(why, L"GetWindowRect", 13) == 0 || wcsncmp(why, L"bad", 3) == 0;
+}
+
+static void BlitBack(Panel& panel, HDC hdc) {
+    if (!panel.ui.back || !hdc) return;
+    HDC mem = CreateCompatibleDC(hdc);
+    if (!mem) return;
+    HGDIOBJ old = SelectObject(mem, panel.ui.back);
+    BitBlt(hdc, 0, 0, panel.ui.backW, panel.ui.backH, mem, 0, 0, SRCCOPY);
+    SelectObject(mem, old);
+    DeleteDC(mem);
+}
+
 static void RenderPanel(Panel& panel, bool force = false) {
     if (!panel.hwnd || !IsWindow(panel.hwnd)) return;
     Settings s = GetSettings();
     Layout L;
     const wchar_t* why = L"unknown";
+    ULONGLONG now = GetTickCount64();
     if (!ComputeLayout(panel, s, L, force, &why)) {
+        if (panel.ui.visible && !IsImmediateHide(why)) {
+            if (!panel.ui.hideSince) panel.ui.hideSince = now;
+            DWORD wait = wcsncmp(why, L"fullscreen", 10) == 0 ? 700 : 450;
+            if (now - panel.ui.hideSince < wait) {
+                EnsureAboveTaskbar(panel);
+                return;  // keep what is on screen until the reason persists
+            }
+        }
         if (panel.lastWhy != why) {
             panel.lastWhy = why;
             Wh_Log(L"[ui] panel %p hidden: %s", panel.hwnd, why);
@@ -2336,24 +2432,22 @@ static void RenderPanel(Panel& panel, bool force = false) {
         HidePanel(panel);
         return;
     }
+    panel.ui.hideSince = 0;
 
     const bool glass = s.panelGlass;
     std::wstring sig = MakeSig(L, panel, s);
-    ULONGLONG now = GetTickCount64();
     if (!force && panel.ui.visible && sig == panel.ui.lastSig) {
-        if (now - panel.ui.lastZ > 500) {
-            // The taskbar re-asserts topmost when clicked; put ourselves back above it.
-            SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-            panel.ui.lastZ = now;
-        }
+        EnsureAboveTaskbar(panel);
         return;
     }
 
+    const bool moved = panel.ui.posX != L.x || panel.ui.posY != L.y || panel.ui.posW != L.w || panel.ui.posH != L.h;
     if (glass) {
-        if (!panel.ui.glassApplied || panel.ui.glassLight != L.light) {
-            ApplyPanelGlass(panel.hwnd, true, L.light);
+        int tint = GlassTint(s.panelBg, L.light);
+        if (!panel.ui.glassApplied || panel.ui.glassTint != tint) {
+            ApplyPanelGlass(panel.hwnd, true, tint);
             panel.ui.glassApplied = true;
-            panel.ui.glassLight = L.light;
+            panel.ui.glassTint = tint;
         }
         int rad = (int)(8.0 * L.dpi / 96.0 + 0.5);
         if (panel.ui.lastW != L.w || panel.ui.lastH != L.h || panel.ui.lastRad != rad) {
@@ -2366,37 +2460,55 @@ static void RenderPanel(Panel& panel, bool force = false) {
             panel.ui.lastH = L.h;
             panel.ui.lastRad = rad;
         }
-        SetWindowPos(panel.hwnd, HWND_TOPMOST, L.x, L.y, L.w, L.h, SWP_NOACTIVATE);
+        if (moved) {
+            SetWindowPos(panel.hwnd, nullptr, L.x, L.y, L.w, L.h,
+                         SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOREDRAW);
+        }
 
-        // Black client + opaque GDI+ content: AccentBlurBehind supplies the acrylic
-        // where we do not paint. Avoid UpdateLayeredWindow / BitBlt of PARGB zeros
-        // (those become opaque black and hide the blur).
+        // Black client + opaque GDI+ content: AccentBlurBehind supplies the acrylic where we
+        // do not paint. 0.3.2 drew straight onto the window DC (FillRect black, then the text),
+        // so DWM could present the black-only frame: the text blinked on every redraw. Now the
+        // frame is composed off-screen and copied in one BitBlt; WM_PAINT re-blits it.
         HDC hdc = GetDC(panel.hwnd);
         if (!hdc) return;
+        if (!panel.ui.back || panel.ui.backW != L.w || panel.ui.backH != L.h) {
+            FreeBackBuffer(panel.ui);
+            panel.ui.back = CreateCompatibleBitmap(hdc, L.w, L.h);
+            if (panel.ui.back) {
+                panel.ui.backW = L.w;
+                panel.ui.backH = L.h;
+            }
+        }
+        if (!panel.ui.back) {
+            ReleaseDC(panel.hwnd, hdc);
+            return;
+        }
+        HDC mem = CreateCompatibleDC(hdc);
+        HGDIOBJ old = SelectObject(mem, panel.ui.back);
         RECT rc{0, 0, L.w, L.h};
-        FillRect(hdc, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
+        FillRect(mem, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
         {
-            Gdiplus::Graphics g(hdc);
-            // Draw onto an intermediate PARGB bitmap then AlphaBlend so antialiased
-            // text/icons composite cleanly over the black/acrylic client.
+            Gdiplus::Graphics g(mem);
             Gdiplus::Bitmap canvas(L.w, L.h, PixelFormat32bppPARGB);
             {
                 Gdiplus::Graphics cg(&canvas);
                 PaintContent(cg, panel, s, L, true);
             }
-            Gdiplus::ImageAttributes attrs;
-            // Only blend where we drew (alpha > 0); leave black acrylic elsewhere.
             g.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
             g.DrawImage(&canvas, 0, 0, L.w, L.h);
         }
+        SelectObject(mem, old);
+        DeleteDC(mem);
+        BlitBack(panel, hdc);
         ReleaseDC(panel.hwnd, hdc);
     } else {
         if (panel.ui.glassApplied) {
-            ApplyPanelGlass(panel.hwnd, false, L.light);
+            ApplyPanelGlass(panel.hwnd, false, 0);
             SetWindowRgn(panel.hwnd, nullptr, TRUE);
             panel.ui.glassApplied = false;
             panel.ui.lastW = panel.ui.lastH = panel.ui.lastRad = 0;
         }
+        FreeBackBuffer(panel.ui);
         HDC screen = GetDC(nullptr);
         HDC mem = CreateCompatibleDC(screen);
         BITMAPINFO bi{};
@@ -2430,21 +2542,28 @@ static void RenderPanel(Panel& panel, bool force = false) {
         DeleteDC(mem);
         ReleaseDC(nullptr, screen);
     }
+    panel.ui.posX = L.x;
+    panel.ui.posY = L.y;
+    panel.ui.posW = L.w;
+    panel.ui.posH = L.h;
 
     panel.ui.lastSig = sig;
-    if (!IsWindowVisible(panel.hwnd)) ShowWindow(panel.hwnd, SW_SHOWNOACTIVATE);
+    if (!IsWindowVisible(panel.hwnd)) {
+        SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
+        panel.ui.lastZ = now;
+    }
     panel.ui.visible = true;
-    SetWindowPos(panel.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    EnsureAboveTaskbar(panel);
     {
         wchar_t key[160];
-        swprintf_s(key, L"shown %d,%d %dx%d dpi=%d glass=%d %s", L.x, L.y, L.w, L.h, L.dpi, glass ? 1 : 0,
-                   L.content.media ? L"media" : L.content.aiOnly ? L"ai" : L"idle");
+        swprintf_s(key, L"shown %d,%d %dx%d dpi=%d glass=%d bg=%d %s", L.x, L.y, L.w, L.h, L.dpi, glass ? 1 : 0,
+                   (int)s.panelBg, L.content.media ? L"media" : L.content.aiOnly ? L"ai" : L"idle");
         if (panel.lastWhy != key) {
             panel.lastWhy = key;
             Wh_Log(L"[ui] panel %p %s visible=%d", panel.hwnd, key, IsWindowVisible(panel.hwnd) ? 1 : 0);
         }
     }
-    panel.ui.lastZ = now;
 }
 
 static int HitTestClient(Panel& panel, POINT pt) {
@@ -2459,6 +2578,7 @@ static void DestroyPanelWindow(Panel& panel) {
         DestroyWindow(panel.hwnd);
     }
     panel.hwnd = nullptr;
+    FreeBackBuffer(panel.ui);
     panel.ui = UiState{};
 }
 
@@ -2475,7 +2595,7 @@ static HWND CreatePanelWindow(HWND tray, bool glass) {
         Wh_Log(L"[ui] CreateWindowEx failed %u (tray %p)", GetLastError(), tray);
         return nullptr;
     }
-    if (glass) ApplyPanelGlass(hwnd, true, g_env.lightTaskbar);
+    if (glass) ApplyPanelGlass(hwnd, true, GlassTint(GetSettings().panelBg, g_env.lightTaskbar));
     SetTimer(hwnd, TIMER_TICK, 100, nullptr);
     RECT tr{};
     GetWindowRect(tray, &tr);
@@ -2555,6 +2675,22 @@ static void RenderAll(bool force) {
     for (auto& p : g_panels) RenderPanel(p, force);
 }
 
+static void EnsureAllAboveTaskbar() {
+    for (auto& p : g_panels) EnsureAboveTaskbar(p);
+}
+
+// Foreground changes (a new program opening) are exactly when the taskbar re-raises itself.
+// Check z-order right away and a few more times over the next ~300 ms instead of waiting
+// for the next tick. Out-of-context hook: runs on this UI thread from GetMessage.
+static HWND g_msgHwnd = nullptr;
+static int g_zFollowLeft = 0;
+static void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD, HWND, LONG idObject, LONG, DWORD, DWORD) {
+    if (idObject != OBJID_WINDOW || g_stop) return;
+    EnsureAllAboveTaskbar();
+    g_zFollowLeft = 6;
+    if (g_msgHwnd) SetTimer(g_msgHwnd, TIMER_ZFOLLOW, 50, nullptr);
+}
+
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     Panel* panel = PanelOf(hwnd);
     switch (msg) {
@@ -2566,11 +2702,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             if (wp == TIMER_TICK && panel) RenderPanel(*panel);
             return 0;
         case WM_PAINT: {
-            // Glass path paints in RenderPanel; validate to clear the update region.
+            // Re-blit the last composed frame; no re-render (and no black fill) here.
             PAINTSTRUCT ps;
-            BeginPaint(hwnd, &ps);
+            HDC hdc = BeginPaint(hwnd, &ps);
+            if (panel && panel->ui.back) BlitBack(*panel, hdc);
             EndPaint(hwnd, &ps);
-            if (panel) RenderPanel(*panel, true);
+            if (panel && !panel->ui.back) RenderPanel(*panel, true);
             return 0;
         }
         case WM_ERASEBKGND:
@@ -2644,6 +2781,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_DESTROY:
             KillTimer(hwnd, TIMER_TICK);
             if (panel) {
+                FreeBackBuffer(panel->ui);
                 panel->hwnd = nullptr;
                 panel->ui = UiState{};
             }
@@ -2680,6 +2818,10 @@ static void UiThread() {
                                    g_uiInst, nullptr);
     if (msgHwnd) SetTimer(msgHwnd, TIMER_SYNC, 2000, nullptr);
     else Wh_Log(L"[ui] message window failed %u; taskbar will not be re-scanned", GetLastError());
+    g_msgHwnd = msgHwnd;
+    HWINEVENTHOOK fgHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr,
+                                           ForegroundEventProc, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNTHREAD);
+    if (!fgHook) Wh_Log(L"[ui] SetWinEventHook failed %u; z-order only checked on the 100 ms tick", GetLastError());
 
     SyncPanels(true);
 
@@ -2699,14 +2841,23 @@ static void UiThread() {
             SyncPanels(false);
             continue;
         }
+        if (m.hwnd == msgHwnd && m.message == WM_TIMER && m.wParam == TIMER_ZFOLLOW) {
+            EnsureAllAboveTaskbar();
+            if (--g_zFollowLeft <= 0) KillTimer(msgHwnd, TIMER_ZFOLLOW);
+            continue;
+        }
         TranslateMessage(&m);
         DispatchMessageW(&m);
     }
 
+    if (fgHook) UnhookWinEvent(fgHook);
     if (msgHwnd) {
         KillTimer(msgHwnd, TIMER_SYNC);
+        KillTimer(msgHwnd, TIMER_ZFOLLOW);
         DestroyWindow(msgHwnd);
     }
+    g_msgHwnd = nullptr;
+    g_zFollowLeft = 0;
     for (auto& p : g_panels) DestroyPanelWindow(p);
     g_panels.clear();
     UnregisterClassW(kWndClass, g_uiInst);
@@ -2720,7 +2871,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.3.2 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.3.3 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
