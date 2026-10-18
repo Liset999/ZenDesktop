@@ -9,7 +9,7 @@
 - **文件管理器美化**（`zen-explorer-styler` 1.6.5）：替代 ExplorerBlurMica，色调、不透明度、文字颜色都能在 Windhawk 里调，适配浅色模式；右键菜单玻璃效果（测试中）。
 - **任务栏音乐与歌词**（0.4.6）：占用小组件位置，显示封面、滚动歌词和播放控制，支持 Spotify 等接入系统媒体控制的播放器；歌词默认偏移 +200 毫秒，可在设置里调。
 - **AI 工作状态**：歌词面板可显示本机 AI 编程助手（Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 等）的状态。运行 `tools/ai-status/install.ps1` 即可配置，已附带编译好的 `zen-status.exe`。
-- **可选 Mod**：果冻窗口（0.115.4）、窗口动画（1.5.2，含 macOS 神奇效果和多种新的打开/关闭样式）。部署时可选择安装，**默认关闭**。
+- **可选 Mod**：果冻窗口（0.115.4）、窗口动画（1.5.2，含 macOS 神奇效果和多种新的打开/关闭样式）。和其他 mod 一起装进 Windhawk，**默认关闭**，想用时在 Windhawk 里打开。
 - **一键卸载**：`uninstall.bat`，删除前会列出内容让你确认，不卸载 Windhawk 本身。
 
 ## 改进
@@ -30,9 +30,8 @@
 
 ## 安装
 1. 解压后双击 `deploy.bat`，在权限提示里点「是」。
-2. 按提示选择是否安装可选 Mod。
-3. 打开 Windhawk，新装的 Mod 默认关闭，按需开启。
-4. 重启电脑。
+2. 打开 Windhawk，新装的 Mod（包括两个可选 Mod）默认关闭，按需开启。
+3. 全部调好后重启一次电脑。
 
 ## 从 v4.1 升级
 先双击 `tools/uninstall-ExplorerBlurMica.bat` 卸载旧版 ExplorerBlurMica，再运行 `deploy.bat`。原有设置会保留。
