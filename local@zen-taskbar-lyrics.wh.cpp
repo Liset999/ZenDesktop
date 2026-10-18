@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.3.1
+// @version         0.3.2
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -30,7 +30,7 @@
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
 - 点封面或文字可以把播放器切到前台（可在设置里关掉）。
-- 没在放歌时自动隐藏，也可以设成一直显示。全屏游戏、视频、PPT 时自动隐藏。
+- 没在放歌时默认显示「未在播放」，也可改成隐藏。全屏游戏、视频、PPT 时默认不隐藏，可在设置里开启。
 - 文字颜色默认跟随系统深浅色（浅色模式用深色字），可选的颜色和其他 ZenDesktop mod 一样。
 - 位置：任务栏图标居中时放在最左边；图标靠左时自动挪到托盘左边（和系统小组件按钮的规则一样），不会压住开始按钮。
 - AI 助手状态：读取 `%LOCALAPPDATA%\ZenDesktop\ai-status\` 里每个助手一个的 JSON 文件。放歌时显示在第二行，没放歌时单独显示。多个助手可以排成一行，也可以轮流显示。
@@ -101,6 +101,8 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
 - 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。玻璃开启时「面板底色」不生效。
 - 歌词偏移：毫秒，正数提前，范围 -60000–60000。
+- 没在放歌时：默认显示「未在播放」，可选隐藏面板。有 AI 助手在工作时仍会显示。
+- 全屏和游戏时隐藏：默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏（多显示器只藏全屏那块屏）。
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示。
 
 ## 兼容性与已知问题
@@ -108,12 +110,13 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
 - 「面板玻璃」开启时，通过 `SetWindowCompositionAttribute` 的 AccentBlurBehind（亚克力模糊）做背景，并按深浅色换色调；这与 `UpdateLayeredWindow` 不兼容，因此玻璃模式下改为普通弹出窗口绘制。若系统或驱动不支持该接口，会退回半透明圆角底色（无真实模糊）。关闭玻璃时仍可用「面板底色」的无底色／淡淡一层／卡片。
-- 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的。
+- 面板不出来时：在 Windhawk 这个 mod 的「高级设置」里打开调试日志，再看日志输出里 `[ui]`、`[media]` 开头的行，会写明「没找到任务栏」「没有媒体会话」「判定为全屏」等原因。没在放歌且「没在放歌时」选了「隐藏面板」时不显示是正常的；默认是显示「未在播放」。
 - 点「打开播放器」只能切换到有可见窗口的播放器；缩到托盘里的播放器切不出来。
 - 网易云、QQ 音乐的歌词接口是非官方的，随时可能失效。
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.3.2**：默认改为没在放歌时显示「未在播放」（不再默认隐藏）；「全屏和游戏时隐藏」改为默认关闭。
 - **0.3.1**：修复「开了没反应」：桌面或最大化窗口（Windhawk、网易云、微信等）在前台时被误判成全屏而隐藏；面板改为不挂靠任务栏的置顶窗口（参考 Taskbar Music Lounge），在每个环节写 Windhawk 日志，方便排查。
 - **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
 - **0.2.0**：改成小组件位置的音乐面板，加入专辑封面、播放控制、深浅色跟随、文字颜色预设、AI 助手状态。
@@ -185,11 +188,11 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
   - translation: 只显示翻译
   - info: 歌名和歌手
   - none: 不显示，只要一行
-- whenIdle: hide
+- whenIdle: show
   $name: When nothing is playing
   $name:zh-CN: 没在放歌时
-  $description: AI status still shows when an agent is active.
-  $description:zh-CN: 有 AI 助手在工作时仍会显示。
+  $description: Default shows "Not playing". AI status still shows when an agent is active.
+  $description:zh-CN: 默认为显示「未在播放」。有 AI 助手在工作时仍会显示。
   $options:
   - hide: 隐藏面板
   - show: 显示「未在播放」
@@ -265,11 +268,11 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
   $name:zh-CN: 歌词偏移（毫秒）
   $description: Positive shows lyrics earlier, negative later. Range -60000–60000.
   $description:zh-CN: 正数让歌词提前显示，负数推后。范围 -60000–60000。
-- hideInFullscreen: true
+- hideInFullscreen: false
   $name: Hide in fullscreen and games
   $name:zh-CN: 全屏和游戏时隐藏
-  $description: Hides during fullscreen games, videos and presentations. With multi-monitor, only the panel on the fullscreen monitor hides.
-  $description:zh-CN: 全屏游戏、视频、PPT 放映时隐藏。开启多显示器时，只隐藏全屏所在那块屏幕上的面板。
+  $description: Default off. Hides during fullscreen games, videos and presentations. With multi-monitor, only the panel on the fullscreen monitor hides.
+  $description:zh-CN: 默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏。开启多显示器时，只隐藏全屏所在那块屏幕上的面板。
 - panelGlass: true
   $name: Panel glass
   $name:zh-CN: 面板玻璃
@@ -373,7 +376,7 @@ struct Settings {
     bool showButtons = true;
     bool titleOnly = false;
     SecondLine secondLine = SecondLine::Auto;
-    bool showIdle = false;
+    bool showIdle = true;
     bool clickOpens = true;
     std::wstring textColorMode = L"default";
     PanelBg panelBg = PanelBg::None;
@@ -381,7 +384,7 @@ struct Settings {
     int fontSize = 12;
     bool bold = false;
     int offsetMs = 0;
-    bool hideInFullscreen = true;
+    bool hideInFullscreen = false;
     bool panelGlass = true;
     bool multiMonitor = false;
     bool enableNetease = true;
@@ -421,7 +424,10 @@ static void LoadSettings() {
         std::wstring sl = GetStr(L"secondLine");
         s.secondLine = sl == L"translation" ? SecondLine::Translation : sl == L"info" ? SecondLine::Info
                      : sl == L"none" ? SecondLine::None : SecondLine::Auto;
-        s.showIdle = GetStr(L"whenIdle") == L"show";
+        {
+            std::wstring wi = GetStr(L"whenIdle");
+            s.showIdle = wi != L"hide";  // default show; empty/unknown => show
+        }
         s.clickOpens = GetStr(L"clickAction") != L"none";
         s.textColorMode = GetStr(L"textColorMode");
         if (s.textColorMode.empty()) s.textColorMode = L"default";
@@ -2714,7 +2720,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.3.1 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.3.2 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
