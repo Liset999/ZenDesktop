@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.7
+// @version         4.1.8
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -60,11 +60,11 @@
 
 ## 更新日志
 
+- **4.1.8**：真正修复液态玻璃主题下固定应用名称只在鼠标悬停时才显示的问题（4.1.6 没修好）：名称没有自己的文字颜色，在液态玻璃下继承到的颜色看不见；现在默认给应用名称加上系统文字颜色，深色、浅色模式都一直显示。「文字颜色」和「应用名称显示」设置照常生效。
 - **4.1.7**：修复浅色模式下液态玻璃主题中间的应用区域蒙着一层白雾的问题：应用区域不再额外叠一层玻璃，跟四周边缘一样通透；液态玻璃 - 原版同样去掉系统的浅色底；搜索页浅色模式下的卡片和预览也调得更通透。
 - **4.1.6**：修复液态玻璃主题下固定应用、推荐项的名称不显示（只在鼠标悬停时出现）的问题，名称现在像系统一样一直显示，文字颜色跟随系统深浅色或「文字颜色」设置。
 - **4.1.5**：液态玻璃主题去掉额外描边和镜面高光边，圆角恢复为 Windows 自带的大小（面板 8、元素 4），搜索页同步；保留玻璃模糊和底色。
 - **4.1.4**：统一搜索页材质：搜索框、结果、预览、筛选标签和右键菜单与开始菜单使用同一套玻璃和文字颜色；「控件深色/浅色」对搜索页同样生效，修复浅色模式下搜索页发白、搜索框叠两层。
-- **4.1.3**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/通知中心对齐。
 
 ## 致谢与许可
 
@@ -5789,8 +5789,8 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
-    // -- Text foreground: left to the system (and to textColorMode, applied
-    //    in code), so names stay visible at rest like native Windows. --
+    // -- Text foreground: textColorMode when set; otherwise app names get
+    //    TextFillColorPrimaryBrush in code (ProcessAllStylesFromSettings). --
 }, {
     // Zen Liquid Glass shared language (aligned with Taskbar / Notification)
     L"Apple_BorderThickness=0",
@@ -6059,8 +6059,8 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
     ThemeTargetStyles{L"Grid#ContentBorder@CommonStates > ContentPresenter > Grid > Grid#LogoContainer > Grid", {
         L"RenderTransform@Pressed:=<ScaleTransform ScaleX=\"0.8\" ScaleY=\"0.8\" />",
         L"RenderTransformOrigin=0.5,0.5"}},
-    // -- Text foreground: left to the system (and to textColorMode, applied
-    //    in code), so names stay visible at rest like native Windows. --
+    // -- Text foreground: textColorMode when set; otherwise app names get
+    //    TextFillColorPrimaryBrush in code (ProcessAllStylesFromSettings). --
 }, {
     // Zen Liquid Glass Classic — thinner refraction, same specular language
     L"Apple_BorderThickness=0",
@@ -14466,6 +14466,35 @@ void ProcessAllStylesFromSettings() {
         }
     }
     Wh_FreeStringSetting(labelVisibility);
+
+    // ZenDesktop: Liquid Glass app names. The pinned tile name
+    // (PinnedListTile > Grid#Root > Grid#DisplayNameAndDownloadIconContainer >
+    // TextBlock#DisplayName, style WrappingLabelTextBlockStyle) has no
+    // Foreground of its own; it inherits it from the GridViewItem's
+    // ContentPresenter (Foreground="{TemplateBinding Foreground}"). With the
+    // Liquid Glass themes that inherited value renders invisible at rest, and
+    // only the PointerOver storyboard, which animates ContentPresenter.Foreground
+    // to TransparentBackplateGridViewItemForegroundPointerOver, makes the
+    // hovered tile's name show. The other glass themes never hit this because
+    // they force Foreground=$CommonFgBrush on every TextBlock (isCustomTheme),
+    // same as a non-default textColorMode. So when the text color is left to
+    // the theme, give the names a real system brush. Opacity is untouched, so
+    // labelVisibility (hide / hover) still works.
+    if (newFgBrush.empty() &&
+        (theme == &g_themeAppleLiquidGlass ||
+         theme == &g_themeAppleLiquidGlass_variant_Classic ||
+         theme == &g_themeLiquidGlass)) {
+        std::vector<std::wstring> labelFgStyles = {
+            L"Foreground={ThemeResource TextFillColorPrimaryBrush}"};
+        for (PCWSTR target : {
+                 L"TextBlock#DisplayName",
+                 L"TextBlock#AppDisplayName",
+                 L"Windows.UI.Xaml.Controls.TextBlock#DisplayName",
+                 L"Windows.UI.Xaml.Controls.TextBlock#AppDisplayName",
+             }) {
+            AddElementCustomizationRules(target, labelFgStyles);
+        }
+    }
 
 
     if (!newFgBrush.empty()) {
