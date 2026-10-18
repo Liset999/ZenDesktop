@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.9
+// @version         4.1.10
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -63,11 +63,11 @@
 
 ## 更新日志
 
+- **4.1.10**：修复从任务栏打开的搜索页不透明、还是 Windows 自带深色亚克力的问题：搜索页进程（SearchHost.exe）开机就在后台待命，mod 过早挂上时没接到真正显示的界面，之后也不会再试；现在搜索页打开时会自动重新挂接，直到外框被美化为止。自定义玻璃和液态玻璃下搜索页外框保持 Windows 自带的圆角和细描边，不再加彩色描边和大圆角；「最近」列表区域背景同样透明。一键部署会顺便重启 SearchHost.exe。
 - **4.1.9**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.1.8**：真正修复液态玻璃主题下固定应用名称只在鼠标悬停时才显示的问题（4.1.6 没修好）：名称没有自己的文字颜色，在液态玻璃下继承到的颜色看不见；现在默认给应用名称加上系统文字颜色，深色、浅色模式都一直显示。「文字颜色」和「应用名称显示」设置照常生效。
 - **4.1.7**：修复浅色模式下液态玻璃主题中间的应用区域蒙着一层白雾的问题：应用区域不再额外叠一层玻璃，跟四周边缘一样通透；液态玻璃 - 原版同样去掉系统的浅色底；搜索页浅色模式下的卡片和预览也调得更通透。
 - **4.1.6**：修复液态玻璃主题下固定应用、推荐项的名称不显示（只在鼠标悬停时出现）的问题，名称现在像系统一样一直显示，文字颜色跟随系统深浅色或「文字颜色」设置。
-- **4.1.5**：液态玻璃主题去掉额外描边和镜面高光边，圆角恢复为 Windows 自带的大小（面板 8、元素 4），搜索页同步；保留玻璃模糊和底色。
 
 ## 致谢与许可
 
@@ -7578,6 +7578,12 @@ const Theme g_themeCommand_Center = {{
 
 std::atomic<DWORD> g_targetThreadId = 0;
 
+// ZenDesktop: set once the search page frame (Border#AppBorder in
+// SearchHost.exe) has gone through ApplyCustomizations, i.e. the TAP is
+// attached to the XAML tree that's actually shown. See
+// ZenScheduleSearchAttachRetry.
+std::atomic<bool> g_zenSearchFrameSeen = false;
+
 void ApplyCustomizations(InstanceHandle handle,
                          winrt::Windows::UI::Xaml::FrameworkElement element,
                          PCWSTR fallbackClassName);
@@ -7997,6 +8003,8 @@ static DWORD WINAPI TaskbarCreatedWindowThread(LPVOID lpParam);
 static void  CleanupTaskbarCreatedWindow();
 void ScheduleBootStyleReinit();
 void StopBootReinitTimer();
+void ZenScheduleSearchAttachRetry();
+void ZenStopSearchAttachRetry();
 // ─────────────────────────────────────────────────────────────────────────
 
 // https://stackoverflow.com/a/51274008
@@ -12680,6 +12688,16 @@ void ApplyCustomizations(InstanceHandle handle,
         }
     }
 
+    if (g_target == Target::SearchHost && !g_zenSearchFrameSeen.load()) {
+        try {
+            if (element.Name() == L"AppBorder") {
+                g_zenSearchFrameSeen = true;
+                Wh_Log(L"[ZenDesktop] Search frame found (Border#AppBorder)");
+            }
+        } catch (...) {
+        }
+    }
+
     auto resolved = FindElementPropertyOverrides(element, fallbackClassName);
     if (resolved.overridesPerVSG.empty() && resolved.captures.empty()) {
         return;
@@ -13714,7 +13732,8 @@ void ZenBuildSearchWebContent(ZenSearchFamily family,
         css +=
             L"html, body, #root, #qfContainer, .suggsListContainer, "
             L".suggsList, .suggContainer, .groupContainer, #scopesHeader, "
-            L".scope-with-background {\n"
+            L".scope-with-background, .leftPaneZIsuggestions, .scopes-list, "
+            L".groupHeader {\n"
             L"background-color: transparent !important;\n}\n";
 
         if (design == ZenSearchDesign::Auto) {
@@ -14262,13 +14281,44 @@ void ProcessAllStylesFromSettings() {
 
     Wh_FreeStringSetting(bgColorMode);
 
+    // ZenDesktop: on the search page, the glass themes keep the native frame
+    // shape: Windows' own corner radius and thin stroke, no added gradient
+    // border, margin or larger corners on the frame and its shadow. Only the
+    // material (Background) comes from the theme, as on the Start menu.
+    const bool zenNativeSearchFrame =
+        g_target == Target::SearchHost &&
+        (theme == &g_themeTranslucentStartMenu ||
+         theme == &g_themeTranslucentStartMenu_variant_ClassicStartMenu ||
+         theme == &g_themeAppleLiquidGlass ||
+         theme == &g_themeAppleLiquidGlass_variant_Classic ||
+         theme == &g_themeLiquidGlass);
+
     if (theme) {
         for (const auto& themeTargetStyle : theme->targetStyles) {
             try {
+                bool nativeShape = false;
+                if (zenNativeSearchFrame) {
+                    std::wstring_view target = themeTargetStyle.target;
+                    nativeShape = target.find(L"AppBorder") != target.npos ||
+                                  target.find(L"#dropshadow") != target.npos;
+                }
+
                 std::vector<std::wstring> styles;
                 styles.reserve(themeTargetStyle.styles.size());
                 for (const auto& s : themeTargetStyle.styles) {
+                    if (nativeShape) {
+                        std::wstring_view sv = s;
+                        if (sv.starts_with(L"BorderBrush") ||
+                            sv.starts_with(L"BorderThickness") ||
+                            sv.starts_with(L"CornerRadius") ||
+                            sv.starts_with(L"Margin")) {
+                            continue;
+                        }
+                    }
                     styles.push_back(ApplyStyleConstants(s, styleConstants));
+                }
+                if (styles.empty()) {
+                    continue;
                 }
 
                 AddElementCustomizationRules(themeTargetStyle.target,
@@ -14698,6 +14748,8 @@ void UninitializeSettingsAndTap() {
     }
 
     g_webViewsCustomizationState.clear();
+
+    g_zenSearchFrameSeen = false;
 
     g_targetThreadId = 0;
 }
@@ -15905,12 +15957,14 @@ void Wh_ModAfterInit() {
     }
 
     ScheduleBootStyleReinit();
+    ZenScheduleSearchAttachRetry();
 }
 
 void Wh_ModBeforeUninit() {
     Wh_Log(L">");
 
     StopBootReinitTimer();
+    ZenStopSearchAttachRetry();
 
     // Start Menu custom sizing: signal unloading so ApplyStyle() restores
     // original dimensions, then detach event handlers on the CoreWindow
@@ -16012,6 +16066,7 @@ void Wh_ModSettingsChanged() {
         Wh_Log(L"Reinitializing - Found core window");
         RunFromWindowThread(
             hCoreWnd, Acrylic_SettingsChangedFromWindowThread, nullptr);
+        ZenScheduleSearchAttachRetry();
 
         // Start Menu custom sizing: re-apply size on the CoreWindow thread
         // (StartMenu target only).
@@ -16114,6 +16169,143 @@ static void WINAPI TriggerFullReinitFromWindowThread(PVOID) {
 
     InitializeSettingsAndTap();
     Wh_Log(L"Reinit: complete");
+}
+
+// ZenDesktop: SearchHost.exe is started (prelaunched) at sign-in and then
+// suspended until the search page is first opened. Attaching the TAP that
+// early can fail or attach to a XAML tree that isn't the one shown later, and
+// the single boot retry above runs once, so the search page could stay
+// unstyled (Windows' own opaque acrylic) until the mod is toggled. Keep
+// retrying until the search frame has gone through ApplyCustomizations. A
+// suspended process doesn't run timers, so the ticks effectively happen
+// while the search page is open.
+PTP_TIMER g_zenSearchAttachRetryTimer = nullptr;
+std::atomic<int> g_zenSearchAttachRetryTicks = 0;
+constexpr int kZenSearchAttachRetryMaxTicks = 40;
+constexpr DWORD kZenSearchAttachRetryIntervalMs = 3000;
+
+static void WINAPI ZenSearchAttachFromWindowThread(PVOID) {
+    if (g_zenSearchFrameSeen.load()) {
+        return;
+    }
+
+    if (g_targetThreadId.load() == 0) {
+        Wh_Log(L"[ZenDesktop] Search attach retry: injecting TAP");
+        InitializeSettingsAndTap();
+        return;
+    }
+
+    if (g_targetThreadId.load() != GetCurrentThreadId()) {
+        return;
+    }
+
+    // Attached, but the search page tree hasn't shown up: attach again.
+    Wh_Log(L"[ZenDesktop] Search attach retry: search frame not seen, "
+           L"reattaching");
+    TriggerFullReinitFromWindowThread(nullptr);
+}
+
+// Visible and not cloaked. The search window is usually cloaked, not hidden,
+// when the search page is closed. dwmapi is loaded dynamically since the mod
+// doesn't link it.
+static bool ZenIsWindowShown(HWND hWnd) {
+    if (!IsWindowVisible(hWnd)) {
+        return false;
+    }
+
+    using DwmGetWindowAttribute_t = HRESULT(WINAPI*)(HWND, DWORD, PVOID, DWORD);
+    static DwmGetWindowAttribute_t pDwmGetWindowAttribute = []() {
+        HMODULE dwmapi = LoadLibraryEx(L"dwmapi.dll", nullptr,
+                                       LOAD_LIBRARY_SEARCH_SYSTEM32);
+        return dwmapi ? (DwmGetWindowAttribute_t)GetProcAddress(
+                            dwmapi, "DwmGetWindowAttribute")
+                      : nullptr;
+    }();
+    if (!pDwmGetWindowAttribute) {
+        return true;
+    }
+
+    constexpr DWORD kDwmwaCloaked = 14;  // DWMWA_CLOAKED
+    DWORD cloaked = 0;
+    if (SUCCEEDED(pDwmGetWindowAttribute(hWnd, kDwmwaCloaked, &cloaked,
+                                         sizeof(cloaked))) &&
+        cloaked) {
+        return false;
+    }
+
+    return true;
+}
+
+void ZenStopSearchAttachRetry() {
+    if (g_zenSearchAttachRetryTimer) {
+        SetThreadpoolTimer(g_zenSearchAttachRetryTimer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(g_zenSearchAttachRetryTimer, TRUE);
+        CloseThreadpoolTimer(g_zenSearchAttachRetryTimer);
+        g_zenSearchAttachRetryTimer = nullptr;
+    }
+}
+
+static void CALLBACK ZenSearchAttachRetryTick(PTP_CALLBACK_INSTANCE,
+                                              PVOID,
+                                              PTP_TIMER timer) {
+    if (g_zenSearchFrameSeen.load()) {
+        SetThreadpoolTimer(timer, nullptr, 0, 0);
+        return;
+    }
+
+    int tick = ++g_zenSearchAttachRetryTicks;
+    if (tick > kZenSearchAttachRetryMaxTicks) {
+        Wh_Log(L"[ZenDesktop] Search attach retry: giving up, search frame "
+               L"never seen");
+        SetThreadpoolTimer(timer, nullptr, 0, 0);
+        return;
+    }
+
+    HWND hCoreWnd = GetCoreWnd();
+    if (!hCoreWnd) {
+        return;
+    }
+
+    // Only while the search page is actually shown, so a hidden, prelaunched
+    // SearchHost isn't reattached over and over and the attempts aren't used
+    // up before the page is first opened.
+    if (!ZenIsWindowShown(hCoreWnd)) {
+        --g_zenSearchAttachRetryTicks;
+        return;
+    }
+
+    // A fresh attach on the first tick, then every other tick (6 seconds),
+    // giving each attach time to walk the tree.
+    if (tick % 2 == 1 || g_targetThreadId.load() == 0) {
+        RunFromWindowThread(hCoreWnd, ZenSearchAttachFromWindowThread,
+                            nullptr);
+    }
+}
+
+void ZenScheduleSearchAttachRetry() {
+    if (g_target != Target::SearchHost || g_zenSearchFrameSeen.load()) {
+        return;
+    }
+
+    g_zenSearchAttachRetryTicks = 0;
+    if (!g_zenSearchAttachRetryTimer) {
+        g_zenSearchAttachRetryTimer =
+            CreateThreadpoolTimer(ZenSearchAttachRetryTick, nullptr, nullptr);
+        if (!g_zenSearchAttachRetryTimer) {
+            return;
+        }
+    }
+
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += 4000ULL * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_zenSearchAttachRetryTimer, &ft,
+                       kZenSearchAttachRetryIntervalMs, 500);
 }
 
 static void TriggerFullReinit() {
