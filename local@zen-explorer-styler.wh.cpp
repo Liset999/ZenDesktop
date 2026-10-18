@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.0
+// @version         1.6.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -27,10 +27,11 @@
 // "followSystem" preset that tints dark in dark mode and light in light mode;
 // address bar and search box fills in the Zen themes with an adjustable opacity
 // (fieldOpacity, default 0), theme-aware selected tab fill; a text color setting
-// (textColorMode) shared with the other ZenDesktop mods; optional WindhawkBlur
-// glass on the Win11 desktop/Explorer context menu (contextMenuEnable /
-// contextMenuBlur), reusing tintPreset and tintOpacity. The rest of the code is
-// unchanged from upstream.
+// (textColorMode) shared with the other ZenDesktop mods; optional glass on the
+// Win11 desktop/Explorer context menu (contextMenuEnable / contextMenuBlur),
+// which replaces the menu's SystemBackdrop with an adjustable acrylic
+// controller (ZenAcrylicBackdrop, `<WindhawkAcrylicBackdrop .../>`), reusing
+// tintPreset and tintOpacity. The rest of the code is unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -55,7 +56,7 @@
 - 色调颜色可从 11 种预设中选择，也可以自定义颜色代码。
 - 地址栏与搜索框底色可调，适配浅色模式。
 - 文字颜色与其他 ZenDesktop mod 共用同一套选项。
-- 桌面与文件管理器的现代右键菜单可开玻璃效果（`WindhawkBlur`），色调沿用上方设置。
+- 桌面与文件管理器的现代右键菜单可开玻璃效果：替换菜单自带的系统亚克力，色调沿用上方设置，通透程度可调。
 - 改完设置后，已打开的文件管理器窗口立即刷新。
 
 ## 设置说明
@@ -67,8 +68,8 @@
 - **地址栏与搜索框不透明度**：范围 0–100，默认 0（完全透明），鼠标悬停时会稍亮一些。只对两款 ZenDesktop 主题生效。
 - **文字颜色**：WinUI 区域在任何主题下都生效；文件列表、列标题、导航栏、状态栏等传统区域只在背景效果覆盖整个窗口时生效，选「跟随系统」时保持系统颜色。
 - **浅色模式**：浅色模式下文件列表和导航栏的文字是深色的，色调建议使用「跟随系统」，避免深色色调配深色文字。
-- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单，用 `WindhawkBlur` 而不是 `AcrylicBrush`（后者在右键菜单上常会显示成白底）。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
-- **右键菜单：模糊**：仅在开启玻璃效果后生效，范围 0–60，默认 30。色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」。
+- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单（顶部图标行和下面的菜单项）。「新建」「查看」「排序方式」等展开的子菜单保持系统原样：它们的材质会被系统转交给弹出层、mod 无法安全收回，强改可能在关闭或更新 mod 后让资源管理器崩溃。菜单的毛玻璃是系统背景材质（SystemBackdrop），不是普通画刷，所以本项直接替换这层材质，色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
+- **右键菜单：磨砂程度**：仅在开启玻璃效果后生效，范围 0–60，默认 30。数值越小越通透，越大越接近系统原样的磨砂白/黑；0 为只有模糊和色调。系统材质的模糊半径固定，无法调整。
 - **高级：样式常量 / 控件样式 / 资源变量 / 顶部框架高度**：用于编写自定义样式，语法见下文「高级样式」。
 
 ## 兼容性与已知问题
@@ -80,19 +81,18 @@
 
 ## 更新日志
 
+- **1.6.1**：修复右键菜单玻璃完全不生效：菜单的毛玻璃是系统背景材质，旧版只在上面叠了一层几乎看不出的画刷；现改为直接替换这层材质（展开的子菜单暂不改）。「模糊」改名「磨砂程度」，设置键和默认值不变。
 - **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
 - **1.5.1**：规范设置界面与说明文字，行为不变。
 - **1.5.0**：新增文字颜色设置，与其他 ZenDesktop mod 一致。
 - **1.4.0**：新增地址栏与搜索框不透明度（0–100，默认 0）。
-- **1.3.0**：适配浅色模式，色调默认改为「跟随系统」。
-- **1.2.0**：色调颜色改为下拉选择。
 
 ## 致谢与许可
 
 - 原版 mod：[Windows 11 File Explorer Styler](https://windhawk.net/mods/windows-11-file-explorer-styler)，作者 [m417z](https://github.com/m417z)，GPL-3.0。原版源码：[windhawk-mods](https://github.com/ramensoftware/windhawk-mods/blob/main/mods/windows-11-file-explorer-styler.wh.cpp)、[m417z/my-windhawk-mods](https://github.com/m417z/my-windhawk-mods)。
 - ZenDesktop 修改（Lanbo）：新增两款 ZenDesktop 主题、可调色调颜色与不透明度（原版固定为 #232323、约 23%）、地址栏与搜索框底色、文字颜色和中文界面，其余代码与原版一致。
 - 内置主题由社区贡献，详见 [Windows 11 文件管理器美化指南](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide)。
-- 控件树监听基于 TranslucentTB 项目的 [ExplorerTAP](https://github.com/TranslucentTB/TranslucentTB/tree/develop/ExplorerTAP)，`WindhawkBlur` 画刷基于 TranslucentTB 的 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)，整窗半透明的 GDI alpha 渲染和 accent blur behind 设置基于 [Translucent Windows](https://windhawk.net/mods/translucent-windows) mod。
+- 控件树监听基于 TranslucentTB 项目的 [ExplorerTAP](https://github.com/TranslucentTB/TranslucentTB/tree/develop/ExplorerTAP)，`WindhawkBlur` 画刷基于 TranslucentTB 的 [XamlBlurBrush](https://github.com/TranslucentTB/TranslucentTB/blob/release/ExplorerTAP/XamlBlurBrush.cpp)，整窗半透明的 GDI alpha 渲染和 accent blur behind 设置基于 [Translucent Windows](https://windhawk.net/mods/translucent-windows) mod，右键菜单的可调系统材质参照 [microsoft-ui-xaml](https://github.com/microsoft/microsoft-ui-xaml) 的 DesktopAcrylicBackdrop（MIT）。
 - 本修改版同样以 GPL-3.0 发布。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
 
@@ -201,6 +201,8 @@ Float](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide/b
 每条样式写成 `Style=Value`，例如：`Height=5`。用 `:=` 可以写 XAML 语法，例如：`Fill:=<SolidColorBrush Color="Red"/>`。XAML 语法留空表示清除属性值，例如：`Fill:=`。另外还可以写成 `Style@VisualState=Value`，表示只在目标所指定的视觉状态组处于该状态时生效。
 
 在 XAML 语法中，除了系统自带的对象，mod 还提供了内置的模糊画刷 `WindhawkBlur`，支持 `BlurAmount`、`TintColor`、`TintOpacity`、`TintLuminosityOpacity`、`TintSaturation`、`NoiseOpacity`、`NoiseDensity` 和 `FallbackColor` 属性。例如：`Fill:=<WindhawkBlur BlurAmount="10" TintColor="#80FF00FF"/>`。`TintColor` 和 `FallbackColor` 也支持主题资源，例如：`Fill:=<WindhawkBlur BlurAmount="18" TintColor="{ThemeResource SystemAccentColorDark1}" TintOpacity="0.5"/>`。开启省电模式或在系统设置中关闭透明效果时，会用 `FallbackColor` 代替模糊效果。
+
+ZenDesktop 另外提供了 `WindhawkAcrylicBackdrop`，用于 `SystemBackdrop` 属性（右键菜单这类自带系统材质的弹出层；不建议用在 `MenuFlyoutPresenter` 上，原因见「右键菜单：玻璃效果」），支持 `TintColor`（透明度即色调不透明度）、`LuminosityOpacity`（0–1，磨砂程度）和 `FallbackColor`。例如：目标 `Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar`，样式 `SystemBackdrop:=<WindhawkAcrylicBackdrop TintColor="#40202020" LuminosityOpacity="0.3"/>`。这类弹出层的 `Background` 叠在系统材质上面，`WindhawkBlur` 采不到后面的内容，所以对它们无效。
 
 以两个斜杠（`//`）开头的目标和样式会被忽略，可以用来临时禁用某个目标或样式。
 
@@ -398,13 +400,13 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
 - contextMenuEnable: true
   $name: "Context menu glass"
   $name:zh-CN: "右键菜单：玻璃效果"
-  $description: "Apply WindhawkBlur glass to the Windows 11 desktop and File Explorer context menus. Uses the tint color and tint opacity above. Default: on."
-  $description:zh-CN: "给 Windows 11 桌面和文件管理器的现代右键菜单加上 WindhawkBlur 玻璃效果，色调沿用上方的色调颜色和不透明度。默认开启。"
+  $description: "Replace the system acrylic of the Windows 11 desktop and File Explorer context menus with adjustable glass. Submenus stay stock. Uses the tint color and tint opacity above. Default: on."
+  $description:zh-CN: "把 Windows 11 桌面和文件管理器现代右键菜单的系统亚克力换成可调的玻璃，色调沿用上方的色调颜色和不透明度；展开的子菜单保持原样。默认开启。"
 - contextMenuBlur: 30
-  $name: "Context menu: blur"
-  $name:zh-CN: "右键菜单：模糊"
-  $description: "Blur strength of the context menu glass, 0–60. Only applies when context menu glass is on. Default: 30."
-  $description:zh-CN: "右键菜单玻璃的模糊强度，范围 0–60。仅在开启「右键菜单：玻璃效果」后生效。默认 30。"
+  $name: "Context menu: frost"
+  $name:zh-CN: "右键菜单：磨砂程度"
+  $description: "Frost of the context menu glass, 0–60. Lower is clearer; 0 is blur and tint only. The system blur radius itself is fixed. Only applies when context menu glass is on. Default: 30."
+  $description:zh-CN: "右键菜单玻璃的磨砂程度，范围 0–60，越小越通透，0 为只有模糊和色调；系统材质的模糊半径固定。仅在开启「右键菜单：玻璃效果」后生效。默认 30。"
 - styleConstants: [""]
   $name: "Advanced: style constants"
   $name:zh-CN: "高级：样式常量"
@@ -2406,9 +2408,11 @@ using namespace std::string_view_literals;
 #include <windows.graphics.effects.h>
 #include <winstring.h>
 
+#include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
 #include <winrt/Microsoft.UI.Composition.h>
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Text.h>
+#include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Hosting.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
@@ -5730,6 +5734,99 @@ void TrackIfRemoteImageSource(
     SetupImageTracking(target, sourceProperty, bitmapImage, uri);
 }
 
+// ZenDesktop: CommandBarFlyoutCommandBar disconnects its old SystemBackdrop
+// whenever the property changes, without checking that the old one was ever
+// connected (microsoft-ui-xaml CommandBarFlyoutCommandBar::OnPropertyChanged).
+// The default backdrop is only connected once the control has a XamlRoot (in
+// its Loaded handler at the latest), and disconnecting a target that was never
+// connected erases a missing entry in SystemBackdrop's per-target list. So a
+// SystemBackdrop is only written to a loaded CommandBarFlyoutCommandBar; before
+// that, the write waits for Loaded. The control's own Loaded handler was
+// registered first, so the default is connected by the time ours runs.
+struct ZenPendingBackdrop {
+    winrt::weak_ref<FrameworkElement> element;
+    winrt::event_token loadedToken;
+};
+
+thread_local std::unordered_map<void*, ZenPendingBackdrop>
+    g_zenPendingBackdrops;
+
+void CancelZenPendingBackdrop(DependencyObject const& elementDo) {
+    auto it = g_zenPendingBackdrops.find(winrt::get_abi(elementDo));
+    if (it == g_zenPendingBackdrops.end()) {
+        return;
+    }
+
+    if (auto element = it->second.element.get()) {
+        element.Loaded(it->second.loadedToken);
+    }
+
+    g_zenPendingBackdrops.erase(it);
+}
+
+void CancelAllZenPendingBackdrops() {
+    for (auto& [key, pending] : g_zenPendingBackdrops) {
+        if (auto element = pending.element.get()) {
+            try {
+                element.Loaded(pending.loadedToken);
+            } catch (...) {
+            }
+        }
+    }
+
+    g_zenPendingBackdrops.clear();
+}
+
+// Returns true if the write was deferred.
+bool DeferSystemBackdropUntilLoaded(
+    DependencyObject const& elementDo,
+    DependencyProperty const& property,
+    winrt::Windows::Foundation::IInspectable const& value) {
+    auto commandBar = elementDo.try_as<
+        Controls::Primitives::CommandBarFlyoutCommandBar>();
+    if (!commandBar ||
+        property !=
+            Controls::Primitives::CommandBarFlyoutCommandBar::
+                SystemBackdropProperty() ||
+        commandBar.IsLoaded()) {
+        return false;
+    }
+
+    Wh_Log(L"Deferring SystemBackdrop until the menu is loaded");
+
+    void* key = winrt::get_abi(elementDo);
+    FrameworkElement element = commandBar;
+    winrt::weak_ref<FrameworkElement> elementWeak = element;
+    auto token = element.Loaded(
+        [key, elementWeak, property, value](
+            winrt::Windows::Foundation::IInspectable const&,
+            RoutedEventArgs const&) {
+            auto element = elementWeak.get();
+            auto it = g_zenPendingBackdrops.find(key);
+            if (!element || it == g_zenPendingBackdrops.end()) {
+                return;
+            }
+
+            element.Loaded(it->second.loadedToken);
+            g_zenPendingBackdrops.erase(it);
+
+            // Not an external change: keep the property changed callback from
+            // adopting this value as the original.
+            bool prevModifying = g_elementPropertyModifying;
+            g_elementPropertyModifying = true;
+            try {
+                element.SetValue(property, value);
+                Wh_Log(L"Applied deferred SystemBackdrop");
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"Error %08X: %s", ex.code(), ex.message().c_str());
+            }
+            g_elementPropertyModifying = prevModifying;
+        });
+
+    g_zenPendingBackdrops[key] = {elementWeak, token};
+    return true;
+}
+
 // Returns the value written, UnsetValue for a clear, so that callers can
 // record what they applied. Reading it back is not an option: while a visual
 // state has a setter on the property, ReadLocalValue keeps reporting the value
@@ -5739,6 +5836,9 @@ winrt::Windows::Foundation::IInspectable SetOrClearValue(
     DependencyProperty property,
     const PropertyOverrideValue& overrideValue,
     bool initialApply = false) {
+    // ZenDesktop: any later write or restore supersedes a deferred backdrop.
+    CancelZenPendingBackdrop(elementDo);
+
     winrt::Windows::Foundation::IInspectable value;
     if (auto* inspectable =
             std::get_if<winrt::Windows::Foundation::IInspectable>(
@@ -5852,7 +5952,9 @@ winrt::Windows::Foundation::IInspectable SetOrClearValue(
             value = clonedRows;
         }
 
-        elementDo.SetValue(property, value);
+        if (!DeferSystemBackdropUntilLoaded(elementDo, property, value)) {
+            elementDo.SetValue(property, value);
+        }
     } catch (winrt::hresult_error const& ex) {
         Wh_Log(L"Error %08X: %s", ex.code(), ex.message().c_str());
     }
@@ -5916,12 +6018,194 @@ std::vector<std::wstring_view> SplitStringView(std::wstring_view s,
     return res;
 }
 
+// ZenDesktop: a SystemBackdrop with adjustable acrylic parameters.
+//
+// The Windows 11 modern context menu (CommandBarFlyout) and its submenus
+// (MenuFlyoutPresenter) don't paint their acrylic with a XAML brush. Their
+// Background is DesktopAcrylicTransparentBrush (#00000000), and the visible
+// surface is the SystemBackdrop property (a DesktopAcrylicBackdrop), connected
+// through a ContentExternalBackdropLink into PrimaryItemsSystemBackdropRoot /
+// OverflowPopupSystemBackdropRoot. A XAML brush such as WindhawkBlur can't
+// sample that external backdrop, so it only adds a faint tint on top of the
+// unchanged system acrylic. Replacing the SystemBackdrop itself is what changes
+// the menu. This is DesktopAcrylicBackdrop (microsoft-ui-xaml, MIT) with the
+// controller's tint/luminosity exposed.
+class ZenAcrylicBackdrop : public Media::SystemBackdropT<ZenAcrylicBackdrop> {
+   public:
+    ZenAcrylicBackdrop(winrt::Windows::UI::Color tint,
+                       float tintOpacity,
+                       float luminosityOpacity,
+                       std::optional<winrt::Windows::UI::Color> fallbackColor)
+        : m_tint(tint),
+          m_tintOpacity(tintOpacity),
+          m_luminosityOpacity(luminosityOpacity),
+          m_fallbackColor(fallbackColor) {}
+
+    void OnTargetConnected(
+        muc::ICompositionSupportsSystemBackdrop const& target,
+        XamlRoot const& xamlRoot) {
+        // The base implementation registers the target for the default
+        // configuration (theme, input active state).
+        Media::ISystemBackdropOverridesT<ZenAcrylicBackdrop>::OnTargetConnected(
+            target, xamlRoot);
+
+        Entry entry{target, nullptr};
+        try {
+            muc::SystemBackdrops::DesktopAcrylicController controller;
+            controller.AddSystemBackdropTarget(target);
+            if (auto configuration =
+                    GetDefaultSystemBackdropConfiguration(target, xamlRoot)) {
+                controller.SetSystemBackdropConfiguration(configuration);
+            }
+
+            // Set after the configuration, so that the theme defaults don't
+            // win over the explicit values.
+            controller.TintColor(m_tint);
+            controller.TintOpacity(m_tintOpacity);
+            controller.LuminosityOpacity(m_luminosityOpacity);
+            if (m_fallbackColor) {
+                controller.FallbackColor(*m_fallbackColor);
+            }
+
+            entry.controller = std::move(controller);
+        } catch (winrt::hresult_error const& ex) {
+            Wh_Log(L"ZenAcrylicBackdrop: connect error %08X", ex.code());
+        }
+
+        m_entries.push_back(std::move(entry));
+        Wh_Log(L"ZenAcrylicBackdrop: target connected (%zu)",
+               m_entries.size());
+    }
+
+    void OnTargetDisconnected(
+        muc::ICompositionSupportsSystemBackdrop const& target) {
+        // Only targets which were connected: the base implementation can't
+        // handle an unknown one.
+        auto it = std::find_if(
+            m_entries.begin(), m_entries.end(),
+            [&target](const Entry& entry) { return entry.target == target; });
+        if (it == m_entries.end()) {
+            Wh_Log(L"ZenAcrylicBackdrop: ignoring unknown target");
+            return;
+        }
+
+        if (it->controller) {
+            try {
+                it->controller.RemoveSystemBackdropTarget(target);
+                it->controller.Close();
+            } catch (winrt::hresult_error const& ex) {
+                Wh_Log(L"ZenAcrylicBackdrop: disconnect error %08X",
+                       ex.code());
+            }
+        }
+
+        m_entries.erase(it);
+
+        Media::ISystemBackdropOverridesT<
+            ZenAcrylicBackdrop>::OnTargetDisconnected(target);
+
+        Wh_Log(L"ZenAcrylicBackdrop: target disconnected (%zu)",
+               m_entries.size());
+    }
+
+   private:
+    struct Entry {
+        muc::ICompositionSupportsSystemBackdrop target;
+        muc::SystemBackdrops::DesktopAcrylicController controller;
+    };
+
+    winrt::Windows::UI::Color m_tint;
+    float m_tintOpacity;
+    float m_luminosityOpacity;
+    std::optional<winrt::Windows::UI::Color> m_fallbackColor;
+    std::vector<Entry> m_entries;
+};
+
+// ZenDesktop: <WindhawkAcrylicBackdrop TintColor="#AARRGGBB"
+// LuminosityOpacity="0.5" FallbackColor="#AARRGGBB"/>, a value for the
+// SystemBackdrop property. The alpha of TintColor is the tint opacity.
+std::optional<winrt::Windows::Foundation::IInspectable>
+ParseZenAcrylicBackdropValue(std::wstring_view substr) {
+    constexpr auto kPrefix = L"<WindhawkAcrylicBackdrop"sv;
+    if (!substr.starts_with(kPrefix)) {
+        return std::nullopt;
+    }
+    substr = substr.substr(kPrefix.size());
+
+    constexpr auto kSuffix = L"/>"sv;
+    if (!substr.ends_with(kSuffix)) {
+        throw std::runtime_error("WindhawkAcrylicBackdrop: Bad suffix");
+    }
+    substr = substr.substr(0, substr.size() - kSuffix.size());
+
+    auto parseColor = [](std::wstring_view value) {
+        if (!value.starts_with(L'#') ||
+            (value.size() != 7 && value.size() != 9)) {
+            throw std::runtime_error(
+                "WindhawkAcrylicBackdrop: Unsupported color value");
+        }
+        bool hasAlpha = value.size() == 9;
+        auto valNum =
+            std::stoul(std::wstring(value.substr(1)), nullptr, 16);
+        uint8_t a = hasAlpha ? HIBYTE(HIWORD(valNum)) : 255;
+        uint8_t r = LOBYTE(HIWORD(valNum));
+        uint8_t g = HIBYTE(LOWORD(valNum));
+        uint8_t b = LOBYTE(LOWORD(valNum));
+        return winrt::Windows::UI::Color{a, r, g, b};
+    };
+
+    winrt::Windows::UI::Color tint{0x3A, 0x23, 0x23, 0x23};
+    float luminosityOpacity = 0.5f;
+    std::optional<winrt::Windows::UI::Color> fallbackColor;
+
+    for (auto prop : SplitStringView(substr, L" ")) {
+        prop = TrimStringView(prop);
+        if (prop.empty()) {
+            continue;
+        }
+
+        auto eq = prop.find(L'=');
+        if (eq == prop.npos || prop.size() < eq + 3 || prop[eq + 1] != L'"' ||
+            prop.back() != L'"') {
+            throw std::runtime_error("WindhawkAcrylicBackdrop: Bad property");
+        }
+
+        auto name = prop.substr(0, eq);
+        auto value = prop.substr(eq + 2, prop.size() - eq - 3);
+
+        if (name == L"TintColor") {
+            tint = parseColor(value);
+        } else if (name == L"LuminosityOpacity") {
+            luminosityOpacity =
+                std::clamp(std::stof(std::wstring(value)), 0.0f, 1.0f);
+        } else if (name == L"FallbackColor") {
+            fallbackColor = parseColor(value);
+        } else {
+            throw std::runtime_error(
+                "WindhawkAcrylicBackdrop: Unknown property");
+        }
+    }
+
+    float tintOpacity = tint.A / 255.0f;
+    tint.A = 255;
+
+    return winrt::make<ZenAcrylicBackdrop>(tint, tintOpacity,
+                                           luminosityOpacity, fallbackColor)
+        .as<winrt::Windows::Foundation::IInspectable>();
+}
+
 std::optional<PropertyOverrideValue> ParseNonXamlPropertyOverrideValue(
     std::wstring_view stringValue) {
     // Example:
     // <WindhawkBlur BlurAmount="10" TintColor="#FFFF0000"/>
 
     auto substr = TrimStringView(stringValue);
+
+    // ZenDesktop: a SystemBackdrop value, see ZenAcrylicBackdrop.
+    if (auto backdrop = ParseZenAcrylicBackdropValue(substr)) {
+        Wh_Log(L"%.*s", static_cast<int>(substr.length()), substr.data());
+        return PropertyOverrideValue{std::move(*backdrop)};
+    }
 
     constexpr auto kWindhawkBlurPrefix = L"<WindhawkBlur "sv;
     if (!substr.starts_with(kWindhawkBlurPrefix)) {
@@ -10091,6 +10375,9 @@ void UninitializeForCurrentThread() {
 
     g_elementsCustomizationRules.clear();
 
+    // ZenDesktop: no Loaded handler may outlive the mod.
+    CancelAllZenPendingBackdrops();
+
     UninitializeResourceVariables();
 
     g_initializedForThread = false;
@@ -11429,79 +11716,73 @@ int GetAccentGradientColor(std::optional<bool> darkTheme = std::nullopt) {
 }
 
 // ZenDesktop: glass for the Win11 XAML context menu (desktop right-click and
-// Explorer). Targets match the File Explorer styling guide and themes such as
-// WindowGlass / LiquidGlass. AcrylicBrush often paints an opaque white surface
-// on these menus; WindhawkBlur is the reliable path (m417z, discussion #3928).
+// Explorer). The menu's acrylic is a SystemBackdrop, not a XAML brush (see
+// ZenAcrylicBackdrop), so the glass is applied by replacing the SystemBackdrop
+// of CommandBarFlyoutCommandBar (the menu with the icon row and the item list)
+// with an acrylic controller using the ZenDesktop tint. contextMenuBlur controls the frost
+// (luminosity layer): the system acrylic blur radius itself is fixed.
 void ApplyZenContextMenuStyles() {
     if (!Wh_GetIntSetting(L"contextMenuEnable")) {
         return;
     }
 
-    int blur = Wh_GetIntSetting(L"contextMenuBlur");
-    blur = std::clamp(blur, 0, 60);
+    int frost = Wh_GetIntSetting(L"contextMenuBlur");
+    frost = std::clamp(frost, 0, 60);
 
-    // accentGradientColor / GetAccentGradientColor: AABBGGRR → #AARRGGBB.
-    int accent = GetAccentGradientColor();
+    bool dark = IsAppsDarkTheme();
+
+    // accentGradientColor / GetAccentGradientColor: AABBGGRR → #AARRGGBB. The
+    // alpha comes from tintOpacity.
+    int accent = GetAccentGradientColor(dark);
     unsigned a = (static_cast<unsigned>(accent) >> 24) & 0xFFu;
     unsigned b = (static_cast<unsigned>(accent) >> 16) & 0xFFu;
     unsigned g = (static_cast<unsigned>(accent) >> 8) & 0xFFu;
     unsigned r = static_cast<unsigned>(accent) & 0xFFu;
 
-    WCHAR tintHex[16];
-    swprintf_s(tintHex, L"#%02X%02X%02X%02X", a, r, g, b);
+    // Frost 0–60 → luminosity opacity 0.0–0.9. The stock menu is about 0.9+,
+    // so the default 30 (0.45) is clearly more see-through than the stock menu.
+    float luminosity = frost * 0.9f / 60.0f;
 
-    WCHAR bgBrush[192];
-    swprintf_s(bgBrush,
-               L"<WindhawkBlur BlurAmount=\"%d\" TintColor=\"%s\"/>", blur,
-               tintHex);
+    WCHAR backdrop[256];
+    swprintf_s(backdrop,
+               L"SystemBackdrop:=<WindhawkAcrylicBackdrop "
+               L"TintColor=\"#%02X%02X%02X%02X\" LuminosityOpacity=\"%.2f\" "
+               L"FallbackColor=\"%s\"/>",
+               a, r, g, b, luminosity, dark ? L"#FF2C2C2C" : L"#FFF9F9F9");
 
-    std::wstring background = L"Background:=" + std::wstring(bgBrush);
+    // On its own, so that a Windows build whose menu lacks the SystemBackdrop
+    // property only loses this one rule.
+    //
+    // Submenus (MenuFlyoutPresenter) are left alone on purpose: their
+    // SystemBackdrop is copied to the flyout's Popup on open, outside of what
+    // the restore logic tracks, and long-lived flyouts (e.g. File Explorer's
+    // command bar menus) would keep a reference to this mod's object after
+    // the mod is unloaded.
+    AddElementCustomizationRules(
+        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
+        {backdrop});
+
+    // The XAML background over the backdrop is #00000000 by default; make sure
+    // no build or theme paints it opaque.
+    AddElementCustomizationRules(
+        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
+        {L"Background=Transparent"});
+
+    // A light glass edge.
     std::wstring borderBrush =
-        L"BorderBrush:=<SolidColorBrush "
-        L"Color=\"{ThemeResource SystemChromeHighColor}\" Opacity=\"0.45\"/>";
-
-    std::vector<std::wstring> rootStyles = {
-        background,
-        L"BorderThickness=1",
-        borderBrush,
-        L"CornerRadius=8",
-    };
-
-    static constexpr PCWSTR kRoots[] = {
-        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
-        L"Grid#OuterOverflowContentRootV2 > Grid#OverflowContentRoot > "
-        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
-        L"MenuFlyoutPresenter > Border",
+        dark ? L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
+               L"Opacity=\"0.14\"/>"
+             : L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
+               L"Opacity=\"0.55\"/>";
+    AddElementCustomizationRules(
         L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar > "
         L"Grid#LayoutRoot > Grid#OuterContentRoot > Grid#ContentRoot > "
         L"Grid#PrimaryItemsRoot",
-        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter > "
-        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter",
-    };
-
-    for (PCWSTR target : kRoots) {
-        AddElementCustomizationRules(target, rootStyles);
-    }
-
+        {borderBrush});
     AddElementCustomizationRules(
         L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot > "
         L"Border",
-        {L"Background=Transparent", borderBrush});
-
-    std::vector<std::wstring> itemHover = {
-        L"Background@PointerOver:=<SolidColorBrush Color=\"#FFFFFF\" "
-        L"Opacity=\"0.08\"/>",
-        L"Background@Pressed:=<SolidColorBrush Color=\"#FFFFFF\" "
-        L"Opacity=\"0.12\"/>",
-        L"CornerRadius=4",
-    };
-    AddElementCustomizationRules(
-        L"CommandBarOverflowPresenter#SecondaryItemsControl "
-        L"Microsoft.UI.Xaml.Controls.AppBarButton",
-        itemHover);
-    AddElementCustomizationRules(
-        L"CommandBarOverflowPresenter Microsoft.UI.Xaml.Controls.AppBarButton",
-        itemHover);
+        {borderBrush});
 }
 
 // Based on the Translucent Windows mod.
