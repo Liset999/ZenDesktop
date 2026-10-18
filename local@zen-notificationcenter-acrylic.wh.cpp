@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.1.5
+// @version         4.2.0
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -38,10 +38,12 @@
 - 背景颜色、模糊、不透明度、亮度预设，可与内置主题搭配。
 - 内置自定义玻璃、液态玻璃等主题，保留原版经典主题。
 - 文字颜色与其他 ZenDesktop mod 共用同一套选项。
+- 浅色模式下自动垫一层白色底并加深文字，花哨壁纸上也看得清；深色模式不受影响。
 
 ## 设置说明
 
 - **主题**：默认「自定义玻璃」。标注「旧版」的为早期的白色/黑色毛玻璃主题。
+- **浅色模式：对比度增强**：系统为浅色模式时，在面板和通知卡片的模糊背景上叠一层白色（轻 45%、标准 58%、强 72%），并把主要文字调成近黑、次要文字调成深灰、日历里非本月的日期调到约 55% 黑，今天的强调色圆圈不变。白色底只在「背景颜色」为「主题默认」时生效（此时替代「不透明度」）；文字加深在「背景颜色」为「主题默认」或「透白」、且「文字颜色」为「主题默认」时生效。切换深色/浅色后会自动重新应用。默认为「标准」。
 - **高级：样式常量 / 控件样式 / 资源变量**：用于编写自定义样式，语法见文末附录。一般无需修改。
 
 ## 兼容性与已知问题
@@ -57,15 +59,16 @@
 - **其他**
   - 同一时间只能有一个程序使用 XAML 诊断（UWPSpy、同类 styler 等），冲突时可能完全无效果
   - 系统「透明度效果」关掉时，会走 `FallbackColor` 实色回退，看起来像没模糊
+  - 面板失去焦点时不会变成不透明实色：这里的模糊是 mod 自己画的 `WindhawkBlur`，不跟随窗口激活状态；只有开启节电模式或关掉系统「透明度效果」时才会退回实色
   - 4.1.2 曾把液态玻璃主题的括号写坏导致编不过；4.1.3 已修，并补上上游的 CompositionDiag 防护，减少部分系统上挂接失败 / 闪退
 
 ## 更新日志
 
+- **4.2.0**：新增「浅色模式：对比度增强」，浅色模式下给面板垫白色底、加深日历与通知文字，非本月日期也能看清；深色模式不变。
 - **4.1.5**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.1.3**：修复液态玻璃主题编译错误；移植上游 DisableCompositionDiag，减少部分 Win11 版本上 XAML 挂接失败；快捷设置窗口创建后补一次延迟重试；补充版本兼容说明。
 - **4.1.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/开始菜单对齐。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
-- **4.1.0**：随 ZenDesktop v4.1 发布。
 
 ## 致谢与许可
 
@@ -460,6 +463,16 @@ from the **TranslucentTB** project.
     - purple: "紫色"
     - pink: "粉色"
     - cyan: "青色"
+- lightModeContrast: "standard"
+  $name: "Light mode contrast"
+  $name:zh-CN: "浅色模式：对比度增强"
+  $description: "In light mode, adds a white tint layer behind the panels and notification cards and darkens text, so the calendar and notifications stay readable on busy wallpapers. The white layer applies only when Background color is Theme default and replaces Opacity there. Darker text applies when Background color is Theme default or Glass white and Text color is Theme default. Dark mode is not affected. Default: Standard."
+  $description:zh-CN: "系统为浅色模式时，在面板和通知卡片背后叠一层白色并加深文字，花哨壁纸上日历和通知也看得清。白色底仅在「背景颜色」为「主题默认」时生效，此时替代「不透明度」；文字加深在「背景颜色」为「主题默认」或「透白」且「文字颜色」为「主题默认」时生效。深色模式不受影响。默认为「标准」。"
+  $options:
+    - disabled: "关闭"
+    - soft: "轻：白色底 45%"
+    - standard: "标准：白色底 58%（推荐）"
+    - strong: "强：白色底 72%"
 - styleConstants: [""]
   $name: "Advanced: style constants"
   $name:zh-CN: "高级：样式常量"
@@ -8699,6 +8712,93 @@ void MergeResourceVariables() {
     }
 }
 
+// Light mode contrast ("lightModeContrast" setting). The shell flyouts follow
+// the Windows mode (SystemUsesLightTheme), not the app mode.
+bool IsSystemLightMode() {
+    DWORD value = 0;
+    DWORD size = sizeof(value);
+    LSTATUS status = RegGetValueW(
+        HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        L"SystemUsesLightTheme", RRF_RT_REG_DWORD, nullptr, &value, &size);
+    if (status != ERROR_SUCCESS) {
+        return false;
+    }
+    return value != 0;
+}
+
+struct LightContrastPreset {
+    float tintOpacity;
+    float luminosity;
+};
+
+// Returns nullopt when the feature is disabled.
+std::optional<LightContrastPreset> GetLightContrastPreset() {
+    PCWSTR mode = Wh_GetStringSetting(L"lightModeContrast");
+    std::optional<LightContrastPreset> result;
+    if (!mode || !*mode || wcscmp(mode, L"standard") == 0) {
+        result = LightContrastPreset{0.58f, 0.40f};
+    } else if (wcscmp(mode, L"soft") == 0) {
+        result = LightContrastPreset{0.45f, 0.30f};
+    } else if (wcscmp(mode, L"strong") == 0) {
+        result = LightContrastPreset{0.72f, 0.55f};
+    }
+    if (mode) {
+        Wh_FreeStringSetting(mode);
+    }
+    return result;
+}
+
+// Light mode state used by the last ProcessAllStylesFromSettings run, so the
+// theme watcher only reloads when it matters.
+std::atomic<bool> g_lightContrastActive{false};
+std::atomic<bool> g_lightContrastLastLight{false};
+
+void AddLightContrastTextRules() {
+    // Near-black for primary text, dark gray for secondary text. Out-of-month
+    // calendar days at ~55% black. Today's accent circle is left alone.
+    constexpr PCWSTR kPrimary = L"#FF1A1A1A";
+    constexpr PCWSTR kSecondary = L"#FF3D3D3D";
+    constexpr PCWSTR kTertiary = L"#FF4D4D4D";
+    constexpr PCWSTR kOutOfScope = L"#8C000000";
+
+    auto fg = [](PCWSTR color) {
+        return std::vector<std::wstring>{std::wstring(L"Foreground=") + color};
+    };
+
+    auto add = [](PCWSTR target, std::vector<std::wstring> styles) {
+        try {
+            AddElementCustomizationRules(target, std::move(styles));
+        } catch (winrt::hresult_error const& ex) {
+            Wh_Log(L"Light contrast rule error %08X", ex.code());
+        } catch (std::exception const& ex) {
+            Wh_Log(L"Light contrast rule error: %S", ex.what());
+        }
+    };
+
+    // Calendar.
+    add(L"CalendarView#CalendarControl",
+        {std::wstring(L"Foreground=") + kPrimary,
+         std::wstring(L"CalendarItemForeground=") + kPrimary,
+         std::wstring(L"OutOfScopeForeground=") + kOutOfScope});
+    add(L"Grid#WeekDayNames > TextBlock", fg(kPrimary));
+    add(L"Button#HeaderButton", fg(kPrimary));
+    add(L"Button#DateTextButtonWithClock", fg(kPrimary));
+    add(L"Button#ExpandCollapseButton", fg(kPrimary));
+    add(L"TextBlock#ClockWithMeridian", fg(kPrimary));
+
+    // Focus timer row.
+    add(L"TextBlock#DurationTextBlock", fg(kPrimary));
+    add(L"TextBlock#FocusingText", fg(kPrimary));
+
+    // Notification center.
+    add(L"TextBlock#NotificationsTextBlock", fg(kPrimary));
+    add(L"Grid#GroupTitleGrid > TextBlock#Title", fg(kPrimary));
+    add(L"StackPanel#TextContentPanel > TextBlock", fg(kSecondary));
+    add(L"TextBlock#TimeStamp", fg(kTertiary));
+    add(L"TextBlock#NoNotificationsTextBlock", fg(kSecondary));
+}
+
 void ProcessAllStylesFromSettings() {
     PCWSTR themeName = Wh_GetStringSetting(L"theme");
     const Theme* theme = nullptr;
@@ -8859,6 +8959,30 @@ void ProcessAllStylesFromSettings() {
 
     std::wstring finalColor = colorStr.empty() ? tintColor : colorStr;
 
+    // Light mode contrast: replace the (usually dark) theme tint with a white
+    // layer in light mode. Only for "Theme default" background, so an explicit
+    // color choice is respected. Dark mode keeps the exact previous brush.
+    bool bgIsDefault = wcscmp(bgMode, L"Default") == 0 || !*bgMode;
+    bool bgIsLightish = bgIsDefault || wcscmp(bgMode, L"GlassWhite") == 0;
+    auto lightPreset = GetLightContrastPreset();
+    bool systemLight = IsSystemLightMode();
+    g_lightContrastActive = lightPreset.has_value();
+    g_lightContrastLastLight = systemLight;
+    bool applyLightContrast = lightPreset && systemLight;
+    if (applyLightContrast && bgIsDefault) {
+        finalColor = L"#FFF7F7F9";
+        wchar_t buf[16];
+        swprintf_s(buf, L"%.2f", (double)lightPreset->tintOpacity);
+        opacityStr = buf;
+        float lum = std::max(lumVal >= 0 ? lumVal / 100.0f : 0.20f,
+                             lightPreset->luminosity);
+        swprintf_s(buf, L"%.2f", (double)lum);
+        lumStr = buf;
+        lumModified = true;
+        Wh_Log(L"Light mode contrast: white tint %s, luminosity %s",
+               opacityStr.c_str(), lumStr.c_str());
+    }
+
     if (blurVal == 0) {
         if (finalColor.starts_with(L"{ThemeResource")) {
             customBrush = L"<SolidColorBrush Color=\"" + finalColor + L"\" Opacity=\"" + opacityStr + L"\" />";
@@ -8913,7 +9037,9 @@ void ProcessAllStylesFromSettings() {
     }
 
     PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
-    if (textColorMode && *textColorMode && wcscmp(textColorMode, L"default") != 0) {
+    bool hasCustomTextColor = textColorMode && *textColorMode &&
+                              wcscmp(textColorMode, L"default") != 0;
+    if (hasCustomTextColor) {
         std::wstring newFgBrush;
         if (wcscmp(textColorMode, L"white") == 0) {
             newFgBrush = L"White";
@@ -8946,6 +9072,10 @@ void ProcessAllStylesFromSettings() {
             AddElementCustomizationRules(L"PathIcon", fgStyles);
             AddElementCustomizationRules(L"ContentPresenter", fgStyles);
         }
+    }
+
+    if (applyLightContrast && bgIsLightish && !hasCustomTextColor) {
+        AddLightContrastTextRules();
     }
     Wh_FreeStringSetting(textColorMode);
 
@@ -9552,6 +9682,90 @@ void StopStatsTimer() {
     }
 }
 
+void Wh_ModSettingsChanged();
+
+// Reapply styles when the Windows mode flips between light and dark, so the
+// light mode contrast layer follows the system theme without a mod reload.
+HANDLE g_themeWatchStopEvent;
+HANDLE g_themeWatchThread;
+
+DWORD WINAPI ThemeWatchThreadProc(LPVOID) {
+    HKEY key = nullptr;
+    if (RegOpenKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            0, KEY_NOTIFY | KEY_QUERY_VALUE, &key) != ERROR_SUCCESS) {
+        Wh_Log(L"Theme watcher: can't open Personalize key");
+        return 0;
+    }
+
+    HANDLE changeEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (!changeEvent) {
+        RegCloseKey(key);
+        return 0;
+    }
+
+    while (true) {
+        if (RegNotifyChangeKeyValue(key, FALSE, REG_NOTIFY_CHANGE_LAST_SET,
+                                    changeEvent, TRUE) != ERROR_SUCCESS) {
+            Wh_Log(L"Theme watcher: RegNotifyChangeKeyValue failed");
+            break;
+        }
+
+        HANDLE handles[] = {g_themeWatchStopEvent, changeEvent};
+        DWORD wait =
+            WaitForMultipleObjects(ARRAYSIZE(handles), handles, FALSE, INFINITE);
+        if (wait != WAIT_OBJECT_0 + 1) {
+            break;
+        }
+
+        // Let the theme switch settle before checking.
+        if (WaitForSingleObject(g_themeWatchStopEvent, 500) == WAIT_OBJECT_0) {
+            break;
+        }
+
+        bool light = IsSystemLightMode();
+        if (g_lightContrastActive && light != g_lightContrastLastLight) {
+            Wh_Log(L"Theme watcher: system mode is now %s, reapplying",
+                   light ? L"light" : L"dark");
+            Wh_ModSettingsChanged();
+        }
+    }
+
+    CloseHandle(changeEvent);
+    RegCloseKey(key);
+    return 0;
+}
+
+void StartThemeWatcher() {
+    if (g_themeWatchThread) {
+        return;
+    }
+    g_themeWatchStopEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    if (!g_themeWatchStopEvent) {
+        return;
+    }
+    g_themeWatchThread =
+        CreateThread(nullptr, 0, ThemeWatchThreadProc, nullptr, 0, nullptr);
+    if (!g_themeWatchThread) {
+        CloseHandle(g_themeWatchStopEvent);
+        g_themeWatchStopEvent = nullptr;
+    }
+}
+
+void StopThemeWatcher() {
+    if (g_themeWatchThread) {
+        SetEvent(g_themeWatchStopEvent);
+        WaitForSingleObject(g_themeWatchThread, 5000);
+        CloseHandle(g_themeWatchThread);
+        g_themeWatchThread = nullptr;
+    }
+    if (g_themeWatchStopEvent) {
+        CloseHandle(g_themeWatchStopEvent);
+        g_themeWatchStopEvent = nullptr;
+    }
+}
+
 BOOL Wh_ModInit() {
     Wh_Log(L">");
 
@@ -9631,6 +9845,8 @@ BOOL Wh_ModInit() {
 void Wh_ModAfterInit() {
     Wh_Log(L">");
 
+    StartThemeWatcher();
+
     bool initialize = false;
 
     for (auto hCoreWnd : GetCoreWnds()) {
@@ -9680,6 +9896,8 @@ void Wh_ModAfterInit() {
 
 void Wh_ModUninit() {
     Wh_Log(L">");
+
+    StopThemeWatcher();
 
     if (g_target == Target::ShellExperienceHost) {
         StopStatsTimer();
