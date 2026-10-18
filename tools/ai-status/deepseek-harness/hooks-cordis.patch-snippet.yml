@@ -1,0 +1,17 @@
+# DeepSeek Harness (dsh) - OPTIONAL hooks via the experimental Claude Code hook bridge.
+# 1) Install the bridge into the profile you use (example: the Web UI profile "web"):
+#      dsh plugin --profile web add @deepseek-ai/dsh-hooks-claude-code @deepseek-ai/dsh-hook-protocol
+# 2) Merge the "- insert:" item below into that PROFILE's patch file:
+#      %USERPROFILE%\.dsh\profiles\web\cordis.patch.yml
+#    Do NOT put it in the home-level %USERPROFILE%\.dsh\cordis.patch.yml: profiles without the
+#    bridge installed (for example Desktop) would then fail to load the row.
+# 3) Restart dsh. The bridge reads the hooks file once at startup.
+# Caveat: on Windows dsh runs hook commands through its sandboxed PowerShell executor. Under the
+# default "workspace-write" mode the sandbox only lets child processes write inside the workspace
+# and a private temp folder, so the hook may not be able to write the status file. Use the MCP
+# server (cordis.patch-snippet.yml) as the main way; see README.
+- insert:
+    - id: hooks-zen-status
+      name: '@deepseek-ai/dsh-hooks-claude-code'
+      config:
+        configPath: '__TOOLS_DIR_SQ__\snippets\deepseek-harness-hooks.json'

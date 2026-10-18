@@ -1,0 +1,23 @@
+# DeepSeek Harness (dsh) - zen-status MCP server.
+# Merge the "- insert:" item below into $DSH_HOME\cordis.patch.yml (default: %USERPROFILE%\.dsh\cordis.patch.yml).
+# The home-level file applies to every profile (dsh web, Desktop, headless ...). If the file already
+# exists, append this "- insert:" item to its list instead of replacing the file.
+# @deepseek-ai/dsh-mcp-client ships with dsh; nothing else to install. Paths are single-quoted YAML
+# (backslashes are literal). Restart dsh (or wait for config reload) and start a NEW session.
+- insert:
+    - id: mcp-zen-status
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: zen-status
+        transport: stdio
+        command: powershell.exe
+        args:
+          - '-NoProfile'
+          - '-ExecutionPolicy'
+          - 'Bypass'
+          - '-File'
+          - '__TOOLS_DIR_SQ__\zen-status-mcp.ps1'
+          - '-Agent'
+          - 'deepseek-harness'
+          - '-Name'
+          - 'DeepSeek Harness'
