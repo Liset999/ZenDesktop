@@ -14,6 +14,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# This helper lives in dev/; the mod sources are in the repository root.
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+
 function Write-DevStatus {
     param(
         [string]$Text,
@@ -75,7 +78,7 @@ function Resolve-WindhawkPaths {
         }
     }
 
-    foreach ($fallback in @("C:\Program Files\Windhawk", "$PSScriptRoot\Windhawk", $PSScriptRoot)) {
+    foreach ($fallback in @("C:\Program Files\Windhawk", "$RepoRoot\Windhawk", $RepoRoot)) {
         if (-not $windhawkDir -and (Test-Path (Join-Path $fallback "windhawk.exe"))) {
             $windhawkDir = $fallback
         }
@@ -125,7 +128,7 @@ function Get-ModSourcePath {
     param([string]$Id)
 
     $fileName = "$Id.wh.cpp"
-    $path = Join-Path $PSScriptRoot $fileName
+    $path = Join-Path $RepoRoot $fileName
     if (-not (Test-Path $path)) {
         throw "Source file not found: $path"
     }
