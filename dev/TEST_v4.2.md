@@ -4,7 +4,7 @@
 
 ## 第 0 轮：先看这里
 > 文件管理器透明请用 **ZenDesktop: 文件管理器美化**（`zen-explorer-styler`）。**不要**再注册 ExplorerBlurMica。
-> 若以前注册过：管理员运行 `ExplorerBlurMica\uninstall.cmd`，再重启。
+> 若以前注册过：管理员运行 `tools\uninstall-ExplorerBlurMica.bat`，再重启。
 
 ## 第 1 轮：基础包（不开任何可选项）
 - [ ] 运行 `deploy.bat`，不报错；**没有**弹出 ExplorerBlurMica 重新注册窗口

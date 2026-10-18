@@ -20,5 +20,5 @@
 
 3. **文件管理器透明（v4.2）**：
    - 产品路径是 Windhawk mod `local@zen-explorer-styler`，**不要**再引导用户安装或注册 ExplorerBlurMica。
-   - `deploy.ps1` **不得**重新注册 EBM，也不得静默篡改用户机器上残留的 EBM 注册（可提示用户自行 `uninstall.cmd`）。
+   - `deploy.ps1` **不得**重新注册 EBM，也不得静默篡改用户机器上残留的 EBM 注册（可提示用户自行运行 `tools/uninstall-ExplorerBlurMica.bat`）。
    - 注意 XAML 诊断接口：同一时间只能有一个使用者。styler 与残留的 EBM / 其他 Styler 类 mod 可能互相干扰；用户侧应卸掉 EBM 后再用 styler。

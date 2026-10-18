@@ -61,7 +61,7 @@
 
 ### 7. 📁 File Explorer Styler (`local@zen-explorer-styler` / `ZenDesktop: 文件管理器美化`)
 * Windhawk mod for translucent File Explorer (command bar, address bar, tabs) with adjustable tint and text color, plus optional WindhawkBlur glass on the Win11 desktop/Explorer context menu.
-* **Do not install ExplorerBlurMica alongside it.** If you registered it before, unregister it with its own `uninstall.cmd` (as Administrator), then enable this mod.
+* **Do not install ExplorerBlurMica alongside it.** If you registered it before (e.g. from v4.1), run `tools/uninstall-ExplorerBlurMica.bat` first (it asks for admin rights and restarts Explorer), then enable this mod.
 
 ---
 
@@ -117,7 +117,7 @@
 
 ### Step 3: Configure via Windhawk UI
 1. In the **Windhawk** UI, open each mod's **Settings** page to customize visual options in real-time.
-2. Enable **ZenDesktop: 文件管理器美化** (`zen-explorer-styler`) in Windhawk. If ExplorerBlurMica was registered before, uninstall it first.
+2. Enable **ZenDesktop: 文件管理器美化** (`zen-explorer-styler`) in Windhawk. If ExplorerBlurMica was registered before (v4.1), run `tools/uninstall-ExplorerBlurMica.bat` first.
 
 ---
 
@@ -153,7 +153,7 @@
 | 果冻窗口（可选） | 拖动窗口时像果冻一样晃动 |
 | 窗口动画（可选） | 关窗、最小化、还原、启动动画 |
 
-文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先用它自带的 `uninstall.cmd`（管理员运行）取消注册，再启用。
+文件管理器美化不要和 ExplorerBlurMica 同时使用。若以前注册过 ExplorerBlurMica，请先运行 `tools/uninstall-ExplorerBlurMica.bat` 卸载，再启用。
 
 ### 卸载与恢复
 
@@ -171,13 +171,15 @@
 1. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 `dwm.exe`，排除列表加了一些游戏和反作弊进程。卸载脚本不会改动这两个列表，想还原请在那里手动删掉。
 2. 接过 AI 状态的，把当时粘贴到各 AI 助手配置里的 `zen-status` 片段删掉。
 
+**从 v4.1 升级**：先双击 **`tools/uninstall-ExplorerBlurMica.bat`**，在权限提示里点「是」，卸载旧版 ExplorerBlurMica（EBM）。它会取消注册 EBM 的 DLL、清掉相关注册表项并重启资源管理器。然后再运行 `deploy.bat`。v4.2 的文件管理器透明由「文件管理器美化」mod 负责，不再需要 EBM。
+
 只想暂时停用的话，在 Windhawk「已安装的 Mod」里把对应 mod 关掉即可，然后运行 `restart_explorer.bat`（或重启电脑）。
 
 ---
 
 ## 🩺 常见问题 / Troubleshooting
 
-- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 ExplorerBlurMica，先用它自带的 `uninstall.cmd` 取消注册再重启。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
+- **文件管理器不透明 / 命令栏发黑**：请只用 `zen-explorer-styler`，不要同时开 ExplorerBlurMica。若仍注册着 ExplorerBlurMica，先运行 `tools/uninstall-ExplorerBlurMica.bat` 卸载。浅色模式地址栏不透时，在 styler 设置里检查色调预设与「字段不透明度」。
 
 ## 📄 License / 许可证
 
