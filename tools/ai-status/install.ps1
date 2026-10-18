@@ -40,8 +40,44 @@ if ($exeCmd.Contains(' ')) {
     if (-not $exeCmd -or $exeCmd.Contains(' ')) { $exeCmd = '"' + $exeDst + '"' }
 }
 
+# Antigravity 2.24.0 (Windows) splits a hook command on whitespace and does NOT strip quotes, so
+#   powershell.exe ... -File "C:\...\agent-hook.ps1" ...
+# hands PowerShell a path that still has the quotes ("-File: invalid path", exit 0xfffd0000). It then
+# puts the (GBK) stderr into a protobuf UTF-8 field ("invalid UTF-8") and kills the whole agent task.
+# So Antigravity hook commands must contain NO quotes: use the plain path, or the 8.3 short path when
+# the path has spaces. If spaces remain (8.3 names disabled on that volume), warn.
+function Get-ShortPathNoQuotes([string]$p, [switch]$Folder) {
+    if (-not $p.Contains(' ')) { return $p }
+    $s = $null
+    try {
+        $fso = New-Object -ComObject Scripting.FileSystemObject
+        if ($Folder) { $s = $fso.GetFolder($p).ShortPath } else { $s = $fso.GetFile($p).ShortPath }
+    } catch { $s = $null }
+    if (-not $s -or $s.Contains(' ')) {
+        try {
+            $o = & cmd.exe /d /c ('for %I in ("' + $p + '") do @echo %~sI') 2>$null
+            if ($o) { $s = ([string]($o | Select-Object -First 1)).Trim() }
+        } catch { $s = $null }
+    }
+    if (-not $s) { $s = $p }
+    return $s
+}
+$agyExeCmd = $exeDst
+if (Test-Path -LiteralPath $exeDst) { $agyExeCmd = Get-ShortPathNoQuotes $exeDst }
+$hookDirCmd = Get-ShortPathNoQuotes $dst -Folder
+if ($useExe -and $agyExeCmd.Contains(' ')) {
+    Write-Host ('WARNING: Antigravity hooks cannot quote paths and this path still has spaces (8.3 names disabled?): ' + $agyExeCmd)
+    Write-Host '         Put the tools in a folder without spaces, or the Antigravity hooks will fail.'
+}
+if ((-not $useExe) -and $hookDirCmd.Contains(' ')) {
+    Write-Host ('WARNING: Antigravity hooks cannot quote paths and this path still has spaces (8.3 names disabled?): ' + $hookDirCmd)
+    Write-Host '         Use zen-status.exe from a folder without spaces, or the Antigravity hooks will fail.'
+}
+
 $jsonPath = $dst.Replace('\', '\\')
 $jsonExe = $exeCmd.Replace('\', '\\').Replace('"', '\"')
+$jsonAgyExe = $agyExeCmd.Replace('\', '\\')
+$jsonHookDir = $hookDirCmd.Replace('\', '\\')
 $utf8 = New-Object Text.UTF8Encoding $false
 if ($useExe) { $sfx = '' } else { $sfx = '-powershell' }
 $map = @(
@@ -54,7 +90,7 @@ $map = @(
 )
 foreach ($m in $map) {
     $text = [IO.File]::ReadAllText((Join-Path $src $m[0]), [Text.Encoding]::UTF8)
-    $text = $text.Replace('__ZEN_EXE__', $jsonExe).Replace('__TOOLS_DIR_RAW__', $dst).Replace('__TOOLS_DIR__', $jsonPath)
+    $text = $text.Replace('__AGY_EXE__', $jsonAgyExe).Replace('__HOOK_DIR__', $jsonHookDir).Replace('__ZEN_EXE__', $jsonExe).Replace('__TOOLS_DIR_RAW__', $dst).Replace('__TOOLS_DIR__', $jsonPath)
     [IO.File]::WriteAllText((Join-Path $snip $m[1]), $text, $utf8)
 }
 Copy-Item -LiteralPath (Join-Path $src 'AGENTS-snippet.md') -Destination $snip -Force

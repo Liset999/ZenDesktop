@@ -3,14 +3,14 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "__ZEN_EXE__ hook antigravity --event SessionStart",
+        "command": "__AGY_EXE__ hook antigravity --event SessionStart",
         "timeout": 5
       }
     ],
     "PreInvocation": [
       {
         "type": "command",
-        "command": "__ZEN_EXE__ hook antigravity --event PreInvocation",
+        "command": "__AGY_EXE__ hook antigravity --event PreInvocation",
         "timeout": 5
       }
     ],
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__ZEN_EXE__ hook antigravity --event PreToolUse",
+            "command": "__AGY_EXE__ hook antigravity --event PreToolUse",
             "timeout": 5
           }
         ]
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "__ZEN_EXE__ hook antigravity --event PostToolUse",
+            "command": "__AGY_EXE__ hook antigravity --event PostToolUse",
             "timeout": 5
           }
         ]
@@ -41,7 +41,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "__ZEN_EXE__ hook antigravity --event Stop",
+        "command": "__AGY_EXE__ hook antigravity --event Stop",
         "timeout": 5
       }
     ]
