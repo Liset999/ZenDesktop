@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.2
+// @version         1.6.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -29,9 +29,11 @@
 // (fieldOpacity, default 0), theme-aware selected tab fill; a text color setting
 // (textColorMode) shared with the other ZenDesktop mods; optional glass on the
 // Win11 desktop/Explorer context menu (contextMenuEnable / contextMenuBlur),
-// which replaces the menu's SystemBackdrop with an adjustable acrylic
-// controller (ZenAcrylicBackdrop, `<WindhawkAcrylicBackdrop .../>`), reusing
-// tintPreset and tintOpacity. The rest of the code is unchanged from upstream.
+// which replaces each menu's SystemBackdrop in code with an adjustable acrylic
+// controller (ZenAcrylicBackdrop; `<WindhawkAcrylicBackdrop .../>` for style
+// rules), reusing tintPreset and tintOpacity, and initializes a thread on its
+// first reported element when no recognized window was created on it (tracked
+// for the restore). The rest of the code is unchanged from upstream.
 //
 // For bug reports and feature requests of the original mod, please open an
 // issue here:
@@ -68,8 +70,8 @@
 - **地址栏与搜索框不透明度**：范围 0–100，默认 0（完全透明），鼠标悬停时会稍亮一些。只对两款 ZenDesktop 主题生效。
 - **文字颜色**：WinUI 区域在任何主题下都生效；文件列表、列标题、导航栏、状态栏等传统区域只在背景效果覆盖整个窗口时生效，选「跟随系统」时保持系统颜色。
 - **浅色模式**：浅色模式下文件列表和导航栏的文字是深色的，色调建议使用「跟随系统」，避免深色色调配深色文字。
-- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单（顶部图标行和下面的菜单项）。「新建」「查看」「排序方式」等展开的子菜单保持系统原样：它们的材质会被系统转交给弹出层、mod 无法安全收回，强改可能在关闭或更新 mod 后让资源管理器崩溃。菜单的毛玻璃是系统背景材质（SystemBackdrop），不是普通画刷，所以本项直接替换这层材质，色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
-- **右键菜单：磨砂程度**：仅在开启玻璃效果后生效，范围 0–60，默认 30。数值越小越通透，越大越接近系统原样的磨砂白/黑；0 为只有模糊和色调。系统材质的模糊半径固定，无法调整。
+- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单（顶部图标行和下面的菜单项）。「新建」「查看」「排序方式」等展开的子菜单保持系统原样：它们的材质会被系统转交给弹出层、mod 无法安全收回，强改可能在关闭或更新 mod 后让资源管理器崩溃。菜单的毛玻璃是系统背景材质（SystemBackdrop），不是普通画刷，在上面叠画刷看不出区别，所以本项直接替换这层材质，色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」，边框保持系统原样。开启或修改后需要重新打开菜单才生效。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
+- **右键菜单：磨砂程度**：仅在开启玻璃效果后生效，范围 0–60，默认 30。数值越小越通透，越大越磨砂（系统原样大约相当于 90，所以 60 仍比原版通透）；0 为只有模糊和色调。系统材质的模糊半径固定，无法调整。
 - **高级：样式常量 / 控件样式 / 资源变量 / 顶部框架高度**：用于编写自定义样式，语法见下文「高级样式」。
 
 ## 兼容性与已知问题
@@ -81,12 +83,11 @@
 
 ## 更新日志
 
-- **1.6.2**：修复右键菜单玻璃因 WinUI 2.8 缺少 SystemBackdrop 导致解析失败、以及浮动弹窗线程未初始化的问题；改用稳定的 WindhawkBlur 材质与浮动窗口检测。
-- **1.6.1**：修复右键菜单玻璃完全不生效：菜单的毛玻璃是系统背景材质，旧版只在上面叠了一层几乎看不出的画刷；现改为直接替换这层材质（展开的子菜单暂不改）。「模糊」改名「磨砂程度」，设置键和默认值不变。
+- **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
+- **1.6.2**：尝试用 WindhawkBlur 画刷做右键菜单玻璃（实际只是在系统亚克力上叠了一层色调和描边，已在 1.6.3 撤回）。
+- **1.6.1**：右键菜单玻璃改为替换菜单的系统背景材质。「模糊」改名「磨砂程度」，设置键和默认值不变。
 - **1.6.0**：新增右键菜单玻璃效果（可开关、可调模糊），色调沿用色调颜色/不透明度。
-- **1.5.1**：规范设置界面与说明文字，行为不变。
 - **1.5.0**：新增文字颜色设置，与其他 ZenDesktop mod 一致。
-- **1.4.0**：新增地址栏与搜索框不透明度（0–100，默认 0）。
 
 ## 致谢与许可
 
@@ -1853,6 +1854,9 @@ void CleanupCustomizations(ElementId elementId);
 void QueueDiagnosticsRelease(InstanceHandle handle);
 void FlushDiagnosticsReleasesIfQuiet();
 void InitializeForCurrentThread();
+void ZenNoteLazyInitThread();
+void ZenContextMenuOnElementAdded(
+    winrt::Microsoft::UI::Xaml::FrameworkElement const& element);
 
 HMODULE GetCurrentModuleHandle() {
     HMODULE module;
@@ -2077,7 +2081,21 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
 
     if (!g_initializedForThread)
     {
+        // ZenDesktop: the desktop context menu can be built on a thread which
+        // never created a window the mod recognizes (the TAP is per process,
+        // so its elements are reported anyway). Upstream skips such threads,
+        // which left the menu completely unstyled. The thread is initialized
+        // on its first element and remembered, so that unloading the mod also
+        // restores it (see GetTargetWnds).
+        if (!g_initialized)
+        {
+            return S_OK;
+        }
+
+        Wh_Log(L"Initializing for thread %u on its first element",
+               GetCurrentThreadId());
         InitializeForCurrentThread();
+        ZenNoteLazyInitThread();
     }
 
     // Caught here rather than by the handler below, so that the bookkeeping
@@ -2101,6 +2119,8 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
                 {
                     ApplyCustomizations(elementId, frameworkElement, element.Type);
                 }
+
+                ZenContextMenuOnElementAdded(frameworkElement);
             }
             else
             {
@@ -6193,6 +6213,195 @@ ParseZenAcrylicBackdropValue(std::wstring_view substr) {
     return winrt::make<ZenAcrylicBackdrop>(tint, tintOpacity,
                                            luminosityOpacity, fallbackColor)
         .as<winrt::Windows::Foundation::IInspectable>();
+}
+
+// ZenDesktop: context menu glass (contextMenuEnable / contextMenuBlur).
+//
+// The menu's acrylic is CommandBarFlyoutCommandBar.SystemBackdrop, so the
+// glass is a ZenAcrylicBackdrop written to that property of each menu. It's
+// written in code, not through a style rule: that way it doesn't depend on the
+// XAML parser resolving the property, every step can be logged, and the value
+// which was replaced is known exactly for the restore.
+//
+// The write waits for the menu's Loaded event: the control connects its
+// default backdrop in its own Loaded handler (registered first), and replacing
+// a backdrop which was never connected corrupts the old backdrop's target list
+// (see DeferSystemBackdropUntilLoaded).
+struct ZenContextMenuParams {
+    bool enabled = false;
+    winrt::Windows::UI::Color tint{};
+    float tintOpacity = 0;
+    float luminosityOpacity = 0;
+    winrt::Windows::UI::Color fallback{};
+};
+
+thread_local ZenContextMenuParams g_zenContextMenuParams;
+
+struct ZenContextMenuEntry {
+    winrt::weak_ref<Controls::Primitives::CommandBarFlyoutCommandBar> menu;
+    winrt::event_token loadedToken{};
+    bool applied = false;
+    winrt::Windows::Foundation::IInspectable originalValue{nullptr};
+    winrt::Windows::Foundation::IInspectable backdrop{nullptr};
+};
+
+// Keyed by the menu's ABI pointer; an entry whose menu is gone is replaced
+// when another object is allocated at the same address.
+thread_local std::unordered_map<void*, ZenContextMenuEntry> g_zenContextMenus;
+
+void ZenContextMenuApply(
+    Controls::Primitives::CommandBarFlyoutCommandBar const& menu,
+    ZenContextMenuEntry& entry) {
+    if (entry.applied) {
+        return;
+    }
+
+    const auto& params = g_zenContextMenuParams;
+    auto property =
+        Controls::Primitives::CommandBarFlyoutCommandBar::SystemBackdropProperty();
+
+    if (!menu.SystemBackdrop()) {
+        // Nothing for the glass to replace: the template only places the
+        // backdrop when the menu had one from the start.
+        Wh_Log(L"[ctxmenu] menu has no system backdrop, left as is");
+        return;
+    }
+
+    auto original = menu.ReadLocalValue(property);
+    auto backdrop =
+        winrt::make<ZenAcrylicBackdrop>(params.tint, params.tintOpacity,
+                                        params.luminosityOpacity,
+                                        params.fallback)
+            .as<winrt::Windows::Foundation::IInspectable>();
+
+    menu.SetValue(property, backdrop);
+
+    entry.applied = true;
+    entry.originalValue = original;
+    entry.backdrop = backdrop;
+
+    Wh_Log(L"[ctxmenu] glass applied: tint #%02X%02X%02X, tint opacity %.2f, "
+           L"frost %.2f",
+           params.tint.R, params.tint.G, params.tint.B, params.tintOpacity,
+           params.luminosityOpacity);
+}
+
+void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
+    if (!g_zenContextMenuParams.enabled) {
+        return;
+    }
+
+    auto menu =
+        element.try_as<Controls::Primitives::CommandBarFlyoutCommandBar>();
+    if (!menu) {
+        return;
+    }
+
+    try {
+        void* key = winrt::get_abi(menu);
+        if (auto it = g_zenContextMenus.find(key);
+            it != g_zenContextMenus.end()) {
+            if (it->second.menu.get() == menu) {
+                return;  // Already handled.
+            }
+            g_zenContextMenus.erase(it);
+        }
+
+        // Drop entries of menus which are gone.
+        if (g_zenContextMenus.size() >= 32) {
+            for (auto it = g_zenContextMenus.begin();
+                 it != g_zenContextMenus.end();) {
+                it = it->second.menu.get() ? std::next(it)
+                                           : g_zenContextMenus.erase(it);
+            }
+        }
+
+        auto& entry = g_zenContextMenus[key];
+        entry.menu = menu;
+
+        if (menu.IsLoaded()) {
+            Wh_Log(L"[ctxmenu] menu found (loaded)");
+            ZenContextMenuApply(menu, entry);
+            return;
+        }
+
+        Wh_Log(L"[ctxmenu] menu found, waiting for it to load");
+        entry.loadedToken = menu.Loaded(
+            [key](winrt::Windows::Foundation::IInspectable const& sender,
+                  RoutedEventArgs const&) {
+                auto it = g_zenContextMenus.find(key);
+                if (it == g_zenContextMenus.end()) {
+                    return;
+                }
+
+                auto menu = it->second.menu.get();
+                if (!menu || winrt::get_abi(menu) != winrt::get_abi(
+                                 sender.try_as<Controls::Primitives::
+                                                   CommandBarFlyoutCommandBar>())) {
+                    return;
+                }
+
+                try {
+                    menu.Loaded(it->second.loadedToken);
+                    it->second.loadedToken = {};
+                    ZenContextMenuApply(menu, it->second);
+                } catch (winrt::hresult_error const& ex) {
+                    Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
+                           ex.message().c_str());
+                }
+            });
+    } catch (winrt::hresult_error const& ex) {
+        Wh_Log(L"[ctxmenu] error %08X: %s", ex.code(), ex.message().c_str());
+    }
+}
+
+void ZenContextMenuRestoreAll() {
+    // Detached first: restoring runs XAML work which may re-enter.
+    auto menus = std::move(g_zenContextMenus);
+    g_zenContextMenus.clear();
+
+    size_t restored = 0;
+    for (auto& [key, entry] : menus) {
+        auto menu = entry.menu.get();
+        if (!menu) {
+            continue;
+        }
+
+        try {
+            if (entry.loadedToken) {
+                menu.Loaded(entry.loadedToken);
+            }
+
+            if (!entry.applied) {
+                continue;
+            }
+
+            auto property = Controls::Primitives::CommandBarFlyoutCommandBar::
+                SystemBackdropProperty();
+
+            // Only if it's still ours: something else may have replaced it.
+            if (menu.ReadLocalValue(property) != entry.backdrop) {
+                continue;
+            }
+
+            if (!entry.originalValue ||
+                entry.originalValue == DependencyProperty::UnsetValue()) {
+                menu.ClearValue(property);
+            } else {
+                menu.SetValue(property, entry.originalValue);
+            }
+            restored++;
+        } catch (winrt::hresult_error const& ex) {
+            Wh_Log(L"[ctxmenu] restore error %08X: %s", ex.code(),
+                   ex.message().c_str());
+        }
+    }
+
+    g_zenContextMenuParams = {};
+
+    if (restored) {
+        Wh_Log(L"[ctxmenu] restored %zu menu(s)", restored);
+    }
 }
 
 std::optional<PropertyOverrideValue> ParseNonXamlPropertyOverrideValue(
@@ -10379,6 +10588,10 @@ void UninitializeForCurrentThread() {
     // ZenDesktop: no Loaded handler may outlive the mod.
     CancelAllZenPendingBackdrops();
 
+    // ZenDesktop: give every context menu its own backdrop back, so that no
+    // menu keeps an object of this mod after it's unloaded.
+    ZenContextMenuRestoreAll();
+
     UninitializeResourceVariables();
 
     g_initializedForThread = false;
@@ -10429,9 +10642,11 @@ TargetWindowType GetTargetWindowType(HWND hWnd) {
         return TargetWindowType::FileExplorer;
     }
 
-    // Used by desktop and File Explorer modern context menus and flyouts.
-    if (_wcsicmp(className, L"Xaml_WindowedPopupClass") == 0 ||
-        _wcsicmp(className, L"XamlExplorerHostIslandWindow") == 0 ||
+    // Used by the desktop context menu. ZenDesktop: XamlExplorerHostIslandWindow
+    // too, which some builds use for it. (Xaml_WindowedPopupClass, added in
+    // 1.6.2, is a Windows.UI.Xaml popup, e.g. of the taskbar, which this
+    // WinUI 3 mod can't style; it's no longer matched.)
+    if (_wcsicmp(className, L"XamlExplorerHostIslandWindow") == 0 ||
         _wcsicmp(className, L"XamlExplorerHostIslandWindow_WASDK") == 0) {
         return TargetWindowType::XamlExplorerHost;
     }
@@ -11719,13 +11934,15 @@ int GetAccentGradientColor(std::optional<bool> darkTheme = std::nullopt) {
 }
 
 // ZenDesktop: glass for the Win11 XAML context menu (desktop right-click and
-// Explorer). The menu's acrylic is a SystemBackdrop, not a XAML brush (see
-// ZenAcrylicBackdrop), so the glass is applied by replacing the SystemBackdrop
-// of CommandBarFlyoutCommandBar (the menu with the icon row and the item list)
-// with an acrylic controller using the ZenDesktop tint. contextMenuBlur controls the frost
-// (luminosity layer): the system acrylic blur radius itself is fixed.
+// Explorer). The menu's acrylic is its SystemBackdrop, not a XAML brush, so
+// the glass is a ZenAcrylicBackdrop written to each menu in code (see
+// ZenContextMenuOnElementAdded); this only prepares the parameters for the
+// thread. No border or background rules: the menu keeps the stock edge.
 void ApplyZenContextMenuStyles() {
+    g_zenContextMenuParams = {};
+
     if (!Wh_GetIntSetting(L"contextMenuEnable")) {
+        Wh_Log(L"[ctxmenu] context menu glass is off");
         return;
     }
 
@@ -11734,63 +11951,27 @@ void ApplyZenContextMenuStyles() {
 
     bool dark = IsAppsDarkTheme();
 
+    // AABBGGRR. The alpha comes from tintOpacity.
     int accent = GetAccentGradientColor(dark);
     unsigned a = (static_cast<unsigned>(accent) >> 24) & 0xFFu;
     unsigned b = (static_cast<unsigned>(accent) >> 16) & 0xFFu;
     unsigned g = (static_cast<unsigned>(accent) >> 8) & 0xFFu;
     unsigned r = static_cast<unsigned>(accent) & 0xFFu;
 
-    if (a == 0) {
-        a = dark ? 0x24 : 0x14;
-    }
+    auto& params = g_zenContextMenuParams;
+    params.enabled = true;
+    params.tint = {0xFF, static_cast<uint8_t>(r), static_cast<uint8_t>(g),
+                   static_cast<uint8_t>(b)};
+    params.tintOpacity = a / 255.0f;
+    // Frost 0-60 -> luminosity opacity 0.0-0.6. The stock menu is about
+    // 0.85-0.96, which is what makes it look milky; the default 30 (0.30) is
+    // clear glass, close to the Start menu of ZenDesktop.
+    params.luminosityOpacity = frost / 100.0f;
+    params.fallback = dark ? winrt::Windows::UI::Color{0xFF, 0x2C, 0x2C, 0x2C}
+                           : winrt::Windows::UI::Color{0xFF, 0xF9, 0xF9, 0xF9};
 
-    WCHAR tintHex[16];
-    swprintf_s(tintHex, L"#%02X%02X%02X%02X", a, r, g, b);
-
-    WCHAR bgBrush[192];
-    swprintf_s(bgBrush,
-               L"<WindhawkBlur BlurAmount=\"%d\" TintColor=\"%s\"/>", frost,
-               tintHex);
-
-    std::wstring background = L"Background:=" + std::wstring(bgBrush);
-
-    std::wstring borderBrush =
-        dark ? L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
-               L"Opacity=\"0.14\"/>"
-             : L"BorderBrush:=<SolidColorBrush Color=\"#FFFFFF\" "
-               L"Opacity=\"0.55\"/>";
-
-    std::vector<std::wstring> rootStyles = {
-        background,
-        L"BorderThickness=1",
-        borderBrush,
-        L"CornerRadius=8",
-    };
-
-    static constexpr PCWSTR kRoots[] = {
-        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
-        L"Grid#OuterOverflowContentRootV2 > Grid#OverflowContentRoot > "
-        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot",
-        L"MenuFlyoutPresenter > Border",
-        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar > "
-        L"Grid#LayoutRoot > Grid#OuterContentRoot > Grid#ContentRoot > "
-        L"Grid#PrimaryItemsRoot",
-        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter > "
-        L"Microsoft.UI.Xaml.Controls.CommandBarOverflowPresenter",
-    };
-
-    for (PCWSTR target : kRoots) {
-        AddElementCustomizationRules(target, rootStyles);
-    }
-
-    AddElementCustomizationRules(
-        L"Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar",
-        {L"Background=Transparent"});
-
-    AddElementCustomizationRules(
-        L"CommandBarOverflowPresenter#SecondaryItemsControl > Grid#LayoutRoot > "
-        L"Border",
-        {borderBrush});
+    Wh_Log(L"[ctxmenu] context menu glass on (thread %u)",
+           GetCurrentThreadId());
 }
 
 // Based on the Translucent Windows mod.
@@ -12227,6 +12408,15 @@ bool RunFromWindowThread(HWND hWnd,
     return true;
 }
 
+// ZenDesktop: threads initialized on their first element.
+std::mutex g_zenLazyInitThreadsMutex;
+std::unordered_set<DWORD> g_zenLazyInitThreads;
+
+void ZenNoteLazyInitThread() {
+    std::lock_guard<std::mutex> guard(g_zenLazyInitThreadsMutex);
+    g_zenLazyInitThreads.insert(GetCurrentThreadId());
+}
+
 std::vector<HWND> GetTargetWnds() {
     struct ENUM_WINDOWS_PARAM {
         std::vector<HWND>* hWnds;
@@ -12251,6 +12441,42 @@ std::vector<HWND> GetTargetWnds() {
             return TRUE;
         },
         (LPARAM)&param);
+
+    // ZenDesktop: one window of each thread initialized on its first element
+    // (see VisualTreeWatcher::OnVisualTreeChange), unless already listed.
+    std::vector<DWORD> lazyThreads;
+    {
+        std::lock_guard<std::mutex> guard(g_zenLazyInitThreadsMutex);
+        lazyThreads.assign(g_zenLazyInitThreads.begin(),
+                           g_zenLazyInitThreads.end());
+    }
+
+    for (DWORD threadId : lazyThreads) {
+        bool listed = false;
+        for (HWND hWnd : hWnds) {
+            if (GetWindowThreadProcessId(hWnd, nullptr) == threadId) {
+                listed = true;
+                break;
+            }
+        }
+        if (listed) {
+            continue;
+        }
+
+        HWND hThreadWnd = nullptr;
+        EnumThreadWindows(
+            threadId,
+            [](HWND hWnd, LPARAM lParam) -> BOOL {
+                *(HWND*)lParam = hWnd;
+                return FALSE;
+            },
+            (LPARAM)&hThreadWnd);
+        if (hThreadWnd) {
+            hWnds.push_back(hThreadWnd);
+        } else {
+            Wh_Log(L"Thread %u has no window left", threadId);
+        }
+    }
 
     return hWnds;
 }
@@ -12762,6 +12988,11 @@ void Wh_ModUninit() {
                 }
             },
             (PVOID)hTargetWnd);
+    }
+
+    {
+        std::lock_guard<std::mutex> guard(g_zenLazyInitThreadsMutex);
+        g_zenLazyInitThreads.clear();
     }
 
     ClearThemePartCache();
