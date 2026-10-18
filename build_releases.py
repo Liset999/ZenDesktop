@@ -20,6 +20,7 @@ common_files = [
     'docs/screenshots',  # README.md preview images
     'restart_explorer.bat',
     'THIRD_PARTY_NOTICES-taskbar-lyrics.md',
+    'tools/uninstall-ExplorerBlurMica.bat',  # for v4.1 upgraders: removes the old EBM registration
     'tools/ZenDesktop-StartupCheck.ps1',  # optional, installed only with -StartupCheck
     'tools/ai-status',
     # v4.2: optional mods (installed only on opt-in by deploy.ps1)

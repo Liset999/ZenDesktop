@@ -39,6 +39,10 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 再次运行 deploy.bat（例如更新新版本）不会关掉你已打开的 mod，
 也不会覆盖你改过的设置，只补上新设置的默认值。
 
+从 v4.1 升级：先双击 tools\uninstall-ExplorerBlurMica.bat（会请求管理员权限），
+卸载旧版 ExplorerBlurMica（EBM），它会自动重启资源管理器；然后再运行 deploy.bat。
+v4.2 的文件管理器透明改由「文件管理器美化」mod 负责，不再需要 EBM。
+
 ========================================================================
 卸载与恢复
 ========================================================================
@@ -65,6 +69,7 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
   local@*.wh.cpp                  各 mod 源码
   optional\                       可选 mod（果冻窗口、窗口动画）及第三方许可说明
   tools\ai-status\                任务栏 AI 编程助手状态（可选，见其中的 README.md）
+  tools\uninstall-ExplorerBlurMica.bat  卸载 v4.1 的旧版 ExplorerBlurMica（从 v4.1 升级时运行）
   tools\ZenDesktop-StartupCheck.ps1  开机自检（可选，deploy.ps1 -StartupCheck check）
   windhawk_setup*.exe             Windhawk 官方安装程序（仅完整包/离线包）
   LICENSE                         GPL-3.0 许可证全文
@@ -73,7 +78,7 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
 注意
 ========================================================================
 - 文件管理器美化不要和 ExplorerBlurMica 同时使用。以前注册过的，
-  请先用 ExplorerBlurMica 自带的 uninstall.cmd 取消注册。
+  请先运行 tools\uninstall-ExplorerBlurMica.bat 卸载。
 - 果冻窗口需要注入 dwm.exe，deploy 已把它加进 Windhawk 的进程包含列表，
   打开果冻窗口后要重启整台电脑。
 

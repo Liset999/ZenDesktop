@@ -7,8 +7,8 @@
 ### 文件管理器：用「文件管理器美化」替代 ExplorerBlurMica
 - 新增 Windhawk mod `local@zen-explorer-styler`（ZenDesktop: 文件管理器美化）。
 - 色调、不透明度、地址栏/搜索框、文字颜色可在 Windhawk 里调，浅色模式也做了适配。
-- **不再推荐安装或注册 ExplorerBlurMica**。若以前注册过，请管理员运行 `ExplorerBlurMica\uninstall.cmd`（或等价取消注册），再重启资源管理器 / 电脑，避免和 styler、任务栏抢 XAML 诊断。
-- 仓库里可能仍保留 EBM 源码/二进制目录，仅作历史参考，deploy **不会**再替你注册它。
+- **不再推荐安装或注册 ExplorerBlurMica**。若以前注册过，请管理员运行 `tools\uninstall-ExplorerBlurMica.bat`，再重启资源管理器 / 电脑，避免和 styler、任务栏抢 XAML 诊断。
+- 仓库已删除 EBM 源码/二进制目录，deploy **不会**再替你注册它。
 
 ### 开始菜单：浅色模式白雾
 - `zen-startmenu-acrylic` 修复浅色模式下开始菜单发白、发雾的问题。
@@ -40,7 +40,7 @@
 1. 备份 Windhawk 里各 mod 的设置（可选）。
 2. 以管理员运行 `deploy.bat`（或 `deploy.ps1`）。可选 mod 按提示选择；无人值守可用 `-Optional "wobbly-windows,windows-animations"`。
 3. 打开 Windhawk，对新增/更新的 mod 点「保存并编译」，再按需开启。
-4. 若仍装着 ExplorerBlurMica：管理员运行 `ExplorerBlurMica\uninstall.cmd`，然后启用「文件管理器美化」。
+4. 若仍装着 ExplorerBlurMica：管理员运行 `tools\uninstall-ExplorerBlurMica.bat`，然后启用「文件管理器美化」。
 5. 窗口动画：关掉旧 mac 最小化 mod；最小化样式若要用神奇效果，手动选「macOS 神奇效果」。
 6. **重启电脑**。
 
