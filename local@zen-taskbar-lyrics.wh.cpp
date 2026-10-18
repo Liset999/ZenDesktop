@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.6
+// @version         0.4.7
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -26,6 +26,7 @@
 开发者：Lanbo（ZenDesktop）。哔哩哔哩：https://space.bilibili.com/1280632999 ，抖音：https://v.douyin.com/Isl7QPpKZZ4/ ，爱发电：https://ifdian.net/a/Lanboo
 
 ## 功能
+- 支持 Spotify、网易云音乐、QQ 音乐等播放器（接入系统媒体控制的都可以）。
 - 专辑封面：来自系统媒体会话，播放器提供才有。
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
@@ -151,11 +152,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.7**：说明里写明支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **0.4.6**：微信赞赏链接改为指向 `main` 分支。
 - **0.4.5**：AI 状态的钩子程序 `zen-status.exe` 已随包附带，说明里不再要求去 GitHub Actions 下载。
 - **0.4.4**：歌词偏移默认改为 +200 毫秒，抵消播放器报进度和面板刷新的延迟，歌词不再慢半拍。之前保存过设置的不会自动改，可以手动设成 200。换句改为按下一句的开始时间精确定时，不再最多晚 100 毫秒。修复播放器很久没更新进度时，刚打开面板歌词位置不对的问题。
 - **0.4.3**：DeepSeek Harness 成为正式支持的助手：显示名「DeepSeek Harness」，「按进程名显示」默认加上桌面版的 `DeepSeek Harness.exe`。说明里补充它的 MCP（`~/.dsh/cordis.patch.yml`）、`AGENTS.md` 和可选钩子的接法。
-- **0.4.2**：修复设置页显示「当前Mod无设置」的问题（「面板玻璃」说明里的冒号导致设置解析失败）。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
