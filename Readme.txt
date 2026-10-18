@@ -6,6 +6,7 @@
 - 哔哩哔哩：https://space.bilibili.com/1280632999
 - 抖音：https://v.douyin.com/Isl7QPpKZZ4/
 - 爱发电：https://ifdian.net/a/Lanboo
+- 问题反馈：https://github.com/Liset999/ZenDesktop/issues
 
 ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 
@@ -41,22 +42,32 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 ========================================================================
 卸载与恢复
 ========================================================================
-1. 在 Windhawk 里关掉（或移除）ZenDesktop 的 mod。
-2. 运行 restart_explorer.bat 或重启电脑。
-3. 启用过开机自检的：管理员运行  deploy.ps1 -StartupCheck remove
-4. 接过 AI 状态的：删除 %LOCALAPPDATA%\ZenDesktop 文件夹，
-   并删掉当时粘贴到 AI 助手配置里的片段。
+一键卸载：双击 uninstall.bat，在权限提示里点「是」，确认后会：
+  - 从 Windhawk 移除全部 ZenDesktop mod（源码、编译文件、mod 记录和设置）；
+  - 删除开机自检计划任务（如果装过）；
+  - 询问是否删除 %LOCALAPPDATA%\ZenDesktop（AI 状态文件、自检日志）；
+  - 询问是否重启资源管理器。
+Windhawk 本身和你自己装的其他 mod 不受影响。
+
+还需要手动处理的：
+1. deploy 往 Windhawk「设置 → 高级设置」的进程包含列表加了 dwm.exe、
+   排除列表加了一些游戏进程，卸载不会改动，想还原请手动删掉。
+2. 接过 AI 状态的：删掉当时粘贴到 AI 助手配置里的 zen-status 片段。
+
+只想暂时停用：在 Windhawk 里关掉对应 mod，再运行 restart_explorer.bat。
 
 ========================================================================
 文件说明
 ========================================================================
   deploy.bat / deploy.ps1         一键部署（把 mod 装进 Windhawk，不编译、不自动打开）
+  uninstall.bat / uninstall.ps1   一键卸载（从 Windhawk 移除 ZenDesktop mod，不卸载 Windhawk）
   restart_explorer.bat            重启资源管理器
   local@*.wh.cpp                  各 mod 源码
   optional\                       可选 mod（果冻窗口、窗口动画）及第三方许可说明
   tools\ai-status\                任务栏 AI 编程助手状态（可选，见其中的 README.md）
   tools\ZenDesktop-StartupCheck.ps1  开机自检（可选，deploy.ps1 -StartupCheck check）
   windhawk_setup*.exe             Windhawk 官方安装程序（仅完整包/离线包）
+  LICENSE                         GPL-3.0 许可证全文
 
 ========================================================================
 注意
@@ -73,4 +84,5 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
 - 果冻窗口：lalimatyus（GPL-3.0）。
 - 窗口动画：ReDrag（MIT），macOS 神奇效果：Abdullah Masood、Potassiumuncher。
 - 各 mod 的详细许可见其说明中的「致谢与许可」，第三方许可见 optional\THIRD_PARTY_NOTICES.md。
+- ZenDesktop 以 GPL-3.0 发布，许可证全文见 LICENSE。
 ========================================================================

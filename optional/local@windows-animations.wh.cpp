@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.5.1
+// @version         1.5.2
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -66,7 +66,7 @@
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
 
 > 原作者：**ReDrag**（Window Animations，MIT）。本版由 Lanbo 维护与扩展，原作者的捐助链接保留在 `@donateUrl`。
 
@@ -104,11 +104,11 @@
 
 ## 更新日志
 
+- **1.5.2**：微信赞赏链接改为指向 `main` 分支。
 - **1.5.1**：说明开头加入作者信息与捐助链接，原作者的捐助链接保留。
 - **1.5.0**：新增关闭样式（碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走）以及最小化/还原/启动样式（从点击处放大、弹性弹出、三维倾斜）。
 - **1.4.1**：规范设置界面与说明文字，行为不变。
 - **1.4.0**：合并「macOS 最小化动画」，新增 macOS 神奇效果样式和「排除的程序」设置。
-- **1.3.8**：扩大覆盖范围：带独立任务栏图标的从属窗口、200 像素以上的窗口、无边框 Chromium/Electron 应用的启动动画；「隐藏到托盘时也播放」默认开启；不再排除通用名 `Client.exe`。
 
 ## 致谢与许可
 

@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.8
+// @version         4.1.9
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -18,15 +18,18 @@
 // Source code is published under The GNU General Public License v3.0.
 //
 // For bug reports and feature requests, please open an issue here:
-// https://github.com/ramensoftware/windhawk-mods/issues
+// https://github.com/Liset999/ZenDesktop/issues
 //
-// For pull requests, development takes place here:
+// Based on "Windows 11 Start Menu Styler" by m417z (https://github.com/m417z),
+// licensed under GPL-3.0. The original mod is developed here:
 // https://github.com/m417z/my-windhawk-mods
 
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+> 原作者：**m417z**（[Windows 11 Start Menu Styler](https://windhawk.net/mods/windows-11-start-menu-styler)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。
 
 # ZenDesktop: 开始菜单美化
 
@@ -60,11 +63,11 @@
 
 ## 更新日志
 
+- **4.1.9**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.1.8**：真正修复液态玻璃主题下固定应用名称只在鼠标悬停时才显示的问题（4.1.6 没修好）：名称没有自己的文字颜色，在液态玻璃下继承到的颜色看不见；现在默认给应用名称加上系统文字颜色，深色、浅色模式都一直显示。「文字颜色」和「应用名称显示」设置照常生效。
 - **4.1.7**：修复浅色模式下液态玻璃主题中间的应用区域蒙着一层白雾的问题：应用区域不再额外叠一层玻璃，跟四周边缘一样通透；液态玻璃 - 原版同样去掉系统的浅色底；搜索页浅色模式下的卡片和预览也调得更通透。
 - **4.1.6**：修复液态玻璃主题下固定应用、推荐项的名称不显示（只在鼠标悬停时出现）的问题，名称现在像系统一样一直显示，文字颜色跟随系统深浅色或「文字颜色」设置。
 - **4.1.5**：液态玻璃主题去掉额外描边和镜面高光边，圆角恢复为 Windows 自带的大小（面板 8、元素 4），搜索页同步；保留玻璃模糊和底色。
-- **4.1.4**：统一搜索页材质：搜索框、结果、预览、筛选标签和右键菜单与开始菜单使用同一套玻璃和文字颜色；「控件深色/浅色」对搜索页同样生效，修复浅色模式下搜索页发白、搜索框叠两层。
 
 ## 致谢与许可
 

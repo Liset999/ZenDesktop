@@ -381,7 +381,7 @@ foreach ($file in $files) {
                 Set-RegValueIfMissing $settingsPath "unifyFlyouts" 0 DWord $label
             }
         }
-        Set-RegValueIfMissing $settingsPath "look.theme" "AppleLiquidGlass" String $label
+        Set-RegValueIfMissing $settingsPath "look.theme" "TranslucentTaskbar" String $label
         Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
     }
 

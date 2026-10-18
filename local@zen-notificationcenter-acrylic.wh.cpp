@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.2.0
+// @version         4.2.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -19,15 +19,18 @@
 // Source code is published under The GNU General Public License v3.0.
 //
 // For bug reports and feature requests, please open an issue here:
-// https://github.com/ramensoftware/windhawk-mods/issues
+// https://github.com/Liset999/ZenDesktop/issues
 //
-// For pull requests, development takes place here:
+// Based on "Windows 11 Notification Center Styler" by m417z (https://github.com/m417z),
+// licensed under GPL-3.0. The original mod is developed here:
 // https://github.com/m417z/my-windhawk-mods
 
 // ==WindhawkModReadme==
 /*
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+> 原作者：**m417z**（[Windows 11 Notification Center Styler](https://windhawk.net/mods/windows-11-notification-center-styler)，GPL-3.0）。本版由 Lanbo 修改与维护，问题请到 [ZenDesktop](https://github.com/Liset999/ZenDesktop/issues) 反馈。
 
 # ZenDesktop: 通知栏美化
 
@@ -64,11 +67,11 @@
 
 ## 更新日志
 
+- **4.2.1**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.0**：新增「浅色模式：对比度增强」，浅色模式下给面板垫白色底、加深日历与通知文字，非本月日期也能看清；深色模式不变。
 - **4.1.5**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.1.3**：修复液态玻璃主题编译错误；移植上游 DisableCompositionDiag，减少部分 Win11 版本上 XAML 挂接失败；快捷设置窗口创建后补一次延迟重试；补充版本兼容说明。
 - **4.1.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/开始菜单对齐。
-- **4.1.1**：规范设置界面与说明文字，行为不变。
 
 ## 致谢与许可
 
