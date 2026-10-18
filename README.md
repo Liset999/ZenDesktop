@@ -10,6 +10,11 @@
 
 ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://windhawk.net) 上：任务栏、开始菜单、通知栏、「设置」和文件管理器统一换成透明玻璃风格，任务栏左下角还能显示歌词和 AI 编程助手的工作状态。一共 9 个 mod，一键部署，所有效果都在 Windhawk 的设置页里调，改完立即生效。
 
+
+https://github.com/user-attachments/assets/84b8e62c-c719-47fc-97f6-78e7bbea6100
+
+
+
 [English](#english)
 
 ---
@@ -185,7 +190,7 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://
 
 「任务栏音乐与歌词」可以显示本机 AI 编程助手当前在做什么。放歌时显示在第二行，没放歌时单独显示；多个助手可以排成一行，也可以轮流显示。
 
-- 支持 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness。
+- 支持 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness等。
 - 在 PowerShell 里运行一次 `tools\ai-status\install.ps1`，它会把脚本复制到 `%LOCALAPPDATA%\ZenDesktop\ai-status-tools\` 并打印填好路径的配置片段。它不会改你的任何配置文件，片段需要你自己粘贴。
 - 包里已带编译好的 `zen-status.exe`，钩子几毫秒就跑完，不会拖慢助手。
 - 各助手的具体接法见 [tools/ai-status/README.md](tools/ai-status/README.md)。
