@@ -396,7 +396,7 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "showButtons" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "textMode" "lyrics" String $label
         Set-RegValueIfMissing $settingsPath "secondLine" "auto" String $label
-        Set-RegValueIfMissing $settingsPath "whenIdle" "hide" String $label
+        Set-RegValueIfMissing $settingsPath "whenIdle" "show" String $label
         Set-RegValueIfMissing $settingsPath "clickAction" "open" String $label
         Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
         Set-RegValueIfMissing $settingsPath "panelBackground" "none" String $label
@@ -404,7 +404,7 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "fontSize" 12 DWord $label
         Set-RegValueIfMissing $settingsPath "bold" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "offsetMs" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "hideInFullscreen" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "hideInFullscreen" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "panelGlass" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "multiMonitor" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "enableNetease" 1 DWord $label
