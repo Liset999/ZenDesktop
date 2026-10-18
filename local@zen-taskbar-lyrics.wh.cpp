@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.4
+// @version         0.4.5
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -45,7 +45,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <ZenDesktop 文件夹>\tools
 
 它会把脚本复制到 `%LOCALAPPDATA%\ZenDesktop\ai-status-tools\`，并打印出填好路径的配置片段。它不会改任何助手的配置文件，下面的片段要你自己粘贴。以下示例里的 `C:\Users\你的用户名` 换成你自己的路径。
 
-建议先接钩子（第 3 步），钩子不用助手配合、也不会弹权限确认；MCP 用来补充「在做什么」的一句说明。DeepSeek Harness 例外，先接 MCP（原因见第 3 步）。钩子推荐用 `zen-status.exe`（几毫秒就跑完，Antigravity 这类同步钩子也不会变卡），从仓库的 GitHub Actions「Build zen-status.exe」下载后放到 `tools\ai-status\` 里再运行 `install.ps1`；没有它时自动退回 PowerShell 脚本（每次约 0.3–0.5 秒）。
+建议先接钩子（第 3 步），钩子不用助手配合、也不会弹权限确认；MCP 用来补充「在做什么」的一句说明。DeepSeek Harness 例外，先接 MCP（原因见第 3 步）。钩子推荐用 `zen-status.exe`（几毫秒就跑完，Antigravity 这类同步钩子也不会变卡），包里的 `tools\ai-status\` 已经带了它，运行 `install.ps1` 时会自动用上；没有它时自动退回 PowerShell 脚本（每次约 0.3–0.5 秒）。
 
 **注意权限弹窗：** Antigravity 等会拦截 MCP 工具的 IDE/CLI，第一次调用 `set_status` 时会弹出权限确认，请选「Always Allow／总是允许」，否则每次更新状态都会打断你。
 
@@ -151,11 +151,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.5**：AI 状态的钩子程序 `zen-status.exe` 已随包附带，说明里不再要求去 GitHub Actions 下载。
 - **0.4.4**：歌词偏移默认改为 +200 毫秒，抵消播放器报进度和面板刷新的延迟，歌词不再慢半拍。之前保存过设置的不会自动改，可以手动设成 200。换句改为按下一句的开始时间精确定时，不再最多晚 100 毫秒。修复播放器很久没更新进度时，刚打开面板歌词位置不对的问题。
 - **0.4.3**：DeepSeek Harness 成为正式支持的助手：显示名「DeepSeek Harness」，「按进程名显示」默认加上桌面版的 `DeepSeek Harness.exe`。说明里补充它的 MCP（`~/.dsh/cordis.patch.yml`）、`AGENTS.md` 和可选钩子的接法。
 - **0.4.2**：修复设置页显示「当前Mod无设置」的问题（「面板玻璃」说明里的冒号导致设置解析失败）。
 - **0.4.1**：Antigravity 成为正式支持的助手：显示名「Antigravity」，「按进程名显示」默认填入 `Antigravity.exe`，已用钩子或 MCP 汇报的助手不再重复显示「运行中」。说明里补充 Antigravity 的 MCP、钩子和 GEMINI.md 接法、「总是允许」权限提示，以及更快的钩子程序 `zen-status.exe`。
-- **0.4.0**：面板改为嵌在任务栏里的子窗口（在任务栏自己的线程上创建），不再浮在任务栏上面，打开新程序时不再闪烁，跟着任务栏移动和自动隐藏。「无底色」改为完全透明，没有底色、边框和阴影，和任务栏材质一致。「面板玻璃」改为只决定「淡淡一层」「卡片」是半透明还是不透明。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
@@ -2904,7 +2904,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.4.4 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.4.5 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);

@@ -29,9 +29,9 @@
 
 钩子每次触发都要启动一个进程。PowerShell 冷启动要 0.3–0.5 秒，Antigravity 这类同步钩子（工具调用要等钩子跑完）会明显变卡。`zen-status.exe` 是十几 KB 的小程序，不依赖 C 运行库，几毫秒就跑完，写的 JSON 和合并规则跟 PowerShell 脚本完全一样。
 
-- 下载：仓库 Actions 里的「Build zen-status.exe」，最新一次运行的 `zen-status` 产物（发版时也会附在 Release 里）。
-- 放到本目录（`tools\ai-status\zen-status.exe` 或 `tools\ai-status\zen-status\zen-status.exe`），再运行 `install.ps1`。它会复制过去，生成的钩子片段就会用它；没有它时自动用 PowerShell 脚本。想强制用 PowerShell，加 `-PowerShellHooks`。
-- 自己编译：`tools\ai-status\zen-status\build.sh`（mingw-w64 gcc 或 llvm-mingw）。
+- 已随包附带：`tools\ai-status\zen-status.exe`。仓库里改了 `zen-status/` 下的源码后，GitHub Actions「Build zen-status.exe」会自动重新编译并把新的 exe 提交回分支，不用自己下载。
+- 运行 `install.ps1` 时会优先用这个 exe（也认 `tools\ai-status\zen-status\zen-status.exe`），复制过去后生成的钩子片段就会用它；找不到 exe 时自动用 PowerShell 脚本。想强制用 PowerShell，加 `-PowerShellHooks`。
+- 自己编译：`tools\ai-status\zen-status\build.sh`（mingw-w64 gcc 或 llvm-mingw），输出与 Actions 相同（不写时间戳，同样的源码编出同样的文件）。
 
 用法：
 
