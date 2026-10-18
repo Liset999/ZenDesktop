@@ -1,5 +1,11 @@
 name: Build zen-status.exe
 
+# Builds tools/ai-status/zen-status.exe and, on pushes to v4.2-draft / main / master, commits it
+# back to the branch so the one-key deploy package always ships a prebuilt exe.
+# No loop: the commit only touches tools/ai-status/zen-status.exe (outside the paths filter),
+# carries [skip ci], and pushes made with GITHUB_TOKEN do not trigger workflows anyway.
+# The build is reproducible (-Wl,--no-insert-timestamp), so an unchanged source makes no commit.
+
 on:
   push:
     branches:
@@ -19,6 +25,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-zen-status-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,17 +41,34 @@ jobs:
 
       - name: Build (no CRT, kernel32 + shell32 only)
         run: |
-          CC=x86_64-w64-mingw32-gcc sh tools/ai-status/zen-status/build.sh
-          x86_64-w64-mingw32-objdump -p tools/ai-status/zen-status/zen-status.exe | grep 'DLL Name'
+          CC=x86_64-w64-mingw32-gcc OUT=../zen-status.exe sh tools/ai-status/zen-status/build.sh
+          x86_64-w64-mingw32-objdump -p tools/ai-status/zen-status.exe | grep 'DLL Name'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: zen-status
-          path: tools/ai-status/zen-status/zen-status.exe
+          path: tools/ai-status/zen-status.exe
+
+      - name: Commit prebuilt exe back to the branch
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f tools/ai-status/zen-status.exe
+          if git diff --cached --quiet; then
+            echo 'zen-status.exe unchanged, nothing to commit'
+            exit 0
+          fi
+          git commit -m 'zen-status.exe: rebuild prebuilt binary [skip ci]'
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          exit 1
 
       - name: Attach to release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" tools/ai-status/zen-status/zen-status.exe --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" tools/ai-status/zen-status.exe --clobber

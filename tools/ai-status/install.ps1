@@ -3,7 +3,7 @@
 # It does NOT edit any agent's config file. ASCII-only (Windows PowerShell 5.1 reads BOM-less as ANSI).
 #
 # Hooks use zen-status.exe (starts in milliseconds) when it is available next to this script
-# (zen-status.exe or zen-status\zen-status.exe, built by GitHub Actions), otherwise the PowerShell
+# (zen-status.exe, shipped prebuilt and rebuilt by GitHub Actions, or zen-status\zen-status.exe), otherwise the PowerShell
 # hook script. -PowerShellHooks forces the PowerShell version.
 param([switch]$PowerShellHooks)
 $ErrorActionPreference = 'Stop'

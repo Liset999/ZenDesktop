@@ -1,6 +1,8 @@
 # Ignore installers
 *.exe
 !deploy.bat
+# Prebuilt AI-status hook binary ships with the package (built by .github/workflows/build_zen_status.yml)
+!tools/ai-status/zen-status.exe
 
 # Ignore zip files
 *.zip
