@@ -7,14 +7,20 @@
 # ASCII-only (see zen-ai-status-lib.ps1).
 param([string]$Agent = 'claude-code', [string]$Name, [string]$Event)
 
-. (Join-Path $PSScriptRoot 'zen-ai-status-lib.ps1')
-
 function Answer {
     if (-not $Event) { return }
     if ($Event -eq 'PreToolUse') { [Console]::Out.Write('{"decision":"allow"}') }
     elseif ($Event -eq 'Stop') { [Console]::Out.Write('{"decision":"stop"}') }
     else { [Console]::Out.Write('{}') }
 }
+
+# Never write to stderr: Antigravity 2.24 copies a hook's stderr (GBK on Chinese Windows) into a
+# UTF-8 protobuf field and aborts the agent on "invalid UTF-8". Swallow every error, always exit 0.
+$ErrorActionPreference = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
+try { [Console]::OutputEncoding = New-Object Text.UTF8Encoding $false } catch { }
+trap { Answer; exit 0 }
+try { . (Join-Path $PSScriptRoot 'zen-ai-status-lib.ps1') } catch { }
 
 try {
     $stdin = [Console]::OpenStandardInput()

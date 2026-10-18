@@ -3,14 +3,14 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent antigravity -Event SessionStart",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File __HOOK_DIR__\\agent-hook.ps1 -Agent antigravity -Event SessionStart",
         "timeout": 10
       }
     ],
     "PreInvocation": [
       {
         "type": "command",
-        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent antigravity -Event PreInvocation",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File __HOOK_DIR__\\agent-hook.ps1 -Agent antigravity -Event PreInvocation",
         "timeout": 10
       }
     ],
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent antigravity -Event PreToolUse",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File __HOOK_DIR__\\agent-hook.ps1 -Agent antigravity -Event PreToolUse",
             "timeout": 10
           }
         ]
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent antigravity -Event PostToolUse",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File __HOOK_DIR__\\agent-hook.ps1 -Agent antigravity -Event PostToolUse",
             "timeout": 10
           }
         ]
@@ -41,7 +41,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent antigravity -Event Stop",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File __HOOK_DIR__\\agent-hook.ps1 -Agent antigravity -Event Stop",
         "timeout": 10
       }
     ]

@@ -118,6 +118,8 @@ Antigravity（Gemini）的 App、IDE 和 CLI 都读 `~/.gemini/config/` 下的�
 
    用到的事件：`SessionStart`（清空）、`PreInvocation`（工作中；上一轮已完成时清掉旧说明）、`PreToolUse`（调用工具，显示工具名）、`PostToolUse`（工作中）、`Stop`（已完成；`terminationReason` 为 `error` 时报错误；还有后台任务时保持工作中）。Antigravity 的钩子是同步的，所以强烈建议用 `zen-status.exe`。
 
+   **钩子命令里的路径不能加引号。** Antigravity 2.24.0（Windows）按空格拆分钩子命令，但不会去掉引号，于是 `-File "C:\...\agent-hook.ps1"` 传给 PowerShell 的路径还带着引号，PowerShell 报「-File 后跟无效路径」（退出码 0xfffd0000）。Antigravity 接着把这段中文报错（GBK 编码）塞进 UTF-8 字段，报 `invalid UTF-8`，整个任务直接被终止，看起来像「超时」或 Agent execution terminated。`install.ps1` 生成的 `antigravity-hooks.json` 已经是不带引号的路径；路径有空格时自动换成 8.3 短路径（如 `C:\Users\ABCDEF~1\...`）。如果路径有空格、这个盘又关了 8.3 短名，安装时会打警告，这时请把 `zen-status.exe` 放到没有空格的目录再生成。自己手写 hooks.json 时也别加引号。`agent-hook.ps1` 和 `zen-status.exe` 本身不会往 stderr 写东西，永远返回 0。
+
 2. MCP：把 `snippets\antigravity-mcp_config.json` 里 `mcpServers` 下的 `zen-status` 合并进 `~/.gemini/config/mcp_config.json`（项目级是 `.agents/mcp_config.json`）。在 Antigravity 里点 … → MCP Servers → Manage MCP Servers → View raw config，打开的就是你这个版本实际用的文件。早期版本用的是 `~/.gemini/antigravity/mcp_config.json`，[GitHub MCP Server 的 Antigravity 安装说明](https://github.com/github/github-mcp-server/blob/main/docs/installation-guides/install-antigravity.md) 里还是这个路径；以 View raw config 为准。第一次调用 `set_status` 弹权限确认时选「Always Allow」。
 
 3. 说明：把 `snippets\GEMINI-snippet.md` 追加到 `~/.gemini/GEMINI.md`（全局规则，也可以用 `~/.gemini/AGENTS.md`），或项目里的 `GEMINI.md` / `AGENTS.md`。
@@ -145,7 +147,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\ZenDeskto
 | Claude Code hooks + MCP | 已按官方 Hooks / MCP 文档核对；在本机用 PowerShell 7 跑过 hook 与 MCP `set_status` |
 | Codex hooks + MCP + notify | 已按官方 Hooks / Config 文档核对；`notify` 参数形状按文档示例；hooks 需在 Codex 里 `/hooks` 信任后才跑 |
 | opencode plugin + MCP | 已按官方 Plugins / MCP 文档核对；插件在 Node 里跑过写入 |
-| Antigravity hooks + MCP + GEMINI.md | 已按官方 Hooks / MCP / Rules 文档核对（2026-10）；还没在真机 Antigravity 里跑过 |
+| Antigravity hooks + MCP + GEMINI.md | 已按官方 Hooks / MCP / Rules 文档核对（2026-10）；真机 Antigravity 2.24.0 上发现并修了路径引号问题，PowerShell 钩子 5 个事件实测返回 0 |
 | zen-status.exe | 用 llvm-mingw 和 mingw-w64 gcc 交叉编译通过，只导入 kernel32 / shell32；在 Wine 里跑过命令行和三种钩子输入 |
 | 按进程名显示 | 尽力方案：mod 扫进程列表，约 3 秒刷新一次 |
 
