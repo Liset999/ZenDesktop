@@ -96,16 +96,14 @@
 
 ## 6. 作者信息与捐助（说明开头）
 
-- 每个 mod 的说明（`==WindhawkModReadme==`）**第一段**固定为作者块，放在标题和其他任何内容之前；赞赏码用 HTML `<img width="160">` 缩小显示。内容逐字统一：
+- 每个 mod 的说明（`==WindhawkModReadme==`）**第一段**固定为作者块，放在标题和其他任何内容之前；微信赞赏做成与 B站／抖音／爱发电同级的 Markdown 链接（Windhawk 说明页不渲染 HTML `<img>`）。内容逐字统一：
 
 ```markdown
 > **作者：Lanbo**
-> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
->
-> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
 ```
 
 - 基于他人 mod 的，在作者块之后紧跟一行原作者说明（如窗口动画：`> 原作者：**ReDrag**……`）。
 - 说明末尾不再单独写 `## 捐助支持` 一节，避免重复。
 
-- 元数据中加入 Windhawk 支持的 `@donateUrl`，指向爱发电：`https://ifdian.net/a/Lanboo`。基于他人 mod 且原版已有 `@donateUrl` 的（如窗口动画），保留原作者的链接，不替换；其说明开头的作者块照常写爱发电与微信赞赏码。
+- 元数据中加入 Windhawk 支持的 `@donateUrl`，指向爱发电：`https://ifdian.net/a/Lanboo`。基于他人 mod 且原版已有 `@donateUrl` 的（如窗口动画），保留原作者的链接，不替换；其说明开头的作者块照常写爱发电与微信赞赏链接。
