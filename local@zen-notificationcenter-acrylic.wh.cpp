@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.1.4
+// @version         4.1.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -61,6 +61,7 @@
 
 ## 更新日志
 
+- **4.1.5**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.1.3**：修复液态玻璃主题编译错误；移植上游 DisableCompositionDiag，减少部分 Win11 版本上 XAML 挂接失败；快捷设置窗口创建后补一次延迟重试；补充版本兼容说明。
 - **4.1.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与任务栏/开始菜单对齐。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
@@ -2454,12 +2455,12 @@ const Theme g_themeLiquidGlass = {{
     L"ElementBackground = <WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.08\" FallbackColor=\"#14FFFFFF\" />",
     L"AccentBackground =<WindhawkBlur BlurAmount=\"12\" TintColor=\"{ThemeResource SystemAccentColorLight1}\" TintOpacity=\"0.10\" />",
     L"ElementBackground2 = <WindhawkBlur BlurAmount=\"12\" TintColor=\"#00FFFFFF\" TintOpacity=\"0.04\" FallbackColor=\"#0CFFFFFF\" />",
-    L"BorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"1,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.12\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.28\" /><GradientStop Color=\"#2234C759\" Offset=\"0.48\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.68\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.85\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"ElementBorderBrush=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#55FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#14FFFFFF\" Offset=\"0.45\" /><GradientStop Color=\"#28000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-    L"BorderThickness=1.5",
-    L"ElementBorderThickness=0.5,0.5,0.5,1.0",
-    L"CornerRadius = 20",
-    L"ElementCornerRadius = 10",
+    L"BorderBrush=Transparent",
+    L"ElementBorderBrush=Transparent",
+    L"BorderThickness=0",
+    L"ElementBorderThickness=0",
+    L"CornerRadius = 8",
+    L"ElementCornerRadius = 4",
 }};
 
 const Theme g_themeBetterControl11 = {{
