@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.1
+// @version         0.4.2
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -137,6 +137,7 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.2**：修复设置页显示「当前Mod无设置」的问题（「面板玻璃」说明里的冒号导致设置解析失败）。
 - **0.4.1**：Antigravity 成为正式支持的助手：显示名「Antigravity」，「按进程名显示」默认填入 `Antigravity.exe`，已用钩子或 MCP 汇报的助手不再重复显示「运行中」。说明里补充 Antigravity 的 MCP、钩子和 GEMINI.md 接法、「总是允许」权限提示，以及更快的钩子程序 `zen-status.exe`。
 - **0.4.0**：面板改为嵌在任务栏里的子窗口（在任务栏自己的线程上创建），不再浮在任务栏上面，打开新程序时不再闪烁，跟着任务栏移动和自动隐藏。「无底色」改为完全透明，没有底色、边框和阴影，和任务栏材质一致。「面板玻璃」改为只决定「淡淡一层」「卡片」是半透明还是不透明。
 - **0.3.3**：修复打开新程序时面板闪一下（任务栏把面板压到下面、切歌瞬间误判没在放歌、玻璃模式下先涂黑再画字）；「面板底色」在玻璃开启时改为调玻璃浓淡，三档都能看出区别；「没在放歌时」挪到设置第三项。
@@ -297,7 +298,7 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - panelGlass: true
   $name: Panel glass
   $name:zh-CN: 面板玻璃
-  $description: Only for Subtle and Card: on = a translucent layer over the taskbar glass, off = a nearly solid background. No effect with None. Default on.
+  $description: "Only for Subtle and Card. On: a translucent layer over the taskbar glass. Off: a nearly solid background. No effect with None. Default: on."
   $description:zh-CN: 只对「淡淡一层」「卡片」有用：开启时是叠在任务栏玻璃上的半透明色，关闭时是几乎不透明的底色。「无底色」时不起作用。默认开启。
 - multiMonitor: false
   $name: Multi-monitor
@@ -2864,7 +2865,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.4.1 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.4.2 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
