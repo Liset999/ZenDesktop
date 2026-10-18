@@ -12,6 +12,8 @@ function Write-ZenStatus {
         [string]$Project,
         [string]$Name,
         [switch]$ClearMessage,
+        # New turn (Antigravity PreInvocation): clear the message only if the last state was done/error/idle.
+        [switch]$ClearIfFinished,
         # Weak = from an async tool hook. It may finish after the turn's Stop hook, so it must not
         # overwrite a done/error/idle written in the last few seconds.
         [switch]$Weak
@@ -34,6 +36,7 @@ function Write-ZenStatus {
     # message (from the agent via MCP) is sticky until a new prompt clears it; hooks only touch state/detail.
     if ($PSBoundParameters.ContainsKey('Message')) { $msg = $Message }
     elseif ($ClearMessage -or -not $old) { $msg = '' }
+    elseif ($ClearIfFinished -and @('done', 'error', 'idle') -contains [string]$old.state) { $msg = '' }
     else { $msg = [string]$old.message }
     if ($PSBoundParameters.ContainsKey('Project')) { $proj = $Project }
     elseif ($old) { $proj = [string]$old.project } else { $proj = '' }

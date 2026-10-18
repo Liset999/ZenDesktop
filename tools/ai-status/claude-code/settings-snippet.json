@@ -5,17 +5,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
@@ -25,17 +20,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
@@ -45,14 +35,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
             "async": true
@@ -65,14 +50,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
             "async": true
@@ -85,14 +65,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
             "async": true
@@ -105,14 +80,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
             "async": true
@@ -125,14 +95,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
             "async": true
@@ -145,17 +110,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
@@ -165,17 +125,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
@@ -185,17 +140,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe",
+            "command": "__TOOLS_DIR__\\zen-status.exe",
             "args": [
-              "-NoProfile",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "__TOOLS_DIR__\\agent-hook.ps1",
-              "-Agent",
+              "hook",
               "claude-code"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
