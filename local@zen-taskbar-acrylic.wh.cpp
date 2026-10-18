@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.4
+// @version         4.2.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -40,7 +40,7 @@
 
 ## 设置说明
 
-- **主题**：默认「自定义玻璃」。其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
+- **主题**：默认「液态玻璃」。其余为原版内置的社区主题，括号内为原名，可在附录中查看截图。
 - **溢出面板 / 音量/亮度浮窗**：分别对应托盘图标放不下时弹出的面板，以及调节音量、亮度时出现的滑条。
 - **最大化时加深背景**：开启后，下方三项「最大化时」参数才生效；切换到其他虚拟桌面的窗口不计入。
 - **高级：XAML 诊断冲突处理**：默认允许其他程序共存；开机后托盘图标不透明时可改为「阻止其他程序」。
@@ -54,6 +54,7 @@
 
 ## 更新日志
 
+- **4.2.5**：Win+X 菜单和托盘溢出面板去掉额外描边，圆角跟 Windows 自带一致（自定义玻璃和液态玻璃主题都适用）；默认主题改为「液态玻璃」，已选的主题不变。
 - **4.2.4**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
 - **4.2.2**：打磨液态玻璃主题：统一镜面描边、模糊与浅色回退，与开始菜单/通知中心对齐。
 - **4.2.1**：规范设置界面与说明文字，行为不变。
@@ -554,11 +555,11 @@ from the **TranslucentTB** project.
 
 // ==WindhawkModSettings==
 /*
-- theme: "TranslucentTaskbar"
+- theme: "AppleLiquidGlass"
   $name: "Theme"
   $name:zh-CN: "主题"
-  $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Custom Glass."
-  $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为自定义玻璃。"
+  $description: "Overall look of the taskbar. Works together with the color and blur settings below. Default: Liquid Glass."
+  $description:zh-CN: "任务栏的整体风格，与下方颜色和模糊设置配合使用。默认为液态玻璃。"
   $options:
   - "": "无"
   - TranslucentTaskbar: "自定义玻璃（Custom Glass）"
@@ -889,15 +890,14 @@ const Theme g_themeTranslucentTaskbar = {{
         L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
         L"Background:=<WindhawkBlur BlurAmount=\"25\" TintColor=\"#22000000\"/>",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.08\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.18\" /><GradientStop Color=\"#2234C759\" Offset=\"0.32\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.48\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.62\" /><GradientStop Color=\"#18FFFFFF\" Offset=\"0.78\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-        L"BorderThickness=1.2",
-        L"CornerRadius=12",
-        L"Padding=3,4,3,4"}},
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=8"}},
     ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
         L"Background:=$TrayBgBrush",
-        L"BorderBrush:=<LinearGradientBrush StartPoint=\"0,0\" EndPoint=\"0,1\"><GradientStop Color=\"#E6FFFFFF\" Offset=\"0.0\" /><GradientStop Color=\"#28FF3B30\" Offset=\"0.08\" /><GradientStop Color=\"#22FF9500\" Offset=\"0.18\" /><GradientStop Color=\"#2234C759\" Offset=\"0.32\" /><GradientStop Color=\"#28007AFF\" Offset=\"0.48\" /><GradientStop Color=\"#22AF52DE\" Offset=\"0.62\" /><GradientStop Color=\"#18FFFFFF\" Offset=\"0.78\" /><GradientStop Color=\"#48000000\" Offset=\"1.0\" /></LinearGradientBrush>",
-        L"BorderThickness=1.2",
-        L"CornerRadius=16",
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=8",
         L"Margin=0"}},
     ThemeTargetStyles{L"Grid#OverflowRootGrid", {
         L"Background=Transparent"}},
@@ -6397,8 +6397,13 @@ const Theme g_themeAppleLiquidGlass = {{
         L"FontSize=10"}},
     ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
         L"Visibility=1"}},
+    ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=$Apple_CornerRadius"}},
     ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
-        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderThickness=0",
         L"BorderBrush:=$Apple_BorderBrush",
         L"Background:=$Apple_Background",
         L"CornerRadius=$Apple_CornerRadius"}},
@@ -6582,8 +6587,13 @@ const Theme g_themeAppleLiquidGlass_variant_Alternate = {{
         L"FontSize=10"}},
     ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
         L"Visibility=1"}},
+    ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=$Apple_CornerRadius"}},
     ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
-        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderThickness=0",
         L"BorderBrush:=$Apple_BorderBrush",
         L"Background:=$Apple_Background",
         L"CornerRadius=$Apple_CornerRadius"}},
@@ -6759,8 +6769,13 @@ const Theme g_themeAppleLiquidGlass_variant_Classic = {{
         L"FontSize=10"}},
     ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
         L"Visibility=1"}},
+    ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=$Apple_CornerRadius"}},
     ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
-        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderThickness=0",
         L"BorderBrush:=$Apple_BorderBrush",
         L"Background:=$Apple_Background",
         L"CornerRadius=$Apple_CornerRadius"}},
@@ -6944,8 +6959,13 @@ const Theme g_themeAppleLiquidGlass_variant_Classic_Alternate = {{
         L"FontSize=10"}},
     ThemeTargetStyles{L"SystemTray.OmniButton#NotificationCenterButton > Grid > ContentPresenter > ItemsPresenter > StackPanel > ContentPresenter > SystemTray.IconView#SystemTrayIcon > Grid > Grid > SystemTray.TextIconContent", {
         L"Visibility=1"}},
+    ThemeTargetStyles{L"MenuFlyoutPresenter > Border", {
+        L"Background:=$Apple_Background",
+        L"BorderBrush=Transparent",
+        L"BorderThickness=0",
+        L"CornerRadius=$Apple_CornerRadius"}},
     ThemeTargetStyles{L"Border#OverflowFlyoutBackgroundBorder", {
-        L"BorderThickness=$Apple_BorderThickness",
+        L"BorderThickness=0",
         L"BorderBrush:=$Apple_BorderBrush",
         L"Background:=$Apple_Background",
         L"CornerRadius=$Apple_CornerRadius"}},
@@ -21498,8 +21518,7 @@ void ProcessAllStylesFromSettings() {
     std::vector<PCWSTR> overrideStyleConstants;
     // ZenDesktop: an empty theme means "None", unless the settings are
     // missing altogether, in which case use the default theme.
-    if (wcscmp(themeName, L"TranslucentTaskbar") == 0 ||
-        (!*themeName && ZenSettingsUnseeded())) {
+    if (wcscmp(themeName, L"TranslucentTaskbar") == 0) {
         theme = &g_themeTranslucentTaskbar;
     } else if (wcscmp(themeName, L"TranslucentTaskbar_Clear") == 0) {
         theme = &g_themeTranslucentTaskbar;
@@ -21634,7 +21653,8 @@ void ProcessAllStylesFromSettings() {
         theme = &g_themeLiquidGlass;
     } else if (wcscmp(themeName, L"LiquidGlass_variant_Alternate") == 0) {
         theme = &g_themeLiquidGlass_variant_Alternate;
-    } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0) {
+    } else if (wcscmp(themeName, L"AppleLiquidGlass") == 0 ||
+               (!*themeName && ZenSettingsUnseeded())) {
         theme = &g_themeAppleLiquidGlass;
     } else if (wcscmp(themeName, L"AppleLiquidGlass_variant_Alternate") == 0) {
         theme = &g_themeAppleLiquidGlass_variant_Alternate;
