@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.2
+// @version         4.2.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -46,7 +46,7 @@
 - **主题**：推荐「自定义玻璃」或「液态玻璃」。「紧凑布局」「经典搜索栏」「商店边框风格」「深海静蓝」为原版布局主题。
 - **背景颜色**：「跟随主题」随深色/浅色模式切换。
 - **不透明度**：玻璃背景颜色的浓度。浅色模式下的最低值由「浅色模式：白底」决定；深色模式保持完全通透。
-- **浅色模式：白底**：浅色模式下给整窗玻璃垫一层白色并加深灰色文字，壁纸较花时左侧导航和「推荐设置」等标题更清楚。设为「关闭」恢复完全通透。只影响窗口底色，卡片按原设置显示。
+- **浅色模式：白底**：浅色模式下给整窗玻璃垫一层白色并加深灰色文字，壁纸较花时左侧导航和「推荐设置」等标题更清楚。默认 20%，可选关闭、10%–75%。设为「关闭」恢复完全通透。只影响窗口底色，卡片按原设置显示。
 - **亮度**：本 mod 中数值越大背景越暗，推荐保持 0%。
 - **高级：样式常量 / 控件样式 / 资源变量**：写法与原版 Settings Styler 相同。
 
@@ -58,11 +58,11 @@
 
 ## 更新日志
 
+- **4.2.3**：「浅色模式：白底」默认从 45% 改为 20%，新增 10% 和 20% 两档，玻璃更通透。之前保存过设置的不会自动改，可以手动改成 20%。
 - **4.2.2**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.1**：液态玻璃主题去掉额外的圆角和边距，导航项与卡片保持 Windows 自带的形状。
 - **4.2.0**：修复窗口失去焦点后玻璃变成不透明纯色的问题；新增「浅色模式：白底」，浅色模式下导航栏和标题文字更清楚。
 - **4.1.1**：规范设置界面与说明文字，行为不变。
-- **4.1.0**：随 ZenDesktop v4.1 发布。
 
 ## 致谢与许可
 
@@ -151,15 +151,17 @@
     - 100: "100%：暗"
     - 125: "125%：较暗"
     - 150: "150%：最暗"
-- lightModeBase: 45
+- lightModeBase: 20
   $name: "Light mode: white base"
   $name:zh-CN: "浅色模式：白底"
-  $description: "In light mode, keeps at least this much white under the glass and darkens gray text, so the navigation pane and headings stay readable over busy wallpapers. No effect in dark mode. Default: 45%."
-  $description:zh-CN: "浅色模式下在玻璃下保留至少这么多的白色底，并加深灰色文字，让左侧导航和标题在花哨壁纸上也看得清。深色模式不受影响。默认为 45%。"
+  $description: "In light mode, keeps at least this much white under the glass and darkens gray text, so the navigation pane and headings stay readable over busy wallpapers. No effect in dark mode. Default: 20%."
+  $description:zh-CN: "浅色模式下在玻璃下保留至少这么多的白色底，并加深灰色文字，让左侧导航和标题在花哨壁纸上也看得清。深色模式不受影响。默认为 20%。"
   $options:
     - 0: "关闭"
+    - 10: "10%：很薄"
+    - 20: "20%：薄（推荐）"
     - 30: "30%：较薄"
-    - 45: "45%：适中（推荐）"
+    - 45: "45%：适中"
     - 60: "60%：较厚"
     - 75: "75%：厚"
 - textColorMode: "default"

@@ -39,7 +39,7 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://
 完整更新日志见 [CHANGELOG_v5.0.0.md](CHANGELOG_v5.0.0.md)。
 
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
-- **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify 等所有接入系统媒体控制的播放器。
+- **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
 - **两个可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果和多种新的打开/关闭样式）。
 - **浅色模式**：通知栏和「设置」加了白底并加深文字；开始菜单去掉了液态玻璃的白雾，修好了应用名称不显示。
@@ -68,7 +68,7 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://
 
 关掉小组件后，在任务栏左下角放一个音乐小面板：专辑封面、同步歌词和播放按钮。
 
-- 支持 Spotify 等所有接入系统媒体控制的播放器。
+- 支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - 歌词来源：网易云音乐、QQ 音乐、LRCLIB；第二行可显示翻译或「歌名 - 歌手」。
 - 上一首／播放暂停／下一首，点封面或文字可切到播放器；歌词默认提前 200 毫秒，可在设置里调偏移。
 - 面板嵌在任务栏里，跟着任务栏移动和自动隐藏，打开新程序时不会闪；没放歌时显示「未在播放」。
@@ -134,7 +134,7 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://
 - 整窗同一层玻璃，侧栏和内容区没有色差。
 - 主题推荐「自定义玻璃」或「液态玻璃」，也保留了原版布局主题。
 - 窗口失去焦点时保持透明，不会变成纯色。
-- 浅色模式可加一层白底（默认 45%，30%–75% 可调或关闭），侧栏和标题文字更清楚。
+- 浅色模式可加一层白底（默认 20%，可调到 10%–75% 或关闭），侧栏和标题文字更清楚。
 - 背景颜色、模糊、不透明度、亮度可调。
 - 核心 mod。基于 m417z 的 Windows 11 Settings Styler（GPL-3.0）。
 
@@ -255,7 +255,7 @@ ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhaw
 | Mod | What it does |
 |---|---|
 | 任务栏美化 (Taskbar) | Acrylic/blur/transparent taskbar; Custom Glass (default), Liquid Glass and 30+ community themes; Win+X menu, tray overflow and volume flyout styled too |
-| 任务栏音乐与歌词 (Music & Lyrics) | Media panel in the Widgets slot: album art, synced lyrics (NetEase, QQ Music, LRCLIB), playback buttons; works with Spotify and any player using system media controls; optional AI agent status |
+| 任务栏音乐与歌词 (Music & Lyrics) | Media panel in the Widgets slot: album art, synced lyrics (NetEase, QQ Music, LRCLIB), playback buttons; works with Spotify, NetEase Cloud Music, QQ Music and other players; optional AI agent status |
 | 开始菜单美化 (Start menu) | Acrylic/transparent Start menu and search, custom size, separate folder panel settings |
 | 文件管理器美化 (File Explorer) | Translucent Explorer with adjustable tint and transparent chrome; glass context menus (experimental). Replaces ExplorerBlurMica |
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |

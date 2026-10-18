@@ -416,7 +416,7 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "blurPreset" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "opacityPreset" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "luminosityPreset" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "lightModeBase" 45 DWord $label
+        Set-RegValueIfMissing $settingsPath "lightModeBase" 20 DWord $label
     }
 
     if ($id -eq "local@zen-notificationcenter-acrylic") {
