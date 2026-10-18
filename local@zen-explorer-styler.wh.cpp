@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.8
+// @version         1.6.9
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,11 +84,11 @@
 
 ## 更新日志
 
+- **1.6.9**：修复 1.6.8 编译失败（深色模式标志在声明前就被使用）。
 - **1.6.8**：加固内容底色清理：深色模式覆盖到系统三级底 #282828，浅色模式一并清掉靠近白的灰底（如 #F3F3F3）；补上 `Rectangle` 绘制路径。单显示器上发灰发亮的色块与跨屏材质不统一是同一类问题。
 - **1.6.7**：修复深色模式下内容底色未清成透明，跨显示器时材质不统一；单显示器上也会叠出灰块。
 - **1.6.6**：修复开机后顶部标签栏／地址栏／命令栏不透明的问题：XAML 诊断只会挂到第一个连接，开机时常常先挂到桌面侧，文件管理器顶部那片晚出现的岛就漏了。现在会挂上所有已有连接，并在窗口创建后延迟再扫几次，接上晚出现的岛。
 - **1.6.5**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
-- **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
 
 ## 致谢与许可
 
@@ -11004,6 +11004,11 @@ void SetAccentBlurBehind(HWND hWnd,
                          bool enable,
                          std::optional<bool> darkTheme = std::nullopt);
 
+// ZenDesktop: whether File Explorer paints its content in dark mode. Set when
+// the effect is applied and when File Explorer sets the dark mode attribute,
+// so that the paint hooks don't read the registry.
+std::atomic<bool> g_zenDarkContent{false};
+
 using DwmSetWindowAttribute_t = decltype(&DwmSetWindowAttribute);
 DwmSetWindowAttribute_t DwmSetWindowAttribute_Original;
 HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
@@ -11111,11 +11116,6 @@ HRESULT WINAPI DwmExtendFrameIntoClientArea_Hook(HWND hWnd,
 thread_local HWND g_entireWindowEffectWndForThread;
 
 bool IsAppsDarkTheme();
-
-// ZenDesktop: whether File Explorer paints its content in dark mode. Set when
-// the effect is applied and when File Explorer sets the dark mode attribute,
-// so that the paint hooks don't read the registry.
-std::atomic<bool> g_zenDarkContent{false};
 
 // ZenDesktop: the content background isn't always COLOR_WINDOW. In dark mode
 // COLOR_WINDOW stays white (system colors don't follow the app theme), and
