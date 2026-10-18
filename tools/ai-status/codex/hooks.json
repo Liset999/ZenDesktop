@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
-            "timeout": 10
+            "command": "__ZEN_EXE__ hook codex",
+            "timeout": 5
           }
         ]
       }
@@ -17,8 +17,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
-            "timeout": 10
+            "command": "__ZEN_EXE__ hook codex",
+            "timeout": 5
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
+            "command": "__ZEN_EXE__ hook codex",
             "async": true
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
+            "command": "__ZEN_EXE__ hook codex",
             "async": true
           }
         ]
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
+            "command": "__ZEN_EXE__ hook codex",
             "async": true
           }
         ]
@@ -61,8 +61,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
-            "timeout": 10
+            "command": "__ZEN_EXE__ hook codex",
+            "timeout": 5
           }
         ]
       }
@@ -72,7 +72,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"__TOOLS_DIR__\\agent-hook.ps1\" -Agent codex",
+            "command": "__ZEN_EXE__ hook codex",
             "timeout": 3
           }
         ]

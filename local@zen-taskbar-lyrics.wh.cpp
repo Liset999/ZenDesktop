@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.0
+// @version         0.4.1
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -21,7 +21,7 @@
 # ZenDesktop: 任务栏音乐与歌词
 
 ## 简介
-把 Windows 11 的小组件关掉以后，任务栏左下角会空出一块。这个 mod 在那里放一个音乐小面板，同时可以显示本机 AI 编程助手（Claude Code、Codex、opencode 等）正在做什么。
+把 Windows 11 的小组件关掉以后，任务栏左下角会空出一块。这个 mod 在那里放一个音乐小面板，同时可以显示本机 AI 编程助手（Claude Code、Codex、opencode、Antigravity 等）正在做什么。
 
 开发者：Lanbo（ZenDesktop）。哔哩哔哩：https://space.bilibili.com/1280632999 ，抖音：https://v.douyin.com/Isl7QPpKZZ4/ ，爱发电：https://ifdian.net/a/Lanboo
 
@@ -44,6 +44,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File <ZenDesktop 文件夹>\tools
 ```
 
 它会把脚本复制到 `%LOCALAPPDATA%\ZenDesktop\ai-status-tools\`，并打印出填好路径的配置片段。它不会改任何助手的配置文件，下面的片段要你自己粘贴。以下示例里的 `C:\Users\你的用户名` 换成你自己的路径。
+
+建议先接钩子（第 3 步），钩子不用助手配合、也不会弹权限确认；MCP 用来补充「在做什么」的一句说明。钩子推荐用 `zen-status.exe`（几毫秒就跑完，Antigravity 这类同步钩子也不会变卡），从仓库的 GitHub Actions「Build zen-status.exe」下载后放到 `tools\ai-status\` 里再运行 `install.ps1`；没有它时自动退回 PowerShell 脚本（每次约 0.3–0.5 秒）。
+
+**注意权限弹窗：** Antigravity 等会拦截 MCP 工具的 IDE/CLI，第一次调用 `set_status` 时会弹出权限确认，请选「Always Allow／总是允许」，否则每次更新状态都会打断你。
 
 ### 1. MCP 服务（让助手自己汇报「在做什么」）
 提供一个工具 `set_status`，助手调用它写入状态和一句说明。
@@ -74,8 +78,21 @@ opencode（`~/.config/opencode/opencode.json` 里的 `mcp`）：
 }
 ```
 
-### 2. 给助手的说明（粘贴到 AGENTS.md 或 CLAUDE.md）
-Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放在 `~/.claude/CLAUDE.md`）。
+Antigravity（`~/.gemini/config/mcp_config.json`，在 Antigravity 里点 … → MCP Servers → Manage MCP Servers → View raw config 打开的就是它；旧版本是 `~/.gemini/antigravity/mcp_config.json`）。已有文件的话，只把 `zen-status` 这一项合并进 `mcpServers`：
+
+```
+{
+  "mcpServers": {
+    "zen-status": {
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\你的用户名\\AppData\\Local\\ZenDesktop\\ai-status-tools\\zen-status-mcp.ps1", "-Agent", "antigravity", "-Name", "Antigravity"]
+    }
+  }
+}
+```
+
+### 2. 给助手的说明（粘贴到 AGENTS.md、CLAUDE.md 或 GEMINI.md）
+Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放在 `~/.claude/CLAUDE.md`），Antigravity 读 `GEMINI.md`（全局的放在 `~/.gemini/GEMINI.md`）。
 
 ```
 ## 任务栏状态汇报（zen-status）
@@ -88,10 +105,12 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 ```
 
 ### 3. 钩子（不用助手配合，自动更新状态）
-- Claude Code：把 `tools/ai-status/claude-code/settings-snippet.json` 里的 `hooks` 合并进 `~/.claude/settings.json`。
-- Codex：把 `tools/ai-status/codex/hooks.json` 放到 `~/.codex/hooks.json`（已有的话合并），然后在 Codex 里用 `/hooks` 信任这些钩子；也可以只用 `config.toml` 里的 `notify`，它只在一轮回答结束时触发。
+片段都在 `install.ps1` 生成的 `snippets\` 文件夹里，路径已经填好。
+- Claude Code：把 `claude-code-settings.json` 里的 `hooks` 合并进 `~/.claude/settings.json`。
+- Codex：把 `codex-hooks.json` 放到 `~/.codex/hooks.json`（已有的话合并），然后在 Codex 里用 `/hooks` 信任这些钩子；也可以只用 `config.toml` 里的 `notify`，它只在一轮回答结束时触发。
+- Antigravity：把 `antigravity-hooks.json` 放到 `~/.gemini/config/hooks.json`（已有的话把 `zen-status` 这一项合并进去），可在 … → Customizations → Hooks 里查看和开关。
 - opencode：把 `tools/ai-status/opencode/zen-status.js` 复制到 `~/.config/opencode/plugins/`。
-- 其他没有钩子的工具：在设置「按进程名显示」里填进程名（例如 `gemini.exe`），进程在运行时显示「运行中」。
+- 其他没有钩子的工具：在设置「按进程名显示」里填进程名（默认已填 `Antigravity.exe, Antigravity IDE.exe`），进程在运行时显示「运行中」；这个助手已经用钩子或 MCP 汇报时不会重复显示。
 
 ## 设置说明
 - 位置：小组件位置（推荐）、固定在最左边、固定在托盘左边。
@@ -104,7 +123,7 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色默认「无底色」：完全透明，没有底色、边框和阴影，文字、封面和按钮直接画在任务栏上，看起来就是任务栏的一部分，只有鼠标移上去时有很淡的高亮。
 - 歌词偏移：毫秒，正数提前，范围 -60000–60000。
 - 全屏和游戏时隐藏：默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏（多显示器只藏全屏那块屏）。
-- AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示。
+- AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示（默认填了 Antigravity，清空即可关闭）。
 
 ## 兼容性与已知问题
 - 支持 Windows 11 任务栏（底部）。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。
@@ -118,11 +137,11 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.1**：Antigravity 成为正式支持的助手：显示名「Antigravity」，「按进程名显示」默认填入 `Antigravity.exe`，已用钩子或 MCP 汇报的助手不再重复显示「运行中」。说明里补充 Antigravity 的 MCP、钩子和 GEMINI.md 接法、「总是允许」权限提示，以及更快的钩子程序 `zen-status.exe`。
 - **0.4.0**：面板改为嵌在任务栏里的子窗口（在任务栏自己的线程上创建），不再浮在任务栏上面，打开新程序时不再闪烁，跟着任务栏移动和自动隐藏。「无底色」改为完全透明，没有底色、边框和阴影，和任务栏材质一致。「面板玻璃」改为只决定「淡淡一层」「卡片」是半透明还是不透明。
 - **0.3.3**：修复打开新程序时面板闪一下（任务栏把面板压到下面、切歌瞬间误判没在放歌、玻璃模式下先涂黑再画字）；「面板底色」在玻璃开启时改为调玻璃浓淡，三档都能看出区别；「没在放歌时」挪到设置第三项。
 - **0.3.2**：默认改为没在放歌时显示「未在播放」（不再默认隐藏）；「全屏和游戏时隐藏」改为默认关闭。
 - **0.3.1**：修复「开了没反应」：桌面或最大化窗口（Windhawk、网易云、微信等）在前台时被误判成全屏而隐藏；面板改为不挂靠任务栏的置顶窗口（参考 Taskbar Music Lounge），在每个环节写 Windhawk 日志，方便排查。
-- **0.3.0**：可选面板玻璃（AccentBlurBehind 亚克力），可选多显示器（每个任务栏一个面板）。
 
 ## 致谢与许可
 - 歌词源和控制面板的设计参考了 TaskbarLyrics（https://github.com/ANYNC/TaskbarLyrics ，MIT 许可，© 2026 anync），没有复制其代码。
@@ -319,11 +338,11 @@ Codex 和 opencode 读 `AGENTS.md`，Claude Code 读 `CLAUDE.md`（全局的放�
   - "120": 2 分钟
   - "600": 10 分钟
   - "0": 一直显示
-- aiProcesses: ""
+- aiProcesses: "Antigravity.exe, Antigravity IDE.exe"
   $name: Show by process name
   $name:zh-CN: 按进程名显示
-  $description: For tools without hooks. Comma separated process names, for example gemini.exe, aider.exe. Shows Running while the process exists.
-  $description:zh-CN: 给没有钩子的工具用。填进程名，用逗号分隔，例如 gemini.exe, aider.exe。进程在运行时显示「运行中」。
+  $description: For tools without hooks. Comma separated process names, for example Antigravity.exe, gemini.exe, aider.exe. Shows Running while the process exists. Skipped when that agent already writes a status file (hooks / MCP). Clear it to turn off.
+  $description:zh-CN: 给没有钩子的工具用。填进程名，用逗号分隔，例如 Antigravity.exe, gemini.exe, aider.exe。进程在运行时显示「运行中」。这个助手已经用钩子或 MCP 汇报状态时不会重复显示。清空即可关闭。
 */
 // ==/WindhawkModSettings==
 
@@ -1535,6 +1554,8 @@ static std::wstring PrettyAgentName(const std::wstring& key) {
     if (k.find(L"claude") != std::wstring::npos) return L"Claude";
     if (k.find(L"codex") != std::wstring::npos) return L"Codex";
     if (k.find(L"opencode") != std::wstring::npos) return L"opencode";
+    // Antigravity is Gemini-based; check it first so "antigravity" / "agy" never falls back to the raw key.
+    if (k.find(L"antigravity") != std::wstring::npos || k == L"agy") return L"Antigravity";
     if (k.find(L"gemini") != std::wstring::npos) return L"Gemini";
     if (k.find(L"cursor") != std::wstring::npos) return L"Cursor";
     return key;
@@ -1596,6 +1617,7 @@ static void AiThread() {
     while (!g_stop) {
         Settings s = GetSettings();
         auto list = std::make_shared<std::vector<AiEntry>>();
+        std::vector<std::wstring> reported;  // display names of every agent with a status file (even idle/stale)
         if (s.aiMode != AiMode::Off && !dir.empty()) {
             long long now = UnixNow();
             WIN32_FIND_DATAW fd;
@@ -1615,6 +1637,7 @@ static void AiThread() {
                     if (e.key.empty()) e.key = file.substr(0, file.size() - 5);
                     e.name = FromUtf8(j["name"].str());
                     if (e.name.empty()) e.name = PrettyAgentName(e.key);
+                    reported.push_back(e.name);
                     e.message = FromUtf8(j["message"].str());
                     e.detail = FromUtf8(j["detail"].str());
                     e.project = FromUtf8(j["project"].str());
@@ -1646,9 +1669,10 @@ static void AiThread() {
                     if (!running) continue;
                     std::wstring bare = exe.substr(0, exe.size() - 4);
                     std::wstring pretty = PrettyAgentName(bare);
-                    bool covered = std::any_of(list->begin(), list->end(),
-                                               [&](const AiEntry& e) { return _wcsicmp(e.name.c_str(), pretty.c_str()) == 0; });
-                    if (covered) continue;  // a hook already reports this agent
+                    // A hook / MCP already reports this agent (also when it said idle): don't add "Running".
+                    bool covered = std::any_of(reported.begin(), reported.end(),
+                                               [&](const std::wstring& n) { return _wcsicmp(n.c_str(), pretty.c_str()) == 0; });
+                    if (covered) continue;
                     AiEntry e;
                     e.key = bare;
                     e.name = pretty;
@@ -2838,7 +2862,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.4.0 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.4.1 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
