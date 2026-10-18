@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.6
+// @version         1.6.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,11 +84,11 @@
 
 ## 更新日志
 
+- **1.6.7**：修复深色模式下窗口跨到另一块显示器时材质不统一：文件列表、导航栏、状态栏的深色底（约 #191919–#222222）之前没有被替换成透明，在部分显示器上会叠出一层发灰、发亮的矩形，滚动条那几条却是干净的。现在深色模式的底色和浅色模式的白底一样会被换成透明，各块显示器上看起来一致。
 - **1.6.6**：修复开机后顶部标签栏／地址栏／命令栏不透明的问题：XAML 诊断只会挂到第一个连接，开机时常常先挂到桌面侧，文件管理器顶部那片晚出现的岛就漏了。现在会挂上所有已有连接，并在窗口创建后延迟再扫几次，接上晚出现的岛。
 - **1.6.5**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **1.6.4**：修复右键菜单玻璃一直不生效：新版 Windows 11 先把菜单加进来、稍后才给它挂上系统材质，之前在那一刻检查就直接放弃了。现在会等系统材质挂上、菜单布局完成后再替换，每次重新打开菜单都会检查一遍，日志里能看到每一步。
 - **1.6.3**：右键菜单玻璃重做：恢复替换系统材质的做法，改为在代码里直接给每个菜单换上可调的亚克力，不再依赖样式解析；菜单所在的线程没被 mod 识别时也会生效，关闭 mod 时一并还原。去掉多出来的描边，保留系统原本的细边框；默认磨砂程度更通透。
-- **1.6.2**：尝试用 WindhawkBlur 画刷做右键菜单玻璃（实际只是在系统亚克力上叠了一层色调和描边，已在 1.6.3 撤回）。
 
 ## 致谢与许可
 
@@ -11020,9 +11020,13 @@ HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
     // tint, the accent tint is updated to match the new theme.
     if (dwAttribute == DWMWA_USE_IMMERSIVE_DARK_MODE) {
         HRESULT result = original();
-        if (SUCCEEDED(result) && g_settings.tintFollowSystem && pvAttribute &&
-            cbAttribute == sizeof(BOOL) &&
-            GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer &&
+        bool fileExplorer =
+            SUCCEEDED(result) && pvAttribute && cbAttribute == sizeof(BOOL) &&
+            GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer;
+        if (fileExplorer) {
+            g_zenDarkContent = *(const BOOL*)pvAttribute != FALSE;
+        }
+        if (fileExplorer && g_settings.tintFollowSystem &&
             GetEffectiveBackgroundTranslucentEffect() ==
                 BackgroundTranslucentEffect::kBlur) {
             bool dark = *(const BOOL*)pvAttribute != FALSE;
@@ -11105,6 +11109,38 @@ HRESULT WINAPI DwmExtendFrameIntoClientArea_Hook(HWND hWnd,
 // here with explicit alpha. The rendering is based on the Translucent Windows
 // mod.
 thread_local HWND g_entireWindowEffectWndForThread;
+
+bool IsAppsDarkTheme();
+
+// ZenDesktop: whether File Explorer paints its content in dark mode. Set when
+// the effect is applied and when File Explorer sets the dark mode attribute,
+// so that the paint hooks don't read the registry.
+std::atomic<bool> g_zenDarkContent{false};
+
+// ZenDesktop: in dark mode the content background isn't COLOR_WINDOW (which
+// stays white) but near-black greys, about #191919 for the items view and
+// navigation pane and up to #222222 for the status bar and the empty pane
+// area. GDI leaves them with zero alpha, which isn't valid premultiplied
+// alpha: DWM may drop them on one monitor and add them on top of the blur on
+// another, so the glass looks uneven across monitors. They're replaced with
+// transparent black like the light mode white.
+bool IsDarkContentBackgroundColor(COLORREF color) {
+    if (!g_zenDarkContent.load(std::memory_order_relaxed)) {
+        return false;
+    }
+
+    int r = GetRValue(color);
+    int g = GetGValue(color);
+    int b = GetBValue(color);
+    int hi = std::max({r, g, b});
+    int lo = std::min({r, g, b});
+    return hi - lo <= 2 && lo >= 0x10 && hi <= 0x24;
+}
+
+bool IsContentBackgroundColor(COLORREF color) {
+    return color == GetSysColor(COLOR_WINDOW) ||
+           IsDarkContentBackgroundColor(color);
+}
 
 bool IsFileExplorerWindowPart(HWND hWnd) {
     return GetTargetWindowType(GetAncestor(hWnd, GA_ROOT)) ==
@@ -11217,7 +11253,7 @@ bool IsWindowBackgroundBrush(HDC hdc, HBRUSH hbr) {
         color = logBrush.lbColor;
     }
 
-    return color == GetSysColor(COLOR_WINDOW);
+    return IsContentBackgroundColor(color);
 }
 
 using FillRect_t = decltype(&FillRect);
@@ -11663,7 +11699,7 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
     }
 
     bool windowBk =
-        (options & ETO_OPAQUE) && GetBkColor(hdc) == GetSysColor(COLOR_WINDOW);
+        (options & ETO_OPAQUE) && IsContentBackgroundColor(GetBkColor(hdc));
     COLORREF prevBkColor = windowBk ? SetBkColor(hdc, RGB(0, 0, 0)) : 0;
 
     // ZenDesktop: the textColorMode setting. Set on the DC, so that both the
@@ -12391,6 +12427,9 @@ void ApplyBackgroundTranslucentEffect(
         g_settings.backgroundTranslucentEffectRegion ==
             BackgroundTranslucentEffectRegion::kEntireWindow;
     g_entireWindowEffectWndForThread = entireWindowEffect ? hWnd : nullptr;
+    if (entireWindowEffect) {
+        g_zenDarkContent = IsAppsDarkTheme();
+    }
 
     if (effect == BackgroundTranslucentEffect::kDefault) {
         if (!RemoveProp(hWnd, kBackgroundTranslucentEffectAppliedKey)) {
