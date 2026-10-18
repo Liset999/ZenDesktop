@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.1.1
+// @version         4.1.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -23,6 +23,11 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
 # ZenDesktop: 设置美化
 
 为 Windows 11「设置」应用提供全窗口透明玻璃背景，深色和浅色模式都适配。基于 m417z 的 Windows 11 Settings Styler 重写。
@@ -60,16 +65,6 @@
 - ZenDesktop 修改（Lanbo）：重构单层 HostBackdrop 玻璃、修复浅色模式卡片底色、增加文字颜色选项与中文设置。
 - 本修改版同样以 GPL-3.0 发布。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 

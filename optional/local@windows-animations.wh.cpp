@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.5.0
+// @version         1.5.1
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -65,6 +65,13 @@
 
 // ==WindhawkModReadme==
 /*
+> **作者：Lanbo**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)
+>
+> 微信赞赏：<br><img src="https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png" alt="微信赞赏码" width="160">
+
+> 原作者：**ReDrag**（Window Animations，MIT）。本版由 Lanbo 维护与扩展，原作者的捐助链接保留在 `@donateUrl`。
+
 # ZenDesktop: 窗口动画
 
 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含从「macOS 最小化动画」合并来的 macOS 神奇效果。基于 ReDrag 的 Windows Animations v1.3.7。
@@ -220,16 +227,6 @@ written by **Potassiumuncher** (https://github.com/Potassiumuncher,
 [MacOS-Animation-for-windows](https://github.com/Potassiumuncher/MacOS-Animation-for-windows)).
 The "Excluded programs" setting also comes from that mod. Window Animations
 itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
-
-## 捐助支持
-
-如果这个 mod 对你有帮助，可以通过爱发电或微信赞赏支持作者 Lanbo。
-
-- [爱发电](https://ifdian.net/a/Lanboo)
-
-![微信赞赏码](https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png)
-
-图片无法显示时，可打开：https://raw.githubusercontent.com/Liset999/ZenDesktop/v4.2-draft/docs/donate-wechat.png
 */
 // ==/WindhawkModReadme==
 
