@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.2.1
+// @version         4.2.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -67,6 +67,7 @@
 
 ## 更新日志
 
+- **4.2.2**：修复横幅通知（Toast 弹窗）材质未统一的问题，全面补齐所有内置主题的 ToastBackgroundBorder 与 FlexibleToastView 适配，并在浅色对比度模式下加深横幅通知文字。
 - **4.2.1**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.0**：新增「浅色模式：对比度增强」，浅色模式下给面板垫白色底、加深日历与通知文字，非本月日期也能看清；深色模式不变。
 - **4.1.5**：液态玻璃主题去掉额外描边，圆角恢复为 Windows 自带的大小（面板 8、元素 4）；保留玻璃模糊和底色。
@@ -570,6 +571,12 @@ const Theme g_themeTranslucentShell = {{
         L"Background:=<SolidColorBrush Color=\"Transparent\"/>"}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background:=<SolidColorBrush Color=\"Transparent\"/>"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background:=<SolidColorBrush Color=\"Transparent\"/>"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$CommonBgBrush",
+        L"BorderThickness=0,0,0,0",
+        L"CornerRadius=15"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$CommonBgBrush",
         L"BorderThickness=0,0,0,0",
@@ -674,6 +681,14 @@ const Theme g_themeMatter = {{
         L"Shadow :="}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background:= $transparent",
+        L"Shadow :="}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background:= $transparent",
+        L"Shadow :="}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$base",
+        L"BorderThickness=0,0,0,0",
+        L"CornerRadius=16",
         L"Shadow :="}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$base",
@@ -1061,6 +1076,13 @@ const Theme g_themeWindowGlass = {{
         L"Margin=8,0,8,0"}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background=Transparent"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$Background",
+        L"BorderThickness=$BorderThickness",
+        L"CornerRadius=16",
+        L"BorderBrush:=$BorderBrush"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$Background",
         L"BorderThickness=$BorderThickness",
@@ -1380,6 +1402,13 @@ const Theme g_themeWindowGlass_variant_alternative = {{
         L"Margin=8,0,8,0"}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background=Transparent"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$Background",
+        L"BorderThickness=$BorderThickness",
+        L"CornerRadius=16",
+        L"BorderBrush:=$BorderBrush"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$Background",
         L"BorderThickness=$BorderThickness",
@@ -1674,6 +1703,15 @@ const Theme g_themeOversimplified_Accentuated = {{
         L"Shadow:="}},
     ThemeTargetStyles{L"ProgressBar#progressBar > Grid > Border#DeterminateRoot", {
         L"Background=Transparent"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background=Transparent"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$Alt",
+        L"BorderBrush=Transparent",
+        L"CornerRadius=15",
+        L"Shadow:="}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$Alt",
         L"BorderBrush=Transparent",
@@ -1946,6 +1984,12 @@ const Theme g_themeTintedGlass = {{
         L"Background:=$Transparent"}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background:=$Transparent"}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background:=$Transparent"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background:=$Base",
+        L"BorderThickness=0,0,0,0",
+        L"CornerRadius=$Radius"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background:=$Base",
         L"BorderThickness=0,0,0,0",
@@ -2017,6 +2061,10 @@ const Theme g_themeFluid = {{
         L"BorderThickness=$BorderThickness",
         L"CornerRadius=$CornerRadius"}},
     ThemeTargetStyles{L"Border#PopupBorder", {
+        L"CornerRadius=$CornerRadius"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"BorderBrush:=$BorderBrush",
+        L"BorderThickness=1",
         L"CornerRadius=$CornerRadius"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"BorderBrush:=$BorderBrush",
@@ -2173,6 +2221,14 @@ const Theme g_themeLiquidGlass = {{
         L"Shadow :="}},
     ThemeTargetStyles{L"ActionCenter.FlexibleToastView#FlexibleNormalToastView", {
         L"Background := Transparent",
+        L"Shadow :="}},
+    ThemeTargetStyles{L"ActionCenter.FlexibleToastView", {
+        L"Background := Transparent",
+        L"Shadow :="}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"Background :=$Background",
+        L"BorderThickness = 0,0,0,0",
+        L"CornerRadius = $CornerRadius",
         L"Shadow :="}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"Background :=$Background",
@@ -2766,6 +2822,9 @@ const Theme g_themeLayerMicaUI = {{
         L"BorderThickness=1"}},
     ThemeTargetStyles{L"ContentPresenter#PageContent > Grid > Border", {
         L"CornerRadius=$InnerRadius"}},
+    ThemeTargetStyles{L"Border#ToastBackgroundBorder", {
+        L"BorderThickness=1",
+        L"BorderBrush:=$ThemeOutBorder"}},
     ThemeTargetStyles{L"Border#ToastBackgroundBorder2", {
         L"BorderThickness=1",
         L"BorderBrush:=$ThemeOutBorder"}},
@@ -8794,12 +8853,16 @@ void AddLightContrastTextRules() {
     add(L"TextBlock#DurationTextBlock", fg(kPrimary));
     add(L"TextBlock#FocusingText", fg(kPrimary));
 
-    // Notification center.
+    // Notification center & Toast popups.
     add(L"TextBlock#NotificationsTextBlock", fg(kPrimary));
     add(L"Grid#GroupTitleGrid > TextBlock#Title", fg(kPrimary));
     add(L"StackPanel#TextContentPanel > TextBlock", fg(kSecondary));
     add(L"TextBlock#TimeStamp", fg(kTertiary));
     add(L"TextBlock#NoNotificationsTextBlock", fg(kSecondary));
+    add(L"Grid#ToastTitleBar > TextBlock#SenderName", fg(kPrimary));
+    add(L"TextBlock#AppNameText", fg(kPrimary));
+    add(L"TextBlock#TitleText", fg(kPrimary));
+    add(L"TextBlock#SubtitleText", fg(kSecondary));
 }
 
 void ProcessAllStylesFromSettings() {
