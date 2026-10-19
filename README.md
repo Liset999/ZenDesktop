@@ -10,8 +10,12 @@
 
 ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://windhawk.net) 上：任务栏、开始菜单、通知栏、「设置」和文件管理器统一换成透明玻璃风格，任务栏左下角还能显示歌词和 AI 编程助手的工作状态。一共 9 个 mod，一键部署，所有效果都在 Windhawk 的设置页里调，改完立即生效。
 
+#效果预览
 
-https://github.com/user-attachments/assets/84b8e62c-c719-47fc-97f6-78e7bbea6100
+
+https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
+
+
 
 
 
@@ -19,13 +23,7 @@ https://github.com/user-attachments/assets/84b8e62c-c719-47fc-97f6-78e7bbea6100
 
 ---
 
-## 效果预览
 
-**演示视频**（约 1 分钟，展示歌词、窗口动画、文件管理器玻璃颜色、果冻窗口、开始菜单、通知栏、设置美化）：
-
-[![ZenDesktop 演示视频](docs/showcase.mp4)](https://github.com/Liset999/ZenDesktop/releases/download/v5.0.0/ZenDesktop-showcase.mp4)
-
-也可直接 [下载演示视频](https://github.com/Liset999/ZenDesktop/releases/download/v5.0.0/ZenDesktop-showcase.mp4)（约 62 MB）。
 
 **Windhawk 里的 ZenDesktop 全家桶**：9 个 mod 装好后的样子。
 
