@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
 - **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
-- **两个可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果和多种新的打开/关闭样式）。
+- **可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果、零雾开窗等）；桌面小组件 MVP（时钟/状态卡，见 docs）。
 - **浅色模式**：通知栏和「设置」加了白底并加深文字；开始菜单去掉了液态玻璃的白雾，修好了应用名称不显示。
 - **更像原生**：液态玻璃全部去掉额外描边，圆角与 Windows 一致；「设置」窗口失去焦点也保持透明。
 - **任务栏设置分区**：新增「统一设置」（默认打开），托盘和音量浮窗跟着任务栏一起调。
@@ -60,7 +60,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 ## Mod 介绍
 
-7 个核心 mod 加 2 个可选 mod。**部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。所有 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
+7 个核心 mod 加可选 mod（果冻窗口、窗口动画、桌面小组件等）。**部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。所有 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
 
 ### ZenDesktop: 任务栏美化
 
@@ -135,6 +135,15 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 每组可单独开关、选样式和时长，也可以每次随机。
 - 可按进程名排除指定程序，常见游戏和反作弊程序已默认排除。
 - **可选 mod**，默认关闭。原作者 ReDrag（Windows Animations，MIT），macOS 神奇效果来自 Abdullah Masood 的 macOS Minimize Animation。以前装过独立的「macOS 神奇效果最小化动画」请关掉，否则会播两次。
+
+### ZenDesktop: 桌面小组件
+
+在桌面上放置可拖动的玻璃风卡片（当前为 **MVP 脚手架**）。
+
+- 内置时钟与状态卡；设置里可分别开关、改字号、自定义状态文案。
+- 左键拖动移动，位置记在当前用户注册表，资源管理器重启后恢复。
+- **可选 mod**，默认关闭。架构说明见 [docs/desktop-widgets.md](docs/desktop-widgets.md)；Nexus 式 Dock 草图见 [docs/nexus-dock.md](docs/nexus-dock.md)（尚未实现）。
+- ZenDesktop 原创。
 
 ### ZenDesktop: 设置美化
 
@@ -237,6 +246,9 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **果冻窗口没效果**：打开后需要重启电脑；确认 Windhawk 进程包含列表里有 `dwm.exe`。
 - **最小化动画播了两次**：关掉独立的「macOS 神奇效果最小化动画」，只留「窗口动画」。
 
+- **桌面小组件怎么开**：Windhawk 打开可选 Mod「桌面小组件」并编译；需系统「透明度效果」开启才有玻璃感。拖到合适位置即可；详情见 docs/desktop-widgets.md。
+- **想要 Nexus 那种 Dock**：尚在规划，见 docs/nexus-dock.md，本版本未实现。
+
 问题反馈：[github.com/Liset999/ZenDesktop/issues](https://github.com/Liset999/ZenDesktop/issues)
 
 ## 致谢与许可证
@@ -278,6 +290,7 @@ ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhaw
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
 | 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
 | 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
+| 桌面小组件 (Desktop Widgets) | Optional MVP. Draggable glass clock + status cards on the desktop. See docs/desktop-widgets.md |
 | 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
 | 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
 
