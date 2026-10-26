@@ -16,7 +16,7 @@
 | --- | --- |
 | `optional/local@zen-desktop-widgets.wh.cpp` | MVP 宿主 + 时钟 / 状态卡 |
 | `docs/desktop-widgets.md` | 本文 |
-| `docs/nexus-dock.md` | 下一阶段 Nexus 式 Dock 草图（本轮仅文档） |
+| `docs/nexus-dock.md` | Nexus 式 Dock（已有 optional MVP，见该文档） |
 
 ## 架构（MVP）
 
@@ -67,7 +67,7 @@ explorer.exe
 1. **v0.x**：本 MVP + 修玻璃与多显示器。
 2. **v1**：卡片接口（尺寸、刷新间隔、设置页片段）；天气 / 电量等内置卡。
 3. **可选独立 Host exe**：若注入 explorer 不稳定，再拆出 `zen-widgets.exe` 托盘宿主，Mod 仅负责与桌面协调。
-4. **Dock**：见 [nexus-dock.md](nexus-dock.md)，与小组件共用玻璃绘制与拖拽基础设施更合适。
+4. **Dock**：见 [nexus-dock.md](nexus-dock.md)（v0.1 已独立 optional Mod）；后续可与小组件共用玻璃绘制工具库。
 
 ## 非目标（本阶段不做）
 

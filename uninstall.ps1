@@ -45,6 +45,7 @@ foreach ($id in @(
     "local@wobbly-windows",
     "local@windows-animations",
     "local@zen-desktop-widgets",
+    "local@zen-dock",
     "local@macos-minimize-animation"
 )) { $modIds.Add($id) }
 foreach ($dir in @($PSScriptRoot, (Join-Path $PSScriptRoot "optional"))) {
