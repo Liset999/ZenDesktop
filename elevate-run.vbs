@@ -1,9 +1,9 @@
-' ZenDesktop elevation helper
-' Usage: cscript //nologo elevate-run.vbs <batPath> <workingDir> [extraArgs]
+' ZenDesktop 提权助手
+' 用法: cscript //nologo elevate-run.vbs <batPath> <workingDir> [extraArgs]
 Option Explicit
 Dim sh, bat, cwd, extra, args
 If WScript.Arguments.Count < 2 Then
-  WScript.Echo "usage: elevate-run.vbs <batPath> <workingDir> [extraArgs]"
+  WScript.Echo "用法: elevate-run.vbs <bat路径> <工作目录> [额外参数]"
   WScript.Quit 1
 End If
 bat = WScript.Arguments(0)
@@ -20,7 +20,7 @@ Set sh = CreateObject("Shell.Application")
 On Error Resume Next
 sh.ShellExecute "cmd.exe", args, cwd, "runas", 1
 If Err.Number <> 0 Then
-  WScript.Echo "ShellExecute failed: " & Err.Number & " " & Err.Description
+  WScript.Echo "ShellExecute 失败: " & Err.Number & " " & Err.Description
   WScript.Quit 1
 End If
 WScript.Quit 0
