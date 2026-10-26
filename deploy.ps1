@@ -16,6 +16,17 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# Console encoding for Chinese status lines when launched from .bat on zh-CN Windows.
+# Bats switch the console to UTF-8 (chcp 65001); align .NET / PowerShell the same way.
+# This file itself stays UTF-8 with BOM so Windows PowerShell 5.1 parses it correctly.
+try {
+    $utf8 = New-Object System.Text.UTF8Encoding $false
+    [Console]::OutputEncoding = $utf8
+    [Console]::InputEncoding = $utf8
+    $OutputEncoding = $utf8
+} catch {}
+
+
 # Helper function to print colorful status
 # Every status line is also written with a timestamp to %TEMP%\ZenDeploy.log,
 # so a slow step can be found afterwards.
