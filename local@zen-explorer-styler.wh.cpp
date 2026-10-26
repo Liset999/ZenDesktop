@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.0
+// @version         1.7.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.1**：性能：GetTargetWnds 短缓存，减少重复 EnumWindows。
 - **1.7.0**：列表选中改为半透明深色玻璃；首次打开窗口前预涂背景效果，减轻黑闪；子菜单在安全范围内跟主菜单玻璃对齐（仍不接管 Popup 材质所有权）；说明写明仅支持 Win11 现代右键菜单，经典 Win32 /「显示更多选项」不支持。
 - **1.6.9**：修复 1.6.8 编译失败（深色模式标志在声明前就被使用）。
 - **1.6.8**：加固内容底色清理：深色模式覆盖到系统三级底 #282828，浅色模式一并清掉靠近白的灰底（如 #F3F3F3）；补上 `Rectangle` 绘制路径。单显示器上发灰发亮的色块与跨屏材质不统一是同一类问题。
@@ -12997,7 +12998,24 @@ void ZenNoteLazyInitThread() {
     g_zenLazyInitThreads.insert(GetCurrentThreadId());
 }
 
+static std::vector<HWND> g_cachedTargetWnds;
+static ULONGLONG g_cachedTargetWndsTick = 0;
+
 std::vector<HWND> GetTargetWnds() {
+    const ULONGLONG now = GetTickCount64();
+    if (now - g_cachedTargetWndsTick < 400 && !g_cachedTargetWnds.empty()) {
+        bool allValid = true;
+        for (HWND h : g_cachedTargetWnds) {
+            if (!h || !IsWindow(h)) {
+                allValid = false;
+                break;
+            }
+        }
+        if (allValid) {
+            return g_cachedTargetWnds;
+        }
+    }
+
     struct ENUM_WINDOWS_PARAM {
         std::vector<HWND>* hWnds;
     };
@@ -13058,6 +13076,8 @@ std::vector<HWND> GetTargetWnds() {
         }
     }
 
+    g_cachedTargetWnds = hWnds;
+    g_cachedTargetWndsTick = GetTickCount64();
     return hWnds;
 }
 

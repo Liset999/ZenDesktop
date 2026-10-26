@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.8
+// @version         4.2.9
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -62,6 +62,7 @@
 
 ## 更新日志
 
+- **4.2.9**：性能：缓存 Shell_TrayWnd / Taskbar UI HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
 - **4.2.8**：开机或资源管理器自重启后，任务栏 / 托盘溢出 / 音量浮窗若回退成系统原样，会像文件管理器顶部一样自动补挂几次（监听 TaskbarCreated，并在约 2.5s / 8s / 20s 重试）；开了「统一设置」时不必再手动重置。
 - **4.2.7**：默认主题改回「自定义玻璃」，已选的主题不变；问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明，微信赞赏链接改为指向 `main` 分支。
 - **4.2.6**：设置按区分组（主题与文字、任务栏背景、托盘溢出面板、音量/亮度浮窗、最大化时、高级），新增「统一设置」让弹窗跟随任务栏背景；旧版保存的设置继续生效。
@@ -22493,7 +22494,15 @@ std::vector<HWND> GetXamlHostWnds() {
     return hWnds;
 }
 
+static HWND g_cachedTaskbarWnd = nullptr;
+static HWND g_cachedTaskbarUiWnd = nullptr;
+
 HWND FindCurrentProcessTaskbarWnd() {
+    if (g_cachedTaskbarWnd && IsWindow(g_cachedTaskbarWnd)) {
+        return g_cachedTaskbarWnd;
+    }
+    g_cachedTaskbarWnd = nullptr;
+
     HWND hTaskbarWnd = nullptr;
 
     EnumWindows(
@@ -22511,18 +22520,26 @@ HWND FindCurrentProcessTaskbarWnd() {
         },
         reinterpret_cast<LPARAM>(&hTaskbarWnd));
 
+    g_cachedTaskbarWnd = hTaskbarWnd;
     return hTaskbarWnd;
 }
 
 HWND GetTaskbarUiWnd() {
+    if (g_cachedTaskbarUiWnd && IsWindow(g_cachedTaskbarUiWnd)) {
+        return g_cachedTaskbarUiWnd;
+    }
+    g_cachedTaskbarUiWnd = nullptr;
+
     HWND hTaskbarWnd = FindCurrentProcessTaskbarWnd();
     if (!hTaskbarWnd) {
         return nullptr;
     }
 
-    return FindWindowEx(hTaskbarWnd, nullptr,
-                        L"Windows.UI.Composition.DesktopWindowContentBridge",
-                        nullptr);
+    HWND ui = FindWindowEx(hTaskbarWnd, nullptr,
+                           L"Windows.UI.Composition.DesktopWindowContentBridge",
+                           nullptr);
+    g_cachedTaskbarUiWnd = ui;
+    return ui;
 }
 
 PTP_TIMER g_statsTimer;
@@ -22838,6 +22855,15 @@ static LRESULT CALLBACK TaskbarCreatedWndProc(HWND hWnd,
                                               WPARAM wParam,
                                               LPARAM lParam) {
     if (uMsg == g_uTaskbarCreatedMsg && g_uTaskbarCreatedMsg != 0) {
+        static ULONGLONG s_lastTaskbarCreatedTick = 0;
+        const ULONGLONG now = GetTickCount64();
+        if (now - s_lastTaskbarCreatedTick < 500) {
+            Wh_Log(L"WM_TASKBARCREATED coalesced (within 500ms)");
+            return 0;
+        }
+        s_lastTaskbarCreatedTick = now;
+        g_cachedTaskbarWnd = nullptr;
+        g_cachedTaskbarUiWnd = nullptr;
         Wh_Log(L"WM_TASKBARCREATED — full reapply (explorer restarted)");
         // Wait briefly for Shell_TrayWnd / XAML islands to exist.
         HWND hTaskbarUiWnd = nullptr;

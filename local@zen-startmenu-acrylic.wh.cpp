@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.10
+// @version         4.1.11
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -63,6 +63,7 @@
 
 ## 更新日志
 
+- **4.1.11**：性能：缓存 CoreWindow HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
 - **4.1.10**：修复从任务栏打开的搜索页不透明、还是 Windows 自带深色亚克力的问题：搜索页进程（SearchHost.exe）开机就在后台待命，mod 过早挂上时没接到真正显示的界面，之后也不会再试；现在搜索页打开时会自动重新挂接，直到外框被美化为止。自定义玻璃和液态玻璃下搜索页外框保持 Windows 自带的圆角和细描边，不再加彩色描边和大圆角；「最近」列表区域背景同样透明。一键部署会顺便重启 SearchHost.exe。
 - **4.1.9**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.1.8**：真正修复液态玻璃主题下固定应用名称只在鼠标悬停时才显示的问题（4.1.6 没修好）：名称没有自己的文字颜色，在液态玻璃下继承到的颜色看不见；现在默认给应用名称加上系统文字颜色，深色、浅色模式都一直显示。「文字颜色」和「应用名称显示」设置照常生效。
@@ -15002,7 +15003,14 @@ HWND WINAPI CreateWindowInBandEx_Hook(DWORD dwExStyle,
     return hWnd;
 }
 
+static HWND g_cachedStartCoreWnd = nullptr;
+
 HWND GetCoreWnd() {
+    if (g_cachedStartCoreWnd && IsWindow(g_cachedStartCoreWnd)) {
+        return g_cachedStartCoreWnd;
+    }
+    g_cachedStartCoreWnd = nullptr;
+
     struct ENUM_WINDOWS_PARAM {
         HWND* hWnd;
     };
@@ -15033,6 +15041,7 @@ HWND GetCoreWnd() {
         },
         (LPARAM)&param);
 
+    g_cachedStartCoreWnd = hWnd;
     return hWnd;
 }
 
@@ -16308,7 +16317,17 @@ void ZenScheduleSearchAttachRetry() {
                        kZenSearchAttachRetryIntervalMs, 500);
 }
 
+static ULONGLONG g_lastTaskbarCreatedReinitTick = 0;
+
 static void TriggerFullReinit() {
+    const ULONGLONG now = GetTickCount64();
+    if (now - g_lastTaskbarCreatedReinitTick < 500) {
+        Wh_Log(L"WM_TASKBARCREATED coalesced (within 500ms)");
+        return;
+    }
+    g_lastTaskbarCreatedReinitTick = now;
+    // Invalidate cached CoreWindow — explorer may have restarted.
+    g_cachedStartCoreWnd = nullptr;
     Wh_Log(L"WM_TASKBARCREATED received — triggering full reinit");
 
     // When explorer.exe crashes / restarts, the CoreWindow may not exist yet.

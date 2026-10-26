@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: Dock
 // @description     Optional Nexus-style glass app launcher bar. Companion to the taskbar; default off.
 // @description:zh-CN 可选的 Nexus 风格玻璃快捷栏。与系统任务栏并存，不替代任务栏。默认关闭。
-// @version         0.1.0
+// @version         0.1.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -47,6 +47,7 @@
 
 ## 更新日志
 
+- **0.1.1**：性能：PID→进程名缓存、运行指示仅在变化时重绘、GDI 笔刷复用、悬停跟踪防抖。
 - **0.1.0**：MVP：玻璃 Dock、钉选启动、悬停高亮、运行指示、三边位置。
 
 ## 致谢与许可
@@ -103,6 +104,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <mutex>
 
 #pragma comment(lib, "shlwapi.lib")
 
@@ -182,6 +185,14 @@ static int g_hoverIndex = -1;
 static bool g_hiddenFullscreen = false;
 static int g_dockW = 0;
 static int g_dockH = 0;
+static bool g_trackingMouse = false;
+static HBRUSH g_brushBg = nullptr;
+static HBRUSH g_brushHover = nullptr;
+static HBRUSH g_brushDot = nullptr;
+static HPEN g_penBorder = nullptr;
+static std::mutex g_pidNameMutex;
+static std::unordered_map<DWORD, std::wstring> g_pidNameCache;
+static ULONGLONG g_pidNameCacheTick = 0;
 
 static void LoadSettings();
 static void ApplyGlass(HWND hwnd);
@@ -336,8 +347,36 @@ static void RebuildPins() {
     Wh_Log(L"[ZenDock] pins: %zu", g_pins.size());
 }
 
+static void MaybeFlushPidNameCache() {
+    const ULONGLONG now = GetTickCount64();
+    if (now - g_pidNameCacheTick < 30000) return;
+    std::lock_guard<std::mutex> lock(g_pidNameMutex);
+    g_pidNameCache.clear();
+    g_pidNameCacheTick = now;
+}
+
+static std::wstring ExeNameLowerOfPid(DWORD pid) {
+    if (!pid) return {};
+    {
+        std::lock_guard<std::mutex> lock(g_pidNameMutex);
+        auto it = g_pidNameCache.find(pid);
+        if (it != g_pidNameCache.end()) return it->second;
+    }
+    HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!h) return {};
+    wchar_t path[MAX_PATH]{};
+    DWORD size = MAX_PATH;
+    BOOL ok = QueryFullProcessImageNameW(h, 0, path, &size);
+    CloseHandle(h);
+    if (!ok) return {};
+    std::wstring name = FileNameLower(path);
+    std::lock_guard<std::mutex> lock(g_pidNameMutex);
+    g_pidNameCache[pid] = name;
+    return name;
+}
+
 struct EnumRunCtx {
-    std::vector<std::wstring>* names;
+    const std::vector<std::wstring>* names;
     std::vector<char>* running;  // parallel flags
 };
 
@@ -351,15 +390,8 @@ static BOOL CALLBACK EnumRunProc(HWND hwnd, LPARAM lParam) {
 
     DWORD pid = 0;
     GetWindowThreadProcessId(hwnd, &pid);
-    if (!pid) return TRUE;
-    HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (!h) return TRUE;
-    wchar_t path[MAX_PATH]{};
-    DWORD size = MAX_PATH;
-    BOOL ok = QueryFullProcessImageNameW(h, 0, path, &size);
-    CloseHandle(h);
-    if (!ok) return TRUE;
-    std::wstring name = FileNameLower(path);
+    std::wstring name = ExeNameLowerOfPid(pid);
+    if (name.empty()) return TRUE;
     auto* ctx = reinterpret_cast<EnumRunCtx*>(lParam);
     for (size_t i = 0; i < ctx->names->size(); i++) {
         if ((*ctx->names)[i] == name) (*ctx->running)[i] = 1;
@@ -369,15 +401,22 @@ static BOOL CALLBACK EnumRunProc(HWND hwnd, LPARAM lParam) {
 
 static void UpdateRunningFlags() {
     if (!g_settings.showRunningDot || g_pins.empty()) return;
+    MaybeFlushPidNameCache();
     std::vector<std::wstring> names;
     names.reserve(g_pins.size());
     for (auto& p : g_pins) names.push_back(p.exeNameLower);
     std::vector<char> flags(g_pins.size(), 0);
     EnumRunCtx ctx{&names, &flags};
     EnumWindows(EnumRunProc, reinterpret_cast<LPARAM>(&ctx));
+    bool changed = false;
     for (size_t i = 0; i < g_pins.size(); i++) {
-        g_pins[i].running = flags[i] != 0;
+        const bool next = flags[i] != 0;
+        if (g_pins[i].running != next) {
+            g_pins[i].running = next;
+            changed = true;
+        }
     }
+    if (changed && g_hwnd) InvalidateRect(g_hwnd, nullptr, FALSE);
 }
 
 // Resolve .lnk target exe name for better running match
@@ -476,14 +515,7 @@ static void LaunchOrFocus(const PinItem& pin) {
         if (GetWindowTextW(hwnd, title, 4) == 0) return TRUE;
         DWORD pid = 0;
         GetWindowThreadProcessId(hwnd, &pid);
-        HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-        if (!h) return TRUE;
-        wchar_t path[MAX_PATH]{};
-        DWORD size = MAX_PATH;
-        BOOL ok = QueryFullProcessImageNameW(h, 0, path, &size);
-        CloseHandle(h);
-        if (!ok) return TRUE;
-        if (FileNameLower(path) == c->name) {
+        if (ExeNameLowerOfPid(pid) == c->name) {
             c->found = hwnd;
             return FALSE;
         }
@@ -508,24 +540,35 @@ static void LaunchOrFocus(const PinItem& pin) {
     }
 }
 
+static void EnsurePaintGdi() {
+    if (!g_brushBg) g_brushBg = CreateSolidBrush(RGB(0x23, 0x23, 0x23));
+    if (!g_brushHover) g_brushHover = CreateSolidBrush(RGB(0x45, 0x45, 0x45));
+    if (!g_brushDot) g_brushDot = CreateSolidBrush(RGB(0x6C, 0xC6, 0xFF));
+    if (!g_penBorder) g_penBorder = CreatePen(PS_SOLID, 1, RGB(0x55, 0x55, 0x55));
+}
+
+static void DestroyPaintGdi() {
+    if (g_brushBg) { DeleteObject(g_brushBg); g_brushBg = nullptr; }
+    if (g_brushHover) { DeleteObject(g_brushHover); g_brushHover = nullptr; }
+    if (g_brushDot) { DeleteObject(g_brushDot); g_brushDot = nullptr; }
+    if (g_penBorder) { DeleteObject(g_penBorder); g_penBorder = nullptr; }
+}
+
 static void PaintDock(HWND hwnd) {
     PAINTSTRUCT ps{};
     HDC hdc = BeginPaint(hwnd, &ps);
     RECT rc{};
     GetClientRect(hwnd, &rc);
 
-    HBRUSH brush = CreateSolidBrush(RGB(0x23, 0x23, 0x23));
-    FillRect(hdc, &rc, brush);
-    DeleteObject(brush);
+    EnsurePaintGdi();
+    FillRect(hdc, &rc, g_brushBg);
 
     // subtle border
-    HPEN pen = CreatePen(PS_SOLID, 1, RGB(0x55, 0x55, 0x55));
-    HGDIOBJ oldPen = SelectObject(hdc, pen);
+    HGDIOBJ oldPen = SelectObject(hdc, g_penBorder);
     HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));
     RoundRect(hdc, rc.left, rc.top, rc.right, rc.bottom, 18, 18);
     SelectObject(hdc, oldPen);
     SelectObject(hdc, oldBrush);
-    DeleteObject(pen);
 
     for (int i = 0; i < static_cast<int>(g_pins.size()); i++) {
         const bool hot = (i == g_hoverIndex);
@@ -534,11 +577,9 @@ static void PaintDock(HWND hwnd) {
         IconRect(i, &ir, mag);
 
         if (hot) {
-            HBRUSH hb = CreateSolidBrush(RGB(0x45, 0x45, 0x45));
             RECT bg = ir;
             InflateRect(&bg, 6, 6);
-            FillRect(hdc, &bg, hb);
-            DeleteObject(hb);
+            FillRect(hdc, &bg, g_brushHover);
         }
 
         if (g_pins[i].icon) {
@@ -549,13 +590,11 @@ static void PaintDock(HWND hwnd) {
         if (g_settings.showRunningDot && g_pins[i].running) {
             int cx = (ir.left + ir.right) / 2;
             int cy = ir.bottom + 3;
-            HBRUSH dot = CreateSolidBrush(RGB(0x6C, 0xC6, 0xFF));
-            HGDIOBJ ob = SelectObject(hdc, dot);
+            HGDIOBJ ob = SelectObject(hdc, g_brushDot);
             HGDIOBJ op = SelectObject(hdc, GetStockObject(NULL_PEN));
             Ellipse(hdc, cx - 3, cy - 3, cx + 3, cy + 3);
             SelectObject(hdc, ob);
             SelectObject(hdc, op);
-            DeleteObject(dot);
         }
     }
 
@@ -568,11 +607,13 @@ static LRESULT CALLBACK DockWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
             return HTCLIENT;
 
         case WM_MOUSEMOVE: {
-            TRACKMOUSEEVENT tme{};
-            tme.cbSize = sizeof(tme);
-            tme.dwFlags = TME_LEAVE;
-            tme.hwndTrack = hwnd;
-            TrackMouseEvent(&tme);
+            if (!g_trackingMouse) {
+                TRACKMOUSEEVENT tme{};
+                tme.cbSize = sizeof(tme);
+                tme.dwFlags = TME_LEAVE;
+                tme.hwndTrack = hwnd;
+                if (TrackMouseEvent(&tme)) g_trackingMouse = true;
+            }
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
             int hit = HitTestIcon(x, y);
@@ -584,6 +625,7 @@ static LRESULT CALLBACK DockWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
         }
 
         case WM_MOUSELEAVE:
+            g_trackingMouse = false;
             if (g_hoverIndex != -1) {
                 g_hoverIndex = -1;
                 InvalidateRect(hwnd, nullptr, FALSE);
@@ -602,8 +644,7 @@ static LRESULT CALLBACK DockWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
         case WM_TIMER:
             if (wParam == kTimerRefresh) {
-                UpdateRunningFlags();
-                InvalidateRect(hwnd, nullptr, FALSE);
+                UpdateRunningFlags();  // invalidates only when flags change
             } else if (wParam == kTimerFullscreen) {
                 bool busy = IsFullscreenBusy();
                 if (busy != g_hiddenFullscreen) {
@@ -689,12 +730,12 @@ static void LayoutAndShow() {
         ShowWindow(g_hwnd, SW_SHOWNOACTIVATE);
     }
     SetTimer(g_hwnd, kTimerRefresh, 2000, nullptr);
-    SetTimer(g_hwnd, kTimerFullscreen, 1500, nullptr);
+    SetTimer(g_hwnd, kTimerFullscreen, 2000, nullptr);
     InvalidateRect(g_hwnd, nullptr, FALSE);
 }
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"[ZenDock] === Wh_ModInit v0.1.0 ===");
+    Wh_Log(L"[ZenDock] === Wh_ModInit v0.1.1 ===");
     LoadSettings();
     LayoutAndShow();
     return TRUE;
@@ -704,6 +745,11 @@ void Wh_ModUninit() {
     Wh_Log(L"[ZenDock] === Wh_ModUninit ===");
     DestroyDockWindow();
     DestroyPins();
+    DestroyPaintGdi();
+    {
+        std::lock_guard<std::mutex> lock(g_pidNameMutex);
+        g_pidNameCache.clear();
+    }
     if (g_classRegistered) {
         UnregisterClassW(kClassName, GetModuleHandleW(nullptr));
         g_classRegistered = false;

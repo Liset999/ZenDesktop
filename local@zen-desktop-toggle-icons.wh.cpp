@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面双击隐藏图标
 // @description     Double-click empty desktop space to show or hide icons, with optional auto-hide when the system is idle.
 // @description:zh-CN 双击桌面空白处显示或隐藏图标，可在系统闲置时自动隐藏。
-// @version         4.1.5
+// @version         4.1.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -44,6 +44,7 @@
 
 ## 更新日志
 
+- **4.1.6**：性能：缓存桌面 SHELLDLL_DefView / SysListView32 HWND。
 - **4.1.5**：微信赞赏链接改为指向 `main` 分支。
 - **4.1.4**：日志里的版本号改为与 mod 版本一致。
 - **4.1.3**：说明开头加入作者信息与捐助链接。
@@ -194,18 +195,45 @@ static void UpdateTimerState(HWND hwndShell)
         PostMessageW(hwndShell, g_msgRefreshTimer, 0, 0);
 }
 
-static void UpdateAllTimers()
+static HWND g_cachedShellViews[4]{};
+static int g_cachedShellViewCount = 0;
+static ULONGLONG g_cachedShellViewsTick = 0;
+
+static void RefreshCachedShellViews(bool force)
 {
+    const ULONGLONG now = GetTickCount64();
+    if (!force && now - g_cachedShellViewsTick < 1000 && g_cachedShellViewCount > 0) {
+        bool ok = true;
+        for (int i = 0; i < g_cachedShellViewCount; ++i) {
+            if (!g_cachedShellViews[i] || !IsWindow(g_cachedShellViews[i])) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) return;
+    }
+    g_cachedShellViewCount = 0;
     HWND hwndProgman = FindWindowW(L"Progman", L"Program Manager");
     if (hwndProgman) {
         HWND hwndShell = FindWindowExW(hwndProgman, NULL, L"SHELLDLL_DefView", NULL);
-        if (hwndShell) UpdateTimerState(hwndShell);
+        if (hwndShell && g_cachedShellViewCount < 4)
+            g_cachedShellViews[g_cachedShellViewCount++] = hwndShell;
     }
     HWND hwndWorkerW = NULL;
     while ((hwndWorkerW = FindWindowExW(NULL, hwndWorkerW, L"WorkerW", NULL)) != NULL) {
         HWND hwndShell = FindWindowExW(hwndWorkerW, NULL, L"SHELLDLL_DefView", NULL);
-        if (hwndShell) UpdateTimerState(hwndShell);
+        if (hwndShell && g_cachedShellViewCount < 4)
+            g_cachedShellViews[g_cachedShellViewCount++] = hwndShell;
+        if (g_cachedShellViewCount >= 4) break;
     }
+    g_cachedShellViewsTick = now;
+}
+
+static void UpdateAllTimers()
+{
+    RefreshCachedShellViews(false);
+    for (int i = 0; i < g_cachedShellViewCount; ++i)
+        UpdateTimerState(g_cachedShellViews[i]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -393,6 +421,7 @@ HWND WINAPI Hook_CreateWindowExW(
 
     if (hWnd && lpClassName && !IS_INTRESOURCE(lpClassName)) {
         if (wcscmp(lpClassName, L"SHELLDLL_DefView") == 0) {
+            g_cachedShellViewsTick = 0;  // force refresh
             Wh_Log(L"[ZenDesktop] Hook: new SHELLDLL_DefView=%p created", hWnd);
             WindhawkUtils::SetWindowSubclassFromAnyThread(hWnd, DesktopShellViewSubclassProc, 0);
             UpdateTimerState(hWnd);
@@ -628,7 +657,7 @@ LRESULT CALLBACK DesktopShellViewSubclassProc(
 // ─────────────────────────────────────────────────────────────────────────────
 BOOL Wh_ModInit()
 {
-    Wh_Log(L"[ZenDesktop] === Wh_ModInit v4.1.5 ===");
+    Wh_Log(L"[ZenDesktop] === Wh_ModInit v4.1.6 ===");
     g_msgRefreshTimer = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.RefreshTimer");
     g_msgManualToggle = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.ManualToggle");
     g_msgAutoHide = RegisterWindowMessageW(L"Windhawk.ZenDesktop.DesktopIconToggle.AutoHide");

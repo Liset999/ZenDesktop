@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.2.2
+// @version         4.2.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -67,6 +67,7 @@
 
 ## 更新日志
 
+- **4.2.3**：性能：缓存 CoreWnd 列表（短 TTL + IsWindow 校验），减少 EnumWindows。
 - **4.2.2**：修复横幅通知（Toast 弹窗）材质未统一的问题，全面补齐所有内置主题的 ToastBackgroundBorder 与 FlexibleToastView 适配，并在浅色对比度模式下加深横幅通知文字。
 - **4.2.1**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.0**：新增「浅色模式：对比度增强」，浅色模式下给面板垫白色底、加深日历与通知文字，非本月日期也能看清；深色模式不变。
@@ -9573,7 +9574,24 @@ LSTATUS WINAPI RegQueryValueExW_Hook(HKEY hKey,
     return ERROR_SUCCESS;
 }
 
+static std::vector<HWND> g_cachedCoreWnds;
+static ULONGLONG g_cachedCoreWndsTick = 0;
+
 std::vector<HWND> GetCoreWnds() {
+    const ULONGLONG now = GetTickCount64();
+    if (now - g_cachedCoreWndsTick < 500 && !g_cachedCoreWnds.empty()) {
+        bool allValid = true;
+        for (HWND h : g_cachedCoreWnds) {
+            if (!h || !IsWindow(h)) {
+                allValid = false;
+                break;
+            }
+        }
+        if (allValid) {
+            return g_cachedCoreWnds;
+        }
+    }
+
     struct ENUM_WINDOWS_PARAM {
         std::vector<HWND>* hWnds;
     };
@@ -9619,6 +9637,8 @@ std::vector<HWND> GetCoreWnds() {
         },
         (LPARAM)&param);
 
+    g_cachedCoreWnds = hWnds;
+    g_cachedCoreWndsTick = GetTickCount64();
     return hWnds;
 }
 
