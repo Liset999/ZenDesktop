@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.6.9
+// @version         1.7.0
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -71,7 +71,7 @@
 - **地址栏与搜索框不透明度**：范围 0–100，默认 0（完全透明），鼠标悬停时会稍亮一些。只对两款 ZenDesktop 主题生效。
 - **文字颜色**：WinUI 区域在任何主题下都生效；文件列表、列标题、导航栏、状态栏等传统区域只在背景效果覆盖整个窗口时生效，选「跟随系统」时保持系统颜色。
 - **浅色模式**：浅色模式下文件列表和导航栏的文字是深色的，色调建议使用「跟随系统」，避免深色色调配深色文字。
-- **右键菜单：玻璃效果**：默认开启。作用在 Windows 11 桌面和文件管理器里的现代（XAML）右键菜单（顶部图标行和下面的菜单项）。「新建」「查看」「排序方式」等展开的子菜单保持系统原样：它们的材质会被系统转交给弹出层、mod 无法安全收回，强改可能在关闭或更新 mod 后让资源管理器崩溃。菜单的毛玻璃是系统背景材质（SystemBackdrop），不是普通画刷，在上面叠画刷看不出区别，所以本项直接替换这层材质，色调颜色和不透明度沿用上方的「色调颜色」「色调不透明度」，边框保持系统原样。开启或修改后需要重新打开菜单才生效。Shift+右键或「显示更多选项」打开的经典 Win32 菜单不在范围内。
+- **右键菜单：玻璃效果**：默认开启。**仅支持 Windows 11 现代（XAML）右键菜单**（桌面与文件管理器）。Shift+右键、「显示更多选项」，或第三方「经典右键菜单」mod 打开的 **Win32 旧版菜单不支持**，玻璃不会生效。主菜单替换 SystemBackdrop；展开的「新建 / 查看 / 排序方式」等子菜单在安全路径下跟主菜单玻璃对齐（不把材质所有权交给 Popup 后再强行收回）。色调颜色和不透明度沿用上方设置，边框保持系统原样。开启或修改后需要重新打开菜单才生效。
 - **右键菜单：磨砂程度**：仅在开启玻璃效果后生效，范围 0–60，默认 30。数值越小越通透，越大越磨砂（系统原样大约相当于 90，所以 60 仍比原版通透）；0 为只有模糊和色调。系统材质的模糊半径固定，无法调整。
 - **高级：样式常量 / 控件样式 / 资源变量 / 顶部框架高度**：用于编写自定义样式，语法见下文「高级样式」。
 
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.0**：列表选中改为半透明深色玻璃；首次打开窗口前预涂背景效果，减轻黑闪；子菜单在安全范围内跟主菜单玻璃对齐（仍不接管 Popup 材质所有权）；说明写明仅支持 Win11 现代右键菜单，经典 Win32 /「显示更多选项」不支持。
 - **1.6.9**：修复 1.6.8 编译失败（深色模式标志在声明前就被使用）。
 - **1.6.8**：加固内容底色清理：深色模式覆盖到系统三级底 #282828，浅色模式一并清掉靠近白的灰底（如 #F3F3F3）；补上 `Rectangle` 绘制路径。单显示器上发灰发亮的色块与跨屏材质不统一是同一类问题。
 - **1.6.7**：修复深色模式下内容底色未清成透明，跨显示器时材质不统一；单显示器上也会叠出灰块。
@@ -205,7 +206,7 @@ Float](https://github.com/ramensoftware/windows-11-file-explorer-styling-guide/b
 
 在 XAML 语法中，除了系统自带的对象，mod 还提供了内置的模糊画刷 `WindhawkBlur`，支持 `BlurAmount`、`TintColor`、`TintOpacity`、`TintLuminosityOpacity`、`TintSaturation`、`NoiseOpacity`、`NoiseDensity` 和 `FallbackColor` 属性。例如：`Fill:=<WindhawkBlur BlurAmount="10" TintColor="#80FF00FF"/>`。`TintColor` 和 `FallbackColor` 也支持主题资源，例如：`Fill:=<WindhawkBlur BlurAmount="18" TintColor="{ThemeResource SystemAccentColorDark1}" TintOpacity="0.5"/>`。开启省电模式或在系统设置中关闭透明效果时，会用 `FallbackColor` 代替模糊效果。
 
-ZenDesktop 另外提供了 `WindhawkAcrylicBackdrop`，用于 `SystemBackdrop` 属性（右键菜单这类自带系统材质的弹出层；不建议用在 `MenuFlyoutPresenter` 上，原因见「右键菜单：玻璃效果」），支持 `TintColor`（透明度即色调不透明度）、`LuminosityOpacity`（0–1，磨砂程度）和 `FallbackColor`。例如：目标 `Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar`，样式 `SystemBackdrop:=<WindhawkAcrylicBackdrop TintColor="#40202020" LuminosityOpacity="0.3"/>`。这类弹出层的 `Background` 叠在系统材质上面，`WindhawkBlur` 采不到后面的内容，所以对它们无效。
+ZenDesktop 另外提供了 `WindhawkAcrylicBackdrop`，用于 `SystemBackdrop` 属性（右键菜单这类自带系统材质的弹出层；子菜单由代码路径安全替换 SystemBackdrop（见「右键菜单：玻璃效果」），样式规则仍请优先用于 `CommandBarFlyoutCommandBar`），支持 `TintColor`（透明度即色调不透明度）、`LuminosityOpacity`（0–1，磨砂程度）和 `FallbackColor`。例如：目标 `Microsoft.UI.Xaml.Controls.Primitives.CommandBarFlyoutCommandBar`，样式 `SystemBackdrop:=<WindhawkAcrylicBackdrop TintColor="#40202020" LuminosityOpacity="0.3"/>`。这类弹出层的 `Background` 叠在系统材质上面，`WindhawkBlur` 采不到后面的内容，所以对它们无效。
 
 以两个斜杠（`//`）开头的目标和样式会被忽略，可以用来临时禁用某个目标或样式。
 
@@ -404,7 +405,7 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
   $name: "Context menu glass"
   $name:zh-CN: "右键菜单：玻璃效果"
   $description: "Replace the system acrylic of the Windows 11 desktop and File Explorer context menus with adjustable glass. Submenus stay stock. Uses the tint color and tint opacity above. Default: on."
-  $description:zh-CN: "把 Windows 11 桌面和文件管理器现代右键菜单的系统亚克力换成可调的玻璃，色调沿用上方的色调颜色和不透明度；展开的子菜单保持原样。默认开启。"
+  $description:zh-CN: "把 Windows 11 桌面和文件管理器现代（XAML）右键菜单换成可调玻璃；经典 Win32 /「显示更多选项」菜单不支持。色调沿用上方设置。默认开启。"
 - contextMenuBlur: 30
   $name: "Context menu: frost"
   $name:zh-CN: "右键菜单：磨砂程度"
@@ -6382,9 +6383,19 @@ void ZenContextMenuApply(
         // Win11 26xxx: the menu is added to the tree (and reports IsLoaded)
         // before the flyout gives it its backdrop and before its template is
         // applied. The property changed callback picks it up later.
+        // Meanwhile a fully transparent frame can hide the first paint of
+        // labels — put an opaque fallback tint under the content until the
+        // real SystemBackdrop arrives.
         if (!entry.loggedWaiting) {
             Wh_Log(L"[ctxmenu] waiting for system backdrop (%s)", reason);
             entry.loggedWaiting = true;
+            try {
+                const auto& params = g_zenContextMenuParams;
+                auto fb = params.fallback;
+                Media::SolidColorBrush brush(fb);
+                menu.Background(brush);
+            } catch (...) {
+            }
         }
         return;
     }
@@ -6431,6 +6442,12 @@ void ZenContextMenuApply(
     }
     entry.backdrop = backdrop;
     entry.loggedWaiting = false;
+
+    try {
+        // Drop the temporary opaque Background from the wait path.
+        menu.Background(nullptr);
+    } catch (...) {
+    }
 
     Wh_Log(L"[ctxmenu] glass applied (%s): tint #%02X%02X%02X, tint opacity "
            L"%.2f, frost %.2f",
@@ -6598,8 +6615,74 @@ void ZenContextMenuOnBackdropRootAdded(FrameworkElement const& element) {
     }
 }
 
+// ZenDesktop: submenu (MenuFlyoutPresenter) glass. SystemBackdrop is replaced
+// with the same ZenAcrylicBackdrop as the parent menu. On unload we only clear
+// when the value is still ours — never put the stock backdrop back (the system
+// hands ownership to the Popup; restoring it after unload has crashed explorer).
+thread_local std::unordered_map<void*, winrt::Windows::Foundation::IInspectable>
+    g_zenSubmenuBackdrops;
+
+void ZenContextMenuApplySubmenu(Controls::MenuFlyoutPresenter const& presenter) {
+    const auto& params = g_zenContextMenuParams;
+    if (!params.enabled) {
+        return;
+    }
+
+    try {
+        auto property = Controls::MenuFlyoutPresenter::SystemBackdropProperty();
+        auto current = presenter.SystemBackdrop();
+        void* key = winrt::get_abi(presenter);
+        if (auto it = g_zenSubmenuBackdrops.find(key);
+            it != g_zenSubmenuBackdrops.end() && current &&
+            current.as<winrt::Windows::Foundation::IInspectable>() ==
+                it->second) {
+            return;
+        }
+
+        auto backdrop =
+            winrt::make<ZenAcrylicBackdrop>(params.tint, params.tintOpacity,
+                                            params.luminosityOpacity,
+                                            params.fallback)
+                .as<winrt::Windows::Foundation::IInspectable>();
+        presenter.SetValue(property, backdrop);
+        g_zenSubmenuBackdrops[key] = backdrop;
+
+        presenter.Unloaded(
+            [key](winrt::Windows::Foundation::IInspectable const& sender,
+                  RoutedEventArgs const&) {
+                auto it = g_zenSubmenuBackdrops.find(key);
+                if (it == g_zenSubmenuBackdrops.end()) {
+                    return;
+                }
+                try {
+                    if (auto p = sender.try_as<Controls::MenuFlyoutPresenter>()) {
+                        auto property =
+                            Controls::MenuFlyoutPresenter::SystemBackdropProperty();
+                        auto cur = p.ReadLocalValue(property);
+                        if (cur == it->second) {
+                            // Clear only — do not restore the stock backdrop.
+                            p.ClearValue(property);
+                        }
+                    }
+                } catch (...) {
+                }
+                g_zenSubmenuBackdrops.erase(it);
+            });
+
+        Wh_Log(L"[ctxmenu] submenu glass applied");
+    } catch (winrt::hresult_error const& ex) {
+        Wh_Log(L"[ctxmenu] submenu apply error %08X: %s", ex.code(),
+               ex.message().c_str());
+    }
+}
+
 void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
     if (!g_zenContextMenuParams.enabled) {
+        return;
+    }
+
+    if (auto submenu = element.try_as<Controls::MenuFlyoutPresenter>()) {
+        ZenContextMenuApplySubmenu(submenu);
         return;
     }
 
@@ -6662,6 +6745,15 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
 }
 
 void ZenContextMenuRestoreAll() {
+    // Submenus: clear ours only, never restore stock (see ApplySubmenu).
+    auto submenus = std::move(g_zenSubmenuBackdrops);
+    g_zenSubmenuBackdrops.clear();
+    for (auto& [key, backdrop] : submenus) {
+        (void)key;
+        (void)backdrop;
+        // Presenter is usually already gone with the popup; nothing to restore.
+    }
+
     // Detached first: restoring runs XAML work which may re-enter.
     auto menus = std::move(g_zenContextMenus);
     g_zenContextMenus.clear();
@@ -11268,11 +11360,62 @@ bool IsWindowBackgroundBrush(HDC hdc, HBRUSH hbr) {
     return IsContentBackgroundColor(color);
 }
 
+bool FillRectWithAlpha(HDC hdc, const RECT* rect, COLORREF color, BYTE alpha);
+
+// ZenDesktop: selection / hover greys (#2A–#60) and COLOR_HIGHLIGHT used to
+// stay fully opaque (BufferedPaintMakeOpaque / stock FillRect). Paint them as
+// dark glass so selected rows match the translucent theme.
+bool IsSelectionOrHoverBrush(HDC hdc, HBRUSH hbr, COLORREF* outColor) {
+    COLORREF color;
+    if (hbr == (HBRUSH)(COLOR_HIGHLIGHT + 1)) {
+        color = GetSysColor(COLOR_HIGHLIGHT);
+    } else if (hbr == GetStockObject(DC_BRUSH)) {
+        color = GetDCBrushColor(hdc);
+    } else {
+        LOGBRUSH logBrush;
+        if (GetObject(hbr, sizeof(logBrush), &logBrush) != sizeof(logBrush) ||
+            logBrush.lbStyle != BS_SOLID) {
+            return false;
+        }
+        color = logBrush.lbColor;
+    }
+
+    if (color == GetSysColor(COLOR_HIGHLIGHT)) {
+        if (outColor) *outColor = color;
+        return true;
+    }
+
+    // Dark-mode selection / hover band above content bg (#282828) and below
+    // mid greys that are chrome chrome. Light mode: mid greys.
+    if (g_zenDarkContent.load(std::memory_order_relaxed)) {
+        if (IsNeutralGreyInRange(color, 0x2A, 0x60)) {
+            if (outColor) *outColor = color;
+            return true;
+        }
+    } else if (IsNeutralGreyInRange(color, 0xC0, 0xE8)) {
+        if (outColor) *outColor = color;
+        return true;
+    }
+    return false;
+}
+
 using FillRect_t = decltype(&FillRect);
 FillRect_t FillRect_Original;
 int WINAPI FillRect_Hook(HDC hDC, const RECT* lprc, HBRUSH hbr) {
-    if (IsEntireWindowEffectDC(hDC) && IsWindowBackgroundBrush(hDC, hbr)) {
-        hbr = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    if (IsEntireWindowEffectDC(hDC)) {
+        if (IsWindowBackgroundBrush(hDC, hbr)) {
+            hbr = (HBRUSH)GetStockObject(BLACK_BRUSH);
+        } else {
+            COLORREF selColor;
+            if (IsSelectionOrHoverBrush(hDC, hbr, &selColor)) {
+                // Premultiplied dark glass (~45%): keeps selection readable
+                // without a solid slab over the blur.
+                BYTE alpha = 0x73;
+                if (FillRectWithAlpha(hDC, lprc, selColor, alpha)) {
+                    return TRUE;
+                }
+            }
+        }
     }
 
     return FillRect_Original(hDC, lprc, hbr);
@@ -11597,26 +11740,18 @@ bool CalcExtTextOutRect(HDC hdc,
 bool PaintExtTextOutBackground(HDC hdc, const RECT* lprect) {
     COLORREF color = GetBkColor(hdc);
 
-    // The selection highlight is made opaque, other backgrounds are left for
-    // DWM to treat as with any other GDI fill.
-    if (color != GetSysColor(COLOR_HIGHLIGHT)) {
-        HBRUSH brush = CreateSolidBrush(color);
-        FillRect(hdc, lprect, brush);
-        DeleteObject(brush);
-        return true;
+    // ZenDesktop: selection highlight as dark glass (was BufferedPaintMakeOpaque).
+    if (color == GetSysColor(COLOR_HIGHLIGHT) ||
+        (g_zenDarkContent.load(std::memory_order_relaxed) &&
+         IsNeutralGreyInRange(color, 0x2A, 0x60)) ||
+        (!g_zenDarkContent.load(std::memory_order_relaxed) &&
+         IsNeutralGreyInRange(color, 0xC0, 0xE8))) {
+        return FillRectWithAlpha(hdc, lprect, color, 0x73);
     }
 
-    BP_PAINTPARAMS params = {sizeof(params)};
-    HDC memDC;
-    HPAINTBUFFER hpb =
-        BeginBufferedPaint(hdc, lprect, BPBF_TOPDOWNDIB, &params, &memDC);
-    if (!hpb) {
-        return false;
-    }
-
-    FillRect(memDC, lprect, GetSysColorBrush(COLOR_HIGHLIGHT));
-    BufferedPaintMakeOpaque(hpb, lprect);
-    EndBufferedPaint(hpb, TRUE);
+    HBRUSH brush = CreateSolidBrush(color);
+    FillRect(hdc, lprect, brush);
+    DeleteObject(brush);
     return true;
 }
 
@@ -12546,6 +12681,35 @@ void OnWindowCreated(HWND hWnd, PCSTR funcName) {
     }
 }
 
+// ZenDesktop: first ShowWindow of a File Explorer frame can race the
+// CreateWindow path — the window flashes black before accent / blur land.
+// Re-apply the translucent effect immediately before the first show.
+using ShowWindow_t = decltype(&ShowWindow);
+ShowWindow_t ShowWindow_Original;
+BOOL WINAPI ShowWindow_Hook(HWND hWnd, int nCmdShow) {
+    if (nCmdShow != SW_HIDE &&
+        GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer) {
+        auto effect = GetEffectiveBackgroundTranslucentEffect();
+        if (effect != BackgroundTranslucentEffect::kDefault) {
+            ApplyBackgroundTranslucentEffect(hWnd, effect);
+        }
+    }
+    return ShowWindow_Original(hWnd, nCmdShow);
+}
+
+using ShowWindowAsync_t = decltype(&ShowWindowAsync);
+ShowWindowAsync_t ShowWindowAsync_Original;
+BOOL WINAPI ShowWindowAsync_Hook(HWND hWnd, int nCmdShow) {
+    if (nCmdShow != SW_HIDE &&
+        GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer) {
+        auto effect = GetEffectiveBackgroundTranslucentEffect();
+        if (effect != BackgroundTranslucentEffect::kDefault) {
+            ApplyBackgroundTranslucentEffect(hWnd, effect);
+        }
+    }
+    return ShowWindowAsync_Original(hWnd, nCmdShow);
+}
+
 using CreateWindowExW_t = decltype(&CreateWindowExW);
 CreateWindowExW_t CreateWindowExW_Original;
 HWND WINAPI CreateWindowExW_Hook(DWORD dwExStyle,
@@ -13387,7 +13551,11 @@ BOOL Wh_ModInit() {
     LoadSettings();
     LoadThemeSettings();
 
-    WindhawkUtils::SetFunctionHook(CreateWindowExW, CreateWindowExW_Hook,
+    WindhawkUtils::SetFunctionHook(ShowWindow, ShowWindow_Hook,
+                                   &ShowWindow_Original);
+    WindhawkUtils::SetFunctionHook(ShowWindowAsync, ShowWindowAsync_Hook,
+                                   &ShowWindowAsync_Original);
+        WindhawkUtils::SetFunctionHook(CreateWindowExW, CreateWindowExW_Hook,
                                    &CreateWindowExW_Original);
 
     WindhawkUtils::SetFunctionHook(DwmSetWindowAttribute,

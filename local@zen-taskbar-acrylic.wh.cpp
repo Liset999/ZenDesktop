@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.2.7
+// @version         4.2.8
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -62,6 +62,7 @@
 
 ## 更新日志
 
+- **4.2.8**：开机或资源管理器自重启后，任务栏 / 托盘溢出 / 音量浮窗若回退成系统原样，会像文件管理器顶部一样自动补挂几次（监听 TaskbarCreated，并在约 2.5s / 8s / 20s 重试）；开了「统一设置」时不必再手动重置。
 - **4.2.7**：默认主题改回「自定义玻璃」，已选的主题不变；问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明，微信赞赏链接改为指向 `main` 分支。
 - **4.2.6**：设置按区分组（主题与文字、任务栏背景、托盘溢出面板、音量/亮度浮窗、最大化时、高级），新增「统一设置」让弹窗跟随任务栏背景；旧版保存的设置继续生效。
 - **4.2.5**：Win+X 菜单和托盘溢出面板去掉额外描边，圆角跟 Windows 自带一致（自定义玻璃和液态玻璃主题都适用）；默认主题改为「液态玻璃」，已选的主题不变。
@@ -22671,6 +22672,256 @@ void LoadSettings() {
     Wh_FreeStringSetting(xamlDiagnosticsHandling);
 }
 
+// ZenDesktop: same path as toggling the mod or saving settings — tear down
+// TAP and re-init every taskbar / flyout island. Used by TaskbarCreated and
+// the staged boot retries so tray / volume chrome don't stay stock after an
+// explorer soft-restart (g_initialized can stay true while the TAP is dead).
+void ReapplyTaskbarStyles(bool reloadSettings) {
+    UninitializeSettingsAndTap();
+
+    if (reloadSettings) {
+        LoadSettings();
+    } else {
+        // Allow a fresh TAP inject after a soft restart.
+        g_zenTapRetryUsed = false;
+    }
+
+    bool initialize = false;
+
+    HWND hTaskbarUiWnd = GetTaskbarUiWnd();
+    if (hTaskbarUiWnd) {
+        Wh_Log(L"Reapplying styles - Found DesktopWindowContentBridge window");
+        RunFromWindowThread(
+            hTaskbarUiWnd,
+            [](PVOID) {
+                UninitializeForCurrentThread();
+                InitializeForCurrentThread();
+            },
+            nullptr);
+        initialize = true;
+    }
+
+    for (auto hXamlHostWnd : GetXamlHostWnds()) {
+        Wh_Log(L"Reapplying styles for %08X", (DWORD)(ULONG_PTR)hXamlHostWnd);
+        RunFromWindowThread(
+            hXamlHostWnd,
+            [](PVOID) {
+                UninitializeForCurrentThread();
+                InitializeForCurrentThread();
+            },
+            nullptr);
+        initialize = true;
+    }
+
+    if (initialize) {
+        InitializeSettingsAndTap();
+    }
+
+    if (g_zenMaxLayerEnabled) {
+        ZenMaxLayerStart();
+        ZenMaxLayerRequestRefresh();
+    } else {
+        ZenMaxLayerStop();
+    }
+}
+
+PTP_TIMER g_bootReinitTimer = nullptr;
+// Tray XAML islands can appear well after the first AfterInit pass on a slow
+// logon. Staged retries mirror the explorer chrome auto-rehook FAQ.
+constexpr ULONGLONG kBootRetryDelaysMs[] = {2500, 8000, 20000};
+int g_bootRetryIndex = 0;
+std::atomic<bool> g_bootRetryStopping{false};
+
+void ArmBootReinitTimer(ULONGLONG delayMs) {
+    if (!g_bootReinitTimer) {
+        return;
+    }
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    ULARGE_INTEGER due;
+    due.LowPart = ft.dwLowDateTime;
+    due.HighPart = ft.dwHighDateTime;
+    due.QuadPart += delayMs * 10000ULL;
+    ft.dwLowDateTime = due.LowPart;
+    ft.dwHighDateTime = due.HighPart;
+    SetThreadpoolTimer(g_bootReinitTimer, &ft, 0, 0);
+}
+
+void ArmNextBootRetry() {
+    if (g_bootRetryStopping.load()) {
+        return;
+    }
+    if (++g_bootRetryIndex < (int)ARRAYSIZE(kBootRetryDelaysMs)) {
+        ArmBootReinitTimer(kBootRetryDelaysMs[g_bootRetryIndex] -
+                           kBootRetryDelaysMs[g_bootRetryIndex - 1]);
+    }
+}
+
+void StopBootReinitTimer() {
+    if (g_bootReinitTimer) {
+        g_bootRetryStopping = true;
+        SetThreadpoolTimer(g_bootReinitTimer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(g_bootReinitTimer, TRUE);
+        CloseThreadpoolTimer(g_bootReinitTimer);
+        g_bootReinitTimer = nullptr;
+    }
+}
+
+void ScheduleBootStyleReinit() {
+    if (g_bootReinitTimer) {
+        return;
+    }
+
+    g_bootReinitTimer = CreateThreadpoolTimer(
+        [](PTP_CALLBACK_INSTANCE, PVOID, PTP_TIMER) {
+            std::lock_guard<std::mutex> lock(g_zenLifecycleMutex);
+            if (g_zenUnloading) {
+                return;
+            }
+
+            // First tick: non-destructive if TAP is already up (init any
+            // thread that missed AfterInit). Later ticks: full reapply, same
+            // as saving settings — that is what users already know fixes
+            // stock tray / volume chrome after explorer restarts.
+            if (g_bootRetryIndex == 0 && g_initialized.load()) {
+                Wh_Log(L"[boot-retry] TAP already up, ensure threads (attempt 1)");
+                HWND hTaskbarUiWnd = GetTaskbarUiWnd();
+                if (hTaskbarUiWnd) {
+                    RunFromWindowThread(
+                        hTaskbarUiWnd,
+                        [](PVOID) {
+                            if (!g_initializedForThread) {
+                                InitializeForCurrentThread();
+                            }
+                        },
+                        nullptr);
+                }
+                for (auto hXamlHostWnd : GetXamlHostWnds()) {
+                    RunFromWindowThread(
+                        hXamlHostWnd,
+                        [](PVOID) {
+                            if (!g_initializedForThread) {
+                                InitializeForCurrentThread();
+                            }
+                        },
+                        nullptr);
+                }
+                ArmNextBootRetry();
+                return;
+            }
+
+            Wh_Log(L"[boot-retry] full reapply (attempt %d)",
+                   g_bootRetryIndex + 1);
+            ReapplyTaskbarStyles(false);
+            ArmNextBootRetry();
+        },
+        nullptr, nullptr);
+    if (!g_bootReinitTimer) {
+        Wh_Log(L"Failed to create boot reinit timer");
+        return;
+    }
+
+    g_bootRetryIndex = 0;
+    g_bootRetryStopping = false;
+    ArmBootReinitTimer(kBootRetryDelaysMs[0]);
+    Wh_Log(L"[boot-retry] scheduled");
+}
+
+static HWND g_hTaskbarCreatedWnd = nullptr;
+static HANDLE g_hTaskbarCreatedThread = nullptr;
+static UINT g_uTaskbarCreatedMsg = 0;
+
+static void CleanupTaskbarCreatedWindow();
+
+static LRESULT CALLBACK TaskbarCreatedWndProc(HWND hWnd,
+                                              UINT uMsg,
+                                              WPARAM wParam,
+                                              LPARAM lParam) {
+    if (uMsg == g_uTaskbarCreatedMsg && g_uTaskbarCreatedMsg != 0) {
+        Wh_Log(L"WM_TASKBARCREATED — full reapply (explorer restarted)");
+        // Wait briefly for Shell_TrayWnd / XAML islands to exist.
+        HWND hTaskbarUiWnd = nullptr;
+        for (int attempt = 0; attempt < 10 && !hTaskbarUiWnd; ++attempt) {
+            hTaskbarUiWnd = GetTaskbarUiWnd();
+            if (!hTaskbarUiWnd) {
+                Sleep(500);
+            }
+        }
+        // Stop the boot timer outside the lifecycle lock: its callback takes
+        // that lock, so waiting for it while holding the lock deadlocks.
+        StopBootReinitTimer();
+        {
+            std::lock_guard<std::mutex> lock(g_zenLifecycleMutex);
+            if (!g_zenUnloading) {
+                ReapplyTaskbarStyles(false);
+            }
+        }
+        if (!g_zenUnloading) {
+            ScheduleBootStyleReinit();
+        }
+        return 0;
+    }
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+static DWORD WINAPI TaskbarCreatedWindowThread(LPVOID) {
+    constexpr LPCWSTR kClassName = L"ZenTaskbarAcrylic_TaskbarCreatedMsgWnd";
+
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(wc);
+    wc.lpfnWndProc = TaskbarCreatedWndProc;
+    wc.hInstance = GetCurrentModuleHandle();
+    wc.lpszClassName = kClassName;
+
+    if (!RegisterClassExW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+        Wh_Log(L"RegisterClassExW failed: %u", GetLastError());
+        return 1;
+    }
+
+    // Top-level (not HWND_MESSAGE): TaskbarCreated is a broadcast.
+    g_hTaskbarCreatedWnd = CreateWindowExW(
+        WS_EX_TOOLWINDOW, kClassName, L"", WS_POPUP, 0, 0, 0, 0, nullptr,
+        nullptr, GetCurrentModuleHandle(), nullptr);
+    if (!g_hTaskbarCreatedWnd) {
+        Wh_Log(L"CreateWindowExW(TaskbarCreated) failed: %u", GetLastError());
+        return 1;
+    }
+
+    Wh_Log(L"TaskbarCreated listener window created (hwnd=%08X)",
+           (DWORD)(ULONG_PTR)g_hTaskbarCreatedWnd);
+
+    MSG msg;
+    while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+    return 0;
+}
+
+static void StartTaskbarCreatedListener() {
+    if (g_hTaskbarCreatedThread) {
+        return;
+    }
+    g_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
+    g_hTaskbarCreatedThread = CreateThread(
+        nullptr, 0, TaskbarCreatedWindowThread, nullptr, 0, nullptr);
+}
+
+static void CleanupTaskbarCreatedWindow() {
+    if (g_hTaskbarCreatedWnd) {
+        PostMessageW(g_hTaskbarCreatedWnd, WM_QUIT, 0, 0);
+        g_hTaskbarCreatedWnd = nullptr;
+    }
+    if (g_hTaskbarCreatedThread) {
+        if (WaitForSingleObject(g_hTaskbarCreatedThread, 2000) == WAIT_TIMEOUT) {
+            Wh_Log(L"TaskbarCreated thread did not exit in time, terminating");
+            TerminateThread(g_hTaskbarCreatedThread, 0);
+        }
+        CloseHandle(g_hTaskbarCreatedThread);
+        g_hTaskbarCreatedThread = nullptr;
+    }
+}
+
 BOOL Wh_ModInit() {
     Wh_Log(L">");
 
@@ -22768,6 +23019,9 @@ void Wh_ModAfterInit() {
     if (g_zenMaxLayerEnabled) {
         ZenMaxLayerStart();
     }
+
+    StartTaskbarCreatedListener();
+    ScheduleBootStyleReinit();
 }
 
 void Wh_ModUninit() {
@@ -22780,6 +23034,8 @@ void Wh_ModUninit() {
         g_zenUnloading = true;
     }
     ZenStopTapRetry();
+    StopBootReinitTimer();
+    CleanupTaskbarCreatedWindow();
 
     std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
 
@@ -22829,49 +23085,6 @@ void Wh_ModSettingsChanged() {
 
     std::lock_guard<std::mutex> lifecycleLock(g_zenLifecycleMutex);
 
-    UninitializeSettingsAndTap();
-
     g_zenTapRetryUsed = false;
-
-    LoadSettings();
-
-    bool initialize = false;
-
-    HWND hTaskbarUiWnd = GetTaskbarUiWnd();
-    if (hTaskbarUiWnd) {
-        Wh_Log(L"Reinitializing - Found DesktopWindowContentBridge window");
-        RunFromWindowThread(
-            hTaskbarUiWnd,
-            [](PVOID) {
-                UninitializeForCurrentThread();
-                InitializeForCurrentThread();
-            },
-            nullptr);
-        initialize = true;
-    }
-
-    for (auto hXamlHostWnd : GetXamlHostWnds()) {
-        Wh_Log(L"Reinitializing for %08X", (DWORD)(ULONG_PTR)hXamlHostWnd);
-        RunFromWindowThread(
-            hXamlHostWnd,
-            [](PVOID) {
-                UninitializeForCurrentThread();
-                InitializeForCurrentThread();
-            },
-            nullptr);
-        initialize = true;
-    }
-
-    if (initialize) {
-        InitializeSettingsAndTap();
-    }
-
-    if (g_zenMaxLayerEnabled) {
-        ZenMaxLayerStart();
-        // The UI threads were reinitialized, so refresh them even if the
-        // maximized windows didn't change.
-        ZenMaxLayerRequestRefresh();
-    } else {
-        ZenMaxLayerStop();
-    }
+    ReapplyTaskbarStyles(true);
 }

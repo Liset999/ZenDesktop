@@ -222,6 +222,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 - **打开 mod 后没效果**：先确认 mod 已编译成功（Windhawk 里没有报错），再运行 `restart_explorer.bat` 或重启电脑。
 - **开机后文件管理器顶部（标签栏、地址栏、命令栏）不透明**：1.6.6 起会在开机后自动补挂几次，等几秒就会变透明；还不行就在 Windhawk 里把「文件管理器美化」关掉再打开。
+- **开机或资源管理器自重启后，任务栏 / 托盘溢出 / 音量浮窗变回系统原样**：4.2.8 起会监听 TaskbarCreated，并在约 2.5s / 8s / 20s 自动补挂（与文件管理器顶部同思路）。开了「统一设置」一般不必再手动重置；还不行就在 Windhawk 里把「任务栏美化」关掉再打开。
 - **文件管理器不透明、命令栏发黑**：只用「文件管理器美化」，不要同时开 ExplorerBlurMica；还注册着 EBM 的，先运行 `tools/uninstall-ExplorerBlurMica.bat`。
 - **开机后托盘图标不透明**：在「任务栏美化」的「高级：XAML 诊断冲突处理」里改成「阻止其他程序」。TranslucentTB 等同类软件会和美化 mod 抢 XAML 诊断，建议不要同时用。
 - **歌词面板不显示或和小组件重叠**：在「设置 → 个性化 → 任务栏」里关掉小组件。
