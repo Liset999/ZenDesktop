@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.4
+// @version         4.2.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -53,11 +53,13 @@
 ## 兼容性与已知问题
 
 - 适用于 Windows 11，注入 `SystemSettings.exe`。
+- Win11 26H2（26300）「个性化 → 背景」页壁纸面板不再套玻璃样式（避免闪退）；其它设置页效果不变。
 - 设置是 WinUI/UWP 应用，Translucent Windows 等 DWM 类 mod 对它无效，需使用本 mod。
 - 窗口失去焦点时仍保持亚克力效果，不会切换为纯色（Windows 默认会在失焦时把亚克力换成纯色，本 mod 让应用始终按前台状态绘制）。
 
 ## 更新日志
 
+- **4.2.5**：跳过「个性化 → 背景」页的 `BackgroundStackPanel` 子树样式，收窄全局 `Border#Root` / `ContentPresenter#ContentPresenter` 透明规则，减轻 Win11 26H2/26300 进背景页闪退。
 - **4.2.4**：修复控制面板 / 设置里白底卡片盖住白色文字（白字时卡片改为深色半透明；补清 SubtleFillColorDefault 等残留白底资源）。
 - **4.2.3**：「浅色模式：白底」默认从 45% 改为 20%，新增 10% 和 20% 两档，玻璃更通透。之前保存过设置的不会自动改，可以手动改成 20%。
 - **4.2.2**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
@@ -766,8 +768,6 @@ const Theme g_themeBlue = {{
         L"Foreground=Black"}},
     ThemeTargetStyles{L"ContentPresenter#SubtitleContent", {
         L"Foreground=White"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", {
-        L"Background=Blue"}},
     ThemeTargetStyles{L"TextBlock#TitleContent", {
         L"Foreground=White"}},
     ThemeTargetStyles{L"ContentPresenter#TitleContent", {
@@ -802,7 +802,9 @@ const Theme g_themeTranslucentSettings = {{
     ThemeTargetStyles{L"Grid#ItemsContainerGrid", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.ItemsRepeaterScrollHost", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#MenuItemsScrollViewer", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"Border#Root", { L"Background=Transparent", L"BorderThickness=0"}},
+    // Narrowed: bare Border#Root also hit wallpaper/background page chrome on 26H2.
+    ThemeTargetStyles{L"ScrollViewer#MenuItemsScrollViewer > Border#Root", { L"Background=Transparent", L"BorderThickness=0"}},
+    ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel > Border#Root", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"ScrollViewer > Border#Root", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"ScrollContentPresenter#ScrollContentPresenter", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Microsoft.UI.Xaml.Controls.ItemsRepeater#MenuItemsHost", { L"Background=Transparent"}},
@@ -824,12 +826,13 @@ const Theme g_themeTranslucentSettings = {{
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Grid#RootScrollableGrid", { L"Background=Transparent"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#TitleBarGrid", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"Border#ContentPresenterBorder", { L"Background=Transparent"}},
-    ThemeTargetStyles{L"ContentPresenter#ContentPresenter", { L"Background=Transparent"}},
+    // Narrowed: bare ContentPresenter#ContentPresenter reached Image-heavy wallpaper entities.
+    ThemeTargetStyles{L"Grid#ContentGrid > ContentPresenter#ContentPresenter", { L"Background=Transparent"}},
+    ThemeTargetStyles{L"Grid#ContentGrid > ContentPresenter#ContentPresenter > Frame#PermanentNavRootFrame > ContentPresenter", { L"Background=Transparent"}},
     ThemeTargetStyles{L"SystemSettings.View.CategoryPage > Grid", { L"Background=Transparent"}},
     ThemeTargetStyles{L"SystemSettings.View.L2Page#L2Page > Grid", { L"Background=Transparent"}},
 
@@ -1013,7 +1016,6 @@ const Theme g_themeSimplyTransparent = {{
     ThemeTargetStyles{L"Border#ContentGridBorder", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"SystemSettings.View.SettingsNavigationViewItem", { L"Background=Transparent", L"Margin=4,2,4,2", L"CornerRadius=6"}},
@@ -1057,7 +1059,6 @@ const Theme g_themeFrostedAcrylic = {{
     ThemeTargetStyles{L"Border#ContentGridBorder", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"SystemSettings.View.SettingsNavigationViewItem", { L"Background=Transparent", L"Margin=4,2,4,2", L"CornerRadius=6"}},
@@ -1165,7 +1166,6 @@ const Theme g_themeLightFog = {{
     ThemeTargetStyles{L"Border#ContentGridBorder", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"SystemSettings.View.SettingsNavigationViewItem", { L"Background=Transparent", L"Margin=4,2,4,2", L"CornerRadius=6"}},
@@ -1273,7 +1273,6 @@ const Theme g_themeDarkGlass = {{
     ThemeTargetStyles{L"Border#ContentGridBorder", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"SystemSettings.View.SettingsNavigationViewItem", { L"Background=Transparent", L"Margin=4,2,4,2", L"CornerRadius=6"}},
@@ -1381,7 +1380,6 @@ const Theme g_themeAppleLiquidGlass = {{
     ThemeTargetStyles{L"Border#ContentGridBorder", { L"Background=Transparent", L"BorderThickness=0"}},
     ThemeTargetStyles{L"Frame#PermanentNavRootFrame", { L"Background=Transparent"}},
     ThemeTargetStyles{L"ScrollViewer#SettingsPageHostPanel", { L"Background=Transparent", L"BorderThickness=0"}},
-    ThemeTargetStyles{L"StackPanel#BackgroundStackPanel", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#AppTitleBar", { L"Background=Transparent"}},
     ThemeTargetStyles{L"Grid#ShadowCaster", { L"Opacity=0", L"Visibility=Collapsed"}},
     ThemeTargetStyles{L"SystemSettings.View.SettingsNavigationViewItem", { L"Background=Transparent"}},
@@ -6129,6 +6127,32 @@ void RestoreCustomizationsForVisualStateGroup(
 
 void MergeResourceVariables();
 
+// Win11 26H2 / 26300: styling StackPanel#BackgroundStackPanel (or its Image /
+// EntityItem descendants) with HostBackdrop / forced transparent brushes can
+// crash SystemSettings on Personalization → Background. Skip that subtree.
+bool IsUnderBackgroundStackPanel(FrameworkElement element) {
+    for (int depth = 0; depth < 40 && element; ++depth) {
+        try {
+            if (element.Name() == L"BackgroundStackPanel") {
+                return true;
+            }
+        } catch (...) {
+            return false;
+        }
+        try {
+            auto parent = Media::VisualTreeHelper::GetParent(element)
+                              .try_as<FrameworkElement>();
+            if (!parent) {
+                return false;
+            }
+            element = parent;
+        } catch (...) {
+            return false;
+        }
+    }
+    return false;
+}
+
 void ApplyCustomizations(InstanceHandle handle,
                          FrameworkElement element,
                          PCWSTR fallbackClassName) {
@@ -6143,6 +6167,11 @@ void ApplyCustomizations(InstanceHandle handle,
     if (!state) {
         Wh_Log(L"No XamlRoot for %s, skipping",
                winrt::get_class_name(element).c_str());
+        return;
+    }
+
+    // Do not restyle the wallpaper / background page subtree (26H2 crash).
+    if (IsUnderBackgroundStackPanel(element)) {
         return;
     }
 
