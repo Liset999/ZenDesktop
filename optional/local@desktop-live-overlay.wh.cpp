@@ -1,7 +1,9 @@
 // ==WindhawkMod==
 // @id              desktop-live-overlay
-// @name            Desktop Live Overlay
-// @description     Display live, customizable content on the desktop behind icons. Perfect for showing time, date, system metrics, weather, and more.
+// @name            ZenDesktop: 桌面实时叠层
+// @name:zh-CN      ZenDesktop: 桌面实时叠层
+// @description     Live customizable text on the desktop behind icons — time, date, metrics, weather, and more.
+// @description:zh-CN 在桌面图标下方显示实时可定制内容：时间、日期、系统指标、天气等。
 // @version         1.2
 // @author          m417z
 // @github          https://github.com/m417z
@@ -14,77 +16,65 @@
 
 // Source code is published under The GNU General Public License v3.0.
 //
-// For bug reports and feature requests, please open an issue here:
+// Original: m417z / Desktop Live Overlay. ZenDesktop ships a Simplified Chinese UI localization.
+// For bug reports and feature requests (upstream), please open an issue here:
 // https://github.com/ramensoftware/windhawk-mods/issues
 //
 // For pull requests, development takes place here:
 // https://github.com/m417z/my-windhawk-mods
+//
+// ZenDesktop packaging: https://github.com/Liset999/ZenDesktop
 
 // ==WindhawkModReadme==
 /*
-# Desktop Live Overlay
+> **打包与汉化：Lanbo / ZenDesktop**
+> [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
 
-Display live, customizable content on the desktop behind icons. Perfect for
-showing time, date, system metrics, weather, and more.
+> 原作者：**m417z**（[Desktop Live Overlay](https://windhawk.net/mods/desktop-live-overlay)，GPL-3.0）。本仓库仅做一键部署打包与**简体中文设置界面**，逻辑未改；上游问题请到 [windhawk-mods](https://github.com/ramensoftware/windhawk-mods/issues) 反馈。
 
-### Features
+# ZenDesktop: 桌面实时叠层
 
-* Two customizable text lines with independent styling
-* Dynamic patterns for time, date, system info, and weather
-* Font family, size, weight, and style options per line
-* Text color with transparency support
-* Optional background with customizable color, padding, and corner radius
-* Customizable positioning
+在桌面图标下方显示实时、可定制的文字内容，适合展示时间、日期、系统指标、天气等。
 
-### Supported Patterns
+### 功能
 
-**Time/Date:**
-* `%time%` - Current time
-* `%date%` - Current date
-* `%weekday%` - Day of week name
-* `%weekday_num%` - Day of week as number (1-7)
-* `%weeknum%` - Week number of year
-* `%dayofyear%` - Day of year (1-366)
-* `%timezone%` - Timezone offset (e.g., +02:00)
+* 两行可独立样式的文字
+* 时间 / 日期 / 系统信息 / 天气等动态占位符
+* 每行可设字体、字号、字重、样式
+* 文字颜色支持透明度
+* 可选背景：颜色、内边距、圆角、模糊、描边
+* 位置与显示器可调
 
-**System Metrics:**
-* `%cpu%` - CPU usage percentage
-* `%cpu_temp%` - CPU temperature in °C (average of all ACPI thermal zones)
-* `%cpu_temp_f%` - CPU temperature in °F (average of all ACPI thermal zones)
-* `%ram%` - RAM usage percentage
-* `%ram_used%` - Used RAM amount in GB
-* `%ram_total%` - Total RAM amount in GB
-* `%ram_committed%` - Committed RAM usage percentage (memory committed by apps,
-  backed by RAM or the page file)
-* `%ram_committed_used%` - Used committed RAM amount in GB
-* `%ram_committed_total%` - Total committed RAM amount in GB
-* `%battery%` - Battery percentage
-* `%battery_time%` - battery time remaining (charging time left / discharging
-  time left, in h:mm format). If the value is always zero, you might need to
-  enable battery time reporting in the BIOS.
-* `%power%` - battery power in watts (negative when discharging, positive when
-  charging). If the value is always zero, you might need to enable battery time
-  reporting in the BIOS.
-* `%upload_speed%` - Network upload speed
-* `%download_speed%` - Network download speed
-* `%total_speed%` - Combined network speed
-* `%disk_read%` - Disk read speed
-* `%disk_write%` - Disk write speed
-* `%disk_total%` - Combined disk I/O speed
-* `%gpu%` - GPU usage percentage
-* `%gpu_temp%` - GPU temperature in °C
-* `%gpu_temp_f%` - GPU temperature in °F
-* `%vram%` - VRAM usage as a percentage of total dedicated VRAM
-* `%vram_used%` - Used dedicated VRAM amount in GB
-* `%vram_total%` - Total dedicated VRAM amount in GB
-* `%vram_shared%` - Shared VRAM usage as a percentage of total shared VRAM
-  (system RAM used as extra GPU memory)
-* `%vram_shared_used%` - Used shared VRAM amount in GB
-* `%vram_shared_total%` - Total shared VRAM pool size in GB
-* `%weather%` - Weather from [wttr.in](https://wttr.in/)
+### 支持的占位符
 
-**Other:**
-* `%newline%` or `%n%` - Line break
+**时间/日期：**
+* `%time%` — 当前时间
+* `%date%` — 当前日期
+* `%weekday%` — 星期名称
+* `%weekday_num%` — 星期数字（1–7）
+* `%weeknum%` — 年内周数
+* `%dayofyear%` — 年内第几天（1–366）
+* `%timezone%` — 时区偏移（如 +08:00）
+
+**系统指标：**
+* `%cpu%` — CPU 占用百分比
+* `%cpu_temp%` — CPU 温度 °C（ACPI 热区平均）
+* `%cpu_temp_f%` — CPU 温度 °F
+* `%ram%` — 内存占用百分比
+* `%ram_used%` / `%ram_total%` — 已用 / 总内存（GB）
+* `%ram_committed%` / `%ram_committed_used%` / `%ram_committed_total%` — 已提交内存相关
+* `%battery%` — 电量百分比
+* `%battery_time%` — 剩余充电/放电时间（h:mm）；若恒为 0 可能需在 BIOS 开启电池时间报告
+* `%power%` — 电池功率瓦特（放电为负、充电为正）
+* `%upload_speed%` / `%download_speed%` / `%total_speed%` — 网络速度
+* `%disk_read%` / `%disk_write%` / `%disk_total%` — 磁盘读写
+* `%gpu%` / `%gpu_temp%` / `%gpu_temp_f%` — GPU 占用与温度
+* `%vram%` / `%vram_used%` / `%vram_total%` — 独立显存
+* `%vram_shared%` / `%vram_shared_used%` / `%vram_shared_total%` — 共享显存
+* `%weather%` — 天气（[wttr.in](https://wttr.in/)）
+
+**其它：**
+* `%newline%` 或 `%n%` — 换行
 
 ![Screenshot](https://i.imgur.com/BW52sWf.png)
 */
@@ -94,157 +84,152 @@ showing time, date, system metrics, weather, and more.
 /*
 - topLine:
   - text: "%time%"
-    $name: Text
+    $name: 文本
     $description: >-
-      Text to display. Supported patterns are listed in the mod description.
+      要显示的文字。支持的占位符见 Mod 说明。
   - fontSize: 48
-    $name: Font size
-    $description: Size of the text in points
+    $name: 字号
+    $description: 文字大小（磅）
   - textColor: "#C0FFFFFF"
-    $name: Text color
+    $name: 文字颜色
     $description: >-
-      Color in ARGB hex format. Examples: #80FFFFFF (semi-transparent white),
-      #FF0000 (red), #80000000 (semi-transparent black)
+      ARGB 十六进制颜色。示例：#80FFFFFF（半透明白）、#FF0000（红）、#80000000（半透明黑）
   - fontFamily: Segoe UI
-    $name: Font family
+    $name: 字体
     $description: >-
-      Font family name. For a list of fonts shipped with Windows, see:
+      字体族名称。Windows 自带字体列表见：
       https://learn.microsoft.com/en-us/typography/fonts/windows_11_font_list
   - fontWeight: Bold
-    $name: Font weight
+    $name: 字重
     $options:
-    - "": Default
-    - Thin: Thin
-    - Light: Light
-    - Normal: Normal
-    - Medium: Medium
-    - SemiBold: Semi bold
-    - Bold: Bold
-    - ExtraBold: Extra bold
+    - "": 默认
+    - Thin: 极细
+    - Light: 细
+    - Normal: 常规
+    - Medium: 中等
+    - SemiBold: 半粗
+    - Bold: 粗体
+    - ExtraBold: 特粗
   - fontStyle: ""
-    $name: Font style
+    $name: 字形
     $options:
-    - "": Default
-    - Normal: Normal
-    - Italic: Italic
-  $name: Top line
+    - "": 默认
+    - Normal: 常规
+    - Italic: 斜体
+  $name: 上行文字
 - bottomLine:
   - text: "%date%%n%%weather%"
-    $name: Text
+    $name: 文本
     $description: >-
-      Text to display. Supported patterns are listed in the mod description.
+      要显示的文字。支持的占位符见 Mod 说明。
   - fontSize: 32
-    $name: Font size
-    $description: Size of the text in points
+    $name: 字号
+    $description: 文字大小（磅）
   - textColor: "#80FFFFFF"
-    $name: Text color
+    $name: 文字颜色
     $description: >-
-      Color in ARGB hex format. Examples: #80FFFFFF (semi-transparent white),
-      #FF0000 (red), #80000000 (semi-transparent black)
+      ARGB 十六进制颜色。示例：#80FFFFFF（半透明白）、#FF0000（红）、#80000000（半透明黑）
   - fontFamily: Segoe UI
-    $name: Font family
+    $name: 字体
     $description: >-
-      Font family name. For a list of fonts shipped with Windows, see:
+      字体族名称。Windows 自带字体列表见：
       https://learn.microsoft.com/en-us/typography/fonts/windows_11_font_list
   - fontWeight: ""
-    $name: Font weight
+    $name: 字重
     $options:
-    - "": Default
-    - Thin: Thin
-    - Light: Light
-    - Normal: Normal
-    - Medium: Medium
-    - SemiBold: Semi bold
-    - Bold: Bold
-    - ExtraBold: Extra bold
+    - "": 默认
+    - Thin: 极细
+    - Light: 细
+    - Normal: 常规
+    - Medium: 中等
+    - SemiBold: 半粗
+    - Bold: 粗体
+    - ExtraBold: 特粗
   - fontStyle: ""
-    $name: Font style
+    $name: 字形
     $options:
-    - "": Default
-    - Normal: Normal
-    - Italic: Italic
-  $name: Bottom line
+    - "": 默认
+    - Normal: 常规
+    - Italic: 斜体
+  $name: 下行文字
 - showSeconds: false
-  $name: Show seconds
+  $name: 显示秒
 - timeFormat: ""
-  $name: Time format
+  $name: 时间格式
   $description: >-
-    Leave empty for the default format. For syntax refer to the following page:
+    留空使用默认格式。语法见：
 
     https://docs.microsoft.com/en-us/windows/win32/api/datetimeapi/nf-datetimeapi-gettimeformatex#remarks
 - dateFormat: ""
-  $name: Date format
+  $name: 日期格式
   $description: >-
-    Leave empty for the default format. For syntax refer to the following page:
+    留空使用默认格式。语法见：
 
     https://docs.microsoft.com/en-us/windows/win32/intl/day--month--year--and-era-format-pictures
 - refreshInterval: 1
-  $name: Refresh interval (seconds)
-  $description: How often to update dynamic content (1-60)
+  $name: 刷新间隔（秒）
+  $description: 动态内容更新频率（1–60）
 - gpuAdapterName: ""
-  $name: GPU adapter name
+  $name: GPU 适配器名称
   $description: >-
-    The GPU adapter to use for the GPU usage, VRAM and temperature patterns.
-    Leave empty to auto-detect (uses the adapter with the most dedicated VRAM).
-    Partial match is supported. To list adapters, run:
+    用于 GPU 占用、显存和温度占位符的适配器。留空自动选择（专用显存最大的那个）。
+    支持部分匹配。列出适配器可运行：
 
     wmic path win32_videocontroller get Name
 - background:
   - enabled: true
-    $name: Enabled
+    $name: 启用
   - color: "#80000000"
-    $name: Color
+    $name: 颜色
     $description: >-
-      Background color in ARGB hex format. Default is semi-transparent black.
+      背景 ARGB 十六进制颜色。默认半透明黑。
   - padding: 20
-    $name: Padding
-    $description: Padding around the text in pixels
+    $name: 内边距
+    $description: 文字周围内边距（像素）
   - cornerRadius: 8
-    $name: Corner radius
-    $description: Border radius for rounded corners in pixels
+    $name: 圆角半径
+    $description: 圆角半径（像素）
   - blur: 0
-    $name: Blur
+    $name: 模糊
     $description: >-
-      Blur radius for the wallpaper behind the background area. Set to 0 to
-      disable.
+      背景区域后壁纸模糊半径。0 为关闭。
   - borderSize: 0
-    $name: Border size
-    $description: Border width in pixels. Set to 0 to disable.
+    $name: 描边宽度
+    $description: 描边宽度（像素）。0 为关闭。
   - borderColor: "#C0FFFFFF"
-    $name: Border color
+    $name: 描边颜色
     $description: >-
-      Border color in ARGB hex format. Default is semi-transparent white.
-  $name: Background
+      描边 ARGB 十六进制颜色。默认半透明白。
+  $name: 背景
 - verticalPosition: 20
-  $name: Vertical position
-  $description: Position in percentage (0 = top, 50 = center, 100 = bottom)
+  $name: 垂直位置
+  $description: 百分比位置（0=顶部，50=居中，100=底部）
 - horizontalPosition: 50
-  $name: Horizontal position
-  $description: Position in percentage (0 = left, 50 = center, 100 = right)
+  $name: 水平位置
+  $description: 百分比位置（0=左侧，50=居中，100=右侧）
 - monitor: 1
-  $name: Monitor
-  $description: The monitor number to display text on (1-based)
+  $name: 显示器
+  $description: 显示文字的显示器编号（从 1 开始）
 - weatherLocation: ""
-  $name: Weather location
+  $name: 天气地点
   $description: >-
-    Location for weather (city name, coordinates, etc.). Empty uses auto-detect
-    based on IP. For details, refer to the documentation of wttr.in.
+    天气地点（城市名、坐标等）。留空则按 IP 自动检测。详见 wttr.in 文档。
 - weatherFormat: "%c %t"
-  $name: Weather format
+  $name: 天气格式
   $description: >-
-    The weather information format. For details, refer to the documentation of
-    wttr.in.
+    天气信息格式。详见 wttr.in 文档。
 - weatherUnits: autoDetect
-  $name: Weather units
+  $name: 天气单位
   $description: >-
-    The weather units. For details, refer to the documentation of wttr.in.
+    天气单位。详见 wttr.in 文档。
   $options:
-  - autoDetect: Auto (default)
-  - uscs: USCS (used by default in US)
-  - metric: Metric (SI) (used by default everywhere except US)
-  - metricMsWind: Metric (SI), but show wind speed in m/s
+  - autoDetect: 自动（默认）
+  - uscs: 美制（USCS，美国默认）
+  - metric: 公制（SI，美国以外默认）
+  - metricMsWind: 公制（SI），风速用 m/s
 */
 // ==/WindhawkModSettings==
+
 
 #include <windhawk_utils.h>
 
