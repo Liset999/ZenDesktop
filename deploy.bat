@@ -44,6 +44,8 @@ color 0B
 
 echo ============================================================
 echo   ZenDesktop One-Key Deploy (PowerShell Bootstrapper)
+echo   Incremental: only changed mod sources are overwritten
+echo   增量部署：内容未变的 Mod 源码不会被覆盖
 echo ============================================================
 echo.
 

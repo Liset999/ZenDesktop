@@ -53,6 +53,31 @@ function Set-RegValueIfMissing ($path, $name, $value, $type, $label = "") {
     }
 }
 
+# Copy a file only when the destination is missing or its content differs
+# (SHA256). Returns: added | updated | skipped.
+function Get-FileSha256 ([string]$path) {
+    if (-not (Test-Path -LiteralPath $path)) { return $null }
+    return (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+}
+
+function Copy-FileIfChanged ([string]$Source, [string]$Destination) {
+    $destDir = Split-Path -Parent $Destination
+    if ($destDir -and -not (Test-Path -LiteralPath $destDir)) {
+        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+    }
+    if (-not (Test-Path -LiteralPath $Destination)) {
+        Copy-Item -LiteralPath $Source -Destination $Destination -Force
+        return "added"
+    }
+    $srcHash = Get-FileSha256 $Source
+    $dstHash = Get-FileSha256 $Destination
+    if ($srcHash -and $dstHash -and ($srcHash -eq $dstHash)) {
+        return "skipped"
+    }
+    Copy-Item -LiteralPath $Source -Destination $Destination -Force
+    return "updated"
+}
+
 # Adds entries to a "|"-separated Windhawk process list, keeping the user's
 # entries and their order.
 function Merge-ProcessList ($current, [string[]]$entries) {
@@ -208,7 +233,11 @@ Start-Sleep -Seconds 1
 Write-Status "Windhawk successfully stopped." "Green"
 
 # 4. Copy and Inject Active Mods
-Write-Status "Scanning and deploying active mod files..."
+$script:copyAdded = 0
+$script:copyUpdated = 0
+$script:copySkipped = 0
+Write-Status "Scanning and deploying active mod files (unchanged sources are skipped)..."
+Write-Status "扫描并部署 Mod 源码（内容未变的文件会跳过覆盖）..."
 $modsSource = Join-Path $windhawkData "ModsSource"
 if (-not (Test-Path $modsSource)) {
     New-Item -ItemType Directory -Path $modsSource -Force | Out-Null
@@ -270,8 +299,14 @@ foreach ($file in $files) {
     Write-Status "Deploying Mod: $id ($($file.Name))..." "Cyan"
     $modTimer = [System.Diagnostics.Stopwatch]::StartNew()
     
-    # Copy source code to Windhawk
-    Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $modsSource $file.Name) -Force
+    # Copy source code to Windhawk only when content changed (SHA256)
+    $destCpp = Join-Path $modsSource $file.Name
+    $copyResult = Copy-FileIfChanged -Source $file.FullName -Destination $destCpp
+    switch ($copyResult) {
+        "added"   { $script:copyAdded++;   Write-Status "         [File] 新增 / Added" "Green" }
+        "updated" { $script:copyUpdated++; Write-Status "         [File] 已更新 / Updated" "Yellow" }
+        "skipped" { $script:copySkipped++; Write-Status "         [File] 未变化，跳过 / Unchanged, skipped" "DarkGray" }
+    }
     
     # Read and parse metadata directly from the source code headers
     $content = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
@@ -516,13 +551,16 @@ foreach ($file in $files) {
         Write-Status ("         [Done] {0:N1} s (slow step; please report this line if it keeps happening)" -f $modTimer.Elapsed.TotalSeconds) "Yellow"
     }
 }
+Write-Status ("源码拷贝统计 / Copy summary: 新增 {0} · 更新 {1} · 跳过 {2}" -f $script:copyAdded, $script:copyUpdated, $script:copySkipped) "Cyan"
 Write-Status "Active mods successfully registered into Windhawk Engine." "Green"
 
 # 5. UI Cache Regeneration (Refreshes installed list and Chinese metadata instantly)
 $cacheFile = Join-Path $windhawkData "userprofile.json"
-if (Test-Path $cacheFile) {
+if (($script:copyAdded + $script:copyUpdated) -gt 0 -and (Test-Path $cacheFile)) {
     Write-Status "Clearing UI Cache (userprofile.json) to force metadata scan..." "Yellow"
     Remove-Item -Path $cacheFile -Force
+} elseif (($script:copyAdded + $script:copyUpdated) -eq 0) {
+    Write-Status "源码均未变化，保留 UI 缓存 / Sources unchanged — keeping userprofile.json cache." "DarkGray"
 }
 
 # 6. Restart Windhawk Service and UI
@@ -559,7 +597,12 @@ if ($StartupCheck -eq "remove" -or $StartupCheck -eq "off") {
             $checkDir = Join-Path $env:LOCALAPPDATA "ZenDesktop"
             if (-not (Test-Path $checkDir)) { New-Item -ItemType Directory -Path $checkDir -Force | Out-Null }
             $checkDst = Join-Path $checkDir "ZenDesktop-StartupCheck.ps1"
-            Copy-Item -LiteralPath $checkSrc -Destination $checkDst -Force
+            $checkCopy = Copy-FileIfChanged -Source $checkSrc -Destination $checkDst
+            switch ($checkCopy) {
+                "added"   { Write-Status "Startup check script installed (new)." "Gray" }
+                "updated" { Write-Status "Startup check script updated." "Gray" }
+                "skipped" { Write-Status "Startup check script unchanged, skipped." "DarkGray" }
+            }
             $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
             $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$checkDst`" -Mode $StartupCheck -DelaySec 15"
             $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
@@ -587,6 +630,7 @@ Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："
 Write-Host "  1. deploy 仅负责将美化模块装入 Windhawk，默认不自动开启任何 Mod，也不在后台执行编译。"
+Write-Host "     再次运行时会按内容（SHA256）比对：未变化的 .wh.cpp 不会覆盖，只更新有改动的文件。"
 Write-Host "  2. 请在 Windhawk 界面中按需开启您想要使用的模块开关，在弹出的窗口中确认保存与编译。"
 Write-Host "  3. deploy 已把 dwm.exe 加入 Windhawk「进程包含列表」；若开启「果冻窗口」，请重启整机后生效。"
 Write-Host "     deploy 只会补上缺失的默认设置，不会覆盖您已有的 Mod 设置。"
