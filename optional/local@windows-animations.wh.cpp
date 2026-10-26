@@ -104,7 +104,7 @@
 
 ## 更新日志
 
-- **1.6.2**：修复零雾开窗编译：`IsOurWindow` 前向声明（Windhawk undeclared identifier）。
+- **1.6.2**：修复零雾开窗编译：将 `IsOurWindow` 定义前移到首次使用之前（Windhawk undeclared identifier）。
 - **1.6.1**：性能：进程名按 PID 二级缓存，减少重复 OpenProcess。
 - **1.6.0**：新增可选「零雾开窗」：资源管理器 / 设置首次打开时从柔雾模糊溶入玻璃界面（默认关闭，不影响黑闪预涂）。
 - **1.5.3**：开机后预热 Direct2D，减轻首次使用 macOS 神奇效果时的卡顿。
@@ -14484,7 +14484,11 @@ DWORD WINAPI FogClearAnimThread(LPVOID lpParam) {
     return 0;
 }
 
-static bool IsOurWindow(HWND hWnd);
+static bool IsOurWindow(HWND hWnd) {
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hWnd, &pid);
+    return pid == GetCurrentProcessId();
+}
 
 static void TryScheduleFogClear(HWND hWnd) {
     if (!g_fogClearEnable.load(std::memory_order_relaxed)) return;
@@ -14800,11 +14804,6 @@ static BOOL ShowPersistentlyCloakedTrayWindow(
     return result;
 }
 
-static bool IsOurWindow(HWND hWnd) {
-    DWORD pid = 0;
-    GetWindowThreadProcessId(hWnd, &pid);
-    return pid == GetCurrentProcessId();
-}
 
 // Tauri/WRY may briefly show a hidden window, hide it again, and immediately
 // issue the final show while restoring startup or tray state. Track only a
