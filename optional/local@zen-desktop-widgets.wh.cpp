@@ -2,9 +2,9 @@
 // @id              zen-desktop-widgets
 // @name            ZenDesktop: 桌面小组件
 // @name:zh-CN      ZenDesktop: 桌面小组件
-// @description     Optional glass desktop widgets: clock, status, weather demo, calendar, battery, countdown, sticky. Describe a card to enable templates. Default off.
-// @description:zh-CN 可选玻璃桌面小组件：时钟、状态、天气演示、日历、电量、倒计时、便签。可用中文描述自动编排内置模板。默认关闭。
-// @version         0.2.0
+// @description     Optional macOS-inspired glass desktop widgets: size presets, caption/value hierarchy, soft corners, grid snap. Built-in templates + describe layout. Default off.
+// @description:zh-CN 可选 macOS 风格玻璃桌面小组件：小/中/大尺寸、标题/数值层级、大圆角、网格吸附。内置模板 + 描述编排。默认关闭。
+// @version         0.2.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -20,7 +20,7 @@
 
 # ZenDesktop: 桌面小组件
 
-在桌面上放置可拖动的玻璃风卡片。**v0.2** 内置多块模板，并提供类似小米「超级背屏 / AI 生成应用卡」思路的**本地规则编排**（用一句话描述想要的卡片 → 映射到内置模板）。不是 Rainmeter；不调用云端大模型。
+在桌面上放置可拖动的玻璃风卡片。**v0.2.1** 布局与排版向 **macOS Desktop / Notification Center Widgets** 靠拢：大圆角、统一内边距、小标题 + 大数值层级、小/中/大尺寸档、可选网格吸附。仍保留 v0.2 的内置模板与「超级背屏」式本地描述编排。不是 Rainmeter；不调用云端大模型。
 
 ## 内置模板
 
@@ -34,12 +34,21 @@
 | 倒计时 | 目标日期剩余天数 |
 | 便签 | 多行备忘风格短文 |
 
+## macOS 风格布局（v0.2.1）
+
+- **尺寸档**：小 / 中 / 大（近似 macOS small / medium / large 比例）
+- **层级**：顶部小标题（caption）+ 中部大数值（value）+ 可选脚注
+- **字体**：Segoe UI Variable Display / Text（接近 SF Pro 的 Windows 系统替代）
+- **圆角**：Win11 `DWMWA_WINDOW_CORNER_PREFERENCE` 大圆角；旧系统用圆角区域兜底
+- **玻璃**：Acrylic；跟随系统浅色/深色应用主题微调 tint 与字色
+- **吸附**：可选释放时对齐到网格，默认位置按右缘整齐堆叠
+
 ## 卡片编排（超级背屏风格 MVP）
 
 - **预设套装**：一键启用常见组合（日常 / 专注 / 全部关闭仅手调）。
-- **描述想要的卡片**：填写中文或英文关键词（如「时钟和天气」「倒计时考试」），规则引擎启用对应模板。
-- **编排模式**：追加（保留原开关并打开匹配项）或替换（只开匹配项）。
-- 真 LLM / 本地 API 生成布局见仓库 `docs/desktop-widgets.md` 路线图；本进程内不做网络推理。
+- **描述想要的卡片**：填写中文或英文关键词，规则引擎启用对应模板。
+- **编排模式**：追加或替换。
+- 真 LLM / 本地 API 见 `docs/desktop-widgets.md`；本进程内不做网络推理。
 
 ## 其它
 
@@ -48,7 +57,8 @@
 
 ## 更新日志
 
-- **0.2.0**：内置时钟/状态/天气演示/日历/电量/倒计时/便签；12/24h；预设套装 + 描述→模板编排（超级背屏风格 MVP）；文档更新。
+- **0.2.1**：macOS 风格布局（尺寸档、caption/value、大圆角、浅/深色、网格吸附）；文档更新。
+- **0.2.0**：内置时钟/状态/天气演示/日历/电量/倒计时/便签；12/24h；预设套装 + 描述→模板编排。
 - **0.1.1**：性能：未变不重绘、USERDATA、GDI 复用。
 - **0.1.0**：MVP：时钟 + 状态卡。
 
@@ -56,7 +66,7 @@
 
 - ZenDesktop 原创 optional Mod，GPL-3.0。
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
-- 「超级背屏」仅为交互灵感来源，与小米无关、无商标授权。
+- 「超级背屏」仅为交互灵感来源，与小米无关、无商标授权。macOS Widgets 仅为视觉参考。
 */
 // ==/WindhawkModReadme==
 
@@ -86,6 +96,20 @@
   $options:
     - append: "追加：打开匹配项，保留原开关"
     - replace: "替换：只开匹配项"
+- widgetSize: "medium"
+  $name: "Widget size"
+  $name:zh-CN: "卡片尺寸"
+  $description: "macOS-inspired small / medium / large presets."
+  $description:zh-CN: "参考 macOS 小组件的小 / 中 / 大尺寸档。"
+  $options:
+    - small: "小（近似 square small）"
+    - medium: "中（宽卡，默认）"
+    - large: "大（接近正方形大卡）"
+- snapToGrid: true
+  $name: "Snap to grid when dropping"
+  $name:zh-CN: "拖放后对齐网格"
+  $description: "Snap position to an 16px grid on mouse up. Default: on."
+  $description:zh-CN: "松开鼠标时按 16 像素网格对齐。默认开启。"
 - showClock: true
   $name: "Show clock"
   $name:zh-CN: "显示时钟"
@@ -121,11 +145,11 @@
   $name:zh-CN: "显示便签"
   $description: "Sticky-note style text card. Default: off."
   $description:zh-CN: "便签风格短文卡片。默认关闭。"
-- fontSize: 28
-  $name: "Font size (px)"
-  $name:zh-CN: "主文字大小（像素）"
-  $description: "Primary text size, 16–64. Default: 28."
-  $description:zh-CN: "主文字大小，范围 16–64 像素。默认 28。"
+- fontSize: 0
+  $name: "Value font size (0 = auto)"
+  $name:zh-CN: "主数值字号（0=随尺寸档）"
+  $description: "0 follows size preset; otherwise 16–72 overrides the hero value size."
+  $description:zh-CN: "0 表示随小/中/大档自动；否则 16–72 覆盖主数值字号。"
 - clockShowSeconds: false
   $name: "Clock shows seconds"
   $name:zh-CN: "时钟显示秒"
@@ -180,6 +204,16 @@
 #define WCA_ACCENT_POLICY 19
 #endif
 
+#ifndef DWMWA_WINDOW_CORNER_PREFERENCE
+#define DWMWA_WINDOW_CORNER_PREFERENCE 33
+#endif
+
+#ifndef DWMWCP_ROUND
+#define DWMWCP_DONOTROUND 1
+#define DWMWCP_ROUND 2
+#define DWMWCP_ROUNDSMALL 3
+#endif
+
 enum ACCENT_STATE {
     ACCENT_DISABLED = 0,
     ACCENT_ENABLE_GRADIENT = 1,
@@ -208,7 +242,8 @@ static SetWindowCompositionAttribute_t g_pSetWindowCompositionAttribute = nullpt
 static constexpr wchar_t kRegPath[] = L"Software\\ZenDesktop\\DesktopWidgets";
 static constexpr wchar_t kClassName[] = L"ZenDesktop.DesktopWidget";
 static constexpr UINT_PTR kTimerRefresh = 1;
-static constexpr int kPad = 18;
+static constexpr int kSnapGrid = 16;
+static constexpr int kStackGap = 14;
 
 enum class WidgetKind {
     Clock = 0,
@@ -221,6 +256,12 @@ enum class WidgetKind {
     Count
 };
 
+enum class WidgetSize {
+    Small = 0,
+    Medium,
+    Large
+};
+
 struct Settings {
     bool showClock = true;
     bool showStatus = true;
@@ -229,9 +270,11 @@ struct Settings {
     bool showSystem = false;
     bool showCountdown = false;
     bool showSticky = false;
-    int fontSize = 28;
+    int fontSize = 0;  // 0 = auto from size preset
     bool clockShowSeconds = false;
     bool clock12Hour = false;
+    bool snapToGrid = true;
+    WidgetSize widgetSize = WidgetSize::Medium;
     std::wstring statusText;
     std::wstring weatherCity;
     std::wstring weatherDemoText;
@@ -243,6 +286,12 @@ struct Settings {
     std::wstring aiLayoutMode;
 } g_settings;
 
+struct WidgetText {
+    wchar_t caption[64]{};
+    wchar_t value[96]{};
+    wchar_t footer[96]{};
+};
+
 struct Widget {
     WidgetKind kind = WidgetKind::Clock;
     HWND hwnd = nullptr;
@@ -253,17 +302,24 @@ struct Widget {
     bool dragging = false;
     POINT dragStart{};
     POINT winStart{};
-    wchar_t lastLine1[96]{};
-    wchar_t lastLine2[160]{};
+    wchar_t lastCap[64]{};
+    wchar_t lastVal[96]{};
+    wchar_t lastFoot[96]{};
     UINT timerMs = 0;
 };
 
 static std::vector<Widget> g_widgets;
 static ATOM g_atom = 0;
-static HFONT g_fontLarge = nullptr;
-static HFONT g_fontSmall = nullptr;
+static HFONT g_fontValue = nullptr;
+static HFONT g_fontCaption = nullptr;
+static HFONT g_fontBody = nullptr;
 static HBRUSH g_brushCardBg = nullptr;
 static bool g_classRegistered = false;
+static bool g_darkMode = true;
+static COLORREF g_colorValue = RGB(0xF5, 0xF5, 0xF7);
+static COLORREF g_colorCaption = RGB(0xAE, 0xAE, 0xB2);
+static COLORREF g_colorBody = RGB(0xE5, 0xE5, 0xEA);
+static COLORREF g_colorCardSolid = RGB(0x1C, 0x1C, 0x1E);
 
 static constexpr wchar_t kDefaultStatusText[] = L"ZenDesktop 小组件";
 static constexpr wchar_t kWeek[][4] = {L"日", L"一", L"二", L"三", L"四", L"五", L"六"};
@@ -273,7 +329,9 @@ static constexpr wchar_t kWeekLong[][8] = {L"星期日", L"星期一", L"星期�
 static void LoadSettings();
 static void ApplyPresetAndAi();
 static void RebuildFonts();
+static void RefreshThemeColors();
 static void ApplyGlass(HWND hwnd);
+static void ApplyRoundedCorners(HWND hwnd, int width, int height);
 static void EnsureWidgets();
 static void DestroyAllWidgets();
 static void PersistPosition(const Widget& w);
@@ -281,12 +339,17 @@ static void LoadPosition(Widget& w);
 static LRESULT CALLBACK WidgetWndProc(HWND, UINT, WPARAM, LPARAM);
 static void PaintWidget(HWND hwnd, Widget* w);
 static Widget* FindWidget(HWND hwnd);
-static void FormatClockLines(wchar_t* line1, size_t cch1, wchar_t* line2, size_t cch2);
-static void FormatWidgetLines(WidgetKind kind, wchar_t* line1, size_t cch1, wchar_t* line2,
-                              size_t cch2);
+static void FormatWidgetText(WidgetKind kind, WidgetText* out);
 static bool ParseYmd(const std::wstring& s, SYSTEMTIME* out);
 static int DaysUntil(const SYSTEMTIME& target);
-static void ReadBattery(wchar_t* line1, size_t cch1, wchar_t* line2, size_t cch2);
+static void ReadBattery(WidgetText* out);
+static void SizeForKind(WidgetKind kind, int* outW, int* outH);
+static int PadForSize();
+static int ValuePxForSize();
+static int CaptionPxForSize();
+static int BodyPxForSize();
+static int CornerRadiusPx();
+static int SnapCoord(int v);
 
 static int Clamp(int v, int lo, int hi) {
     if (v < lo) return lo;
@@ -347,6 +410,126 @@ static void SetAllShows(bool v) {
     g_settings.showSticky = v;
 }
 
+static WidgetSize ParseWidgetSize(const std::wstring& s) {
+    if (s == L"small") return WidgetSize::Small;
+    if (s == L"large") return WidgetSize::Large;
+    return WidgetSize::Medium;
+}
+
+static int PadForSize() {
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            return 16;
+        case WidgetSize::Large:
+            return 24;
+        default:
+            return 20;
+    }
+}
+
+static int ValuePxForSize() {
+    if (g_settings.fontSize > 0) {
+        return Clamp(g_settings.fontSize, 16, 72);
+    }
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            return 28;
+        case WidgetSize::Large:
+            return 52;
+        default:
+            return 36;
+    }
+}
+
+static int CaptionPxForSize() {
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            return 11;
+        case WidgetSize::Large:
+            return 13;
+        default:
+            return 12;
+    }
+}
+
+static int BodyPxForSize() {
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            return 13;
+        case WidgetSize::Large:
+            return 16;
+        default:
+            return 14;
+    }
+}
+
+static int CornerRadiusPx() {
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            return 22;
+        case WidgetSize::Large:
+            return 32;
+        default:
+            return 26;
+    }
+}
+
+static int SnapCoord(int v) {
+    if (!g_settings.snapToGrid) return v;
+    if (v >= 0) {
+        return ((v + kSnapGrid / 2) / kSnapGrid) * kSnapGrid;
+    }
+    return -(((-v) + kSnapGrid / 2) / kSnapGrid) * kSnapGrid;
+}
+
+static void SizeForKind(WidgetKind kind, int* outW, int* outH) {
+    // Approximate macOS Desktop widget footprints (scaled for free desktop cards).
+    int w = 340;
+    int h = 168;
+    switch (g_settings.widgetSize) {
+        case WidgetSize::Small:
+            w = 168;
+            h = 168;
+            break;
+        case WidgetSize::Large:
+            w = 340;
+            h = 340;
+            break;
+        default:
+            w = 340;
+            h = 168;
+            break;
+    }
+
+    // Kind tweaks: clock/status prefer wide-short in small; sticky uses full box.
+    if (g_settings.widgetSize == WidgetSize::Small) {
+        if (kind == WidgetKind::Clock) {
+            w = 200;
+            h = 110;
+        } else if (kind == WidgetKind::Status || kind == WidgetKind::Sticky) {
+            w = 200;
+            h = 110;
+        }
+    } else if (g_settings.widgetSize == WidgetSize::Medium) {
+        if (kind == WidgetKind::Calendar || kind == WidgetKind::Countdown) {
+            // Slightly squarer medium for number-forward cards.
+            w = 200;
+            h = 200;
+        }
+    } else {  // large
+        if (kind == WidgetKind::Clock) {
+            w = 340;
+            h = 200;
+        } else if (kind == WidgetKind::Status) {
+            w = 340;
+            h = 168;
+        }
+    }
+
+    *outW = w;
+    *outH = h;
+}
+
 static void ApplyPresetAndAi() {
     const std::wstring& pack = g_settings.presetPack;
     if (pack == L"daily") {
@@ -367,7 +550,6 @@ static void ApplyPresetAndAi() {
     } else if (pack == L"all") {
         SetAllShows(true);
     }
-    // manual: keep toggles from settings
 
     if (g_settings.aiDescribe.empty()) {
         return;
@@ -433,9 +615,14 @@ static void LoadSettings() {
     g_settings.showSystem = Wh_GetIntSetting(L"showSystem") != 0;
     g_settings.showCountdown = Wh_GetIntSetting(L"showCountdown") != 0;
     g_settings.showSticky = Wh_GetIntSetting(L"showSticky") != 0;
-    g_settings.fontSize = Clamp(Wh_GetIntSetting(L"fontSize"), 16, 64);
+    g_settings.fontSize = Wh_GetIntSetting(L"fontSize");
+    if (g_settings.fontSize != 0) {
+        g_settings.fontSize = Clamp(g_settings.fontSize, 16, 72);
+    }
     g_settings.clockShowSeconds = Wh_GetIntSetting(L"clockShowSeconds") != 0;
     g_settings.clock12Hour = Wh_GetIntSetting(L"clock12Hour") != 0;
+    g_settings.snapToGrid = Wh_GetIntSetting(L"snapToGrid") != 0;
+    g_settings.widgetSize = ParseWidgetSize(ReadStr(L"widgetSize"));
 
     g_settings.statusText = ReadStr(L"statusText");
     g_settings.weatherCity = ReadStr(L"weatherCity");
@@ -488,130 +675,201 @@ static int DaysUntil(const SYSTEMTIME& target) {
     return static_cast<int>(diff / (10000000LL * 60 * 60 * 24));
 }
 
-static void ReadBattery(wchar_t* line1, size_t cch1, wchar_t* line2, size_t cch2) {
+static bool IsAppsUseDarkTheme() {
+    HKEY key = nullptr;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER,
+                      L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0,
+                      KEY_READ, &key) != ERROR_SUCCESS) {
+        return true;
+    }
+    DWORD val = 0;
+    DWORD size = sizeof(val);
+    DWORD type = 0;
+    const LONG rc =
+        RegQueryValueExW(key, L"AppsUseLightTheme", nullptr, &type, reinterpret_cast<LPBYTE>(&val),
+                         &size);
+    RegCloseKey(key);
+    if (rc == ERROR_SUCCESS && type == REG_DWORD) {
+        return val == 0;
+    }
+    return true;
+}
+
+static void RefreshThemeColors() {
+    g_darkMode = IsAppsUseDarkTheme();
+    if (g_darkMode) {
+        g_colorValue = RGB(0xF5, 0xF5, 0xF7);
+        g_colorCaption = RGB(0xAE, 0xAE, 0xB2);
+        g_colorBody = RGB(0xE5, 0xE5, 0xEA);
+        g_colorCardSolid = RGB(0x1C, 0x1C, 0x1E);
+    } else {
+        g_colorValue = RGB(0x1C, 0x1C, 0x1E);
+        g_colorCaption = RGB(0x6C, 0x6C, 0x70);
+        g_colorBody = RGB(0x3A, 0x3A, 0x3C);
+        g_colorCardSolid = RGB(0xF2, 0xF2, 0xF7);
+    }
+    if (g_brushCardBg) {
+        DeleteObject(g_brushCardBg);
+        g_brushCardBg = nullptr;
+    }
+    g_brushCardBg = CreateSolidBrush(g_colorCardSolid);
+}
+
+static void ReadBattery(WidgetText* out) {
     SYSTEM_POWER_STATUS sps{};
     if (!GetSystemPowerStatus(&sps)) {
-        swprintf_s(line1, cch1, L"电源");
-        swprintf_s(line2, cch2, L"无法读取");
+        wcscpy_s(out->caption, L"电源");
+        wcscpy_s(out->value, L"—");
+        wcscpy_s(out->footer, L"无法读取");
         return;
     }
     if (sps.BatteryFlag == 128 || sps.BatteryLifePercent == 255) {
-        swprintf_s(line1, cch1, L"交流供电");
-        swprintf_s(line2, cch2, L"未检测到电池");
+        wcscpy_s(out->caption, L"电源");
+        wcscpy_s(out->value, L"AC");
+        wcscpy_s(out->footer, L"交流供电");
         return;
     }
     const int pct = static_cast<int>(sps.BatteryLifePercent);
     const bool ac = sps.ACLineStatus == 1;
-    swprintf_s(line1, cch1, L"电量 %d%%", pct);
+    wcscpy_s(out->caption, L"电量");
+    swprintf_s(out->value, L"%d%%", pct);
     if (ac) {
-        swprintf_s(line2, cch2, L"充电中 / 已接电源");
+        wcscpy_s(out->footer, L"充电中");
     } else if (sps.BatteryLifeTime != 0xFFFFFFFF) {
         const DWORD mins = sps.BatteryLifeTime / 60;
-        swprintf_s(line2, cch2, L"约 %u 小时 %u 分", mins / 60, mins % 60);
+        swprintf_s(out->footer, L"约 %u 时 %u 分", mins / 60, mins % 60);
     } else {
-        swprintf_s(line2, cch2, L"使用电池");
+        wcscpy_s(out->footer, L"使用电池");
     }
 }
 
-static void FormatClockLines(wchar_t* line1, size_t cch1, wchar_t* line2, size_t cch2) {
-    SYSTEMTIME st{};
-    GetLocalTime(&st);
-    if (g_settings.clock12Hour) {
-        unsigned h = st.wHour % 12;
-        if (h == 0) h = 12;
-        const wchar_t* ap = st.wHour < 12 ? L"上午" : L"下午";
-        if (g_settings.clockShowSeconds) {
-            swprintf_s(line1, cch1, L"%s %u:%02u:%02u", ap, h, st.wMinute, st.wSecond);
-        } else {
-            swprintf_s(line1, cch1, L"%s %u:%02u", ap, h, st.wMinute);
-        }
-    } else if (g_settings.clockShowSeconds) {
-        swprintf_s(line1, cch1, L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
-    } else {
-        swprintf_s(line1, cch1, L"%02u:%02u", st.wHour, st.wMinute);
-    }
-    swprintf_s(line2, cch2, L"%04u-%02u-%02u  %s", st.wYear, st.wMonth, st.wDay,
-               kWeekLong[st.wDayOfWeek % 7]);
-}
-
-static void FormatWidgetLines(WidgetKind kind, wchar_t* line1, size_t cch1, wchar_t* line2,
-                              size_t cch2) {
-    line1[0] = 0;
-    line2[0] = 0;
+static void FormatWidgetText(WidgetKind kind, WidgetText* out) {
+    out->caption[0] = 0;
+    out->value[0] = 0;
+    out->footer[0] = 0;
     switch (kind) {
-        case WidgetKind::Clock:
-            FormatClockLines(line1, cch1, line2, cch2);
+        case WidgetKind::Clock: {
+            SYSTEMTIME st{};
+            GetLocalTime(&st);
+            wcscpy_s(out->caption, L"时钟");
+            if (g_settings.clock12Hour) {
+                unsigned h = st.wHour % 12;
+                if (h == 0) h = 12;
+                const wchar_t* ap = st.wHour < 12 ? L"上午" : L"下午";
+                if (g_settings.clockShowSeconds) {
+                    swprintf_s(out->value, L"%u:%02u:%02u", h, st.wMinute, st.wSecond);
+                } else {
+                    swprintf_s(out->value, L"%u:%02u", h, st.wMinute);
+                }
+                swprintf_s(out->footer, L"%s · %04u-%02u-%02u %s", ap, st.wYear, st.wMonth, st.wDay,
+                           kWeekLong[st.wDayOfWeek % 7]);
+            } else if (g_settings.clockShowSeconds) {
+                swprintf_s(out->value, L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
+                swprintf_s(out->footer, L"%04u-%02u-%02u  %s", st.wYear, st.wMonth, st.wDay,
+                           kWeekLong[st.wDayOfWeek % 7]);
+            } else {
+                swprintf_s(out->value, L"%02u:%02u", st.wHour, st.wMinute);
+                swprintf_s(out->footer, L"%04u-%02u-%02u  %s", st.wYear, st.wMonth, st.wDay,
+                           kWeekLong[st.wDayOfWeek % 7]);
+            }
             break;
+        }
         case WidgetKind::Status: {
+            wcscpy_s(out->caption, L"状态");
             const wchar_t* t = g_settings.statusText.empty() ? kDefaultStatusText
                                                             : g_settings.statusText.c_str();
-            wcsncpy_s(line1, cch1, t, _TRUNCATE);
+            wcsncpy_s(out->value, t, _TRUNCATE);
             break;
         }
         case WidgetKind::Weather:
-            swprintf_s(line1, cch1, L"%s", g_settings.weatherCity.c_str());
-            swprintf_s(line2, cch2, L"%s · 演示", g_settings.weatherDemoText.c_str());
+            wcsncpy_s(out->caption, g_settings.weatherCity.c_str(), _TRUNCATE);
+            wcsncpy_s(out->value, g_settings.weatherDemoText.c_str(), _TRUNCATE);
+            wcscpy_s(out->footer, L"演示数据");
             break;
         case WidgetKind::Calendar: {
             SYSTEMTIME st{};
             GetLocalTime(&st);
-            swprintf_s(line1, cch1, L"%u", st.wDay);
-            swprintf_s(line2, cch2, L"%04u年%u月 · 周%s", st.wYear, st.wMonth,
-                       kWeek[st.wDayOfWeek % 7]);
+            swprintf_s(out->caption, L"%04u年%u月", st.wYear, st.wMonth);
+            swprintf_s(out->value, L"%u", st.wDay);
+            swprintf_s(out->footer, L"%s", kWeekLong[st.wDayOfWeek % 7]);
             break;
         }
         case WidgetKind::System:
-            ReadBattery(line1, cch1, line2, cch2);
+            ReadBattery(out);
             break;
         case WidgetKind::Countdown: {
             SYSTEMTIME target{};
+            wcsncpy_s(out->caption, g_settings.countdownLabel.c_str(), _TRUNCATE);
             if (!ParseYmd(g_settings.countdownDate, &target)) {
-                swprintf_s(line1, cch1, L"%s", g_settings.countdownLabel.c_str());
-                swprintf_s(line2, cch2, L"日期无效");
+                wcscpy_s(out->value, L"—");
+                wcscpy_s(out->footer, L"日期无效");
             } else {
                 const int days = DaysUntil(target);
-                swprintf_s(line1, cch1, L"%s", g_settings.countdownLabel.c_str());
                 if (days > 0) {
-                    swprintf_s(line2, cch2, L"还有 %d 天", days);
+                    swprintf_s(out->value, L"%d", days);
+                    wcscpy_s(out->footer, L"天剩余");
                 } else if (days == 0) {
-                    swprintf_s(line2, cch2, L"就是今天");
+                    wcscpy_s(out->value, L"0");
+                    wcscpy_s(out->footer, L"就是今天");
                 } else {
-                    swprintf_s(line2, cch2, L"已过 %d 天", -days);
+                    swprintf_s(out->value, L"%d", -days);
+                    wcscpy_s(out->footer, L"天已过");
                 }
             }
             break;
         }
         case WidgetKind::Sticky:
-            wcsncpy_s(line1, cch1, g_settings.stickyText.c_str(), _TRUNCATE);
+            wcscpy_s(out->caption, L"便签");
+            wcsncpy_s(out->value, g_settings.stickyText.c_str(), _TRUNCATE);
             break;
         default:
             break;
     }
 }
 
+static HFONT CreateUiFont(int px, int weight, bool display) {
+    const wchar_t* primary = display ? L"Segoe UI Variable Display" : L"Segoe UI Variable Text";
+    HFONT f = CreateFontW(-px, 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                          DEFAULT_PITCH | FF_SWISS, primary);
+    if (!f) {
+        f = CreateFontW(-px, 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+    }
+    return f;
+}
+
 static void RebuildFonts() {
-    if (g_fontLarge) {
-        DeleteObject(g_fontLarge);
-        g_fontLarge = nullptr;
+    if (g_fontValue) {
+        DeleteObject(g_fontValue);
+        g_fontValue = nullptr;
     }
-    if (g_fontSmall) {
-        DeleteObject(g_fontSmall);
-        g_fontSmall = nullptr;
+    if (g_fontCaption) {
+        DeleteObject(g_fontCaption);
+        g_fontCaption = nullptr;
     }
-    g_fontLarge = CreateFontW(
-        -g_settings.fontSize, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS,
-        L"Segoe UI Variable Display");
-    if (!g_fontLarge) {
-        g_fontLarge = CreateFontW(
-            -g_settings.fontSize, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS,
-            L"Segoe UI");
+    if (g_fontBody) {
+        DeleteObject(g_fontBody);
+        g_fontBody = nullptr;
     }
-    int smallSize = Clamp(g_settings.fontSize * 45 / 100, 12, 28);
-    g_fontSmall = CreateFontW(-smallSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-                              OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
-                              DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+    g_fontValue = CreateUiFont(ValuePxForSize(), FW_SEMIBOLD, true);
+    g_fontCaption = CreateUiFont(CaptionPxForSize(), FW_SEMIBOLD, false);
+    g_fontBody = CreateUiFont(BodyPxForSize(), FW_NORMAL, false);
+}
+
+static void ApplyRoundedCorners(HWND hwnd, int width, int height) {
+    // Prefer Win11 system rounded corners (works well with Acrylic).
+    int pref = DWMWCP_ROUND;
+    if (SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref)))) {
+        return;
+    }
+    // Fallback: region round-rect (softer large radius).
+    const int r = CornerRadiusPx() * 2;
+    HRGN rgn = CreateRoundRectRgn(0, 0, width + 1, height + 1, r, r);
+    if (rgn) {
+        SetWindowRgn(hwnd, rgn, TRUE);
+    }
 }
 
 static void ApplyGlass(HWND hwnd) {
@@ -624,7 +882,8 @@ static void ApplyGlass(HWND hwnd) {
         }
     }
 
-    const int tint = static_cast<int>(0x99232323);
+    // Subtle glass tint: dark ≈ macOS dark widget; light ≈ frosted light card.
+    const int tint = g_darkMode ? static_cast<int>(0x992C2C2E) : static_cast<int>(0xB3F5F5F7);
 
     if (g_pSetWindowCompositionAttribute) {
         ACCENT_POLICY policy{};
@@ -644,7 +903,7 @@ static void ApplyGlass(HWND hwnd) {
     }
 
     SetWindowLongPtrW(hwnd, GWL_EXSTYLE, GetWindowLongPtrW(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-    SetLayeredWindowAttributes(hwnd, 0, 200, LWA_ALPHA);
+    SetLayeredWindowAttributes(hwnd, 0, g_darkMode ? 210 : 230, LWA_ALPHA);
 }
 
 static const wchar_t* RegNameX(WidgetKind k) {
@@ -737,12 +996,6 @@ static Widget* FindWidget(HWND hwnd) {
     return nullptr;
 }
 
-static void EnsureCardGdi() {
-    if (!g_brushCardBg) {
-        g_brushCardBg = CreateSolidBrush(RGB(0x23, 0x23, 0x23));
-    }
-}
-
 static void DestroyCardGdi() {
     if (g_brushCardBg) {
         DeleteObject(g_brushCardBg);
@@ -758,37 +1011,8 @@ static void RebindWidgetUserData() {
     }
 }
 
-static void MeasureTwoLine(HDC hdc, const wchar_t* line1, const wchar_t* line2, bool largeFirst,
-                           int* outW, int* outH) {
-    SIZE s1{}, s2{};
-    HFONT old = static_cast<HFONT>(SelectObject(hdc, largeFirst ? g_fontLarge : g_fontSmall));
-    GetTextExtentPoint32W(hdc, line1, static_cast<int>(wcslen(line1)), &s1);
-    SelectObject(hdc, g_fontSmall);
-    if (line2 && line2[0]) {
-        GetTextExtentPoint32W(hdc, line2, static_cast<int>(wcslen(line2)), &s2);
-    }
-    SelectObject(hdc, old);
-    *outW = (s1.cx > s2.cx ? s1.cx : s2.cx) + kPad * 2;
-    *outH = s1.cy + (line2 && line2[0] ? s2.cy + 8 : 0) + kPad * 2;
-    *outW = Clamp(*outW, 160, 520);
-    *outH = Clamp(*outH, 56, 260);
-}
-
-static void MeasureWidget(HDC hdc, WidgetKind kind, int* outW, int* outH) {
-    wchar_t l1[96]{}, l2[160]{};
-    FormatWidgetLines(kind, l1, 96, l2, 160);
-    const bool largeFirst =
-        kind == WidgetKind::Clock || kind == WidgetKind::Calendar || kind == WidgetKind::Countdown;
-    if (kind == WidgetKind::Status || kind == WidgetKind::Sticky) {
-        SIZE s{};
-        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontSmall));
-        GetTextExtentPoint32W(hdc, l1, static_cast<int>(wcslen(l1)), &s);
-        SelectObject(hdc, old);
-        *outW = Clamp(s.cx + kPad * 2, 160, 520);
-        *outH = Clamp(s.cy + kPad * 2 + 12, 56, 200);
-        return;
-    }
-    MeasureTwoLine(hdc, l1, l2, largeFirst, outW, outH);
+static bool IsBodyCard(WidgetKind kind) {
+    return kind == WidgetKind::Status || kind == WidgetKind::Sticky;
 }
 
 static void PaintWidget(HWND hwnd, Widget* w) {
@@ -798,45 +1022,94 @@ static void PaintWidget(HWND hwnd, Widget* w) {
     RECT rc{};
     GetClientRect(hwnd, &rc);
 
-    EnsureCardGdi();
+    if (!g_brushCardBg) {
+        g_brushCardBg = CreateSolidBrush(g_colorCardSolid);
+    }
     FillRect(hdc, &rc, g_brushCardBg);
 
     SetBkMode(hdc, TRANSPARENT);
-    SetTextColor(hdc, RGB(0xF2, 0xF2, 0xF2));
 
-    wchar_t line1[96]{}, line2[160]{};
-    FormatWidgetLines(w->kind, line1, 96, line2, 160);
+    WidgetText tx{};
+    FormatWidgetText(w->kind, &tx);
 
-    const bool wordWrap = w->kind == WidgetKind::Status || w->kind == WidgetKind::Sticky;
-    const bool largeFirst =
-        w->kind == WidgetKind::Clock || w->kind == WidgetKind::Calendar ||
-        w->kind == WidgetKind::Countdown;
+    const int pad = PadForSize();
+    RECT content = rc;
+    InflateRect(&content, -pad, -pad);
 
-    if (wordWrap) {
-        RECT r = rc;
-        InflateRect(&r, -kPad, -kPad);
-        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontSmall));
-        DrawTextW(hdc, line1, -1, &r, DT_LEFT | DT_VCENTER | DT_WORDBREAK);
+    if (IsBodyCard(w->kind)) {
+        // Caption top + wrapped body (macOS note / text widget rhythm).
+        RECT rCap = content;
+        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontCaption));
+        SetTextColor(hdc, g_colorCaption);
+        DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE);
+
+        SIZE capSz{};
+        GetTextExtentPoint32W(hdc, tx.caption, static_cast<int>(wcslen(tx.caption)), &capSz);
+
+        RECT rBody = content;
+        rBody.top += capSz.cy + 8;
+        SelectObject(hdc, g_fontBody);
+        SetTextColor(hdc, g_colorBody);
+        DrawTextW(hdc, tx.value, -1, &rBody, DT_LEFT | DT_TOP | DT_WORDBREAK);
         SelectObject(hdc, old);
     } else {
-        RECT r1 = rc;
-        r1.top += kPad;
-        r1.left += kPad;
-        r1.right -= kPad;
-        HFONT old = static_cast<HFONT>(SelectObject(hdc, largeFirst ? g_fontLarge : g_fontSmall));
-        DrawTextW(hdc, line1, -1, &r1, DT_LEFT | DT_TOP | DT_SINGLELINE);
+        // Caption (small) → Value (large) → Footer (small) — Notification Center hierarchy.
+        int y = content.top;
+        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontCaption));
 
-        SIZE s1{};
-        GetTextExtentPoint32W(hdc, line1, static_cast<int>(wcslen(line1)), &s1);
-        if (line2[0]) {
-            RECT r2 = rc;
-            r2.top = r1.top + s1.cy + 6;
-            r2.left += kPad;
-            r2.right -= kPad;
-            SelectObject(hdc, g_fontSmall);
-            SetTextColor(hdc, RGB(0xC8, 0xC8, 0xC8));
-            DrawTextW(hdc, line2, -1, &r2, DT_LEFT | DT_TOP | DT_SINGLELINE);
+        if (tx.caption[0]) {
+            RECT rCap = content;
+            rCap.top = y;
+            SetTextColor(hdc, g_colorCaption);
+            DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE);
+            SIZE capSz{};
+            GetTextExtentPoint32W(hdc, tx.caption, static_cast<int>(wcslen(tx.caption)), &capSz);
+            y += capSz.cy + 6;
         }
+
+        if (tx.value[0]) {
+            RECT rVal = content;
+            rVal.top = y;
+            SelectObject(hdc, g_fontValue);
+            SetTextColor(hdc, g_colorValue);
+            // Large cards: vertically bias value toward center for calendar/countdown feel.
+            const UINT valFlags =
+                (g_settings.widgetSize == WidgetSize::Large &&
+                 (w->kind == WidgetKind::Calendar || w->kind == WidgetKind::Countdown))
+                    ? (DT_CENTER | DT_VCENTER | DT_SINGLELINE)
+                    : (DT_LEFT | DT_TOP | DT_SINGLELINE);
+            if (valFlags & DT_VCENTER) {
+                rVal.bottom = content.bottom - (tx.footer[0] ? BodyPxForSize() + 10 : 0);
+                DrawTextW(hdc, tx.value, -1, &rVal, valFlags);
+                SIZE valSz{};
+                GetTextExtentPoint32W(hdc, tx.value, static_cast<int>(wcslen(tx.value)), &valSz);
+                y = (rVal.top + rVal.bottom + valSz.cy) / 2 + 8;
+            } else {
+                DrawTextW(hdc, tx.value, -1, &rVal, valFlags);
+                SIZE valSz{};
+                GetTextExtentPoint32W(hdc, tx.value, static_cast<int>(wcslen(tx.value)), &valSz);
+                y += valSz.cy + 6;
+            }
+        }
+
+        if (tx.footer[0]) {
+            RECT rFoot = content;
+            if (g_settings.widgetSize == WidgetSize::Large &&
+                (w->kind == WidgetKind::Calendar || w->kind == WidgetKind::Countdown)) {
+                rFoot.top = content.bottom - BodyPxForSize() - 4;
+            } else {
+                rFoot.top = y;
+            }
+            SelectObject(hdc, g_fontBody);
+            SetTextColor(hdc, g_colorCaption);
+            const UINT footFlags =
+                (g_settings.widgetSize == WidgetSize::Large &&
+                 (w->kind == WidgetKind::Calendar || w->kind == WidgetKind::Countdown))
+                    ? (DT_CENTER | DT_TOP | DT_SINGLELINE)
+                    : (DT_LEFT | DT_TOP | DT_SINGLELINE);
+            DrawTextW(hdc, tx.footer, -1, &rFoot, footFlags);
+        }
+
         SelectObject(hdc, old);
     }
 
@@ -854,7 +1127,7 @@ static UINT TimerIntervalFor(WidgetKind kind) {
         case WidgetKind::Countdown:
             return 60000;
         case WidgetKind::Weather:
-            return 0;  // static demo
+            return 0;
         default:
             return 0;
     }
@@ -891,17 +1164,23 @@ static LRESULT CALLBACK WidgetWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             if (w && w->dragging) {
                 w->dragging = false;
                 ReleaseCapture();
+                w->x = SnapCoord(w->x);
+                w->y = SnapCoord(w->y);
+                SetWindowPos(hwnd, nullptr, w->x, w->y, 0, 0,
+                             SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
                 PersistPosition(*w);
             }
             return 0;
 
         case WM_TIMER:
             if (wParam == kTimerRefresh && w) {
-                wchar_t line1[96]{}, line2[160]{};
-                FormatWidgetLines(w->kind, line1, 96, line2, 160);
-                if (wcscmp(line1, w->lastLine1) != 0 || wcscmp(line2, w->lastLine2) != 0) {
-                    wcscpy_s(w->lastLine1, line1);
-                    wcscpy_s(w->lastLine2, line2);
+                WidgetText tx{};
+                FormatWidgetText(w->kind, &tx);
+                if (wcscmp(tx.caption, w->lastCap) != 0 || wcscmp(tx.value, w->lastVal) != 0 ||
+                    wcscmp(tx.footer, w->lastFoot) != 0) {
+                    wcscpy_s(w->lastCap, tx.caption);
+                    wcscpy_s(w->lastVal, tx.value);
+                    wcscpy_s(w->lastFoot, tx.footer);
                     InvalidateRect(hwnd, nullptr, FALSE);
                 }
             }
@@ -945,11 +1224,9 @@ static bool EnsureClass() {
 static HWND CreateWidgetWindow(Widget& w) {
     if (!EnsureClass()) return nullptr;
 
-    HDC screen = GetDC(nullptr);
     int width = 240;
     int height = 100;
-    MeasureWidget(screen, w.kind, &width, &height);
-    ReleaseDC(nullptr, screen);
+    SizeForKind(w.kind, &width, &height);
     w.width = width;
     w.height = height;
 
@@ -964,11 +1241,16 @@ static HWND CreateWidgetWindow(Widget& w) {
 
     w.hwnd = hwnd;
     SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&w));
+    ApplyRoundedCorners(hwnd, w.width, w.height);
     ApplyGlass(hwnd);
     ShowWindow(hwnd, SW_SHOWNOACTIVATE);
     SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-    FormatWidgetLines(w.kind, w.lastLine1, 96, w.lastLine2, 160);
+    WidgetText tx{};
+    FormatWidgetText(w.kind, &tx);
+    wcscpy_s(w.lastCap, tx.caption);
+    wcscpy_s(w.lastVal, tx.value);
+    wcscpy_s(w.lastFoot, tx.footer);
     w.timerMs = TimerIntervalFor(w.kind);
     if (w.timerMs) {
         SetTimer(hwnd, kTimerRefresh, w.timerMs, nullptr);
@@ -987,44 +1269,63 @@ static void DestroyAllWidgets() {
     g_widgets.clear();
 }
 
-static void AddWidget(WidgetKind kind, int defX, int defY) {
+static void AddWidgetStacked(WidgetKind kind, int* colX, int* nextY) {
     bool* flag = ShowFlagFor(kind);
     if (!flag || !*flag) return;
 
-    Widget w{};
-    w.kind = kind;
-    w.x = defX;
-    w.y = defY;
-    LoadPosition(w);
-    g_widgets.push_back(w);
+    int w = 0, h = 0;
+    SizeForKind(kind, &w, &h);
+
+    Widget widget{};
+    widget.kind = kind;
+    widget.x = *colX;
+    widget.y = *nextY;
+    LoadPosition(widget);
+    // First-time defaults stay stacked; after drag HKCU overrides.
+    g_widgets.push_back(widget);
     if (!CreateWidgetWindow(g_widgets.back())) {
         g_widgets.pop_back();
+        return;
     }
+    // Advance stack using default column geometry (ignore dragged override for layout cursor).
+    *nextY += h + kStackGap;
 }
 
 static void EnsureWidgets() {
     DestroyAllWidgets();
+    RefreshThemeColors();
     RebuildFonts();
     g_widgets.reserve(static_cast<size_t>(WidgetKind::Count));
 
-    const int right = GetSystemMetrics(SM_CXSCREEN);
-    const int col = right - 340;
-    // Stack defaults down the right edge; HKCU overrides after first drag.
-    AddWidget(WidgetKind::Clock, col, 40);
-    AddWidget(WidgetKind::Calendar, col, 160);
-    AddWidget(WidgetKind::Weather, col, 280);
-    AddWidget(WidgetKind::System, col, 400);
-    AddWidget(WidgetKind::Countdown, col, 520);
-    AddWidget(WidgetKind::Status, col, 640);
-    AddWidget(WidgetKind::Sticky, col, 740);
+    const int screenW = GetSystemMetrics(SM_CXSCREEN);
+    int maxW = 168;
+    for (int i = 0; i < static_cast<int>(WidgetKind::Count); ++i) {
+        int ww = 0, hh = 0;
+        SizeForKind(static_cast<WidgetKind>(i), &ww, &hh);
+        if (ww > maxW) maxW = ww;
+    }
+    int colX = screenW - maxW - 28;
+    if (colX < 24) colX = 24;
+    colX = SnapCoord(colX);
+    int nextY = SnapCoord(40);
+
+    // Stack defaults down the right edge (macOS-like tidy column); HKCU overrides after drag.
+    AddWidgetStacked(WidgetKind::Clock, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::Calendar, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::Weather, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::System, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::Countdown, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::Status, &colX, &nextY);
+    AddWidgetStacked(WidgetKind::Sticky, &colX, &nextY);
 
     RebindWidgetUserData();
-    Wh_Log(L"[ZenWidgets] Active widgets: %zu (pack=%s describeEmpty=%d)", g_widgets.size(),
-           g_settings.presetPack.c_str(), g_settings.aiDescribe.empty() ? 1 : 0);
+    Wh_Log(L"[ZenWidgets] Active widgets: %zu (size=%d dark=%d snap=%d pack=%s)", g_widgets.size(),
+           static_cast<int>(g_settings.widgetSize), g_darkMode ? 1 : 0,
+           g_settings.snapToGrid ? 1 : 0, g_settings.presetPack.c_str());
 }
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.2.0 ===");
+    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.2.1 ===");
     LoadSettings();
     EnsureWidgets();
     return TRUE;
@@ -1034,13 +1335,17 @@ void Wh_ModUninit() {
     Wh_Log(L"[ZenWidgets] === Wh_ModUninit ===");
     DestroyAllWidgets();
     DestroyCardGdi();
-    if (g_fontLarge) {
-        DeleteObject(g_fontLarge);
-        g_fontLarge = nullptr;
+    if (g_fontValue) {
+        DeleteObject(g_fontValue);
+        g_fontValue = nullptr;
     }
-    if (g_fontSmall) {
-        DeleteObject(g_fontSmall);
-        g_fontSmall = nullptr;
+    if (g_fontCaption) {
+        DeleteObject(g_fontCaption);
+        g_fontCaption = nullptr;
+    }
+    if (g_fontBody) {
+        DeleteObject(g_fontBody);
+        g_fontBody = nullptr;
     }
     if (g_classRegistered) {
         UnregisterClassW(kClassName, GetModuleHandleW(nullptr));
