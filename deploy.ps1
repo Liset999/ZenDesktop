@@ -112,7 +112,9 @@ Write-Status "================================================" "Green"
 # 1. Enforce Administrator Privileges
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "需要管理员权限：请右键 deploy.bat，选择「以管理员身份运行」。 (This script must be executed with Administrator privileges. Please run deploy.bat as Administrator.)"
+    # Write-Host (not Write-Error): ErrorRecord often ignores Console.OutputEncoding on zh-CN.
+    Write-Host "[ZenDeploy] 需要管理员权限：请右键 deploy.bat，选择「以管理员身份运行」。" -ForegroundColor Red
+    Write-Host "[ZenDeploy] Administrator privileges required. Run deploy.bat as Administrator (accept UAC)." -ForegroundColor Red
     Exit 1
 }
 

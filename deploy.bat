@@ -22,21 +22,35 @@ if not exist "%~dp0deploy.ps1" (
 :: privilege detection and elevation
 fsutil dirty query %systemdrive% >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [INFO] Requesting Administrator privileges via UAC...
+    color 0B
+    echo.
+    echo ============================================================
+    echo [INFO] Administrator privileges are required.
+    echo [INFO] A UAC prompt will open next -- click Yes.
+    echo [INFO] Deploy progress appears in the NEW elevated window.
+    echo ============================================================
+    echo.
     if "%~1"=="" (
-        powershell -NoProfile -Command "try { Start-Process -FilePath '%~f0' -WorkingDirectory '%~dp0' -Verb RunAs } catch { exit 1 }"
+        powershell -NoProfile -Command "try { Start-Process -FilePath '%~f0' -WorkingDirectory '%~dp0' -Verb RunAs | Out-Null; exit 0 } catch { exit 1 }"
     ) else (
-        powershell -NoProfile -Command "try { Start-Process -FilePath '%~f0' -ArgumentList '%*' -WorkingDirectory '%~dp0' -Verb RunAs } catch { exit 1 }"
+        powershell -NoProfile -Command "try { Start-Process -FilePath '%~f0' -ArgumentList '%*' -WorkingDirectory '%~dp0' -Verb RunAs | Out-Null; exit 0 } catch { exit 1 }"
     )
     if !errorLevel! neq 0 (
         color 0E
         echo.
-        echo [HINT] Could not elevate automatically (UAC cancelled or blocked).
+        echo [HINT] Could not elevate (UAC cancelled or blocked).
         echo Right-click deploy.bat and choose "Run as administrator".
         echo.
         pause
+        exit /b 1
     )
-    exit /b
+    echo.
+    echo [OK] Elevated window launched (or UAC accepted).
+    echo      Watch that window for deploy status.
+    echo      This starter window can close after you press a key.
+    echo.
+    pause
+    exit /b 0
 )
 
 cd /d "%~dp0"
@@ -52,16 +66,18 @@ echo ============================================================
 echo.
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy.ps1" %*
+set DEPLOY_EXIT=!errorLevel!
 
-if %errorLevel% neq 0 (
+if !DEPLOY_EXIT! neq 0 (
     color 0C
     echo.
     echo [ERROR] Deployment failed! See errors above.
     echo.
     pause
-    exit /b %errorLevel%
+    exit /b !DEPLOY_EXIT!
 )
 
-:: Elevated runs open a new window: keep it open so the summary can be read (interactive runs only).
-if "%~1"=="" pause
+:: Elevated / interactive runs: keep the window open so the summary can be read.
+echo.
+pause
 exit /b 0
