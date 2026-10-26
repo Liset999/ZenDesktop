@@ -1,69 +1,50 @@
 # ZenDesktop Nexus 式 Dock
 
-> 状态：**MVP 已实现**（`optional/local@zen-dock.wh.cpp` v0.1.0）。可选、默认关闭；**不替代**系统任务栏。
+> 状态：**社区方案优先**。一键部署默认拷贝成熟社区 Mod **TAI (taskbar as island)**；自制 MVP 已降级到 `optional/deprecated/`，不再随 deploy 安装。
 
-## 产品意向
+## 推荐（请用这个）
 
-一条可放在屏幕边缘（默认底部居中）的快捷应用栏：
+### TAI — Taskbar as Island（Windows 11）
 
-- 玻璃底板，风格与 ZenDesktop 任务栏 / 开始菜单一致。
-- 固定常用应用图标；点击启动 / 聚焦。
-- 悬停放大（可选）、运行中指示点。
-- **默认关闭**；与系统任务栏并存（用户可自行藏任务栏或保留）。
-
-## 本轮已交付（v0.1.0）
-
-| 项 | 说明 |
+| 项 | 内容 |
 | --- | --- |
-| 宿主 | Windhawk Mod，注入 `explorer.exe` |
-| 窗口 | `WS_POPUP` + Acrylic（`SetWindowCompositionAttribute`），`WS_EX_TOPMOST \| TOOLWINDOW \| NOACTIVATE` |
-| 位置 | 主显示器**工作区**内：底部居中 / 左侧 / 右侧（避开任务栏占位） |
-| 钉选 | 设置「钉选应用路径」字符串列表；空则默认：explorer、notepad、calc、cmd |
-| 启动 | `ShellExecuteEx`；若已有同名可见顶层窗则还原并前置 |
-| 悬停 | 高亮底 + 可选约 20% 放大（非完整鱼眼） |
-| 运行点 | 枚举可见窗，按进程映像文件名匹配 |
-| 全屏 | `SHQueryUserNotificationState` 忙碌 / D3D 全屏 / 演示时隐藏 |
-| 部署 | `deploy.ps1` 拷入 optional；与其它 Mod 一样首次 `Disabled=1` |
+| Windhawk `@id` | `taskbar-dock-like`（本仓库文件名 `optional/local@taskbar-dock-like.wh.cpp`） |
+| 作者 | [DarkionAvey](https://github.com/DarkionAvey) |
+| 版本（随仓库打包） | 1.5.247 |
+| 许可证 | 基于 **GPL-3.0**（与 ZenDesktop 同许可证族；版权归原作者） |
+| 上游 | https://github.com/DarkionAvey/windhawk-taskbar-centered-condensed |
+| Windhawk 目录 | https://windhawk.net/mods/taskbar-dock-like |
 
-## 与现有组件的关系
+**做什么：** 把系统任务栏改成居中、浮起、可动画的「岛式」Dock，**保留原生任务栏能力**（开始、搜索、托盘、跳转列表等），比从零写一条 popup 启动栏靠谱得多。
 
-| 组件 | 关系 |
-| --- | --- |
-| 任务栏美化 | 美化系统任务栏；Dock 是**另一条**快捷栏，不注入、不隐藏任务栏。 |
-| 桌面小组件 | 同类玻璃 popup 技术；各自独立 Mod，可同时开。 |
-| 任务栏高度 / 图标大小（暂不打包） | 调的是系统任务栏；Dock 图标尺寸在本 Mod 设置里单独调。 |
+**与 ZenDesktop 的关系：**
 
-## 如何启用
+- 任务栏美化（亚克力主题）仍可叠用；若视觉冲突，先关任务栏美化的「Dock 风格主题 / 空白穿透」，或按 TAI 文档调间距。
+- **不要**再开已废弃的「ZenDesktop: Dock」自制 MVP（两者目标重叠）。
 
-1. 运行 `deploy.bat`（或已部署则再跑一次补文件）。
-2. Windhawk →「已安装的 Mod」→ 打开 **ZenDesktop: Dock** → 确认编译成功。
-3. 主屏工作区底部应出现玻璃条；点图标启动。在设置里改路径、边缘、图标大小。
+### 其他可选（不随包 vendoring）
 
-## 已知限制
+| 方案 | 许可 | 说明 |
+| --- | --- | --- |
+| [Aero Dock](https://github.com/kawaxi/Aero-Dock) | MIT | 独立程序，仿 macOS Dock；不走 Windhawk |
+| [Cairo Shell](https://github.com/cairoshell/cairoshell) | Apache-2.0 | 完整桌面 shell 替换，比 Dock 重 |
+| RocketDock / ObjectDock 等经典 | 各异 | 老方案，Win11 兼容性自行评估 |
 
-- 不隐藏系统任务栏；与任务栏美化同开时视觉上两条栏，需用户自行取舍。
-- `.lnk` 可启动，但「运行中」匹配按快捷方式文件名，可能不准（后续可用 `IShellLink` 解析目标）。
-- 悬停仅为轻度放大，不是 Nexus / macOS 式连续鱼眼。
-- 多显示器仅跟主屏工作区；未做「跟随鼠标所在屏」。
-- 未做拖整条换边的手势（换边请用设置）。
+## 如何启用（ZenDesktop 部署后）
 
-## 后续路线（未做）
+1. 运行 `deploy.bat`（会按哈希只更新变化的文件；可选 Mod **默认关**）。
+2. 打开 Windhawk →「已安装的 Mod」→ 找到 **TAI (taskbar as island) for Windows 11**（`local@taskbar-dock-like`）→ 打开并等待编译成功。
+3. 也可在 Windhawk 社区直接搜 `taskbar-dock-like` 安装官方包（不必用本仓库 vendored 副本）。
 
-1. 解析 `.lnk` 目标以改进运行指示；从任务栏已固定项只读导入。
-2. 多显示器 / 拖拽换边；全屏检测补强。
-3. 更接近 Nexus 的连续放大曲线（需评估 explorer 稳定性后再开）。
-4. 与小组件共用玻璃绘制工具库，减少重复代码。
+## 自制 MVP（已废弃）
+
+路径：`optional/deprecated/local@zen-dock.wh.cpp`（v0.1.0）。
+
+- 自绘底部玻璃 popup 启动栏，**不替代**任务栏；功能远弱于 TAI。
+- **deploy 不再拷贝**；仅作对照 / 应急。若要手动装：把该文件拷回 `optional/` 再跑一次 deploy，或在 Windhawk 里「从本地文件创建」。
+- 原因：社区已有成熟、可维护的方案，不应平地起高楼。
 
 ## 明确不做（本阶段）
 
-- 默认关掉或替换 Windows 任务栏。
-- macOS「从哪来回哪去」最小化轨迹（大蓝图已放弃）。
-- 打包滚轮调音量 / 任务栏高度图标大小进本 Mod。
-
-## 验收对照
-
-- [x] optional Mod，deploy 默认关。
-- [x] 至少能钉多个应用并启动（内置 4 个默认 + 自定义路径）。
-- [x] 中文设置与作者头符合 `docs/MOD_STYLE_GUIDE.md`。
-- [x] 文档写清与任务栏关系。
-- [ ] 位置与钉选的注册表级拖拽持久化（v0.1 钉选在 Windhawk 设置；边缘用设置，无拖条换边）。
+- 默认关 / 强制替换 Windows 任务栏为不可逆方案。
+- 打包滚轮调音量、任务栏高度/图标大小类 Mod。

@@ -1,7 +1,8 @@
+// DEPRECATED: prefer community mod; see optional/deprecated/README.md and docs/.
 // ==WindhawkMod==
 // @id              zen-dock
-// @name            ZenDesktop: Dock
-// @name:zh-CN      ZenDesktop: Dock
+// @name            ZenDesktop: Dock (DEPRECATED — use TAI)
+// @name:zh-CN      ZenDesktop: Dock（已废弃，请用 TAI）
 // @description     Optional Nexus-style glass app launcher bar. Companion to the taskbar; default off.
 // @description:zh-CN 可选的 Nexus 风格玻璃快捷栏。与系统任务栏并存，不替代任务栏。默认关闭。
 // @version         0.1.2
