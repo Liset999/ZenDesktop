@@ -71,7 +71,7 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
   uninstall.bat / uninstall.ps1   一键卸载（从 Windhawk 移除 ZenDesktop mod，不卸载 Windhawk）
   restart_explorer.bat            重启资源管理器
   local@*.wh.cpp                  各 mod 源码
-  optional\                       可选 mod（果冻窗口、窗口动画）及第三方许可说明
+  optional\                       可选 mod（果冻窗口、窗口动画、桌面小组件）及第三方许可说明
   tools\ai-status\                任务栏 AI 编程助手状态（可选，见其中的 README.md）
   tools\uninstall-ExplorerBlurMica.bat  卸载 v4.1 的旧版 ExplorerBlurMica（从 v4.1 升级时运行）
   tools\ZenDesktop-StartupCheck.ps1  开机自检（可选，deploy.ps1 -StartupCheck check）
