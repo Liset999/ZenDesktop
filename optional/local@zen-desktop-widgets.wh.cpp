@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面小组件
 // @description     Optional macOS-inspired glass desktop widgets: size presets, caption/value hierarchy, soft corners, grid snap. Built-in templates + describe layout. Default off.
 // @description:zh-CN 可选 macOS 风格玻璃桌面小组件：小/中/大尺寸、标题/数值层级、大圆角、网格吸附。内置模板 + 描述编排。默认关闭。
-// @version         0.2.1
+// @version         0.2.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -20,7 +20,7 @@
 
 # ZenDesktop: 桌面小组件
 
-在桌面上放置可拖动的玻璃风卡片。**v0.2.1** 布局与排版向 **macOS Desktop / Notification Center Widgets** 靠拢：大圆角、统一内边距、小标题 + 大数值层级、小/中/大尺寸档、可选网格吸附。仍保留 v0.2 的内置模板与「超级背屏」式本地描述编排。不是 Rainmeter；不调用云端大模型。
+在桌面上放置可拖动的玻璃风卡片。**v0.2.2** 布局与排版向 **macOS Desktop / Notification Center Widgets** 靠拢：大圆角、统一内边距、小标题 + 大数值层级、小/中/大尺寸档、可选网格吸附。仍保留 v0.2 的内置模板与「超级背屏」式本地描述编排。不是 Rainmeter；不调用云端大模型。
 
 ## 内置模板
 
@@ -57,6 +57,7 @@
 
 ## 更新日志
 
+- **0.2.2**：空白灰块修复：WM_PAINT 始终校验、字体回退、无内容时占位/隐藏、玻璃下保证绘字；创建后重绑 USERDATA。
 - **0.2.1**：macOS 风格布局（尺寸档、caption/value、大圆角、浅/深色、网格吸附）；文档更新。
 - **0.2.0**：内置时钟/状态/天气演示/日历/电量/倒计时/便签；12/24h；预设套装 + 描述→模板编排。
 - **0.1.1**：性能：未变不重绘、USERDATA、GDI 复用。
@@ -827,32 +828,51 @@ static void FormatWidgetText(WidgetKind kind, WidgetText* out) {
     }
 }
 
-static HFONT CreateUiFont(int px, int weight, bool display) {
-    const wchar_t* primary = display ? L"Segoe UI Variable Display" : L"Segoe UI Variable Text";
-    HFONT f = CreateFontW(-px, 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
-                          DEFAULT_PITCH | FF_SWISS, primary);
-    if (!f) {
-        f = CreateFontW(-px, 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-                        OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
-                        DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+static HFONT CreateUiFont(int px, int weight, bool weightFaceDisplay) {
+    if (px < 8) px = 8;
+    const bool display = weightFaceDisplay;
+    const wchar_t* faces[] = {
+        display ? L"Segoe UI Variable Display" : L"Segoe UI Variable Text",
+        L"Segoe UI",
+        L"Microsoft YaHei UI",
+        L"Microsoft YaHei",
+    };
+    for (const wchar_t* face : faces) {
+        HFONT f = CreateFontW(-px, 0, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                              OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                              DEFAULT_PITCH | FF_SWISS, face);
+        if (!f) continue;
+        HDC hdc = GetDC(nullptr);
+        if (!hdc) return f;
+        HGDIOBJ old = SelectObject(hdc, f);
+        wchar_t got[64]{};
+        GetTextFaceW(hdc, ARRAYSIZE(got), got);
+        SelectObject(hdc, old);
+        ReleaseDC(nullptr, hdc);
+        if (got[0] && (wcsstr(got, L"Segoe") || wcsstr(got, L"YaHei") ||
+                       wcsstr(got, L"Microsoft"))) {
+            return f;
+        }
+        DeleteObject(f);
     }
-    return f;
+    return static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+}
+
+static HFONT FontOrStock(HFONT f) {
+    return f ? f : static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+}
+
+static void SafeDeleteFont(HFONT* f) {
+    if (!f || !*f) return;
+    const HFONT stock = static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
+    if (*f != stock) DeleteObject(*f);
+    *f = nullptr;
 }
 
 static void RebuildFonts() {
-    if (g_fontValue) {
-        DeleteObject(g_fontValue);
-        g_fontValue = nullptr;
-    }
-    if (g_fontCaption) {
-        DeleteObject(g_fontCaption);
-        g_fontCaption = nullptr;
-    }
-    if (g_fontBody) {
-        DeleteObject(g_fontBody);
-        g_fontBody = nullptr;
-    }
+    SafeDeleteFont(&g_fontValue);
+    SafeDeleteFont(&g_fontCaption);
+    SafeDeleteFont(&g_fontBody);
     g_fontValue = CreateUiFont(ValuePxForSize(), FW_SEMIBOLD, true);
     g_fontCaption = CreateUiFont(CaptionPxForSize(), FW_SEMIBOLD, false);
     g_fontBody = CreateUiFont(BodyPxForSize(), FW_NORMAL, false);
@@ -1015,13 +1035,11 @@ static bool IsBodyCard(WidgetKind kind) {
     return kind == WidgetKind::Status || kind == WidgetKind::Sticky;
 }
 
-static void PaintWidget(HWND hwnd, Widget* w) {
-    PAINTSTRUCT ps{};
-    HDC hdc = BeginPaint(hwnd, &ps);
+static bool WidgetTextHasContent(const WidgetText& tx) {
+    return tx.caption[0] || tx.value[0] || tx.footer[0];
+}
 
-    RECT rc{};
-    GetClientRect(hwnd, &rc);
-
+static void PaintWidgetContent(HDC hdc, Widget* w, const RECT& rc) {
     if (!g_brushCardBg) {
         g_brushCardBg = CreateSolidBrush(g_colorCardSolid);
     }
@@ -1031,37 +1049,44 @@ static void PaintWidget(HWND hwnd, Widget* w) {
 
     WidgetText tx{};
     FormatWidgetText(w->kind, &tx);
+    if (!WidgetTextHasContent(tx)) {
+        wcscpy_s(tx.caption, L"小组件");
+        wcscpy_s(tx.value, L"—");
+        wcscpy_s(tx.footer, L"无内容");
+    }
 
     const int pad = PadForSize();
     RECT content = rc;
     InflateRect(&content, -pad, -pad);
 
+    HFONT fontCap = FontOrStock(g_fontCaption);
+    HFONT fontVal = FontOrStock(g_fontValue);
+    HFONT fontBody = FontOrStock(g_fontBody);
+
     if (IsBodyCard(w->kind)) {
-        // Caption top + wrapped body (macOS note / text widget rhythm).
         RECT rCap = content;
-        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontCaption));
+        HFONT old = static_cast<HFONT>(SelectObject(hdc, fontCap));
         SetTextColor(hdc, g_colorCaption);
-        DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE);
+        DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
 
         SIZE capSz{};
         GetTextExtentPoint32W(hdc, tx.caption, static_cast<int>(wcslen(tx.caption)), &capSz);
 
         RECT rBody = content;
         rBody.top += capSz.cy + 8;
-        SelectObject(hdc, g_fontBody);
+        SelectObject(hdc, fontBody);
         SetTextColor(hdc, g_colorBody);
-        DrawTextW(hdc, tx.value, -1, &rBody, DT_LEFT | DT_TOP | DT_WORDBREAK);
+        DrawTextW(hdc, tx.value, -1, &rBody, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX);
         SelectObject(hdc, old);
     } else {
-        // Caption (small) → Value (large) → Footer (small) — Notification Center hierarchy.
         int y = content.top;
-        HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontCaption));
+        HFONT old = static_cast<HFONT>(SelectObject(hdc, fontCap));
 
         if (tx.caption[0]) {
             RECT rCap = content;
             rCap.top = y;
             SetTextColor(hdc, g_colorCaption);
-            DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE);
+            DrawTextW(hdc, tx.caption, -1, &rCap, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
             SIZE capSz{};
             GetTextExtentPoint32W(hdc, tx.caption, static_cast<int>(wcslen(tx.caption)), &capSz);
             y += capSz.cy + 6;
@@ -1070,14 +1095,13 @@ static void PaintWidget(HWND hwnd, Widget* w) {
         if (tx.value[0]) {
             RECT rVal = content;
             rVal.top = y;
-            SelectObject(hdc, g_fontValue);
+            SelectObject(hdc, fontVal);
             SetTextColor(hdc, g_colorValue);
-            // Large cards: vertically bias value toward center for calendar/countdown feel.
             const UINT valFlags =
                 (g_settings.widgetSize == WidgetSize::Large &&
                  (w->kind == WidgetKind::Calendar || w->kind == WidgetKind::Countdown))
-                    ? (DT_CENTER | DT_VCENTER | DT_SINGLELINE)
-                    : (DT_LEFT | DT_TOP | DT_SINGLELINE);
+                    ? (DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX)
+                    : (DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
             if (valFlags & DT_VCENTER) {
                 rVal.bottom = content.bottom - (tx.footer[0] ? BodyPxForSize() + 10 : 0);
                 DrawTextW(hdc, tx.value, -1, &rVal, valFlags);
@@ -1100,16 +1124,38 @@ static void PaintWidget(HWND hwnd, Widget* w) {
             } else {
                 rFoot.top = y;
             }
-            SelectObject(hdc, g_fontBody);
+            SelectObject(hdc, fontBody);
             SetTextColor(hdc, g_colorCaption);
             const UINT footFlags =
                 (g_settings.widgetSize == WidgetSize::Large &&
                  (w->kind == WidgetKind::Calendar || w->kind == WidgetKind::Countdown))
-                    ? (DT_CENTER | DT_TOP | DT_SINGLELINE)
-                    : (DT_LEFT | DT_TOP | DT_SINGLELINE);
+                    ? (DT_CENTER | DT_TOP | DT_SINGLELINE | DT_NOPREFIX)
+                    : (DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
             DrawTextW(hdc, tx.footer, -1, &rFoot, footFlags);
         }
 
+        SelectObject(hdc, old);
+    }
+}
+
+static void PaintWidget(HWND hwnd, Widget* w) {
+    PAINTSTRUCT ps{};
+    HDC hdc = BeginPaint(hwnd, &ps);
+    if (!hdc) return;
+
+    RECT rc{};
+    GetClientRect(hwnd, &rc);
+    if (!g_brushCardBg) {
+        g_brushCardBg = CreateSolidBrush(g_colorCardSolid);
+    }
+    if (w) {
+        PaintWidgetContent(hdc, w, rc);
+    } else {
+        FillRect(hdc, &rc, g_brushCardBg);
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, g_colorValue);
+        HFONT old = static_cast<HFONT>(SelectObject(hdc, FontOrStock(g_fontBody)));
+        DrawTextW(hdc, L"ZenDesktop", -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
         SelectObject(hdc, old);
     }
 
@@ -1190,7 +1236,7 @@ static LRESULT CALLBACK WidgetWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
             return 1;
 
         case WM_PAINT:
-            if (w) PaintWidget(hwnd, w);
+            PaintWidget(hwnd, w);
             return 0;
 
         case WM_DESTROY:
@@ -1211,7 +1257,7 @@ static bool EnsureClass() {
     wc.hInstance = GetModuleHandleW(nullptr);
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.lpszClassName = kClassName;
-    wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+    wc.hbrBackground = nullptr;  // WM_PAINT always fills; avoid empty black plates
     g_atom = RegisterClassExW(&wc);
     if (!g_atom && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
         Wh_Log(L"[ZenWidgets] RegisterClassEx failed: %lu", GetLastError());
@@ -1319,13 +1365,27 @@ static void EnsureWidgets() {
     AddWidgetStacked(WidgetKind::Sticky, &colX, &nextY);
 
     RebindWidgetUserData();
+    for (auto& w : g_widgets) {
+        if (!w.hwnd || !IsWindow(w.hwnd)) continue;
+        WidgetText tx{};
+        FormatWidgetText(w.kind, &tx);
+        if (!WidgetTextHasContent(tx)) {
+            ShowWindow(w.hwnd, SW_HIDE);
+            Wh_Log(L"[ZenWidgets] Hid empty widget kind=%d", static_cast<int>(w.kind));
+            continue;
+        }
+        ApplyGlass(w.hwnd);
+        InvalidateRect(w.hwnd, nullptr, FALSE);
+        UpdateWindow(w.hwnd);
+    }
+
     Wh_Log(L"[ZenWidgets] Active widgets: %zu (size=%d dark=%d snap=%d pack=%s)", g_widgets.size(),
            static_cast<int>(g_settings.widgetSize), g_darkMode ? 1 : 0,
            g_settings.snapToGrid ? 1 : 0, g_settings.presetPack.c_str());
 }
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.2.1 ===");
+    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.2.2 ===");
     LoadSettings();
     EnsureWidgets();
     return TRUE;
@@ -1335,18 +1395,9 @@ void Wh_ModUninit() {
     Wh_Log(L"[ZenWidgets] === Wh_ModUninit ===");
     DestroyAllWidgets();
     DestroyCardGdi();
-    if (g_fontValue) {
-        DeleteObject(g_fontValue);
-        g_fontValue = nullptr;
-    }
-    if (g_fontCaption) {
-        DeleteObject(g_fontCaption);
-        g_fontCaption = nullptr;
-    }
-    if (g_fontBody) {
-        DeleteObject(g_fontBody);
-        g_fontBody = nullptr;
-    }
+    SafeDeleteFont(&g_fontValue);
+    SafeDeleteFont(&g_fontCaption);
+    SafeDeleteFont(&g_fontBody);
     if (g_classRegistered) {
         UnregisterClassW(kClassName, GetModuleHandleW(nullptr));
         g_classRegistered = false;

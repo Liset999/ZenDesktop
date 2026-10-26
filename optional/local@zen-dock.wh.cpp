@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: Dock
 // @description     Optional Nexus-style glass app launcher bar. Companion to the taskbar; default off.
 // @description:zh-CN 可选的 Nexus 风格玻璃快捷栏。与系统任务栏并存，不替代任务栏。默认关闭。
-// @version         0.1.1
+// @version         0.1.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -47,6 +47,7 @@
 
 ## 更新日志
 
+- **0.1.2**：修复与 shellapi.h 冲突的 `QUERY_USER_NOTIFICATION_STATE` 重复定义。
 - **0.1.1**：性能：PID→进程名缓存、运行指示仅在变化时重绘、GDI 笔刷复用、悬停跟踪防抖。
 - **0.1.0**：MVP：玻璃 Dock、钉选启动、悬停高亮、运行指示、三边位置。
 
@@ -108,18 +109,6 @@
 #include <mutex>
 
 #pragma comment(lib, "shlwapi.lib")
-
-#ifndef QUERY_USER_NOTIFICATION_STATE
-typedef enum {
-    QUNS_NOT_PRESENT = 1,
-    QUNS_BUSY = 2,
-    QUNS_RUNNING_D3D_FULL_SCREEN = 3,
-    QUNS_PRESENTATION_MODE = 4,
-    QUNS_ACCEPTS_NOTIFICATIONS = 5,
-    QUNS_QUIET_TIME = 6,
-    QUNS_APP = 7
-} QUERY_USER_NOTIFICATION_STATE;
-#endif
 
 #ifndef WCA_ACCENT_POLICY
 #define WCA_ACCENT_POLICY 19
