@@ -1,7 +1,8 @@
+// DEPRECATED: prefer community mod; see optional/deprecated/README.md and docs/.
 // ==WindhawkMod==
 // @id              zen-desktop-widgets
-// @name            ZenDesktop: 桌面小组件
-// @name:zh-CN      ZenDesktop: 桌面小组件
+// @name            ZenDesktop: 桌面小组件 (DEPRECATED — use Desktop Live Overlay)
+// @name:zh-CN      ZenDesktop: 桌面小组件（已废弃，请用 Desktop Live Overlay）
 // @description     Optional macOS-inspired glass desktop widgets: size presets, caption/value hierarchy, soft corners, grid snap. Built-in templates + describe layout. Default off.
 // @description:zh-CN 可选 macOS 风格玻璃桌面小组件：小/中/大尺寸、标题/数值层级、大圆角、网格吸附。内置模板 + 描述编排。默认关闭。
 // @version         0.2.2
