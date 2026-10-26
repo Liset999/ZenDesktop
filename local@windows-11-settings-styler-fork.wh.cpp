@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.3
+// @version         4.2.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -58,6 +58,7 @@
 
 ## 更新日志
 
+- **4.2.4**：修复控制面板 / 设置里白底卡片盖住白色文字（白字时卡片改为深色半透明；补清 SubtleFillColorDefault 等残留白底资源）。
 - **4.2.3**：「浅色模式：白底」默认从 45% 改为 20%，新增 10% 和 20% 两档，玻璃更通透。之前保存过设置的不会自动改，可以手动改成 20%。
 - **4.2.2**：问题反馈改到 ZenDesktop 仓库，说明开头补上原作者说明；微信赞赏链接改为指向 `main` 分支。
 - **4.2.1**：液态玻璃主题去掉额外的圆角和边距，导航项与卡片保持 Windows 自带的形状。
@@ -964,10 +965,18 @@ const Theme g_themeTranslucentSettings = {{
     L"ControlAltFillColorTertiary@Light=#00000000",
     L"ControlAltFillColorQuarternary@Dark=#00000000",
     L"ControlAltFillColorQuarternary@Light=#00000000",
+    L"SubtleFillColorDefault@Dark=#00000000",
+    L"SubtleFillColorDefault@Light=#00000000",
     L"SubtleFillColorSecondary@Dark=#00000000",
     L"SubtleFillColorSecondary@Light=#00000000",
     L"SubtleFillColorTertiary@Dark=#00000000",
     L"SubtleFillColorTertiary@Light=#00000000",
+    L"SystemControlBackgroundChromeMediumLowBrush@Dark=#00000000",
+    L"SystemControlBackgroundChromeMediumLowBrush@Light=#00000000",
+    L"SystemControlBackgroundBaseLowBrush@Dark=#00000000",
+    L"SystemControlBackgroundBaseLowBrush@Light=#00000000",
+    L"SystemControlBackgroundAltHighBrush@Dark=#00000000",
+    L"SystemControlBackgroundAltHighBrush@Light=#00000000",
     L"ExpanderHeaderBackground@Dark=#00000000",
     L"ExpanderHeaderBackground@Light=#00000000",
     L"ExpanderContentBackground@Dark=#00000000",
@@ -7403,10 +7412,13 @@ std::wstring BuildCardBrush(const std::wstring& color,
         blurAmount = 0;
     }
 
-    std::wstring tint = color.empty() ? L"#FFFFFF" : ToRgbHex(color);
+    // Empty / unparsable tint used to fall back to #FFFFFF. With white
+    // textColorMode that paints white-on-white cards over Control Panel
+    // hero / settings cards. Match chrome: light → white, dark → near-black.
+    std::wstring tint = color.empty() ? L"" : ToRgbHex(color);
     if (!tint.starts_with(L"{ThemeResource") &&
         (tint.empty() || tint[0] != L'#')) {
-        tint = L"#FFFFFF";
+        tint = IsSystemLightTheme() ? L"#FFFFFF" : L"#202020";
     }
 
     // Local frost on cards only when blur > 0.
@@ -7580,12 +7592,43 @@ void ProcessAllStylesFromSettings() {
         int cardOp = (blurVal > 0) ? (std::max)(0, (int)(opVal * 0.55)) : (std::max)(0, (int)(opVal * 0.40));
         int cardBlur = blurVal;
 
+        // White text over white / near-white cards is unreadable (Control
+        // Panel / Settings card surfaces). Darken the card tint when the
+        // user picked white text, even in light mode.
+        std::wstring cardColor = finalColor;
+        PCWSTR textModePeek = Wh_GetStringSetting(L"textColorMode");
+        bool whiteText =
+            textModePeek && wcscmp(textModePeek, L"white") == 0;
+        Wh_FreeStringSetting(textModePeek);
+        if (whiteText) {
+            auto isLightHex = [](const std::wstring& c) {
+                if (c.size() < 7 || c[0] != L'#') {
+                    return false;
+                }
+                auto hex = [](wchar_t ch) -> int {
+                    if (ch >= L'0' && ch <= L'9') return ch - L'0';
+                    if (ch >= L'a' && ch <= L'f') return ch - L'a' + 10;
+                    if (ch >= L'A' && ch <= L'F') return ch - L'A' + 10;
+                    return -1;
+                };
+                int r = hex(c[1]) * 16 + hex(c[2]);
+                int g = hex(c[3]) * 16 + hex(c[4]);
+                int b = hex(c[5]) * 16 + hex(c[6]);
+                if (r < 0 || g < 0 || b < 0) return false;
+                return (r + g + b) >= 0x2A0;  // ~#E0 average and up
+            };
+            if (finalColor.empty() || finalColor == L"#FFFFFF" ||
+                isLightHex(finalColor)) {
+                cardColor = L"#202020";
+            }
+        }
+
         std::wstring chrome =
             BuildChromeGlassBrush(finalColor, 0, chromeOp, lumVal);
         std::wstring pane =
             BuildChromeGlassBrush(finalColor, 0, paneOp, lumVal);
         std::wstring card =
-            BuildCardBrush(finalColor, cardBlur, cardOp, lumVal);
+            BuildCardBrush(cardColor, cardBlur, cardOp, lumVal);
 
         ReplaceStyleConstant(styleConstants, L"CommonBgBrush", chrome);
         ReplaceStyleConstant(styleConstants, L"PaneBgBrush", pane);

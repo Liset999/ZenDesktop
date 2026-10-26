@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.5.2
+// @version         1.5.3
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -104,6 +104,7 @@
 
 ## 更新日志
 
+- **1.5.3**：开机后预热 Direct2D，减轻首次使用 macOS 神奇效果时的卡顿。
 - **1.5.2**：微信赞赏链接改为指向 `main` 分支。
 - **1.5.1**：说明开头加入作者信息与捐助链接，原作者的捐助链接保留。
 - **1.5.0**：新增关闭样式（碎片坠落、缩小淡出、弹性收起、三维翻转、向上滑走）以及最小化/还原/启动样式（从点击处放大、弹性弹出、三维倾斜）。
@@ -15338,8 +15339,17 @@ BOOL Wh_ModInit() {
     return TRUE;
 }
 
+static DWORD WINAPI ZenPrewarmD2DFactoryThread(LPVOID) {
+    AcquireD2DFactory();
+    return 0;
+}
+
 void Wh_ModAfterInit() {
     const bool explorerProcess = IsShellExplorerProcess();
+    // ZenDesktop: macOS genie creates its D2D factory lazily on first use,
+    // which hitchs the UI thread. Warm it now on a worker so the first
+    // minimize is smooth.
+    StartWorkerThread(ZenPrewarmD2DFactoryThread, nullptr);
     // Publish only after Windhawk has applied every hook. Explorer uses this
     // marker to avoid waiting for owner cooperation from a process in which
     // this mod is absent, stale, or still initializing.

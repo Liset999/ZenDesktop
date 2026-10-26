@@ -616,6 +616,7 @@
 *   **截图**：深色圆角图标墙是溢出/文件夹弹出层，和托盘实底是同一类「后建出来的表面没挂上 TAP」。
 *   **音量**：用户说开关**任务栏** mod 就好，说明是托盘上的 Control Center 按钮，不是 `ShellExperienceHost` 的 Win+A 面板。所以 v4.1.0 没改通知中心。
 *   **修复**：`ReapplyTaskbarStyles()` 就是关开一次的同一条路径。`Wh_ModAfterInit` 后 2.5s `ScheduleBootStyleReinit`；另开隐藏窗口听 `TaskbarCreated`（ExplorerBlurMica 崩完重拉 Explorer 也要重挂）。
+*   **落地（4.2.8）**：已接上 TaskbarCreated 监听 + 开机 2.5s/8s/20s 全量重挂；软重启 explorer 后任务栏/托盘溢出/音量浮窗也会补挂（含「统一设置」路径）。StopBoot 放在 lifecycle 锁外，避免与定时回调死锁。
 *   **验证**：冷启动，等约 3 秒，托盘/音量应变透明。日志应有 `Boot delayed TAP reinit`。
 
 ### 2.66 最大化层并回任务栏且连续 max/min 不崩（v4.1.0）
