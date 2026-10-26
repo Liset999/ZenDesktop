@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.1
+// @version         1.6.2
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -104,6 +104,7 @@
 
 ## 更新日志
 
+- **1.6.2**：修复零雾开窗编译：`IsOurWindow` 前向声明（Windhawk undeclared identifier）。
 - **1.6.1**：性能：进程名按 PID 二级缓存，减少重复 OpenProcess。
 - **1.6.0**：新增可选「零雾开窗」：资源管理器 / 设置首次打开时从柔雾模糊溶入玻璃界面（默认关闭，不影响黑闪预涂）。
 - **1.5.3**：开机后预热 Direct2D，减轻首次使用 macOS 神奇效果时的卡顿。
@@ -14482,6 +14483,8 @@ DWORD WINAPI FogClearAnimThread(LPVOID lpParam) {
     // and later SHOW events do not replay zero-fog on the same frame.
     return 0;
 }
+
+static bool IsOurWindow(HWND hWnd);
 
 static void TryScheduleFogClear(HWND hWnd) {
     if (!g_fogClearEnable.load(std::memory_order_relaxed)) return;
