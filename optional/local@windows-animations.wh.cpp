@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.0
+// @version         1.6.1
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -104,6 +104,7 @@
 
 ## 更新日志
 
+- **1.6.1**：性能：进程名按 PID 二级缓存，减少重复 OpenProcess。
 - **1.6.0**：新增可选「零雾开窗」：资源管理器 / 设置首次打开时从柔雾模糊溶入玻璃界面（默认关闭，不影响黑闪预涂）。
 - **1.5.3**：开机后预热 Direct2D，减轻首次使用 macOS 神奇效果时的卡顿。
 - **1.5.2**：微信赞赏链接改为指向 `main` 分支。
@@ -829,6 +830,7 @@ bool g_TaskbarWindowSetSignatureInitialized = false;
 LONG g_seenTaskbarLayoutEpoch = 0;
 DWORD g_seenTaskbarExplorerPid = 0;
 std::unordered_map<HWND, ProcessNameCacheValue> g_ProcessNameCache;
+std::unordered_map<DWORD, std::wstring> g_ProcessNameByPid;
 std::unordered_set<HWND> g_LaunchSeen;
 std::unordered_set<HWND> g_FogSeen;
 std::unordered_set<HWND> g_AnimActive;
@@ -3467,6 +3469,15 @@ std::wstring GetProcessNameCached(HWND hWnd) {
             return it->second.name;
         }
         if (it != g_ProcessNameCache.end()) g_ProcessNameCache.erase(it);
+        if (ownerPid) {
+            auto pit = g_ProcessNameByPid.find(ownerPid);
+            if (pit != g_ProcessNameByPid.end() && !pit->second.empty()) {
+                g_ProcessNameCache[hWnd] =
+                    ProcessNameCacheValue{ownerPid, ownerTid, windowToken,
+                                          pit->second};
+                return pit->second;
+            }
+        }
     }
     std::wstring procNameLower = L"";
     if (ownerPid) {
@@ -3496,6 +3507,7 @@ std::wstring GetProcessNameCached(HWND hWnd) {
             g_ProcessNameCache[hWnd] =
                 ProcessNameCacheValue{ownerPid, ownerTid, windowToken,
                                       procNameLower};
+            g_ProcessNameByPid[ownerPid] = procNameLower;
         }
     }
     return procNameLower;
@@ -15968,7 +15980,7 @@ void Wh_ModUninit() {
         g_TaskbarDockLookupStartedTicks.clear();
         g_TaskbarDockNegativeUntilTicks.clear();
         g_TaskbarDockPositiveUntilTicks.clear();
-        g_ProcessNameCache.clear(); g_LaunchSeen.clear(); g_FogSeen.clear();
+        g_ProcessNameCache.clear(); g_ProcessNameByPid.clear(); g_LaunchSeen.clear(); g_FogSeen.clear();
         g_TaskbarWindowSetSignature = 0;
         g_TaskbarWindowSetSignatureInitialized = false;
         g_seenTaskbarLayoutEpoch = 0;

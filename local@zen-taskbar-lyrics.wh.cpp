@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.7
+// @version         0.4.8
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -152,6 +152,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.4.8**：性能：PID→进程名缓存、任务栏 HWND 短缓存、设置快照按代际复用。
 - **0.4.7**：说明里写明支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **0.4.6**：微信赞赏链接改为指向 `main` 分支。
 - **0.4.5**：AI 状态的钩子程序 `zen-status.exe` 已随包附带，说明里不再要求去 GitHub Actions 下载。
@@ -437,6 +438,9 @@ struct Settings {
 };
 static std::mutex g_settingsLock;
 static Settings g_settings;
+static std::atomic<uint64_t> g_settingsGen{1};
+static thread_local uint64_t tls_settingsGen = 0;
+static thread_local Settings tls_settings;
 
 static std::wstring GetStr(PCWSTR name) {
     PCWSTR v = Wh_GetStringSetting(name);
@@ -494,13 +498,21 @@ static void LoadSettings() {
         s.aiDoneSeconds = done.empty() ? 120 : std::clamp(_wtoi(done.c_str()), 0, 86400);
         s.aiProcesses = GetStr(L"aiProcesses");
     }
-    std::lock_guard<std::mutex> lk(g_settingsLock);
-    g_settings = s;
+    {
+        std::lock_guard<std::mutex> lk(g_settingsLock);
+        g_settings = std::move(s);
+    }
+    g_settingsGen.fetch_add(1, std::memory_order_release);
 }
 
-static Settings GetSettings() {
-    std::lock_guard<std::mutex> lk(g_settingsLock);
-    return g_settings;
+static const Settings& GetSettings() {
+    const uint64_t gen = g_settingsGen.load(std::memory_order_acquire);
+    if (tls_settingsGen != gen) {
+        std::lock_guard<std::mutex> lk(g_settingsLock);
+        tls_settings = g_settings;
+        tls_settingsGen = g_settingsGen.load(std::memory_order_relaxed);
+    }
+    return tls_settings;
 }
 
 static std::atomic<bool> g_stop{false};
@@ -1279,17 +1291,37 @@ static void PostMediaCmd(MediaCmd c) {
     }
 }
 
+static std::mutex g_pidExeMutex;
+static std::unordered_map<DWORD, std::wstring> g_pidExeCache;
+static ULONGLONG g_pidExeCacheTick = 0;
+
 static std::wstring ExeNameOfPid(DWORD pid) {
+    if (!pid) return {};
+    const ULONGLONG now = GetTickCount64();
+    {
+        std::lock_guard<std::mutex> lk(g_pidExeMutex);
+        if (now - g_pidExeCacheTick >= 30000) {
+            g_pidExeCache.clear();
+            g_pidExeCacheTick = now;
+        } else {
+            auto it = g_pidExeCache.find(pid);
+            if (it != g_pidExeCache.end()) return it->second;
+        }
+    }
     std::wstring out;
     HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
     if (!h) return out;
-    wchar_t path[MAX_PATH];
+    wchar_t pathBuf[MAX_PATH];
     DWORD n = MAX_PATH;
-    if (QueryFullProcessImageNameW(h, 0, path, &n)) {
-        const wchar_t* name = wcsrchr(path, L'\\');
-        out = name ? name + 1 : path;
+    if (QueryFullProcessImageNameW(h, 0, pathBuf, &n)) {
+        const wchar_t* name = wcsrchr(pathBuf, L'\\');
+        out = name ? name + 1 : pathBuf;
     }
     CloseHandle(h);
+    if (!out.empty()) {
+        std::lock_guard<std::mutex> lk(g_pidExeMutex);
+        g_pidExeCache[pid] = out;
+    }
     return out;
 }
 
@@ -1877,7 +1909,19 @@ static bool IsSecondaryTaskbar(HWND h) {
     return h && GetClassNameW(h, cls, 64) && _wcsicmp(cls, L"Shell_SecondaryTrayWnd") == 0;
 }
 
+static std::vector<HWND> g_cachedTaskbars;
+static bool g_cachedTaskbarsMulti = false;
+static ULONGLONG g_cachedTaskbarsTick = 0;
+
 static std::vector<HWND> FindTaskbars(bool multi) {
+    const ULONGLONG now = GetTickCount64();
+    if (multi == g_cachedTaskbarsMulti && now - g_cachedTaskbarsTick < 800 && !g_cachedTaskbars.empty()) {
+        bool allValid = true;
+        for (HWND h : g_cachedTaskbars) {
+            if (!h || !IsWindow(h)) { allValid = false; break; }
+        }
+        if (allValid) return g_cachedTaskbars;
+    }
     struct Ctx { std::vector<HWND> primary, secondary; } ctx;
     EnumWindows(
         [](HWND h, LPARAM lp) -> BOOL {
@@ -1892,6 +1936,9 @@ static std::vector<HWND> FindTaskbars(bool multi) {
     std::vector<HWND> out;
     if (!ctx.primary.empty()) out.push_back(ctx.primary[0]);
     if (multi) out.insert(out.end(), ctx.secondary.begin(), ctx.secondary.end());
+    g_cachedTaskbars = out;
+    g_cachedTaskbarsMulti = multi;
+    g_cachedTaskbarsTick = now;
     return out;
 }
 static DWORD ReadDword(const wchar_t* subkey, const wchar_t* value, DWORD def) {

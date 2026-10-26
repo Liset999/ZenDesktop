@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 果冻窗口
 // @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
 // @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
-// @version         0.115.4
+// @version         0.115.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
@@ -48,6 +48,7 @@
 
 ## 更新日志
 
+- **0.115.5**：性能：桌面可见性轮询在稳态下略降频（300ms→500ms）。
 - **0.115.4**：微信赞赏链接改为指向 `main` 分支。
 - **0.115.3**：说明开头补上原作者说明，原版链接改为指向仓库。
 - **0.115.2**：说明开头加入作者信息与捐助链接。
@@ -6826,12 +6827,12 @@ static void ScheduleDesktopVisibilityRefresh(bool resetAll = false)
         return;
     }
     g_systemDesktopResetPending |= resetAll;
-    g_desktopVisibilityDeadline = GetTickCount64() + 300;
+    g_desktopVisibilityDeadline = GetTickCount64() + 500;
     if (g_desktopVisibilityTimer)
     {
         KillTimer(nullptr, g_desktopVisibilityTimer);
     }
-    g_desktopVisibilityTimer = SetTimer(nullptr, 0, 300, nullptr);
+    g_desktopVisibilityTimer = SetTimer(nullptr, 0, 500, nullptr);
     if (!g_desktopVisibilityTimer)
     {
         g_desktopVisibilityDeadline = 0;

@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.5
+// @version         4.2.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -59,6 +59,7 @@
 
 ## 更新日志
 
+- **4.2.6**：性能：缓存 Settings CoreWindow HWND，避免每次 EnumWindows。
 - **4.2.5**：跳过「个性化 → 背景」页的 `BackgroundStackPanel` 子树样式，收窄全局 `Border#Root` / `ContentPresenter#ContentPresenter` 透明规则，减轻 Win11 26H2/26300 进背景页闪退。
 - **4.2.4**：修复控制面板 / 设置里白底卡片盖住白色文字（白字时卡片改为深色半透明；补清 SubtleFillColorDefault 等残留白底资源）。
 - **4.2.3**：「浅色模式：白底」默认从 45% 改为 20%，新增 10% 和 20% 两档，玻璃更通透。之前保存过设置的不会自动改，可以手动改成 20%。
@@ -8129,7 +8130,14 @@ HWND WINAPI CreateWindowInBandEx_Hook(DWORD dwExStyle,
     return hWnd;
 }
 
+static HWND g_cachedSettingsCoreWnd = nullptr;
+
 HWND GetCoreWnd() {
+    if (g_cachedSettingsCoreWnd && IsWindow(g_cachedSettingsCoreWnd)) {
+        return g_cachedSettingsCoreWnd;
+    }
+    g_cachedSettingsCoreWnd = nullptr;
+
     struct ENUM_WINDOWS_PARAM {
         HWND* hWnd;
     };
@@ -8166,6 +8174,7 @@ HWND GetCoreWnd() {
         },
         (LPARAM)&param);
 
+    g_cachedSettingsCoreWnd = hWnd;
     return hWnd;
 }
 

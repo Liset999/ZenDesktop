@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面小组件
 // @description     Optional desktop clock and status cards with a glass look. Drag to move. Default off.
 // @description:zh-CN 可选的桌面时钟与状态卡片，玻璃风格，可拖动。默认关闭。
-// @version         0.1.0
+// @version         0.1.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo
 // @github          https://github.com/Liset999
@@ -45,6 +45,7 @@
 
 ## 更新日志
 
+- **0.1.1**：性能：时钟文案未变不重绘、USERDATA 找控件、GDI 笔刷复用、状态默认文案零分配。
 - **0.1.0**：MVP：时钟 + 状态卡、拖动与位置记忆、Windhawk 设置。
 
 ## 致谢与许可
@@ -144,13 +145,17 @@ struct Widget {
     bool dragging = false;
     POINT dragStart{};
     POINT winStart{};
+    wchar_t lastLine1[64]{};
+    wchar_t lastLine2[128]{};
 };
 
 static std::vector<Widget> g_widgets;
 static ATOM g_atom = 0;
 static HFONT g_fontLarge = nullptr;
 static HFONT g_fontSmall = nullptr;
+static HBRUSH g_brushCardBg = nullptr;
 static bool g_classRegistered = false;
+static constexpr wchar_t kDefaultStatusText[] = L"ZenDesktop 小组件 MVP";
 
 static void LoadSettings();
 static void RebuildFonts();
@@ -183,8 +188,8 @@ static void LoadSettings() {
     }
 }
 
-static std::wstring DefaultStatusText() {
-    return L"ZenDesktop 小组件 MVP";
+static const wchar_t* DefaultStatusText() {
+    return kDefaultStatusText;
 }
 
 static void RebuildFonts() {
@@ -294,12 +299,37 @@ static void LoadPosition(Widget& w) {
 }
 
 static Widget* FindWidget(HWND hwnd) {
+    if (!hwnd) return nullptr;
+    if (auto* w = reinterpret_cast<Widget*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA))) {
+        return w;
+    }
     for (auto& w : g_widgets) {
         if (w.hwnd == hwnd) {
             return &w;
         }
     }
     return nullptr;
+}
+
+static void EnsureCardGdi() {
+    if (!g_brushCardBg) {
+        g_brushCardBg = CreateSolidBrush(RGB(0x23, 0x23, 0x23));
+    }
+}
+
+static void DestroyCardGdi() {
+    if (g_brushCardBg) {
+        DeleteObject(g_brushCardBg);
+        g_brushCardBg = nullptr;
+    }
+}
+
+static void RebindWidgetUserData() {
+    for (auto& w : g_widgets) {
+        if (w.hwnd && IsWindow(w.hwnd)) {
+            SetWindowLongPtrW(w.hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&w));
+        }
+    }
 }
 
 static void MeasureClock(HDC hdc, int* outW, int* outH) {
@@ -328,11 +358,11 @@ static void MeasureClock(HDC hdc, int* outW, int* outH) {
 }
 
 static void MeasureStatus(HDC hdc, int* outW, int* outH) {
-    std::wstring text =
-        g_settings.statusText.empty() ? DefaultStatusText() : g_settings.statusText;
+    const wchar_t* text = g_settings.statusText.empty() ? DefaultStatusText()
+                                                        : g_settings.statusText.c_str();
     SIZE s{};
     HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontSmall));
-    GetTextExtentPoint32W(hdc, text.c_str(), static_cast<int>(text.size()), &s);
+    GetTextExtentPoint32W(hdc, text, static_cast<int>(wcslen(text)), &s);
     SelectObject(hdc, old);
     *outW = Clamp(s.cx + kPad * 2, 160, 520);
     *outH = Clamp(s.cy + kPad * 2, 48, 160);
@@ -345,10 +375,8 @@ static void PaintWidget(HWND hwnd, Widget* w) {
     RECT rc{};
     GetClientRect(hwnd, &rc);
 
-    // Dark translucent base so acrylic tint reads as glass when available
-    HBRUSH brush = CreateSolidBrush(RGB(0x23, 0x23, 0x23));
-    FillRect(hdc, &rc, brush);
-    DeleteObject(brush);
+    EnsureCardGdi();
+    FillRect(hdc, &rc, g_brushCardBg);
 
     SetBkMode(hdc, TRANSPARENT);
     SetTextColor(hdc, RGB(0xF2, 0xF2, 0xF2));
@@ -386,12 +414,12 @@ static void PaintWidget(HWND hwnd, Widget* w) {
         DrawTextW(hdc, line2, -1, &r2, DT_LEFT | DT_TOP | DT_SINGLELINE);
         SelectObject(hdc, old);
     } else {
-        std::wstring text =
-            g_settings.statusText.empty() ? DefaultStatusText() : g_settings.statusText;
+        const wchar_t* text = g_settings.statusText.empty() ? DefaultStatusText()
+                                                            : g_settings.statusText.c_str();
         RECT r = rc;
         InflateRect(&r, -kPad, -kPad);
         HFONT old = static_cast<HFONT>(SelectObject(hdc, g_fontSmall));
-        DrawTextW(hdc, text.c_str(), -1, &r, DT_LEFT | DT_VCENTER | DT_WORDBREAK);
+        DrawTextW(hdc, text, -1, &r, DT_LEFT | DT_VCENTER | DT_WORDBREAK);
         SelectObject(hdc, old);
     }
 
@@ -435,7 +463,21 @@ static LRESULT CALLBACK WidgetWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
         case WM_TIMER:
             if (wParam == kTimerRefresh && w && w->kind == WidgetKind::Clock) {
-                InvalidateRect(hwnd, nullptr, FALSE);
+                SYSTEMTIME st{};
+                GetLocalTime(&st);
+                wchar_t line1[64];
+                wchar_t line2[128];
+                if (g_settings.clockShowSeconds) {
+                    swprintf_s(line1, L"%02u:%02u:%02u", st.wHour, st.wMinute, st.wSecond);
+                } else {
+                    swprintf_s(line1, L"%02u:%02u", st.wHour, st.wMinute);
+                }
+                swprintf_s(line2, L"%04u-%02u-%02u", st.wYear, st.wMonth, st.wDay);
+                if (wcscmp(line1, w->lastLine1) != 0 || wcscmp(line2, w->lastLine2) != 0) {
+                    wcscpy_s(w->lastLine1, line1);
+                    wcscpy_s(w->lastLine2, line2);
+                    InvalidateRect(hwnd, nullptr, FALSE);
+                }
             }
             return 0;
 
@@ -505,6 +547,7 @@ static HWND CreateWidgetWindow(Widget& w) {
     }
 
     w.hwnd = hwnd;
+    SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&w));
     ApplyGlass(hwnd);
     ShowWindow(hwnd, SW_SHOWNOACTIVATE);
     SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
@@ -531,6 +574,7 @@ static void DestroyAllWidgets() {
 static void EnsureWidgets() {
     DestroyAllWidgets();
     RebuildFonts();
+    g_widgets.reserve(2);
 
     int primaryRight = GetSystemMetrics(SM_CXSCREEN);
 
@@ -558,11 +602,12 @@ static void EnsureWidgets() {
         }
     }
 
+    RebindWidgetUserData();
     Wh_Log(L"[ZenWidgets] Active widgets: %zu", g_widgets.size());
 }
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.1.0 ===");
+    Wh_Log(L"[ZenWidgets] === Wh_ModInit v0.1.1 ===");
     LoadSettings();
     EnsureWidgets();
     return TRUE;
@@ -571,6 +616,7 @@ BOOL Wh_ModInit() {
 void Wh_ModUninit() {
     Wh_Log(L"[ZenWidgets] === Wh_ModUninit ===");
     DestroyAllWidgets();
+    DestroyCardGdi();
     if (g_fontLarge) {
         DeleteObject(g_fontLarge);
         g_fontLarge = nullptr;
