@@ -35,7 +35,9 @@ function Ask-YesNo ($question) {
 # 1. Administrator check (HKLM and ProgramData need it)
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Error "需要管理员权限：请运行 uninstall.bat，在权限提示里点「是」。 (Administrator privileges are required. Run uninstall.bat and accept the UAC prompt.)"
+    # Write-Host (not Write-Error): ErrorRecord often ignores Console.OutputEncoding on zh-CN.
+    Write-Host "[ZenUninstall] 需要管理员权限：请运行 uninstall.bat，在权限提示里点「是」。" -ForegroundColor Red
+    Write-Host "[ZenUninstall] Administrator privileges required. Run uninstall.bat and accept the UAC prompt." -ForegroundColor Red
     Exit 1
 }
 
