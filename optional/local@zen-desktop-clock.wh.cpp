@@ -4,13 +4,13 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.3.1
+// @version         1.3.2
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32
+// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32 -ladvapi32
 // ==/WindhawkMod==
 
 // Source code is published under The GNU General Public License v3.0.
@@ -123,16 +123,82 @@
   $name:zh-CN: "大小（%）"
   $description: "50–300. Scales everything, on top of display scaling."
   $description:zh-CN: "50–300，整体缩放（已自动适配显示器缩放）。"
-- color: ""
+- color: default
   $name: "Text color"
   $name:zh-CN: "颜色"
-  $description: "Empty = preset color. #RRGGBB or #AARRGGBB."
-  $description:zh-CN: "留空用预设颜色；可填 #RRGGBB 或 #AARRGGBB。"
-- accentColor: ""
+  $options:
+  - default: "Follow style"
+  - white: "White"
+  - black: "Black"
+  - lightgray: "Light gray"
+  - red: "Red"
+  - orange: "Orange"
+  - gold: "Gold"
+  - green: "Green"
+  - cyan: "Cyan"
+  - blue: "Blue"
+  - purple: "Purple"
+  - pink: "Pink"
+  - system: "System accent color"
+  - custom: "Custom (fill in below)"
+  $options:zh-CN:
+  - default: "跟随样式"
+  - white: "白色"
+  - black: "黑色"
+  - lightgray: "浅灰"
+  - red: "红"
+  - orange: "橙"
+  - gold: "金黄"
+  - green: "绿"
+  - cyan: "青"
+  - blue: "蓝"
+  - purple: "紫"
+  - pink: "粉"
+  - system: "跟随系统强调色"
+  - custom: "自定义（填下面的代码）"
+- customColor: ""
+  $name: "Custom text color code"
+  $name:zh-CN: "自定义颜色代码"
+  $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+  $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
+- accentColor: default
   $name: "Accent color"
-  $name:zh-CN: "强调色"
-  $description: "Empty = preset. Used by rings, accent bar, second hand, calendar today."
-  $description:zh-CN: "留空用预设；用于进度环、竖线、秒针、日历今天。"
+  $name:zh-CN: "强调色（进度环、竖线、秒针、日历今天）"
+  $options:
+  - default: "Follow style"
+  - white: "White"
+  - black: "Black"
+  - lightgray: "Light gray"
+  - red: "Red"
+  - orange: "Orange"
+  - gold: "Gold"
+  - green: "Green"
+  - cyan: "Cyan"
+  - blue: "Blue"
+  - purple: "Purple"
+  - pink: "Pink"
+  - system: "System accent color"
+  - custom: "Custom (fill in below)"
+  $options:zh-CN:
+  - default: "跟随样式"
+  - white: "白色"
+  - black: "黑色"
+  - lightgray: "浅灰"
+  - red: "红"
+  - orange: "橙"
+  - gold: "金黄"
+  - green: "绿"
+  - cyan: "青"
+  - blue: "蓝"
+  - purple: "紫"
+  - pink: "粉"
+  - system: "跟随系统强调色"
+  - custom: "自定义（填下面的代码）"
+- customAccent: ""
+  $name: "Custom accent color code"
+  $name:zh-CN: "自定义强调色代码"
+  $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+  $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
 - use24Hour: true
   $name: "24-hour time"
   $name:zh-CN: "24 小时制"
@@ -242,8 +308,40 @@
     $name:zh-CN: "旋转角度（-45~45）"
   - shadow: true
     $name:zh-CN: "投影"
-  - shadowColor: "#B3000000"
-    $name:zh-CN: "投影颜色（#AARRGGBB，AA 为不透明度）"
+  - shadowColor: default
+    $name:zh-CN: "投影颜色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - shadowColorCustom: ""
+    $name:zh-CN: "投影颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
   - shadowBlur: 8
     $name:zh-CN: "投影模糊"
   - shadowOffsetX: 6
@@ -252,26 +350,186 @@
     $name:zh-CN: "投影垂直偏移"
   - glow: false
     $name:zh-CN: "光晕"
-  - glowColor: "#00E5FF"
+  - glowColor: default
     $name:zh-CN: "光晕颜色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - glowColorCustom: ""
+    $name:zh-CN: "光晕颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
   - glowRadius: 12
     $name:zh-CN: "光晕半径"
   - outline: false
     $name:zh-CN: "描边"
-  - outlineColor: "#000000"
+  - outlineColor: default
     $name:zh-CN: "描边颜色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - outlineColorCustom: ""
+    $name:zh-CN: "描边颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
   - outlineWidth: 2
     $name:zh-CN: "描边宽度"
   - hollow: false
     $name:zh-CN: "空心字（只留描边）"
-  - gradientStart: ""
-    $name:zh-CN: "渐变起始色（两个都填才启用）"
-  - gradientEnd: ""
+  - gradientStart: default
+    $name:zh-CN: "渐变起始色（起止都选才启用）"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - gradientStartCustom: ""
+    $name:zh-CN: "渐变起始色（起止都选才启用）：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+  - gradientEnd: default
     $name:zh-CN: "渐变结束色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - gradientEndCustom: ""
+    $name:zh-CN: "渐变结束色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
   - flipCards: false
     $name:zh-CN: "翻页卡片底"
-  - cardColor: "#E0202024"
+  - cardColor: default
     $name:zh-CN: "翻页卡片颜色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "默认"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - cardColorCustom: ""
+    $name:zh-CN: "翻页卡片颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
   - glassCard: false
     $name:zh-CN: "玻璃卡片底"
   - accentBar: false
@@ -618,6 +876,43 @@ D2D1_COLOR_F ZcColor(PCWSTR name, D2D1_COLOR_F def) {
     return c;
 }
 
+// System accent color: HKCU\Software\Microsoft\Windows\DWM\AccentColor (0xAABBGGRR).
+bool ZcSystemAccent(D2D1_COLOR_F* out) {
+    DWORD v = 0, cb = sizeof(v);
+    if (RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\DWM",
+                     L"AccentColor", RRF_RT_REG_DWORD, nullptr, &v, &cb) != ERROR_SUCCESS) {
+        return false;
+    }
+    out->r = (v & 0xFF) / 255.0f;
+    out->g = ((v >> 8) & 0xFF) / 255.0f;
+    out->b = ((v >> 16) & 0xFF) / 255.0f;
+    out->a = 1;
+    return true;
+}
+
+// Dropdown color: preset name, "system", "custom" (+ custom field), or a legacy
+// hex string (old versions stored the code directly). false = keep style default.
+bool ZcChoiceColor(PCWSTR choiceKey, PCWSTR customKey, D2D1_COLOR_F* out) {
+    std::wstring v = ZcStr(choiceKey);
+    if (v.empty() || v == L"default") return false;
+    if (v == L"custom") return ZcParseColor(ZcStr(customKey).c_str(), out);
+    if (v == L"system") return ZcSystemAccent(out);
+    static const struct { const wchar_t* n; unsigned rgb; } k[] = {
+        {L"white", 0xFFFFFF}, {L"black", 0x000000}, {L"lightgray", 0xC8C8C8},
+        {L"red", 0xFF3B30},   {L"orange", 0xFF9500}, {L"gold", 0xFFCC00},
+        {L"green", 0x34C759}, {L"cyan", 0x00E5FF},   {L"blue", 0x0A84FF},
+        {L"purple", 0xAF52DE}, {L"pink", 0xFF5FA2},
+    };
+    for (auto& e : k) {
+        if (v == e.n) {
+            *out = {((e.rgb >> 16) & 0xFF) / 255.0f, ((e.rgb >> 8) & 0xFF) / 255.0f,
+                    (e.rgb & 0xFF) / 255.0f, 1};
+            return true;
+        }
+    }
+    return ZcParseColor(v.c_str(), out);  // legacy hex
+}
+
 int ZcClamp(int v, int lo, int hi) {
     return v < lo ? lo : (v > hi ? hi : v);
 }
@@ -845,7 +1140,9 @@ void ZcLoadSettings() {
         auto I = [&](const wchar_t* k) { return Wh_GetIntSetting(A(k).c_str()); };
         auto S = [&](const wchar_t* k) { return ZcStr(A(k).c_str()); };
         auto C = [&](const wchar_t* k, D2D1_COLOR_F def) {
-            return ZcColor(A(k).c_str(), def);
+            D2D1_COLOR_F c = def;
+            if (!ZcChoiceColor(A(k).c_str(), (A(k) + L"Custom").c_str(), &c)) c = def;
+            return c;
         };
         s.timeFont = S(L"timeFont");
         s.dateFont = S(L"dateFont");
@@ -863,6 +1160,12 @@ void ZcLoadSettings() {
         s.rotation = (float)ZcClamp(I(L"rotation"), -45, 45);
         s.shadow = I(L"shadow") != 0;
         s.shadowColor = C(L"shadowColor", {0, 0, 0, 0.7f});
+        {
+            // Named shadow colors are opaque; keep the old soft look.
+            std::wstring sc = S(L"shadowColor");
+            if (!sc.empty() && sc != L"default" && sc != L"custom" && sc[0] != L'#')
+                s.shadowColor.a *= 0.7f;
+        }
         s.shadowBlur = (float)ZcClamp(I(L"shadowBlur"), 0, 100);
         s.shadowDx = (float)I(L"shadowOffsetX");
         s.shadowDy = (float)I(L"shadowOffsetY");
@@ -874,8 +1177,8 @@ void ZcLoadSettings() {
         s.outlineWidth = (float)ZcClamp(I(L"outlineWidth"), 1, 20);
         s.hollow = I(L"hollow") != 0;
         D2D1_COLOR_F g0, g1;
-        if (ZcParseColor(S(L"gradientStart").c_str(), &g0) &&
-            ZcParseColor(S(L"gradientEnd").c_str(), &g1)) {
+        if (ZcChoiceColor(A(L"gradientStart").c_str(), A(L"gradientStartCustom").c_str(), &g0) &&
+            ZcChoiceColor(A(L"gradientEnd").c_str(), A(L"gradientEndCustom").c_str(), &g1)) {
             s.grad = {g0, g1};
         }
         s.flip = I(L"flipCards") != 0;
@@ -894,11 +1197,11 @@ void ZcLoadSettings() {
     }
     // Top-level color overrides apply to every style.
     D2D1_COLOR_F c;
-    if (ZcParseColor(ZcStr(L"color").c_str(), &c)) {
+    if (ZcChoiceColor(L"color", L"customColor", &c)) {
         s.text = c;
         s.grad.clear();
     }
-    if (ZcParseColor(ZcStr(L"accentColor").c_str(), &c)) s.accent = c;
+    if (ZcChoiceColor(L"accentColor", L"customAccent", &c)) s.accent = c;
     s.timeSize = ZcClamp(s.timeSize ? s.timeSize : 140, 8, 600);
     s.dateSize = ZcClamp(s.dateSize ? s.dateSize : 40, 6, 300);
     s.timeWeight = ZcClamp(s.timeWeight ? s.timeWeight : 400, 100, 950);
