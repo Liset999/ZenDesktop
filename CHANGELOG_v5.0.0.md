@@ -51,3 +51,9 @@
 
 ## 支持作者
 [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
+
+
+### 桌面时钟 1.2.1
+- 加诊断日志：宿主窗口类名/父窗口/位置、各显示器工作区、绘制中心、交换链尺寸、EndDraw/Present 返回值、Z 序兄弟窗口
+- 偏移量最多只能把时钟中心推到显示器边缘内 20px，不会再整块推出屏幕
+- 「桌面不显示」排查中（真机未验证）
