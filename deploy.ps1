@@ -285,6 +285,15 @@ if ($files.Count -eq 0) {
 }
 
 # v4.2: deploy 仅负责将所有 Mod 源码及元数据装入 Windhawk，不负责开启，不负责编译。
+# 上游「Taskbar height and icon size」与「任务栏美化 → 任务栏尺寸」钩同一批符号，同时开启会互相覆盖。只提示。
+$upstreamTbSize = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\taskbar-icon-size"
+if (Test-Path $upstreamTbSize) {
+    $tbsDisabled = (Get-ItemProperty -Path $upstreamTbSize -Name Disabled -ErrorAction SilentlyContinue).Disabled
+    if ($tbsDisabled -ne 1) {
+        Write-Host "[ZenDeploy] 检测到已启用「Taskbar height and icon size」：如使用「任务栏美化 → 任务栏尺寸」，请在 Windhawk 中关闭它。" -ForegroundColor Yellow
+    }
+}
+
 # 上游「Windows 11 File Explorer Styler」与「文件管理器美化」争用 XAML 诊断，同时开启会反复弹冲突窗口。只提示，不改动它。
 $upstreamExplorerStyler = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-file-explorer-styling"
 if (Test-Path $upstreamExplorerStyler) {
@@ -459,6 +468,8 @@ foreach ($file in $files) {
         }
         Set-RegValueIfMissing $settingsPath "look.theme" "TranslucentTaskbar" String $label
         Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "size.taskbarHeight" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "size.iconSize" 0 DWord $label
     }
 
     if ($id -eq "local@macos-minimize-animation") {
