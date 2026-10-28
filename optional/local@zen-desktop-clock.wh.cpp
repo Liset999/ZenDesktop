@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.0.0
+// @version         1.1.0
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -31,7 +31,7 @@
 
 在桌面图标**后方**绘制大号时间与日期，不挡图标、不抢焦点、不吃鼠标。
 
-- **样式预设**：倾斜阴影（白色大字、约 -8° 倾斜、深色柔和投影）、极简、霓虹（光晕）、翻页（静态翻页卡片）、自定义（使用下方全部详细设置）。
+- **17 种样式预设 + 自定义**：倾斜阴影、极简、霓虹、翻页、大字封面、竖排、描边空心、玻璃卡片、复古数码管、彩虹渐变、日落渐变、中文大写、文字时钟、圆形表盘、进度环、左侧细线、双色错位，以及自定义（使用下方全部详细设置，含版式/渐变/空心/玻璃卡片/竖线）。
 - 时间 12/24 小时制、可显示秒；日期格式 `10/28/2026`、`2026-10-28`、`10月28日 周三`，或不显示。
 - 每行可单独设字体、字号、字重；文字颜色、旋转角度、真模糊投影（颜色/模糊半径/偏移/不透明度）、光晕、描边。
 - 位置：九宫格锚点 + 偏移；可选指定显示器或所有显示器；按显示器 DPI 缩放。
@@ -53,12 +53,38 @@
   - minimal: "Minimal"
   - neon: "Neon glow"
   - flip: "Flip cards"
+  - cover: "Magazine cover"
+  - stacked: "Stacked"
+  - hollow: "Hollow outline"
+  - glass: "Glass card"
+  - segment: "Retro 7-segment"
+  - rainbow: "Rainbow gradient"
+  - sunset: "Sunset gradient"
+  - chinese: "Chinese numerals"
+  - sentence: "Word clock"
+  - analog: "Analog dial"
+  - ring: "Progress ring"
+  - accent: "Accent bar"
+  - glitch: "Two-tone glitch"
   - custom: "Custom"
   $options:zh-CN:
   - tilted: "倾斜阴影"
   - minimal: "极简"
   - neon: "霓虹"
   - flip: "翻页"
+  - cover: "大字封面"
+  - stacked: "竖排"
+  - hollow: "描边空心"
+  - glass: "玻璃卡片"
+  - segment: "复古数码管"
+  - rainbow: "彩虹渐变"
+  - sunset: "日落渐变"
+  - chinese: "中文大写"
+  - sentence: "文字时钟"
+  - analog: "圆形表盘"
+  - ring: "进度环"
+  - accent: "左侧细线"
+  - glitch: "双色错位"
   - custom: "自定义"
 - use24Hour: true
   $name: "24-hour time"
@@ -221,6 +247,63 @@
 - cardColor: "#E0202024"
   $name: "Card color"
   $name:zh-CN: "卡片颜色"
+- customLayout: normal
+  $name: "Layout"
+  $name:zh-CN: "版式"
+  $description: "(Custom only)"
+  $description:zh-CN: "（仅自定义）"
+  $options:
+  - normal: "Time + date"
+  - stacked: "Hours over minutes"
+  - cover: "Date above (cover)"
+  - sentence: "Word clock sentence"
+  - chinese: "Chinese numerals"
+  - analog: "Analog dial"
+  - ring: "Time inside progress ring"
+  $options:zh-CN:
+  - normal: "时间 + 日期"
+  - stacked: "竖排（时在上、分在下）"
+  - cover: "日期在上（封面）"
+  - sentence: "文字句子"
+  - chinese: "中文大写"
+  - analog: "圆形表盘"
+  - ring: "进度环"
+- hollowText: false
+  $name: "Hollow text (outline only)"
+  $name:zh-CN: "空心字（只留描边）"
+  $description: "(Custom only) Uses the outline color/width; text color if outline is off."
+  $description:zh-CN: "（仅自定义）用描边颜色和宽度；未开描边时用文字颜色。"
+- gradientEnabled: false
+  $name: "Gradient text"
+  $name:zh-CN: "渐变文字"
+  $description: "(Custom only) Fill text with a linear gradient instead of the text color."
+  $description:zh-CN: "（仅自定义）用线性渐变代替文字颜色填充。"
+- gradientStart: "#FF5E6E"
+  $name: "Gradient start color"
+  $name:zh-CN: "渐变起始色"
+- gradientEnd: "#FFD966"
+  $name: "Gradient end color"
+  $name:zh-CN: "渐变结束色"
+- glassCard: false
+  $name: "Glass card behind clock"
+  $name:zh-CN: "玻璃卡片底"
+  $description: "(Custom only) Translucent rounded card with a thin border."
+  $description:zh-CN: "（仅自定义）半透明圆角卡片 + 细边框。"
+- accentBar: false
+  $name: "Left accent bar"
+  $name:zh-CN: "左侧竖线"
+  $description: "(Custom only)"
+  $description:zh-CN: "（仅自定义）"
+- accentColor: "#FF6B33"
+  $name: "Accent color"
+  $name:zh-CN: "强调色"
+  $description: "Accent bar, progress ring and analog second hand."
+  $description:zh-CN: "用于左侧竖线、进度环和表盘秒针。"
+- showWeekday: false
+  $name: "Add weekday to date"
+  $name:zh-CN: "日期加星期"
+  $description: "(Custom only)"
+  $description:zh-CN: "（仅自定义）"
 */
 // ==/WindhawkModSettings==
 
@@ -234,6 +317,7 @@
 #include <dxgi1_3.h>
 #include <shellscalingapi.h>
 #include <wrl/client.h>
+#include <dwrite_1.h>
 
 #include <atomic>
 #include <cmath>
@@ -270,6 +354,8 @@ enum : UINT32 {
 enum class ZcDate { mdy, dmy, iso, cn, cnFull, none };
 enum class ZcAlign { left, center, right };
 
+enum class ZcLayoutKind { normal, stacked, cover, sentence, chinese, analog, ring };
+
 struct ZcStyle {
     std::wstring timeFont, dateFont;
     int timeSize = 140, timeWeight = 600, dateSize = 40, dateWeight = 500;
@@ -286,6 +372,25 @@ struct ZcStyle {
     float outlineWidth = 2;
     bool flip = false;
     D2D1_COLOR_F cardColor{0.125f, 0.125f, 0.14f, 0.88f};
+    // 1.1.0 additions.
+    ZcLayoutKind layout = ZcLayoutKind::normal;
+    bool hollow = false;              // outline only, transparent fill
+    std::vector<D2D1_COLOR_F> grad;   // >= 2 stops: gradient text fill
+    bool glass = false;               // translucent rounded card behind block
+    D2D1_COLOR_F glassColor{1, 1, 1, 0.16f};
+    D2D1_COLOR_F glassBorder{1, 1, 1, 0.38f};
+    bool ghost = false;               // dim "88:88" behind the digits
+    D2D1_COLOR_F ghostColor{1, 1, 1, 0.08f};
+    bool accentBar = false;           // vertical bar on the left
+    D2D1_COLOR_F accent{1, 0.42f, 0.2f, 1};
+    bool weekday = false;             // force weekday into the date line
+    bool dup = false;                 // two-tone offset duplicates
+    D2D1_COLOR_F dupA{0, 0.9f, 1, 0.85f}, dupB{1, 0.1f, 0.55f, 0.85f};
+    float dupOffset = 5;
+    bool dateAbove = false;
+    float dateTracking = 0;           // extra letter spacing for the date
+    bool upper = false;               // uppercase date text
+    D2D1_COLOR_F track{1, 1, 1, 0.18f};  // ring track / dial face line
 };
 
 struct ZcSettings {
@@ -511,13 +616,33 @@ int ZcClamp(int v, int lo, int hi) {
     return v < lo ? lo : (v > hi ? hi : v);
 }
 
+// Chinese font with fallbacks (first installed family wins).
+std::wstring ZcPickFont(std::initializer_list<const wchar_t*> names) {
+    ComPtr<IDWriteFontCollection> fc;
+    if (g_zcDwrite && SUCCEEDED(g_zcDwrite->GetSystemFontCollection(&fc))) {
+        for (auto n : names) {
+            UINT32 idx;
+            BOOL exists = FALSE;
+            if (SUCCEEDED(fc->FindFamilyName(n, &idx, &exists)) && exists) {
+                return n;
+            }
+        }
+    }
+    return *names.begin();
+}
+
 void ZcApplyPreset(const std::wstring& name, ZcStyle& s) {
     const wchar_t* kFont = L"Segoe UI Variable Display";
+    s = ZcStyle{};
     s.timeFont = kFont;
     s.dateFont = kFont;
-    s.text = {1, 1, 1, 1};
-    s.shadow = s.glow = s.outline = s.flip = false;
-    s.rotation = 0;
+    auto softShadow = [&](float a, float blur, float dx, float dy) {
+        s.shadow = true;
+        s.shadowColor = {0, 0, 0, a};
+        s.shadowBlur = blur;
+        s.shadowDx = dx;
+        s.shadowDy = dy;
+    };
     if (name == L"tilted") {
         // White large text, tilted ~-8 degrees, dark soft shadow.
         s.timeSize = 150;
@@ -525,27 +650,17 @@ void ZcApplyPreset(const std::wstring& name, ZcStyle& s) {
         s.dateSize = 44;
         s.dateWeight = 600;
         s.rotation = -8;
-        s.shadow = true;
-        s.shadowColor = {0, 0, 0, 0.75f};
-        s.shadowBlur = 10;
-        s.shadowDx = 6;
-        s.shadowDy = 10;
+        softShadow(0.75f, 10, 6, 10);
     } else if (name == L"minimal") {
         s.timeFont = L"Segoe UI Variable Display Light";
-        s.dateFont = kFont;
         s.timeSize = 120;
         s.timeWeight = 200;
         s.dateSize = 30;
         s.dateWeight = 400;
         s.text = {1, 1, 1, 0.92f};
-        s.shadow = true;
-        s.shadowColor = {0, 0, 0, 0.35f};
-        s.shadowBlur = 4;
-        s.shadowDx = 0;
-        s.shadowDy = 2;
+        softShadow(0.35f, 4, 0, 2);
     } else if (name == L"neon") {
-        s.timeFont = L"Bahnschrift";
-        s.dateFont = L"Bahnschrift";
+        s.timeFont = s.dateFont = L"Bahnschrift";
         s.timeSize = 130;
         s.timeWeight = 600;
         s.dateSize = 38;
@@ -556,18 +671,125 @@ void ZcApplyPreset(const std::wstring& name, ZcStyle& s) {
         s.glowRadius = 14;
     } else if (name == L"flip") {
         s.timeFont = L"Bahnschrift";
-        s.dateFont = kFont;
         s.timeSize = 120;
         s.timeWeight = 700;
         s.dateSize = 34;
         s.dateWeight = 600;
         s.flip = true;
         s.cardColor = {0.11f, 0.11f, 0.125f, 0.92f};
-        s.shadow = true;
-        s.shadowColor = {0, 0, 0, 0.6f};
-        s.shadowBlur = 8;
-        s.shadowDx = 0;
-        s.shadowDy = 6;
+        softShadow(0.6f, 8, 0, 6);
+    } else if (name == L"cover") {
+        // Magazine cover: huge hairline time, tiny tracked date above.
+        s.timeFont = L"Segoe UI Variable Display Light";
+        s.timeSize = 220;
+        s.timeWeight = 100;
+        s.dateSize = 22;
+        s.dateWeight = 600;
+        s.dateAbove = true;
+        s.dateTracking = 6;
+        s.upper = true;
+        s.weekday = true;
+        softShadow(0.3f, 6, 0, 3);
+    } else if (name == L"stacked") {
+        s.timeFont = L"Bahnschrift";
+        s.timeSize = 150;
+        s.timeWeight = 700;
+        s.dateSize = 30;
+        s.dateWeight = 500;
+        s.layout = ZcLayoutKind::stacked;
+        softShadow(0.5f, 8, 0, 5);
+    } else if (name == L"hollow") {
+        s.timeFont = L"Segoe UI Variable Display";
+        s.timeSize = 160;
+        s.timeWeight = 800;
+        s.dateSize = 40;
+        s.dateWeight = 700;
+        s.hollow = true;
+        s.outline = true;
+        s.outlineColor = {1, 1, 1, 1};
+        s.outlineWidth = 2;
+    } else if (name == L"glass") {
+        s.timeSize = 120;
+        s.timeWeight = 600;
+        s.dateSize = 32;
+        s.dateWeight = 500;
+        s.glass = true;
+        s.weekday = true;
+        softShadow(0.25f, 6, 0, 3);
+    } else if (name == L"segment") {
+        // Retro 7-segment: condensed tabular digits over a dim 88:88 ghost.
+        s.timeFont = s.dateFont = L"Bahnschrift Condensed";
+        s.timeSize = 140;
+        s.timeWeight = 400;
+        s.dateSize = 32;
+        s.dateWeight = 400;
+        s.text = {1, 0.23f, 0.19f, 1};
+        s.ghost = true;
+        s.ghostColor = {1, 0.23f, 0.19f, 0.12f};
+        s.glow = true;
+        s.glowColor = {1, 0.1f, 0.05f, 0.9f};
+        s.glowRadius = 10;
+    } else if (name == L"rainbow" || name == L"sunset") {
+        s.timeSize = 150;
+        s.timeWeight = 800;
+        s.dateSize = 40;
+        s.dateWeight = 700;
+        if (name == L"rainbow") {
+            s.grad = {{1, 0.23f, 0.19f, 1}, {1, 0.8f, 0, 1}, {0.2f, 0.85f, 0.35f, 1},
+                      {0, 0.6f, 1, 1},      {0.69f, 0.32f, 0.87f, 1}};
+        } else {
+            s.grad = {{1, 0.37f, 0.43f, 1}, {1, 0.6f, 0.2f, 1}, {1, 0.85f, 0.4f, 1}};
+        }
+        softShadow(0.4f, 8, 0, 5);
+    } else if (name == L"chinese") {
+        s.timeFont = s.dateFont = ZcPickFont({L"KaiTi", L"STKaiti", L"楷体",
+                                              L"Microsoft YaHei"});
+        s.timeSize = 96;
+        s.timeWeight = 400;
+        s.dateSize = 40;
+        s.dateWeight = 400;
+        s.layout = ZcLayoutKind::chinese;
+        softShadow(0.55f, 6, 3, 4);
+    } else if (name == L"sentence") {
+        s.timeFont = s.dateFont = L"Microsoft YaHei UI Light";
+        s.timeSize = 64;
+        s.timeWeight = 300;
+        s.dateSize = 26;
+        s.dateWeight = 400;
+        s.layout = ZcLayoutKind::sentence;
+        s.weekday = true;
+        softShadow(0.45f, 6, 0, 3);
+    } else if (name == L"analog") {
+        s.timeSize = 120;  // dial diameter ~ 2.2x
+        s.timeWeight = 400;
+        s.dateSize = 28;
+        s.dateWeight = 500;
+        s.layout = ZcLayoutKind::analog;
+        softShadow(0.45f, 8, 0, 4);
+    } else if (name == L"ring") {
+        s.timeSize = 90;
+        s.timeWeight = 600;
+        s.dateSize = 26;
+        s.dateWeight = 500;
+        s.layout = ZcLayoutKind::ring;
+        s.accent = {0.3f, 0.85f, 1, 1};
+        softShadow(0.35f, 6, 0, 3);
+    } else if (name == L"accent") {
+        s.timeSize = 120;
+        s.timeWeight = 300;
+        s.dateSize = 30;
+        s.dateWeight = 600;
+        s.accentBar = true;
+        s.weekday = true;
+        softShadow(0.35f, 5, 0, 3);
+    } else if (name == L"glitch") {
+        s.timeFont = s.dateFont = L"Bahnschrift";
+        s.timeSize = 140;
+        s.timeWeight = 800;
+        s.dateSize = 36;
+        s.dateWeight = 700;
+        s.dup = true;
+        s.dupOffset = 5;
     }
 }
 
@@ -632,6 +854,25 @@ void ZcLoadSettings() {
         s.outlineWidth = (float)ZcClamp(Wh_GetIntSetting(L"outlineWidth"), 1, 20);
         s.flip = Wh_GetIntSetting(L"flipCards") != 0;
         s.cardColor = ZcColor(L"cardColor", {0.125f, 0.125f, 0.14f, 0.88f});
+        std::wstring lay = ZcStr(L"customLayout");
+        s.layout = lay == L"stacked"    ? ZcLayoutKind::stacked
+                   : lay == L"cover"    ? ZcLayoutKind::cover
+                   : lay == L"sentence" ? ZcLayoutKind::sentence
+                   : lay == L"chinese"  ? ZcLayoutKind::chinese
+                   : lay == L"analog"   ? ZcLayoutKind::analog
+                   : lay == L"ring"     ? ZcLayoutKind::ring
+                                        : ZcLayoutKind::normal;
+        s.dateAbove = s.layout == ZcLayoutKind::cover;
+        if (s.dateAbove) s.layout = ZcLayoutKind::normal;
+        s.hollow = Wh_GetIntSetting(L"hollowText") != 0;
+        if (Wh_GetIntSetting(L"gradientEnabled")) {
+            s.grad = {ZcColor(L"gradientStart", {1, 0.37f, 0.43f, 1}),
+                      ZcColor(L"gradientEnd", {1, 0.85f, 0.4f, 1})};
+        }
+        s.glass = Wh_GetIntSetting(L"glassCard") != 0;
+        s.accentBar = Wh_GetIntSetting(L"accentBar") != 0;
+        s.accent = ZcColor(L"accentColor", {1, 0.42f, 0.2f, 1});
+        s.weekday = Wh_GetIntSetting(L"showWeekday") != 0;
     }
     s.timeSize = ZcClamp(s.timeSize, 8, 600);
     s.dateSize = ZcClamp(s.dateSize, 6, 300);
@@ -730,24 +971,78 @@ struct ZcPiece {
     D2D1_POINT_2F pos;
     D2D1_SIZE_F size;
     bool card;
+    bool ghost = false;  // decorative "88:88" drawn only in the main pass
 };
 
-// Lay out the clock block at the origin; returns its size.
-D2D1_SIZE_F ZcBuildPieces(float scale, std::vector<ZcPiece>& pieces) {
+// Everything needed to draw one clock block at the origin.
+struct ZcFrame {
+    std::vector<ZcPiece> pieces;
+    D2D1_SIZE_F size{};
+    float scale = 1;
+    SYSTEMTIME t{};
+    bool dial = false;  // analog face or progress ring
+    D2D1_POINT_2F dialC{};
+    float dialR = 0;
+    bool hasBar = false;
+    D2D1_RECT_F bar{};
+    D2D1_RECT_F glassRect{};
+};
+
+std::wstring ZcCnNum(int n, bool day) {
+    static const wchar_t* d[] = {L"〇", L"一", L"二", L"三", L"四",
+                                 L"五", L"六", L"七", L"八", L"九"};
+    if (n < 10) return d[n];
+    if (n == 10) return L"十";
+    if (n < 20) return std::wstring(L"十") + d[n % 10];
+    if (day && n > 20 && n < 30) return std::wstring(L"廿") + d[n % 10];
+    std::wstring r = std::wstring(d[n / 10]) + L"十";
+    if (n % 10) r += d[n % 10];
+    return r;
+}
+
+const wchar_t* ZcPeriod(int h) {
+    return h < 5 ? L"凌晨" : h < 12 ? L"上午" : h < 13 ? L"中午"
+           : h < 18 ? L"下午" : L"晚上";
+}
+
+void ZcBuildFrame(float scale, ZcFrame& f) {
     const ZcStyle& s = g_zc.style;
-    SYSTEMTIME t;
-    GetLocalTime(&t);
+    f.scale = scale;
+    GetLocalTime(&f.t);
+    const SYSTEMTIME& t = f.t;
     std::wstring hh, mm, ss, suffix, date;
     ZcFormat(t, hh, mm, ss, suffix, date);
+    static const wchar_t* kWeek[] = {L"星期日", L"星期一", L"星期二", L"星期三",
+                                     L"星期四", L"星期五", L"星期六"};
+    static const wchar_t* kWeekEn[] = {L"Sunday",   L"Monday", L"Tuesday",
+                                       L"Wednesday", L"Thursday", L"Friday",
+                                       L"Saturday"};
+    int wd = t.wDayOfWeek % 7;
+    if (s.layout == ZcLayoutKind::chinese && g_zc.date != ZcDate::none) {
+        date = ZcCnNum(t.wMonth, false) + L"月" + ZcCnNum(t.wDay, true) + L" " +
+               kWeek[wd];
+    } else if (s.weekday && !date.empty() && date.find(L"周") == std::wstring::npos &&
+               date.find(L"星期") == std::wstring::npos) {
+        date = (s.upper ? std::wstring(kWeekEn[wd]) : std::wstring(kWeek[wd])) +
+               L"  " + date;
+    }
+    if (s.upper) {
+        for (auto& c : date) c = (wchar_t)towupper(c);
+    }
 
     float timeSize = s.timeSize * scale;
     std::vector<ZcPiece> row;
     float x = 0, rowH = 0;
+    auto make = [&](const std::wstring& txt, float size) {
+        ZcPiece p{ZcLayout(txt, s.timeFont, s.timeWeight, size), {}, {}, false};
+        if (p.layout) p.size = ZcMeasure(p.layout.Get());
+        return p;
+    };
     auto add = [&](const std::wstring& txt, float size, bool card) {
         if (txt.empty()) return;
-        ZcPiece p{ZcLayout(txt, s.timeFont, s.timeWeight, size), {}, {}, card};
+        ZcPiece p = make(txt, size);
         if (!p.layout) return;
-        p.size = ZcMeasure(p.layout.Get());
+        p.card = card;
         float pad = card ? size * 0.12f : 0;
         p.pos = D2D1::Point2F(x + pad, 0);
         x += p.size.width + pad * 2;
@@ -755,64 +1050,190 @@ D2D1_SIZE_F ZcBuildPieces(float scale, std::vector<ZcPiece>& pieces) {
         row.push_back(p);
     };
     float cardGap = timeSize * 0.08f;
-    if (s.flip) {
-        add(hh, timeSize, true);
-        x += cardGap;
-        add(mm, timeSize, true);
-        if (!ss.empty()) {
-            x += cardGap;
-            add(ss, timeSize, true);
+    std::wstring digits = hh + L":" + mm + (ss.empty() ? L"" : L":" + ss);
+    switch (s.layout) {
+        case ZcLayoutKind::analog: {
+            float d = timeSize * 2.2f;
+            f.dial = true;
+            f.dialR = d / 2;
+            f.dialC = D2D1::Point2F(d / 2, d / 2);
+            x = d;
+            rowH = d;
+            break;
         }
-    } else {
-        std::wstring txt = hh + L":" + mm + (ss.empty() ? L"" : L":" + ss);
-        add(txt, timeSize, false);
+        case ZcLayoutKind::stacked: {
+            ZcPiece a = make(hh, timeSize), b = make(mm, timeSize);
+            if (a.layout && b.layout) {
+                float w = a.size.width > b.size.width ? a.size.width : b.size.width;
+                float step = timeSize * 0.92f;
+                a.pos = D2D1::Point2F((w - a.size.width) / 2, 0);
+                b.pos = D2D1::Point2F((w - b.size.width) / 2, step);
+                row.push_back(a);
+                row.push_back(b);
+                x = w;
+                rowH = step + b.size.height;
+                if (!ss.empty()) {
+                    ZcPiece c = make(ss, timeSize * 0.3f);
+                    if (c.layout) {
+                        c.pos = D2D1::Point2F(w + timeSize * 0.06f,
+                                              rowH - c.size.height - timeSize * 0.15f);
+                        x = c.pos.x + c.size.width;
+                        row.push_back(c);
+                    }
+                }
+            }
+            break;
+        }
+        case ZcLayoutKind::chinese: {
+            std::wstring txt = ZcCnNum(t.wHour, false) + L"时" +
+                               (t.wMinute ? ZcCnNum(t.wMinute, false) + L"分" : L"整");
+            if (t.wMinute && t.wMinute < 10) txt.insert(txt.size() - 2, L"零");
+            if (g_zc.seconds) txt += ZcCnNum(t.wSecond, false) + L"秒";
+            add(txt, timeSize, false);
+            break;
+        }
+        case ZcLayoutKind::sentence: {
+            int h12 = t.wHour % 12;
+            if (h12 == 0) h12 = 12;
+            WCHAR b[96];
+            if (t.wMinute == 0)
+                swprintf_s(b, L"现在是 %s %d 点整", ZcPeriod(t.wHour), h12);
+            else
+                swprintf_s(b, L"现在是 %s %d 点 %d 分", ZcPeriod(t.wHour), h12,
+                           t.wMinute);
+            add(b, timeSize, false);
+            break;
+        }
+        default:
+            if (s.flip) {
+                add(hh, timeSize, true);
+                x += cardGap;
+                add(mm, timeSize, true);
+                if (!ss.empty()) {
+                    x += cardGap;
+                    add(ss, timeSize, true);
+                }
+            } else {
+                if (s.ghost) {
+                    std::wstring g = digits;
+                    for (auto& c : g) if (c >= L'0' && c <= L'9') c = L'8';
+                    ZcPiece gp = make(g, timeSize);
+                    if (gp.layout) {
+                        gp.ghost = true;
+                        gp.pos = D2D1::Point2F(0, 0);
+                        row.push_back(gp);
+                    }
+                }
+                add(digits, timeSize, false);
+            }
+            if (!suffix.empty()) {
+                x += timeSize * 0.08f;
+                add(suffix, timeSize * 0.3f, false);
+                row.back().pos.y = rowH - row.back().size.height - timeSize * 0.12f;
+            }
+            break;
     }
-    if (!suffix.empty()) {
-        x += timeSize * 0.08f;
-        float sfx = timeSize * 0.3f;
-        add(suffix, sfx, false);
-        // Bottom-align the AM/PM marker with the digits.
-        row.back().pos.y = rowH - row.back().size.height - timeSize * 0.12f;
+    if (s.layout == ZcLayoutKind::ring && !row.empty()) {
+        // Center the text inside a circle; the ring shows minute progress.
+        float r = std::sqrt(x * x + rowH * rowH) / 2 + timeSize * 0.18f;
+        float ox = r - x / 2, oy = r - rowH / 2;
+        for (auto& p : row) {
+            p.pos.x += ox;
+            p.pos.y += oy;
+        }
+        f.dial = true;
+        f.dialR = r;
+        f.dialC = D2D1::Point2F(r, r);
+        x = rowH = 2 * r;
     }
     float rowW = x;
 
     ZcPiece datePiece{};
-    float blockW = rowW, blockH = rowH;
+    float blockW = rowW, blockH = rowH, dateGap = g_zc.lineGap * scale;
     if (!date.empty()) {
-        datePiece.layout = ZcLayout(date, s.dateFont, s.dateWeight,
-                                    s.dateSize * scale);
+        datePiece.layout = ZcLayout(date, s.dateFont, s.dateWeight, s.dateSize * scale);
+        if (datePiece.layout && s.dateTracking > 0) {
+            ComPtr<IDWriteTextLayout1> l1;
+            if (SUCCEEDED(datePiece.layout.As(&l1))) {
+                float tr = s.dateTracking * scale;
+                l1->SetCharacterSpacing(0, tr, 0, {0, (UINT32)date.size()});
+            }
+        }
         if (datePiece.layout) {
             datePiece.size = ZcMeasure(datePiece.layout.Get());
-            blockW = blockW > datePiece.size.width ? blockW
-                                                   : datePiece.size.width;
-            blockH = rowH + g_zc.lineGap * scale + datePiece.size.height;
+            if (s.dup || f.dial) dateGap += s.dateSize * scale * 0.3f;
+            blockW = blockW > datePiece.size.width ? blockW : datePiece.size.width;
+            blockH = rowH + dateGap + datePiece.size.height;
         }
     }
     auto alignX = [&](float w) {
-        switch (g_zc.align) {
+        ZcAlign a = f.dial ? ZcAlign::center : g_zc.align;
+        switch (a) {
             case ZcAlign::center: return (blockW - w) / 2;
             case ZcAlign::right: return blockW - w;
             default: return 0.0f;
         }
     };
+    float rowY = (datePiece.layout && s.dateAbove) ? datePiece.size.height + dateGap : 0;
     float rowOff = alignX(rowW);
     for (auto& p : row) {
         p.pos.x += rowOff;
-        pieces.push_back(p);
+        p.pos.y += rowY;
+        f.pieces.push_back(p);
     }
+    f.dialC.x += rowOff;
+    f.dialC.y += rowY;
     if (datePiece.layout) {
-        datePiece.pos =
-            D2D1::Point2F(alignX(datePiece.size.width), rowH + g_zc.lineGap * scale);
-        pieces.push_back(datePiece);
+        datePiece.pos = D2D1::Point2F(alignX(datePiece.size.width),
+                                      s.dateAbove ? 0 : rowH + dateGap);
+        f.pieces.push_back(datePiece);
     }
-    return D2D1::SizeF(blockW, blockH);
+    if (s.accentBar) {
+        float bw = (std::max)(3.0f, timeSize * 0.035f), gap = timeSize * 0.16f;
+        for (auto& p : f.pieces) p.pos.x += bw + gap;
+        f.dialC.x += bw + gap;
+        f.hasBar = true;
+        f.bar = D2D1::RectF(0, blockH * 0.06f, bw, blockH * 0.96f);
+        blockW += bw + gap;
+    }
+    if (s.glass) {
+        float pad = timeSize * 0.22f;
+        for (auto& p : f.pieces) {
+            p.pos.x += pad;
+            p.pos.y += pad;
+        }
+        f.dialC.x += pad;
+        f.dialC.y += pad;
+        f.bar.left += pad; f.bar.right += pad; f.bar.top += pad; f.bar.bottom += pad;
+        blockW += pad * 2;
+        blockH += pad * 2;
+        f.glassRect = D2D1::RectF(0, 0, blockW, blockH);
+    }
+    f.size = D2D1::SizeF(blockW, blockH);
 }
 
-// Records the clock content (cards + text in one color) at the origin.
-ComPtr<ID2D1CommandList> ZcRecord(const std::vector<ZcPiece>& pieces,
-                                  D2D1_COLOR_F color,
-                                  bool withCards,
-                                  float scale) {
+// Arc from 12 o'clock clockwise by `frac` of a full turn.
+ComPtr<ID2D1PathGeometry> ZcArc(D2D1_POINT_2F c, float r, float frac) {
+    ComPtr<ID2D1PathGeometry> g;
+    ComPtr<ID2D1GeometrySink> sink;
+    if (FAILED(g_zcD2dFactory->CreatePathGeometry(&g)) || FAILED(g->Open(&sink)))
+        return nullptr;
+    float a = frac * 6.2831853f;
+    sink->BeginFigure(D2D1::Point2F(c.x, c.y - r), D2D1_FIGURE_BEGIN_HOLLOW);
+    sink->AddArc(D2D1::ArcSegment(
+        D2D1::Point2F(c.x + r * std::sin(a), c.y - r * std::cos(a)),
+        D2D1::SizeF(r, r), 0, D2D1_SWEEP_DIRECTION_CLOCKWISE,
+        frac > 0.5f ? D2D1_ARC_SIZE_LARGE : D2D1_ARC_SIZE_SMALL));
+    sink->EndFigure(D2D1_FIGURE_END_OPEN);
+    sink->Close();
+    return g;
+}
+
+// Records the block at the origin. main = full colors (gradient, ghost, cards,
+// glass, accents); otherwise every shape is drawn in `color` as a mask.
+ComPtr<ID2D1CommandList> ZcRecord(const ZcFrame& f, D2D1_COLOR_F color, bool main) {
+    const ZcStyle& s = g_zc.style;
+    float scale = f.scale;
     ComPtr<ID2D1CommandList> list;
     if (FAILED(g_zcDc->CreateCommandList(&list))) return nullptr;
     ComPtr<ID2D1Image> oldTarget;
@@ -823,14 +1244,111 @@ ComPtr<ID2D1CommandList> ZcRecord(const std::vector<ZcPiece>& pieces,
     // command list records the drawing instead of rasterizing it.
     g_zcDc->SetTarget(list.Get());
     g_zcDc->SetTransform(D2D1::Matrix3x2F::Identity());
-    ComPtr<ID2D1SolidColorBrush> brush, cardBrush, lineBrush;
+    ComPtr<ID2D1SolidColorBrush> brush, cardBrush, lineBrush, ghostBrush, accentBrush,
+        trackBrush;
     g_zcDc->CreateSolidColorBrush(color, &brush);
-    const ZcStyle& s = g_zc.style;
-    if (withCards) {
-        g_zcDc->CreateSolidColorBrush(s.cardColor, &cardBrush);
-        g_zcDc->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.55f), &lineBrush);
+    ComPtr<ID2D1Brush> fill = brush;
+    if (main) {
+        g_zcDc->CreateSolidColorBrush(s.ghostColor, &ghostBrush);
+        g_zcDc->CreateSolidColorBrush(s.accent, &accentBrush);
+        g_zcDc->CreateSolidColorBrush(s.track, &trackBrush);
+        if (s.flip) {
+            g_zcDc->CreateSolidColorBrush(s.cardColor, &cardBrush);
+            g_zcDc->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 0.55f), &lineBrush);
+        }
+        if (s.grad.size() >= 2) {
+            std::vector<D2D1_GRADIENT_STOP> stops;
+            for (size_t i = 0; i < s.grad.size(); i++)
+                stops.push_back({(float)i / (s.grad.size() - 1), s.grad[i]});
+            ComPtr<ID2D1GradientStopCollection> sc;
+            ComPtr<ID2D1LinearGradientBrush> lg;
+            if (SUCCEEDED(g_zcDc->CreateGradientStopCollection(
+                    stops.data(), (UINT32)stops.size(), &sc)) &&
+                SUCCEEDED(g_zcDc->CreateLinearGradientBrush(
+                    D2D1::LinearGradientBrushProperties(
+                        D2D1::Point2F(0, 0),
+                        D2D1::Point2F(f.size.width, f.size.height * 0.6f)),
+                    sc.Get(), &lg))) {
+                fill = lg;
+            }
+        }
+        if (s.glass) {
+            ComPtr<ID2D1SolidColorBrush> gb, gl;
+            g_zcDc->CreateSolidColorBrush(s.glassColor, &gb);
+            g_zcDc->CreateSolidColorBrush(s.glassBorder, &gl);
+            float rad = s.timeSize * scale * 0.18f;
+            auto rr = D2D1::RoundedRect(f.glassRect, rad, rad);
+            if (gb) g_zcDc->FillRoundedRectangle(rr, gb.Get());
+            if (gl) {
+                auto inner = rr;
+                inner.rect.left += 0.5f; inner.rect.top += 0.5f;
+                inner.rect.right -= 0.5f; inner.rect.bottom -= 0.5f;
+                g_zcDc->DrawRoundedRectangle(inner, gl.Get(), 1.0f * scale);
+            }
+        }
     }
-    for (const auto& p : pieces) {
+    ID2D1Brush* acc = main && accentBrush ? (ID2D1Brush*)accentBrush.Get() : brush.Get();
+    if (f.hasBar && acc) {
+        float w = f.bar.right - f.bar.left;
+        g_zcDc->FillRoundedRectangle(D2D1::RoundedRect(f.bar, w / 2, w / 2), acc);
+    }
+    if (f.dial && brush) {
+        D2D1_POINT_2F c = f.dialC;
+        float r = f.dialR;
+        ID2D1Brush* trk = main && trackBrush ? (ID2D1Brush*)trackBrush.Get() : brush.Get();
+        if (s.layout == ZcLayoutKind::ring) {
+            float sw = (std::max)(3.0f, r * 0.05f);
+            g_zcDc->DrawEllipse(D2D1::Ellipse(c, r - sw / 2, r - sw / 2), trk, sw);
+            float frac = (f.t.wMinute + (g_zc.seconds ? f.t.wSecond / 60.0f : 0)) / 60.0f;
+            ComPtr<ID2D1StrokeStyle> round;
+            g_zcD2dFactory->CreateStrokeStyle(
+                D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND),
+                nullptr, 0, &round);
+            if (frac > 0.999f) {
+                g_zcDc->DrawEllipse(D2D1::Ellipse(c, r - sw / 2, r - sw / 2), acc, sw);
+            } else if (frac > 0.001f) {
+                if (auto g = ZcArc(c, r - sw / 2, frac))
+                    g_zcDc->DrawGeometry(g.Get(), acc, sw, round.Get());
+            }
+        } else {
+            // Analog face: rim, 60 ticks (12 long), hands.
+            float rim = (std::max)(2.0f, r * 0.025f);
+            g_zcDc->DrawEllipse(D2D1::Ellipse(c, r - rim / 2, r - rim / 2), fill.Get(), rim);
+            for (int i = 0; i < 60; i++) {
+                bool hour = i % 5 == 0;
+                float a = i * 6.2831853f / 60, sn = std::sin(a), cs = std::cos(a);
+                float r1 = r * 0.9f, r0 = r1 - r * (hour ? 0.12f : 0.04f);
+                g_zcDc->DrawLine(D2D1::Point2F(c.x + r0 * sn, c.y - r0 * cs),
+                                 D2D1::Point2F(c.x + r1 * sn, c.y - r1 * cs),
+                                 hour ? fill.Get() : trk,
+                                 hour ? r * 0.025f : r * 0.012f);
+            }
+            ComPtr<ID2D1StrokeStyle> round;
+            g_zcD2dFactory->CreateStrokeStyle(
+                D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND),
+                nullptr, 0, &round);
+            float sec = g_zc.seconds ? f.t.wSecond : 0;
+            float mins = f.t.wMinute + sec / 60.0f;
+            float hrs = (f.t.wHour % 12) + mins / 60.0f;
+            auto hand = [&](float turns, float len, float tail, float w, ID2D1Brush* b) {
+                float a = turns * 6.2831853f, sn = std::sin(a), cs = std::cos(a);
+                g_zcDc->DrawLine(D2D1::Point2F(c.x - tail * sn, c.y + tail * cs),
+                                 D2D1::Point2F(c.x + len * sn, c.y - len * cs), b, w,
+                                 round.Get());
+            };
+            hand(hrs / 12, r * 0.5f, r * 0.08f, r * 0.06f, fill.Get());
+            hand(mins / 60, r * 0.74f, r * 0.08f, r * 0.04f, fill.Get());
+            if (g_zc.seconds) hand(sec / 60, r * 0.8f, r * 0.15f, r * 0.015f, acc);
+            g_zcDc->FillEllipse(D2D1::Ellipse(c, r * 0.04f, r * 0.04f),
+                                g_zc.seconds ? acc : fill.Get());
+        }
+    }
+    for (const auto& p : f.pieces) {
+        if (p.ghost) {
+            if (main && ghostBrush && p.layout)
+                g_zcDc->DrawTextLayout(p.pos, p.layout.Get(), ghostBrush.Get());
+            continue;
+        }
         if (p.card && cardBrush) {
             float pad = p.size.height * 0.12f;
             D2D1_RECT_F r = D2D1::RectF(p.pos.x - pad, p.pos.y,
@@ -840,12 +1358,11 @@ ComPtr<ID2D1CommandList> ZcRecord(const std::vector<ZcPiece>& pieces,
             g_zcDc->FillRoundedRectangle(D2D1::RoundedRect(r, radius, radius),
                                          cardBrush.Get());
             float mid = (r.top + r.bottom) / 2;
-            g_zcDc->DrawLine(D2D1::Point2F(r.left, mid),
-                             D2D1::Point2F(r.right, mid), lineBrush.Get(),
-                             2.0f * scale);
+            g_zcDc->DrawLine(D2D1::Point2F(r.left, mid), D2D1::Point2F(r.right, mid),
+                             lineBrush.Get(), 2.0f * scale);
         }
-        if (brush && p.layout) {
-            g_zcDc->DrawTextLayout(p.pos, p.layout.Get(), brush.Get(),
+        if (fill && p.layout) {
+            g_zcDc->DrawTextLayout(p.pos, p.layout.Get(), fill.Get(),
                                    D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT);
         }
     }
@@ -868,48 +1385,59 @@ ComPtr<ID2D1Effect> ZcShadowEffect(ID2D1Image* input, D2D1_COLOR_F color,
 
 void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
     const ZcStyle& s = g_zc.style;
-    std::vector<ZcPiece> pieces;
-    D2D1_SIZE_F size = ZcBuildPieces(scale, pieces);
-    if (pieces.empty()) return;
+    ZcFrame f;
+    ZcBuildFrame(scale, f);
+    if (f.pieces.empty() && !f.dial) return;
 
     // Rotate around the block center, then move the center into place.
-    D2D1_POINT_2F half = D2D1::Point2F(size.width / 2, size.height / 2);
+    D2D1_POINT_2F half = D2D1::Point2F(f.size.width / 2, f.size.height / 2);
     D2D1::Matrix3x2F place =
         D2D1::Matrix3x2F::Rotation(s.rotation, half) *
         D2D1::Matrix3x2F::Translation(center.x - half.x, center.y - half.y);
 
-    ComPtr<ID2D1CommandList> content = ZcRecord(pieces, s.text, s.flip, scale);
+    ComPtr<ID2D1CommandList> content = ZcRecord(f, s.text, true);
     if (!content) return;
 
-    if (s.shadow && s.shadowColor.a > 0) {
-        if (auto fx = ZcShadowEffect(content.Get(), s.shadowColor,
-                                     s.shadowBlur * scale)) {
+    // Hollow text: the shadow/glow come from the solid mask, the fill is
+    // punched out afterwards so only the outline remains.
+    ComPtr<ID2D1CommandList> solid =
+        s.hollow ? ZcRecord(f, D2D1::ColorF(1, 1, 1, 1), false) : content;
+
+    if (s.shadow && s.shadowColor.a > 0 && solid) {
+        if (auto fx = ZcShadowEffect(solid.Get(), s.shadowColor, s.shadowBlur * scale)) {
             // Offset in screen space so the light comes from the same side
             // regardless of rotation.
-            g_zcDc->SetTransform(
-                place * D2D1::Matrix3x2F::Translation(s.shadowDx * scale,
-                                                      s.shadowDy * scale));
+            g_zcDc->SetTransform(place * D2D1::Matrix3x2F::Translation(
+                                             s.shadowDx * scale, s.shadowDy * scale));
             g_zcDc->DrawImage(fx.Get());
+        }
+    }
+    if (s.dup) {
+        float o = s.dupOffset * scale;
+        if (auto a = ZcRecord(f, s.dupA, false)) {
+            g_zcDc->SetTransform(D2D1::Matrix3x2F::Translation(-o, -o * 0.4f) * place);
+            g_zcDc->DrawImage(a.Get());
+        }
+        if (auto b = ZcRecord(f, s.dupB, false)) {
+            g_zcDc->SetTransform(D2D1::Matrix3x2F::Translation(o, o * 0.4f) * place);
+            g_zcDc->DrawImage(b.Get());
         }
     }
     g_zcDc->SetTransform(place);
     if (s.glow) {
-        ComPtr<ID2D1CommandList> mask = ZcRecord(pieces, s.glowColor, false, scale);
+        ComPtr<ID2D1CommandList> mask = ZcRecord(f, s.glowColor, false);
         if (mask) {
             // Wide soft halo plus a tighter bright core.
-            if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor,
-                                         s.glowRadius * scale)) {
+            if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor, s.glowRadius * scale))
                 g_zcDc->DrawImage(fx.Get());
-            }
             if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor,
-                                         s.glowRadius * scale * 0.35f)) {
+                                         s.glowRadius * scale * 0.35f))
                 g_zcDc->DrawImage(fx.Get());
-            }
         }
     }
-    if (s.outline) {
-        ComPtr<ID2D1CommandList> mask =
-            ZcRecord(pieces, s.outlineColor, false, scale);
+    if (s.outline || s.hollow) {
+        D2D1_COLOR_F oc = s.outline ? s.outlineColor : s.text;
+        ComPtr<ID2D1CommandList> mask = ZcRecord(f, oc, false);
         ComPtr<ID2D1Effect> fx;
         if (mask && SUCCEEDED(g_zcDc->CreateEffect(kZcClsidMorphology, &fx))) {
             UINT32 w = (UINT32)ZcClamp((int)std::lround(s.outlineWidth * scale), 1, 50);
@@ -920,7 +1448,14 @@ void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
             g_zcDc->DrawImage(fx.Get());
         }
     }
-    g_zcDc->DrawImage(content.Get());
+    if (s.hollow) {
+        if (solid) {
+            g_zcDc->DrawImage(solid.Get(), D2D1_INTERPOLATION_MODE_LINEAR,
+                              D2D1_COMPOSITE_MODE_DESTINATION_OUT);
+        }
+    } else {
+        g_zcDc->DrawImage(content.Get());
+    }
     g_zcDc->SetTransform(D2D1::Matrix3x2F::Identity());
 }
 
