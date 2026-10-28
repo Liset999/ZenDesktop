@@ -47,6 +47,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 完整更新日志见 [CHANGELOG_v5.0.0.md](CHANGELOG_v5.0.0.md)。
 
+- **任务栏高度 / 图标大小**：「任务栏美化」新增「任务栏尺寸」分组，0 = 系统默认；不要同时开启 m417z 的「Taskbar height and icon size」或 TAI 的高度/图标调节。
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
 - **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
@@ -71,7 +72,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 设置按区分组；「统一设置」默认打开，弹窗跟随任务栏背景，关掉可单独调。
 - 可选「最大化时加深背景」：有窗口最大化时，那块屏幕的任务栏自动换成更实的背景。
 - 可选任务栏空白处点击穿透，适合 Dock 风格主题。
-- 核心 mod。基于 m417z 的 Windows 11 Taskbar Styler（GPL-3.0）。
+- 核心 mod。基于 m417z 的 Windows 11 Taskbar Styler（GPL-3.0）；「任务栏尺寸」移植自 m417z 的 Taskbar height and icon size v1.3.10（GPL-3.0）。
 
 ### ZenDesktop: 任务栏音乐与歌词
 
