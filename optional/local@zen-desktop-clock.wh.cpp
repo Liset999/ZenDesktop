@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.2.1
+// @version         1.2.2
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -287,6 +287,7 @@
 using Microsoft::WRL::ComPtr;
 
 #define ZC_TIMER_REFRESH 1
+#define ZC_TIMER_ZORDER 0x5A43
 #define ZC_TIMER_MSG_DISPLAY 1
 #define ZC_TIMER_MSG_RECREATE 2
 #define ZC_WM_CLEANUP (WM_APP + 1)
@@ -1796,6 +1797,25 @@ bool ZcResizeSwapChain(UINT width, UINT height) {
     return ZcBindTarget();
 }
 
+// Wallpaper Engine (WPEDesktopDX11Window) and similar tools add children to
+// the same WorkerW and can cover the overlay. Keep the overlay on top of its
+// siblings. Returns true if other siblings exist (so we keep checking).
+bool ZcEnsureTop() {
+    if (!g_zcOverlayWnd) return false;
+    HWND host = GetParent(g_zcOverlayWnd);
+    if (!host) return false;
+    HWND first = GetWindow(host, GW_CHILD);
+    if (first && first != g_zcOverlayWnd) {
+        SetWindowPos(g_zcOverlayWnd, HWND_TOP, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        Wh_Log(L"raised overlay above %p", first);
+    }
+    return GetWindow(g_zcOverlayWnd, GW_HWNDNEXT) != nullptr ||
+           GetWindow(host, GW_CHILD) != g_zcOverlayWnd;
+}
+
+bool g_zcHostDiagDone = false;  // z-order dump only once per overlay
+
 // ---- Diagnostics (logged once per overlay / on demand) ----
 
 std::wstring ZcClassOf(HWND h) {
@@ -1895,7 +1915,10 @@ void ZcRender() {
     }
     if (g_zcDiagPending) {
         g_zcDiagPending = false;
-        ZcLogHostDiag();
+        if (!g_zcHostDiagDone) {
+            g_zcHostDiagDone = true;
+            ZcLogHostDiag();
+        }
     }
 }
 
@@ -1908,6 +1931,9 @@ void ZcScheduleNext() {
                            : (60 - t.wSecond) * 1000 - t.wMilliseconds;
     // Resource usage refreshes every ~2 s, only while it is shown.
     if (g_zc.resources && ms > 2000) ms = 2000 - t.wMilliseconds % 1000;
+    // While other windows share the WorkerW (e.g. Wallpaper Engine), re-check
+    // only the z-order every 2 s (no redraw).
+    if (ZcEnsureTop()) SetTimer(g_zcOverlayWnd, ZC_TIMER_ZORDER, 2000, nullptr);
     SetTimer(g_zcOverlayWnd, ZC_TIMER_REFRESH, ms + 20, nullptr);
 }
 
@@ -1929,6 +1955,10 @@ void ZcCreateOverlay();
 LRESULT CALLBACK ZcOverlayProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_TIMER:
+            if (wp == ZC_TIMER_ZORDER) {
+                if (g_zcUnloading || !ZcEnsureTop()) KillTimer(hWnd, ZC_TIMER_ZORDER);
+                return 0;
+            }
             if (wp == ZC_TIMER_REFRESH && !g_zcUnloading) {
                 ZcRender();
                 ZcScheduleNext();
@@ -1945,6 +1975,7 @@ LRESULT CALLBACK ZcOverlayProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
         case WM_DESTROY:
             KillTimer(hWnd, ZC_TIMER_REFRESH);
+            KillTimer(hWnd, ZC_TIMER_ZORDER);
             ZcReleaseSwapChain();
             g_zcOverlayWnd = nullptr;
             if (!g_zcUnloading && g_zcMessageWnd) {
@@ -2047,6 +2078,8 @@ void ZcCreateOverlay() {
     Wh_Log(L"overlay created on %p (%ldx%ld)", worker, rc.right - rc.left,
            rc.bottom - rc.top);
     g_zcDiagPending = true;
+    g_zcHostDiagDone = false;
+    ZcEnsureTop();
     if (ZcCreateSwapChain(rc.right - rc.left, rc.bottom - rc.top)) {
         ZcRender();
         ZcScheduleNext();
