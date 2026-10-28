@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.1.0
+// @version         1.2.0
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -31,11 +31,11 @@
 
 在桌面图标**后方**绘制大号时间与日期，不挡图标、不抢焦点、不吃鼠标。
 
-- **17 种样式预设 + 自定义**：倾斜阴影、极简、霓虹、翻页、大字封面、竖排、描边空心、玻璃卡片、复古数码管、彩虹渐变、日落渐变、中文大写、文字时钟、圆形表盘、进度环、左侧细线、双色错位，以及自定义（使用下方全部详细设置，含版式/渐变/空心/玻璃卡片/竖线）。
-- 时间 12/24 小时制、可显示秒；日期格式 `10/28/2026`、`2026-10-28`、`10月28日 周三`，或不显示。
-- 每行可单独设字体、字号、字重；文字颜色、旋转角度、真模糊投影（颜色/模糊半径/偏移/不透明度）、光晕、描边。
-- 位置：九宫格锚点 + 偏移；可选指定显示器或所有显示器；按显示器 DPI 缩放。
-- 只在分钟（或开了秒时每秒）变化时重绘，CPU 占用极低；资源管理器重启后自动恢复。
+- **17 种样式预设**：倾斜阴影、极简、霓虹、翻页、大字封面、竖排、描边空心、玻璃卡片、复古数码管、彩虹渐变、日落渐变、中文大写、文字时钟、圆形表盘、进度环、左侧细线、双色错位；另有「自定义」。
+- **设置很短**：样式、位置（九宫格 + 微调偏移）、大小、颜色/强调色、24 小时、显示秒、日期格式、资源占用、日历（+农历）、显示器。细调（字体、旋转、投影、光晕、描边、渐变、版式…）都收在「高级」里，只对「自定义」样式生效。
+- **资源占用**：可选显示 CPU / 内存占用，每 2 秒刷新（只在开启时采样）；进度环、圆形表盘样式下显示为两个小圆环，其他样式为一行小字。
+- **月历**：可放在时钟右侧或下方，今天用强调色高亮，可显示农历（内置 1999–2099 农历表，不联网）。
+- 只在分钟（或开了秒时每秒；开了资源占用时每 2 秒）变化时重绘；资源管理器重启后自动恢复。
 
 基于 m417z 的 Desktop Live Overlay（GPL-3.0）的桌面宿主与渲染框架。
 */
@@ -44,10 +44,8 @@
 // ==WindhawkModSettings==
 /*
 - style: tilted
-  $name: "Style preset"
-  $name:zh-CN: "样式预设"
-  $description: "Presets override the color/rotation/shadow/glow/outline/font settings below. Choose Custom to use them."
-  $description:zh-CN: "选择预设时会覆盖下方颜色、旋转、投影、光晕、描边和字体设置；选「自定义」才使用下方设置。"
+  $name: "Style"
+  $name:zh-CN: "样式"
   $options:
   - tilted: "Tilted shadow"
   - minimal: "Minimal"
@@ -66,7 +64,7 @@
   - ring: "Progress ring"
   - accent: "Accent bar"
   - glitch: "Two-tone glitch"
-  - custom: "Custom"
+  - custom: "Custom (Advanced)"
   $options:zh-CN:
   - tilted: "倾斜阴影"
   - minimal: "极简"
@@ -85,43 +83,7 @@
   - ring: "进度环"
   - accent: "左侧细线"
   - glitch: "双色错位"
-  - custom: "自定义"
-- use24Hour: true
-  $name: "24-hour time"
-  $name:zh-CN: "24 小时制"
-- showSeconds: false
-  $name: "Show seconds"
-  $name:zh-CN: "显示秒"
-  $description: "Redraws every second instead of every minute."
-  $description:zh-CN: "开启后每秒重绘一次，否则每分钟一次。"
-- dateFormat: mdy
-  $name: "Date format"
-  $name:zh-CN: "日期格式"
-  $options:
-  - mdy: "10/28/2026"
-  - dmy: "28/10/2026"
-  - iso: "2026-10-28"
-  - cn: "10月28日 周三"
-  - cnFull: "2026年10月28日 星期三"
-  - none: "Hidden"
-  $options:zh-CN:
-  - mdy: "10/28/2026"
-  - dmy: "28/10/2026"
-  - iso: "2026-10-28"
-  - cn: "10月28日 周三"
-  - cnFull: "2026年10月28日 星期三"
-  - none: "不显示"
-- textAlign: left
-  $name: "Line alignment"
-  $name:zh-CN: "行对齐"
-  $options:
-  - left: "Left"
-  - center: "Center"
-  - right: "Right"
-  $options:zh-CN:
-  - left: "左对齐"
-  - center: "居中"
-  - right: "右对齐"
+  - custom: "自定义（用「高级」设置）"
 - anchor: center
   $name: "Position"
   $name:zh-CN: "位置"
@@ -137,173 +99,171 @@
   - bottomRight: "Bottom right"
   $options:zh-CN:
   - topLeft: "左上"
-  - top: "顶部居中"
+  - top: "上"
   - topRight: "右上"
-  - left: "左侧居中"
+  - left: "左"
   - center: "正中"
-  - right: "右侧居中"
+  - right: "右"
   - bottomLeft: "左下"
-  - bottom: "底部居中"
+  - bottom: "下"
   - bottomRight: "右下"
-- offsetX: 0
-  $name: "Horizontal offset (px at 100%)"
-  $name:zh-CN: "水平偏移（100% 缩放下像素）"
-  $description: "Positive moves right. Scaled by the monitor DPI."
-  $description:zh-CN: "正数向右。会按显示器缩放比例换算。"
-- offsetY: -80
-  $name: "Vertical offset (px at 100%)"
-  $name:zh-CN: "垂直偏移（100% 缩放下像素）"
-  $description: "Positive moves down."
-  $description:zh-CN: "正数向下。"
+- offset:
+  - x: 0
+    $name: "Horizontal"
+    $name:zh-CN: "水平（正数向右）"
+  - y: -80
+    $name: "Vertical"
+    $name:zh-CN: "垂直（正数向下）"
+  $name: "Fine offset (px at 100%)"
+  $name:zh-CN: "微调偏移（像素）"
+- size: 100
+  $name: "Size (%)"
+  $name:zh-CN: "大小（%）"
+  $description: "50–300. Scales everything, on top of display scaling."
+  $description:zh-CN: "50–300，整体缩放（已自动适配显示器缩放）。"
+- color: ""
+  $name: "Text color"
+  $name:zh-CN: "颜色"
+  $description: "Empty = preset color. #RRGGBB or #AARRGGBB."
+  $description:zh-CN: "留空用预设颜色；可填 #RRGGBB 或 #AARRGGBB。"
+- accentColor: ""
+  $name: "Accent color"
+  $name:zh-CN: "强调色"
+  $description: "Empty = preset. Used by rings, accent bar, second hand, calendar today."
+  $description:zh-CN: "留空用预设；用于进度环、竖线、秒针、日历今天。"
+- use24Hour: true
+  $name: "24-hour time"
+  $name:zh-CN: "24 小时制"
+- showSeconds: false
+  $name: "Show seconds"
+  $name:zh-CN: "显示秒"
+- dateFormat: cn
+  $name: "Date"
+  $name:zh-CN: "日期格式"
+  $options:
+  - cn: "10月28日 周三"
+  - cnFull: "2026年10月28日 星期三"
+  - iso: "2026-10-28"
+  - mdy: "10/28/2026"
+  - dmy: "28/10/2026"
+  - none: "Hidden"
+  $options:zh-CN:
+  - cn: "10月28日 周三"
+  - cnFull: "2026年10月28日 星期三"
+  - iso: "2026-10-28"
+  - mdy: "10/28/2026"
+  - dmy: "28/10/2026"
+  - none: "不显示"
+- showResources: false
+  $name: "Show CPU / memory usage"
+  $name:zh-CN: "显示资源占用（CPU / 内存）"
+  $description: "Refreshes every 2 s while on."
+  $description:zh-CN: "开启后每 2 秒刷新一次；关闭时不采样。"
+- calendar: none
+  $name: "Month calendar"
+  $name:zh-CN: "显示日历"
+  $options:
+  - none: "Off"
+  - right: "Right of clock"
+  - below: "Below clock"
+  $options:zh-CN:
+  - none: "不显示"
+  - right: "时钟右侧"
+  - below: "时钟下方"
+- lunar: true
+  $name: "Lunar dates in calendar"
+  $name:zh-CN: "日历显示农历"
 - monitor: 1
   $name: "Monitor"
   $name:zh-CN: "显示器"
-  $description: "1 = first monitor, 2 = second… 0 = all monitors."
-  $description:zh-CN: "1 = 第一个显示器，2 = 第二个……0 = 所有显示器都显示。"
-- lineGap: 4
-  $name: "Gap between lines (px)"
-  $name:zh-CN: "两行间距（像素）"
-- timeFontFamily: "Segoe UI Variable Display"
-  $name: "Time font"
-  $name:zh-CN: "时间字体"
-  $description: "(Custom only) Any installed font name."
-  $description:zh-CN: "（仅自定义）填写已安装的字体名。"
-- timeFontSize: 140
-  $name: "Time font size"
-  $name:zh-CN: "时间字号"
-- timeFontWeight: 600
-  $name: "Time font weight"
-  $name:zh-CN: "时间字重"
-  $description: "100–900. 400 = regular, 700 = bold."
-  $description:zh-CN: "100–900，400 为常规，700 为粗体。"
-- dateFontFamily: "Segoe UI Variable Display"
-  $name: "Date font"
-  $name:zh-CN: "日期字体"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-- dateFontSize: 40
-  $name: "Date font size"
-  $name:zh-CN: "日期字号"
-- dateFontWeight: 500
-  $name: "Date font weight"
-  $name:zh-CN: "日期字重"
-- textColor: "#FFFFFFFF"
-  $name: "Text color"
-  $name:zh-CN: "文字颜色"
-  $description: "(Custom only) #RRGGBB or #AARRGGBB."
-  $description:zh-CN: "（仅自定义）#RRGGBB 或 #AARRGGBB。"
-- rotation: -8
-  $name: "Rotation (degrees)"
-  $name:zh-CN: "旋转角度（度）"
-  $description: "(Custom only) Negative tilts counter-clockwise, -45 to 45."
-  $description:zh-CN: "（仅自定义）负数逆时针倾斜，范围 -45 到 45。"
-- shadowEnabled: true
-  $name: "Drop shadow"
-  $name:zh-CN: "投影"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-- shadowColor: "#000000"
-  $name: "Shadow color"
-  $name:zh-CN: "投影颜色"
-- shadowBlur: 8
-  $name: "Shadow blur radius"
-  $name:zh-CN: "投影模糊半径"
-- shadowOffsetX: 6
-  $name: "Shadow offset X"
-  $name:zh-CN: "投影水平偏移"
-- shadowOffsetY: 8
-  $name: "Shadow offset Y"
-  $name:zh-CN: "投影垂直偏移"
-- shadowOpacity: 70
-  $name: "Shadow opacity (%)"
-  $name:zh-CN: "投影不透明度（%）"
-- glowEnabled: false
-  $name: "Glow"
-  $name:zh-CN: "光晕"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-- glowColor: "#00E5FF"
-  $name: "Glow color"
-  $name:zh-CN: "光晕颜色"
-- glowRadius: 12
-  $name: "Glow radius"
-  $name:zh-CN: "光晕半径"
-- outlineEnabled: false
-  $name: "Outline"
-  $name:zh-CN: "描边"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-- outlineColor: "#000000"
-  $name: "Outline color"
-  $name:zh-CN: "描边颜色"
-- outlineWidth: 2
-  $name: "Outline width (px)"
-  $name:zh-CN: "描边宽度（像素）"
-- flipCards: false
-  $name: "Flip-card background"
-  $name:zh-CN: "翻页卡片底"
-  $description: "(Custom only) Draw hours/minutes on dark flip cards."
-  $description:zh-CN: "（仅自定义）把时、分画在深色翻页卡片上。"
-- cardColor: "#E0202024"
-  $name: "Card color"
-  $name:zh-CN: "卡片颜色"
-- customLayout: normal
-  $name: "Layout"
-  $name:zh-CN: "版式"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-  $options:
-  - normal: "Time + date"
-  - stacked: "Hours over minutes"
-  - cover: "Date above (cover)"
-  - sentence: "Word clock sentence"
-  - chinese: "Chinese numerals"
-  - analog: "Analog dial"
-  - ring: "Time inside progress ring"
-  $options:zh-CN:
-  - normal: "时间 + 日期"
-  - stacked: "竖排（时在上、分在下）"
-  - cover: "日期在上（封面）"
-  - sentence: "文字句子"
-  - chinese: "中文大写"
-  - analog: "圆形表盘"
-  - ring: "进度环"
-- hollowText: false
-  $name: "Hollow text (outline only)"
-  $name:zh-CN: "空心字（只留描边）"
-  $description: "(Custom only) Uses the outline color/width; text color if outline is off."
-  $description:zh-CN: "（仅自定义）用描边颜色和宽度；未开描边时用文字颜色。"
-- gradientEnabled: false
-  $name: "Gradient text"
-  $name:zh-CN: "渐变文字"
-  $description: "(Custom only) Fill text with a linear gradient instead of the text color."
-  $description:zh-CN: "（仅自定义）用线性渐变代替文字颜色填充。"
-- gradientStart: "#FF5E6E"
-  $name: "Gradient start color"
-  $name:zh-CN: "渐变起始色"
-- gradientEnd: "#FFD966"
-  $name: "Gradient end color"
-  $name:zh-CN: "渐变结束色"
-- glassCard: false
-  $name: "Glass card behind clock"
-  $name:zh-CN: "玻璃卡片底"
-  $description: "(Custom only) Translucent rounded card with a thin border."
-  $description:zh-CN: "（仅自定义）半透明圆角卡片 + 细边框。"
-- accentBar: false
-  $name: "Left accent bar"
-  $name:zh-CN: "左侧竖线"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
-- accentColor: "#FF6B33"
-  $name: "Accent color"
-  $name:zh-CN: "强调色"
-  $description: "Accent bar, progress ring and analog second hand."
-  $description:zh-CN: "用于左侧竖线、进度环和表盘秒针。"
-- showWeekday: false
-  $name: "Add weekday to date"
-  $name:zh-CN: "日期加星期"
-  $description: "(Custom only)"
-  $description:zh-CN: "（仅自定义）"
+  $description: "1 = first, 2 = second… 0 = all."
+  $description:zh-CN: "1 = 第一个，2 = 第二个……0 = 全部。"
+- advanced:
+  - layout: normal
+    $name: "Layout"
+    $name:zh-CN: "版式"
+    $options:
+    - normal: "Time + date"
+    - stacked: "Hours over minutes"
+    - cover: "Date above"
+    - sentence: "Sentence"
+    - chinese: "Chinese numerals"
+    - analog: "Analog dial"
+    - ring: "Progress ring"
+    $options:zh-CN:
+    - normal: "时间 + 日期"
+    - stacked: "竖排"
+    - cover: "日期在上"
+    - sentence: "文字句子"
+    - chinese: "中文大写"
+    - analog: "圆形表盘"
+    - ring: "进度环"
+  - timeFont: "Segoe UI Variable Display"
+    $name:zh-CN: "时间字体"
+  - timeFontSize: 140
+    $name:zh-CN: "时间字号"
+  - timeFontWeight: 600
+    $name:zh-CN: "时间字重（100–900）"
+  - dateFont: "Segoe UI Variable Display"
+    $name:zh-CN: "日期字体"
+  - dateFontSize: 40
+    $name:zh-CN: "日期字号"
+  - dateFontWeight: 500
+    $name:zh-CN: "日期字重"
+  - textAlign: left
+    $name:zh-CN: "行对齐"
+    $options:
+    - left: "Left"
+    - center: "Center"
+    - right: "Right"
+    $options:zh-CN:
+    - left: "左"
+    - center: "中"
+    - right: "右"
+  - lineGap: 4
+    $name:zh-CN: "行间距"
+  - rotation: -8
+    $name:zh-CN: "旋转角度（-45~45）"
+  - shadow: true
+    $name:zh-CN: "投影"
+  - shadowColor: "#B3000000"
+    $name:zh-CN: "投影颜色（#AARRGGBB，AA 为不透明度）"
+  - shadowBlur: 8
+    $name:zh-CN: "投影模糊"
+  - shadowOffsetX: 6
+    $name:zh-CN: "投影水平偏移"
+  - shadowOffsetY: 8
+    $name:zh-CN: "投影垂直偏移"
+  - glow: false
+    $name:zh-CN: "光晕"
+  - glowColor: "#00E5FF"
+    $name:zh-CN: "光晕颜色"
+  - glowRadius: 12
+    $name:zh-CN: "光晕半径"
+  - outline: false
+    $name:zh-CN: "描边"
+  - outlineColor: "#000000"
+    $name:zh-CN: "描边颜色"
+  - outlineWidth: 2
+    $name:zh-CN: "描边宽度"
+  - hollow: false
+    $name:zh-CN: "空心字（只留描边）"
+  - gradientStart: ""
+    $name:zh-CN: "渐变起始色（两个都填才启用）"
+  - gradientEnd: ""
+    $name:zh-CN: "渐变结束色"
+  - flipCards: false
+    $name:zh-CN: "翻页卡片底"
+  - cardColor: "#E0202024"
+    $name:zh-CN: "翻页卡片颜色"
+  - glassCard: false
+    $name:zh-CN: "玻璃卡片底"
+  - accentBar: false
+    $name:zh-CN: "左侧竖线"
+  - showWeekday: false
+    $name:zh-CN: "日期加星期"
+  $name: "Advanced (Custom style only)"
+  $name:zh-CN: "高级（仅「自定义」样式生效）"
 */
 // ==/WindhawkModSettings==
 
@@ -399,8 +359,36 @@ struct ZcSettings {
     ZcAlign align = ZcAlign::left;
     int anchor = 4;  // 0..8, row-major 3x3
     int offsetX = 0, offsetY = -80, monitor = 1, lineGap = 4;
+    int size = 100;      // user scale, %
+    bool resources = false;
+    int calendar = 0;    // 0 off, 1 right, 2 below
+    bool lunar = true;
     ZcStyle style;
 } g_zc;
+
+// Latest CPU / memory load in percent (sampled only when shown).
+float g_zcCpu = 0, g_zcMem = 0;
+ULONGLONG g_zcPrevIdle = 0, g_zcPrevTotal = 0;
+
+ULONGLONG ZcFt(const FILETIME& f) {
+    return ((ULONGLONG)f.dwHighDateTime << 32) | f.dwLowDateTime;
+}
+
+void ZcSampleResources() {
+    FILETIME idle, kernel, user;
+    if (GetSystemTimes(&idle, &kernel, &user)) {
+        ULONGLONG i = ZcFt(idle), total = ZcFt(kernel) + ZcFt(user);  // kernel includes idle
+        if (g_zcPrevTotal && total > g_zcPrevTotal) {
+            double busy = 1.0 - (double)(i - g_zcPrevIdle) / (double)(total - g_zcPrevTotal);
+            g_zcCpu = (float)(busy < 0 ? 0 : busy > 1 ? 100 : busy * 100);
+        }
+        g_zcPrevIdle = i;
+        g_zcPrevTotal = total;
+    }
+    MEMORYSTATUSEX ms{};
+    ms.dwLength = sizeof(ms);
+    if (GlobalMemoryStatusEx(&ms)) g_zcMem = (float)ms.dwMemoryLoad;
+}
 
 std::atomic<bool> g_zcUnloading{false};
 std::atomic<bool> g_zcLazyInit{false};
@@ -801,87 +789,100 @@ void ZcLoadSettings() {
     std::wstring d = ZcStr(L"dateFormat");
     z.date = d == L"dmy"      ? ZcDate::dmy
              : d == L"iso"    ? ZcDate::iso
-             : d == L"cn"     ? ZcDate::cn
+             : d == L"mdy"    ? ZcDate::mdy
              : d == L"cnFull" ? ZcDate::cnFull
              : d == L"none"   ? ZcDate::none
-                              : ZcDate::mdy;
-    std::wstring a = ZcStr(L"textAlign");
-    z.align = a == L"center"  ? ZcAlign::center
-              : a == L"right" ? ZcAlign::right
-                              : ZcAlign::left;
+                              : ZcDate::cn;
     static const wchar_t* kAnchors[] = {L"topLeft", L"top",        L"topRight",
                                         L"left",    L"center",     L"right",
                                         L"bottomLeft", L"bottom", L"bottomRight"};
     std::wstring an = ZcStr(L"anchor");
     z.anchor = 4;
     for (int i = 0; i < 9; i++) {
-        if (an == kAnchors[i]) {
-            z.anchor = i;
-        }
+        if (an == kAnchors[i]) z.anchor = i;
     }
-    z.offsetX = Wh_GetIntSetting(L"offsetX");
-    z.offsetY = Wh_GetIntSetting(L"offsetY");
+    z.offsetX = Wh_GetIntSetting(L"offset.x");
+    z.offsetY = Wh_GetIntSetting(L"offset.y");
+    z.size = ZcClamp(Wh_GetIntSetting(L"size"), 50, 300);
+    if (!Wh_GetIntSetting(L"size")) z.size = 100;
     z.monitor = Wh_GetIntSetting(L"monitor");
-    z.lineGap = ZcClamp(Wh_GetIntSetting(L"lineGap"), -200, 400);
+    z.resources = Wh_GetIntSetting(L"showResources") != 0;
+    std::wstring cal = ZcStr(L"calendar");
+    z.calendar = cal == L"right" ? 1 : cal == L"below" ? 2 : 0;
+    z.lunar = Wh_GetIntSetting(L"lunar") != 0;
 
     ZcStyle& s = z.style;
     std::wstring style = ZcStr(L"style");
     if (style != L"custom") {
         ZcApplyPreset(style.empty() ? L"tilted" : style, s);
     } else {
-        s.timeFont = ZcStr(L"timeFontFamily");
-        s.dateFont = ZcStr(L"dateFontFamily");
+        auto A = [](const wchar_t* k) { return std::wstring(L"advanced.") + k; };
+        auto I = [&](const wchar_t* k) { return Wh_GetIntSetting(A(k).c_str()); };
+        auto S = [&](const wchar_t* k) { return ZcStr(A(k).c_str()); };
+        auto C = [&](const wchar_t* k, D2D1_COLOR_F def) {
+            return ZcColor(A(k).c_str(), def);
+        };
+        s.timeFont = S(L"timeFont");
+        s.dateFont = S(L"dateFont");
         if (s.timeFont.empty()) s.timeFont = L"Segoe UI Variable Display";
         if (s.dateFont.empty()) s.dateFont = s.timeFont;
-        s.timeSize = Wh_GetIntSetting(L"timeFontSize");
-        s.timeWeight = Wh_GetIntSetting(L"timeFontWeight");
-        s.dateSize = Wh_GetIntSetting(L"dateFontSize");
-        s.dateWeight = Wh_GetIntSetting(L"dateFontWeight");
-        s.text = ZcColor(L"textColor", {1, 1, 1, 1});
-        s.rotation = (float)ZcClamp(Wh_GetIntSetting(L"rotation"), -45, 45);
-        s.shadow = Wh_GetIntSetting(L"shadowEnabled") != 0;
-        s.shadowColor = ZcColor(L"shadowColor", {0, 0, 0, 1});
-        s.shadowColor.a *=
-            ZcClamp(Wh_GetIntSetting(L"shadowOpacity"), 0, 100) / 100.0f;
-        s.shadowBlur = (float)ZcClamp(Wh_GetIntSetting(L"shadowBlur"), 0, 100);
-        s.shadowDx = (float)Wh_GetIntSetting(L"shadowOffsetX");
-        s.shadowDy = (float)Wh_GetIntSetting(L"shadowOffsetY");
-        s.glow = Wh_GetIntSetting(L"glowEnabled") != 0;
-        s.glowColor = ZcColor(L"glowColor", {0, 0.9f, 1, 1});
-        s.glowRadius = (float)ZcClamp(Wh_GetIntSetting(L"glowRadius"), 1, 100);
-        s.outline = Wh_GetIntSetting(L"outlineEnabled") != 0;
-        s.outlineColor = ZcColor(L"outlineColor", {0, 0, 0, 1});
-        s.outlineWidth = (float)ZcClamp(Wh_GetIntSetting(L"outlineWidth"), 1, 20);
-        s.flip = Wh_GetIntSetting(L"flipCards") != 0;
-        s.cardColor = ZcColor(L"cardColor", {0.125f, 0.125f, 0.14f, 0.88f});
-        std::wstring lay = ZcStr(L"customLayout");
+        s.timeSize = I(L"timeFontSize");
+        s.timeWeight = I(L"timeFontWeight");
+        s.dateSize = I(L"dateFontSize");
+        s.dateWeight = I(L"dateFontWeight");
+        std::wstring a = S(L"textAlign");
+        z.align = a == L"center" ? ZcAlign::center
+                  : a == L"right" ? ZcAlign::right
+                                  : ZcAlign::left;
+        z.lineGap = ZcClamp(I(L"lineGap"), -200, 400);
+        s.rotation = (float)ZcClamp(I(L"rotation"), -45, 45);
+        s.shadow = I(L"shadow") != 0;
+        s.shadowColor = C(L"shadowColor", {0, 0, 0, 0.7f});
+        s.shadowBlur = (float)ZcClamp(I(L"shadowBlur"), 0, 100);
+        s.shadowDx = (float)I(L"shadowOffsetX");
+        s.shadowDy = (float)I(L"shadowOffsetY");
+        s.glow = I(L"glow") != 0;
+        s.glowColor = C(L"glowColor", {0, 0.9f, 1, 1});
+        s.glowRadius = (float)ZcClamp(I(L"glowRadius"), 1, 100);
+        s.outline = I(L"outline") != 0;
+        s.outlineColor = C(L"outlineColor", {0, 0, 0, 1});
+        s.outlineWidth = (float)ZcClamp(I(L"outlineWidth"), 1, 20);
+        s.hollow = I(L"hollow") != 0;
+        D2D1_COLOR_F g0, g1;
+        if (ZcParseColor(S(L"gradientStart").c_str(), &g0) &&
+            ZcParseColor(S(L"gradientEnd").c_str(), &g1)) {
+            s.grad = {g0, g1};
+        }
+        s.flip = I(L"flipCards") != 0;
+        s.cardColor = C(L"cardColor", {0.125f, 0.125f, 0.14f, 0.88f});
+        s.glass = I(L"glassCard") != 0;
+        s.accentBar = I(L"accentBar") != 0;
+        s.weekday = I(L"showWeekday") != 0;
+        std::wstring lay = S(L"layout");
         s.layout = lay == L"stacked"    ? ZcLayoutKind::stacked
-                   : lay == L"cover"    ? ZcLayoutKind::cover
                    : lay == L"sentence" ? ZcLayoutKind::sentence
                    : lay == L"chinese"  ? ZcLayoutKind::chinese
                    : lay == L"analog"   ? ZcLayoutKind::analog
                    : lay == L"ring"     ? ZcLayoutKind::ring
                                         : ZcLayoutKind::normal;
-        s.dateAbove = s.layout == ZcLayoutKind::cover;
-        if (s.dateAbove) s.layout = ZcLayoutKind::normal;
-        s.hollow = Wh_GetIntSetting(L"hollowText") != 0;
-        if (Wh_GetIntSetting(L"gradientEnabled")) {
-            s.grad = {ZcColor(L"gradientStart", {1, 0.37f, 0.43f, 1}),
-                      ZcColor(L"gradientEnd", {1, 0.85f, 0.4f, 1})};
-        }
-        s.glass = Wh_GetIntSetting(L"glassCard") != 0;
-        s.accentBar = Wh_GetIntSetting(L"accentBar") != 0;
-        s.accent = ZcColor(L"accentColor", {1, 0.42f, 0.2f, 1});
-        s.weekday = Wh_GetIntSetting(L"showWeekday") != 0;
+        s.dateAbove = lay == L"cover";
     }
-    s.timeSize = ZcClamp(s.timeSize, 8, 600);
-    s.dateSize = ZcClamp(s.dateSize, 6, 300);
+    // Top-level color overrides apply to every style.
+    D2D1_COLOR_F c;
+    if (ZcParseColor(ZcStr(L"color").c_str(), &c)) {
+        s.text = c;
+        s.grad.clear();
+    }
+    if (ZcParseColor(ZcStr(L"accentColor").c_str(), &c)) s.accent = c;
+    s.timeSize = ZcClamp(s.timeSize ? s.timeSize : 140, 8, 600);
+    s.dateSize = ZcClamp(s.dateSize ? s.dateSize : 40, 6, 300);
     s.timeWeight = ZcClamp(s.timeWeight ? s.timeWeight : 400, 100, 950);
     s.dateWeight = ZcClamp(s.dateWeight ? s.dateWeight : 400, 100, 950);
 
     g_zc = z;
-    Wh_Log(L"settings: style=%s seconds=%d monitor=%d rot=%.0f", style.c_str(),
-           (int)z.seconds, z.monitor, (double)s.rotation);
+    Wh_Log(L"settings: style=%s size=%d seconds=%d res=%d cal=%d lunar=%d monitor=%d",
+           style.c_str(), z.size, (int)z.seconds, (int)z.resources, z.calendar,
+           (int)z.lunar, z.monitor);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -972,6 +973,7 @@ struct ZcPiece {
     D2D1_SIZE_F size;
     bool card;
     bool ghost = false;  // decorative "88:88" drawn only in the main pass
+    bool dim = false;    // secondary text (weekend, lunar, headers)
 };
 
 // Everything needed to draw one clock block at the origin.
@@ -986,7 +988,63 @@ struct ZcFrame {
     bool hasBar = false;
     D2D1_RECT_F bar{};
     D2D1_RECT_F glassRect{};
+    struct Mini { D2D1_POINT_2F c; float r, frac; };
+    std::vector<Mini> minis;  // small resource rings
+    bool calHi = false;       // calendar "today" highlight
+    D2D1_RECT_F calHiRect{};
 };
+
+// Lunar years 1999..2099: {days from 1999-01-01 to 正月初一, leap month (0 none), bit i = month i (in order, leap included) has 30 days}.
+static const struct { int day; unsigned char leap; unsigned short big; } kZcLunar[] = {
+    {46,0,0x0749}, {400,0,0x0693}, {754,4,0x152b}, {1138,0,0x052b}, {1492,0,0x0a5b}, {1847,2,0x155a},
+    {2231,0,0x056a}, {2585,7,0x1b55}, {2970,0,0x0ba4}, {3324,0,0x0b49}, {3678,5,0x1a93}, {4062,0,0x0a95},
+    {4416,0,0x052d}, {4770,4,0x0aad}, {5154,0,0x0ab5}, {5509,9,0x15aa}, {5893,0,0x05d2}, {6247,0,0x0da5},
+    {6602,6,0x1d4a}, {6986,0,0x0d4a}, {7340,0,0x0c95}, {7694,4,0x152e}, {8078,0,0x0556}, {8432,0,0x0ab5},
+    {8787,2,0x15b2}, {9171,0,0x06d2}, {9525,6,0x0ea5}, {9909,0,0x0725}, {10263,0,0x064b}, {10617,5,0x0c97},
+    {11001,0,0x0cab}, {11356,0,0x055a}, {11710,3,0x0ad6}, {12094,0,0x0b69}, {12449,11,0x1752}, {12833,0,0x0b52},
+    {13187,0,0x0b25}, {13541,6,0x1a4b}, {13925,0,0x0a4b}, {14279,0,0x04ab}, {14633,5,0x055b}, {15017,0,0x05ad},
+    {15372,0,0x0b6a}, {15727,2,0x1b52}, {16111,0,0x0d92}, {16465,7,0x1d25}, {16849,0,0x0d25}, {17203,0,0x0a55},
+    {17557,5,0x14ad}, {17941,0,0x04b6}, {18295,0,0x05b5}, {18650,3,0x0daa}, {19034,0,0x0ec9}, {19389,8,0x1e92},
+    {19773,0,0x0e92}, {20127,0,0x0d26}, {20481,6,0x0a56}, {20864,0,0x0a57}, {21219,0,0x0556}, {21573,4,0x06d5},
+    {21957,0,0x0755}, {22312,0,0x0749}, {22666,3,0x0e93}, {23050,0,0x0693}, {23404,7,0x152b}, {23788,0,0x052b},
+    {24142,0,0x0a5b}, {24497,5,0x155a}, {24881,0,0x056a}, {25235,0,0x0b65}, {25590,4,0x174a}, {25974,0,0x0b4a},
+    {26328,8,0x1a95}, {26712,0,0x0a95}, {27066,0,0x052d}, {27420,6,0x0aad}, {27804,0,0x0ab5}, {28159,0,0x05aa},
+    {28513,4,0x0ba5}, {28897,0,0x0da5}, {29252,0,0x0d4a}, {29606,3,0x1c95}, {29990,0,0x0c96}, {30344,7,0x194e},
+    {30728,0,0x0556}, {31082,0,0x0ab5}, {31437,5,0x15b2}, {31821,0,0x06d2}, {32175,0,0x0ea5}, {32530,4,0x0e4a},
+    {32913,0,0x068b}, {33267,8,0x0c97}, {33651,0,0x04ab}, {34005,0,0x055b}, {34360,6,0x0ad6}, {34744,0,0x0b6a},
+    {35099,0,0x0752}, {35453,4,0x1725}, {35837,0,0x0b45}, {36191,0,0x0a8b}, {36545,2,0x149b},
+};
+
+int ZcDaysFromCivil(int y, int m, int d) {
+    y -= m <= 2;
+    int era = (y >= 0 ? y : y - 399) / 400;
+    int yoe = y - era * 400;
+    int doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+    int doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return era * 146097 + doe - 719468;
+}
+
+// Solar date -> lunar month/day. Returns false outside 1999-02..2099.
+bool ZcLunarDate(int y, int m, int d, int* lm, int* ld, bool* leap) {
+    int days = ZcDaysFromCivil(y, m, d) - ZcDaysFromCivil(1999, 1, 1);
+    int n = (int)(sizeof(kZcLunar) / sizeof(kZcLunar[0]));
+    int i = n - 1;
+    while (i >= 0 && kZcLunar[i].day > days) i--;
+    if (i < 0) return false;
+    int off = days - kZcLunar[i].day;
+    int lp = kZcLunar[i].leap, count = lp ? 13 : 12;
+    for (int k = 0; k < count; k++) {
+        int len = 29 + ((kZcLunar[i].big >> k) & 1);
+        if (off < len) {
+            *leap = lp && k == lp;
+            *lm = lp && k >= lp ? k : k + 1;
+            *ld = off + 1;
+            return true;
+        }
+        off -= len;
+    }
+    return false;
+}
 
 std::wstring ZcCnNum(int n, bool day) {
     static const wchar_t* d[] = {L"〇", L"一", L"二", L"三", L"四",
@@ -1188,23 +1246,158 @@ void ZcBuildFrame(float scale, ZcFrame& f) {
                                       s.dateAbove ? 0 : rowH + dateGap);
         f.pieces.push_back(datePiece);
     }
+    // ---- Resource usage (CPU / memory) ----
+    if (g_zc.resources) {
+        float ds = s.dateSize * scale;
+        float y0 = blockH + ds * 0.5f;
+        bool rings = s.layout == ZcLayoutKind::ring || s.layout == ZcLayoutKind::analog;
+        float vals[2] = {g_zcCpu, g_zcMem};
+        const wchar_t* names[2] = {L"CPU", L"内存"};
+        if (rings) {
+            float rr = ds * 1.05f, gap = ds * 1.2f;
+            float total = rr * 4 + gap;
+            float x0 = (blockW - total) / 2;
+            float maxH = 0;
+            for (int i = 0; i < 2; i++) {
+                D2D1_POINT_2F c = D2D1::Point2F(x0 + rr + i * (2 * rr + gap), y0 + rr);
+                f.minis.push_back({c, rr, vals[i] / 100.0f});
+                WCHAR b[16];
+                swprintf_s(b, L"%.0f%%", (double)vals[i]);
+                ZcPiece p{ZcLayout(b, s.dateFont, s.dateWeight, ds * 0.55f), {}, {}, false};
+                ZcPiece q{ZcLayout(names[i], s.dateFont, s.dateWeight, ds * 0.42f), {}, {}, false};
+                if (p.layout && q.layout) {
+                    p.size = ZcMeasure(p.layout.Get());
+                    q.size = ZcMeasure(q.layout.Get());
+                    p.pos = D2D1::Point2F(c.x - p.size.width / 2, c.y - p.size.height / 2);
+                    q.pos = D2D1::Point2F(c.x - q.size.width / 2, c.y + rr + ds * 0.15f);
+                    f.pieces.push_back(p);
+                    f.pieces.push_back(q);
+                    maxH = (std::max)(maxH, 2 * rr + ds * 0.15f + q.size.height);
+                }
+            }
+            if (x0 < 0) {
+                for (auto& p : f.pieces) p.pos.x -= x0;
+                for (auto& m : f.minis) m.c.x -= x0;
+                f.dialC.x -= x0;
+                blockW = total;
+            }
+            blockH = y0 + maxH;
+        } else {
+            WCHAR b[64];
+            swprintf_s(b, L"CPU %.0f%%  ·  内存 %.0f%%", (double)vals[0], (double)vals[1]);
+            ZcPiece p{ZcLayout(b, s.dateFont, s.dateWeight, ds * 0.62f), {}, {}, false};
+            if (p.layout) {
+                p.size = ZcMeasure(p.layout.Get());
+                blockW = (std::max)(blockW, p.size.width);
+                p.pos = D2D1::Point2F(alignX(p.size.width), y0 - ds * 0.3f);
+                blockH = p.pos.y + p.size.height;
+                f.pieces.push_back(p);
+            }
+        }
+    }
+
+    // ---- Month calendar (right of or below the clock) ----
+    if (g_zc.calendar) {
+        float cs = (std::max)(12.0f, s.dateSize * scale * 0.62f);
+        float cellW = cs * (g_zc.lunar ? 2.5f : 1.9f), cellH = cs * (g_zc.lunar ? 2.1f : 1.5f);
+        float ox, oy;
+        if (g_zc.calendar == 1) {
+            ox = blockW + s.timeSize * scale * 0.35f;
+            oy = 0;
+        } else {
+            ox = 0;
+            oy = blockH + cs * 1.2f;
+        }
+        auto put = [&](const std::wstring& txt, float size, int weight, float cx, float y,
+                       bool dim) {
+            ZcPiece p{ZcLayout(txt, s.dateFont, weight, size), {}, {}, false};
+            if (!p.layout) return;
+            p.size = ZcMeasure(p.layout.Get());
+            p.pos = D2D1::Point2F(cx - p.size.width / 2, y);
+            p.dim = dim;
+            f.pieces.push_back(p);
+        };
+        WCHAR b[48];
+        swprintf_s(b, L"%d年%d月", t.wYear, t.wMonth);
+        put(b, cs * 1.15f, (std::max)(s.dateWeight, 600), ox + cellW * 3.5f, oy, false);
+        float gy = oy + cs * 2.0f;
+        static const wchar_t* kHead[] = {L"一", L"二", L"三", L"四", L"五", L"六", L"日"};
+        for (int i = 0; i < 7; i++)
+            put(kHead[i], cs * 0.8f, s.dateWeight, ox + cellW * (i + 0.5f), gy, true);
+        gy += cs * 1.4f;
+        static const int kMonthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        int days = kMonthDays[t.wMonth - 1];
+        if (t.wMonth == 2 && ((t.wYear % 4 == 0 && t.wYear % 100) || t.wYear % 400 == 0))
+            days = 29;
+        // Weekday of the 1st, Monday-first column.
+        int first = (ZcDaysFromCivil(t.wYear, t.wMonth, 1) + 3) % 7;  // 1970-01-01 = Thu
+        if (first < 0) first += 7;
+        static const wchar_t* kLm[] = {L"正", L"二", L"三", L"四", L"五", L"六",
+                                       L"七", L"八", L"九", L"十", L"冬", L"腊"};
+        int rows = (first + days + 6) / 7;
+        for (int dday = 1; dday <= days; dday++) {
+            int idx = first + dday - 1, col = idx % 7, row = idx / 7;
+            float cx = ox + cellW * (col + 0.5f), y = gy + row * cellH;
+            if (dday == t.wDay) {
+                f.calHi = true;
+                f.calHiRect = D2D1::RectF(cx - cellW * 0.46f, y - cs * 0.15f,
+                                          cx + cellW * 0.46f, y + cellH - cs * 0.25f);
+            }
+            swprintf_s(b, L"%d", dday);
+            put(b, cs, dday == t.wDay ? 700 : s.dateWeight, cx, y, col >= 5 && dday != t.wDay);
+            int lm, ld;
+            bool leap;
+            if (g_zc.lunar && ZcLunarDate(t.wYear, t.wMonth, dday, &lm, &ld, &leap)) {
+                std::wstring lt;
+                if (ld == 1) {
+                    lt = std::wstring(leap ? L"闰" : L"") + kLm[lm - 1] + L"月";
+                } else if (ld <= 10) {
+                    lt = std::wstring(L"初") + ZcCnNum(ld, false);
+                } else if (ld == 20) {
+                    lt = L"二十";
+                } else if (ld == 30) {
+                    lt = L"三十";
+                } else {
+                    lt = ZcCnNum(ld, true);
+                }
+                put(lt, cs * 0.55f, s.dateWeight, cx, y + cs * 1.25f, dday != t.wDay);
+            }
+        }
+        float calW = cellW * 7, calH = gy - oy + rows * cellH;
+        if (g_zc.calendar == 1) {
+            blockW = ox + calW;
+            blockH = (std::max)(blockH, calH);
+        } else {
+            blockW = (std::max)(blockW, calW);
+            blockH = oy + calH;
+        }
+    }
+
+    auto shiftAll = [&](float dx, float dy) {
+        for (auto& p : f.pieces) {
+            p.pos.x += dx;
+            p.pos.y += dy;
+        }
+        for (auto& m : f.minis) {
+            m.c.x += dx;
+            m.c.y += dy;
+        }
+        f.dialC.x += dx;
+        f.dialC.y += dy;
+        f.calHiRect.left += dx; f.calHiRect.right += dx;
+        f.calHiRect.top += dy; f.calHiRect.bottom += dy;
+        f.bar.left += dx; f.bar.right += dx; f.bar.top += dy; f.bar.bottom += dy;
+    };
     if (s.accentBar) {
         float bw = (std::max)(3.0f, timeSize * 0.035f), gap = timeSize * 0.16f;
-        for (auto& p : f.pieces) p.pos.x += bw + gap;
-        f.dialC.x += bw + gap;
+        shiftAll(bw + gap, 0);
         f.hasBar = true;
         f.bar = D2D1::RectF(0, blockH * 0.06f, bw, blockH * 0.96f);
         blockW += bw + gap;
     }
     if (s.glass) {
         float pad = timeSize * 0.22f;
-        for (auto& p : f.pieces) {
-            p.pos.x += pad;
-            p.pos.y += pad;
-        }
-        f.dialC.x += pad;
-        f.dialC.y += pad;
-        f.bar.left += pad; f.bar.right += pad; f.bar.top += pad; f.bar.bottom += pad;
+        shiftAll(pad, pad);
         blockW += pad * 2;
         blockH += pad * 2;
         f.glassRect = D2D1::RectF(0, 0, blockW, blockH);
@@ -1247,6 +1440,9 @@ ComPtr<ID2D1CommandList> ZcRecord(const ZcFrame& f, D2D1_COLOR_F color, bool mai
     ComPtr<ID2D1SolidColorBrush> brush, cardBrush, lineBrush, ghostBrush, accentBrush,
         trackBrush;
     g_zcDc->CreateSolidColorBrush(color, &brush);
+    ComPtr<ID2D1SolidColorBrush> dimBrush;
+    g_zcDc->CreateSolidColorBrush(
+        D2D1::ColorF(s.text.r, s.text.g, s.text.b, s.text.a * 0.55f), &dimBrush);
     ComPtr<ID2D1Brush> fill = brush;
     if (main) {
         g_zcDc->CreateSolidColorBrush(s.ghostColor, &ghostBrush);
@@ -1291,6 +1487,27 @@ ComPtr<ID2D1CommandList> ZcRecord(const ZcFrame& f, D2D1_COLOR_F color, bool mai
     if (f.hasBar && acc) {
         float w = f.bar.right - f.bar.left;
         g_zcDc->FillRoundedRectangle(D2D1::RoundedRect(f.bar, w / 2, w / 2), acc);
+    }
+    if (f.calHi && acc) {
+        float rr = (f.calHiRect.bottom - f.calHiRect.top) * 0.22f;
+        g_zcDc->FillRoundedRectangle(D2D1::RoundedRect(f.calHiRect, rr, rr), acc);
+    }
+    if (!f.minis.empty()) {
+        ComPtr<ID2D1StrokeStyle> round;
+        g_zcD2dFactory->CreateStrokeStyle(
+            D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND),
+            nullptr, 0, &round);
+        ID2D1Brush* trk = main && trackBrush ? (ID2D1Brush*)trackBrush.Get() : brush.Get();
+        for (const auto& m : f.minis) {
+            float sw = (std::max)(2.0f, m.r * 0.14f), r = m.r - sw / 2;
+            g_zcDc->DrawEllipse(D2D1::Ellipse(m.c, r, r), trk, sw);
+            if (m.frac > 0.999f) {
+                g_zcDc->DrawEllipse(D2D1::Ellipse(m.c, r, r), acc, sw);
+            } else if (m.frac > 0.005f) {
+                if (auto g = ZcArc(m.c, r, m.frac))
+                    g_zcDc->DrawGeometry(g.Get(), acc, sw, round.Get());
+            }
+        }
     }
     if (f.dial && brush) {
         D2D1_POINT_2F c = f.dialC;
@@ -1361,7 +1578,9 @@ ComPtr<ID2D1CommandList> ZcRecord(const ZcFrame& f, D2D1_COLOR_F color, bool mai
             g_zcDc->DrawLine(D2D1::Point2F(r.left, mid), D2D1::Point2F(r.right, mid),
                              lineBrush.Get(), 2.0f * scale);
         }
-        if (fill && p.layout) {
+        if (p.dim && main && dimBrush && p.layout) {
+            g_zcDc->DrawTextLayout(p.pos, p.layout.Get(), dimBrush.Get());
+        } else if (fill && p.layout) {
             g_zcDc->DrawTextLayout(p.pos, p.layout.Get(), fill.Get(),
                                    D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT);
         }
@@ -1574,6 +1793,7 @@ void ZcRender() {
     RECT hostRc{};
     if (host) GetWindowRect(host, &hostRc);
 
+    if (g_zc.resources) ZcSampleResources();
     g_zcDc->BeginDraw();
     g_zcDc->Clear(D2D1::ColorF(0, 0, 0, 0));
     for (HMONITOR m : ZcTargetMonitors()) {
@@ -1589,7 +1809,7 @@ void ZcRender() {
         D2D1_POINT_2F c = D2D1::Point2F(
             r.left + (r.right - r.left) * fx[col] + g_zc.offsetX * scale,
             r.top + (r.bottom - r.top) * fy[row] + g_zc.offsetY * scale);
-        ZcDrawBlock(c, scale);
+        ZcDrawBlock(c, scale * g_zc.size / 100.0f);
     }
     HRESULT hr = g_zcDc->EndDraw();
     if (hr == (HRESULT)D2DERR_RECREATE_TARGET) {
@@ -1610,6 +1830,8 @@ void ZcScheduleNext() {
     GetLocalTime(&t);
     UINT ms = g_zc.seconds ? 1000 - t.wMilliseconds
                            : (60 - t.wSecond) * 1000 - t.wMilliseconds;
+    // Resource usage refreshes every ~2 s, only while it is shown.
+    if (g_zc.resources && ms > 2000) ms = 2000 - t.wMilliseconds % 1000;
     SetTimer(g_zcOverlayWnd, ZC_TIMER_REFRESH, ms + 20, nullptr);
 }
 

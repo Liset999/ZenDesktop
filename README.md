@@ -159,9 +159,11 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
   - **进度环**：时间外一圈圆环，按本小时已过分钟填充
   - **左侧细线**：左边一条强调色竖线 + 带星期的日期
   - **双色错位**：青/品红两层错位重影，故障复古风
-  - **自定义**：用下方详细设置，另有版式、渐变色、空心字、玻璃卡片、左侧竖线、强调色
-- 12/24 小时制、可显示秒；日期 `10/28/2026`、`2026-10-28`、`10月28日 周三` 等；每行字体/字号/字重、颜色、旋转、真模糊投影、光晕、描边。
-- 九宫格位置 + 偏移，可选显示器或所有显示器，按 DPI 缩放；只在分钟（或秒）变化时重绘；资源管理器重启后自动恢复。
+  - **自定义**：用「高级」里的细调（版式、字体、旋转、投影、光晕、描边、渐变、空心字、玻璃卡片、左侧竖线等）
+- **资源占用**（可选）：CPU / 内存占用，每 2 秒刷新、只在开启时采样；进度环/圆形表盘下显示为两个小圆环，其他样式为一行小字。
+- **月历**（可选）：时钟右侧或下方，今天用强调色高亮，可显示农历（内置 1999–2099 农历表，不联网，不含节假日）。
+- **设置精简**：顶层只有 样式、位置、微调偏移、大小、颜色、强调色、24 小时、显示秒、日期格式、显示资源占用、显示日历、日历显示农历、显示器；字体/旋转/投影/光晕/描边/渐变/版式等细调都在折叠的「高级（仅「自定义」样式生效）」里。
+- 按显示器 DPI 缩放；只在分钟（或秒 / 资源占用的 2 秒）变化时重绘；资源管理器重启后自动恢复。
 - **可选 mod**（`local@zen-desktop-clock`），deploy 默认关闭。桌面宿主与渲染框架改编自 m417z 的 Desktop Live Overlay（GPL-3.0）。
 
 ### ZenDesktop: 设置美化
@@ -307,7 +309,7 @@ ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhaw
 | 文件管理器美化 (File Explorer) | Translucent Explorer with adjustable tint and transparent chrome; glass context menus (experimental). Replaces ExplorerBlurMica |
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
 | 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
-| 桌面时钟 (Desktop Clock) | Optional. Big clock + date behind desktop icons; 17 presets (tilted shadow, minimal, neon, flip cards, magazine cover, stacked, hollow, glass card, 7-segment, rainbow/sunset gradient, Chinese numerals, word clock, analog dial, progress ring, accent bar, two-tone glitch) + custom. Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
+| 桌面时钟 (Desktop Clock) | Optional. Big clock + date behind desktop icons; 17 presets (tilted shadow, minimal, neon, flip cards, magazine cover, stacked, hollow, glass card, 7-segment, rainbow/sunset gradient, Chinese numerals, word clock, analog dial, progress ring, accent bar, two-tone glitch) + custom; optional CPU/memory usage and month calendar with Chinese lunar dates; short settings with an Advanced group. Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
 | 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
 | 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
 | 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
