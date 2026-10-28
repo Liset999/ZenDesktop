@@ -142,7 +142,24 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 在桌面图标**后方**显示大号时间和日期，不挡图标、不吃鼠标。
 
-- 样式预设：**倾斜阴影**（白色大字、约 -8° 倾斜、深色柔和投影）、**极简**、**霓虹**（光晕）、**翻页**（静态翻页卡片）、**自定义**（用下方详细设置）。
+- 17 种样式预设 + 自定义：
+  - **倾斜阴影**：白色大字、约 -8° 倾斜、深色柔和投影
+  - **极简**：细体大字 + 轻投影
+  - **霓虹**：青色光晕
+  - **翻页**：时、分画在深色翻页卡片上
+  - **大字封面**：超大极细时间，上方一行小号加字距日期（杂志风）
+  - **竖排**：小时在上、分钟在下
+  - **描边空心**：只留白色描边，字心透明
+  - **玻璃卡片**：时钟后面一块半透明圆角卡片
+  - **复古数码管**：窄体红色数字 + 暗淡的 88:88 底影 + 光晕
+  - **彩虹渐变** / **日落渐变**：线性渐变填充文字
+  - **中文大写**：十一时二十一分 / 十月廿八 星期三（楷体，没有则 华文楷体 / 微软雅黑）
+  - **文字时钟**：「现在是 上午 11 点 21 分」
+  - **圆形表盘**：指针表盘（刻度 + 时针分针，开「显示秒」才有秒针并每秒重绘）
+  - **进度环**：时间外一圈圆环，按本小时已过分钟填充
+  - **左侧细线**：左边一条强调色竖线 + 带星期的日期
+  - **双色错位**：青/品红两层错位重影，故障复古风
+  - **自定义**：用下方详细设置，另有版式、渐变色、空心字、玻璃卡片、左侧竖线、强调色
 - 12/24 小时制、可显示秒；日期 `10/28/2026`、`2026-10-28`、`10月28日 周三` 等；每行字体/字号/字重、颜色、旋转、真模糊投影、光晕、描边。
 - 九宫格位置 + 偏移，可选显示器或所有显示器，按 DPI 缩放；只在分钟（或秒）变化时重绘；资源管理器重启后自动恢复。
 - **可选 mod**（`local@zen-desktop-clock`），deploy 默认关闭。桌面宿主与渲染框架改编自 m417z 的 Desktop Live Overlay（GPL-3.0）。
@@ -290,7 +307,7 @@ ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhaw
 | 文件管理器美化 (File Explorer) | Translucent Explorer with adjustable tint and transparent chrome; glass context menus (experimental). Replaces ExplorerBlurMica |
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
 | 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
-| 桌面时钟 (Desktop Clock) | Optional. Big clock + date behind desktop icons; presets: tilted shadow, minimal, neon, flip cards, custom (rotation, blurred shadow, glow, outline). Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
+| 桌面时钟 (Desktop Clock) | Optional. Big clock + date behind desktop icons; 17 presets (tilted shadow, minimal, neon, flip cards, magazine cover, stacked, hollow, glass card, 7-segment, rainbow/sunset gradient, Chinese numerals, word clock, analog dial, progress ring, accent bar, two-tone glitch) + custom. Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
 | 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
 | 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
 | 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
