@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.1
+// @version         1.7.2
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.2**：选中改为固定深色玻璃（加宽灰阶/轻度强调色检测，FillRect/PatBlt/Rectangle/ExtTextOut 统一）；深色内容下抬亮控制面板彩色链接并清掉漏出的浅色地址栏底/白条。
 - **1.7.1**：性能：GetTargetWnds 短缓存，减少重复 EnumWindows。
 - **1.7.0**：列表选中改为半透明深色玻璃；首次打开窗口前预涂背景效果，减轻黑闪；子菜单在安全范围内跟主菜单玻璃对齐（仍不接管 Popup 材质所有权）；说明写明仅支持 Win11 现代右键菜单，经典 Win32 /「显示更多选项」不支持。
 - **1.6.9**：修复 1.6.8 编译失败（深色模式标志在声明前就被使用）。
@@ -11242,9 +11243,24 @@ bool IsLightContentBackgroundColor(COLORREF color) {
 }
 
 bool IsContentBackgroundColor(COLORREF color) {
-    return color == GetSysColor(COLOR_WINDOW) ||
-           IsDarkContentBackgroundColor(color) ||
-           IsLightContentBackgroundColor(color);
+    if (color == GetSysColor(COLOR_WINDOW) ||
+        color == GetSysColor(COLOR_BTNFACE) ||
+        color == GetSysColor(COLOR_3DFACE)) {
+        return true;
+    }
+    if (IsDarkContentBackgroundColor(color) ||
+        IsLightContentBackgroundColor(color)) {
+        return true;
+    }
+    // ZenDesktop 1.7.2: classic Control Panel / ExplorerFrame chrome sometimes
+    // still paints near-white bands (address-bar underlines, rebar fills) while
+    // the window is in dark content mode. Clear those so they do not show as
+    // solid white strips over the glass.
+    if (g_zenDarkContent.load(std::memory_order_relaxed) &&
+        IsNeutralGreyInRange(color, 0xD0, 0xFF)) {
+        return true;
+    }
+    return false;
 }
 
 bool IsFileExplorerWindowPart(HWND hWnd) {
@@ -11363,9 +11379,55 @@ bool IsWindowBackgroundBrush(HDC hdc, HBRUSH hbr) {
 
 bool FillRectWithAlpha(HDC hdc, const RECT* rect, COLORREF color, BYTE alpha);
 
-// ZenDesktop: selection / hover greys (#2A–#60) and COLOR_HIGHLIGHT used to
-// stay fully opaque (BufferedPaintMakeOpaque / stock FillRect). Paint them as
-// dark glass so selected rows match the translucent theme.
+// ZenDesktop: selection / hover used to stay fully opaque
+// (BufferedPaintMakeOpaque / stock FillRect). Paint a fixed dark glass so
+// selected rows match the translucent theme even when the system highlight is
+// an accent tint (hi-lo > 2 used to miss those).
+constexpr COLORREF kSelectionGlassColor = RGB(0x20, 0x20, 0x20);
+constexpr BYTE kSelectionGlassAlpha = 0x8C;  // ~55%
+
+bool IsNearNeutralInRange(COLORREF color,
+                          int minChannel,
+                          int maxChannel,
+                          int maxDelta) {
+    int r = GetRValue(color);
+    int g = GetGValue(color);
+    int b = GetBValue(color);
+    int hi = std::max({r, g, b});
+    int lo = std::min({r, g, b});
+    return hi - lo <= maxDelta && lo >= minChannel && hi <= maxChannel;
+}
+
+bool IsSelectionOrHoverColor(COLORREF color) {
+    if (color == GetSysColor(COLOR_HIGHLIGHT)) {
+        return true;
+    }
+
+    // Dark content: selection / hover greys above the cleared bg, plus lightly
+    // accent-tinted fills (channel delta up to ~20) that Win11 uses when "accent
+    // color on title bars" tints lists.
+    if (g_zenDarkContent.load(std::memory_order_relaxed)) {
+        if (IsNearNeutralInRange(color, 0x28, 0x78, 20)) {
+            return true;
+        }
+        int r = GetRValue(color);
+        int g = GetGValue(color);
+        int b = GetBValue(color);
+        int hi = std::max({r, g, b});
+        int lo = std::min({r, g, b});
+        int luma = (r * 299 + g * 587 + b * 114) / 1000;
+        // Accent-tinted selection: mid luminance, not neon chrome.
+        if (luma >= 0x28 && luma <= 0x78 && hi - lo <= 90 && hi <= 0xB0 &&
+            lo >= 0x10) {
+            return true;
+        }
+        return false;
+    }
+
+    // Light content: mid-light greys used for selection / hover.
+    return IsNearNeutralInRange(color, 0xB0, 0xE8, 20);
+}
+
 bool IsSelectionOrHoverBrush(HDC hdc, HBRUSH hbr, COLORREF* outColor) {
     COLORREF color;
     if (hbr == (HBRUSH)(COLOR_HIGHLIGHT + 1)) {
@@ -11381,23 +11443,13 @@ bool IsSelectionOrHoverBrush(HDC hdc, HBRUSH hbr, COLORREF* outColor) {
         color = logBrush.lbColor;
     }
 
-    if (color == GetSysColor(COLOR_HIGHLIGHT)) {
-        if (outColor) *outColor = color;
-        return true;
+    if (!IsSelectionOrHoverColor(color)) {
+        return false;
     }
-
-    // Dark-mode selection / hover band above content bg (#282828) and below
-    // mid greys that are chrome chrome. Light mode: mid greys.
-    if (g_zenDarkContent.load(std::memory_order_relaxed)) {
-        if (IsNeutralGreyInRange(color, 0x2A, 0x60)) {
-            if (outColor) *outColor = color;
-            return true;
-        }
-    } else if (IsNeutralGreyInRange(color, 0xC0, 0xE8)) {
-        if (outColor) *outColor = color;
-        return true;
+    if (outColor) {
+        *outColor = color;
     }
-    return false;
+    return true;
 }
 
 using FillRect_t = decltype(&FillRect);
@@ -11407,12 +11459,10 @@ int WINAPI FillRect_Hook(HDC hDC, const RECT* lprc, HBRUSH hbr) {
         if (IsWindowBackgroundBrush(hDC, hbr)) {
             hbr = (HBRUSH)GetStockObject(BLACK_BRUSH);
         } else {
-            COLORREF selColor;
-            if (IsSelectionOrHoverBrush(hDC, hbr, &selColor)) {
-                // Premultiplied dark glass (~45%): keeps selection readable
-                // without a solid slab over the blur.
-                BYTE alpha = 0x73;
-                if (FillRectWithAlpha(hDC, lprc, selColor, alpha)) {
+            if (IsSelectionOrHoverBrush(hDC, hbr, nullptr)) {
+                // Fixed dark glass (not the system highlight tint).
+                if (FillRectWithAlpha(hDC, lprc, kSelectionGlassColor,
+                                      kSelectionGlassAlpha)) {
                     return TRUE;
                 }
             }
@@ -11425,32 +11475,49 @@ int WINAPI FillRect_Hook(HDC hDC, const RECT* lprc, HBRUSH hbr) {
 using PatBlt_t = decltype(&PatBlt);
 PatBlt_t PatBlt_Original;
 BOOL WINAPI PatBlt_Hook(HDC hdc, int x, int y, int w, int h, DWORD rop) {
-    if (rop == PATCOPY && IsEntireWindowEffectDC(hdc) &&
-        IsWindowBackgroundBrush(hdc,
-                                (HBRUSH)GetCurrentObject(hdc, OBJ_BRUSH))) {
-        HGDIOBJ prevBrush = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-        BOOL result = PatBlt_Original(hdc, x, y, w, h, rop);
-        SelectObject(hdc, prevBrush);
-        return result;
+    if (rop == PATCOPY && IsEntireWindowEffectDC(hdc)) {
+        HBRUSH hbr = (HBRUSH)GetCurrentObject(hdc, OBJ_BRUSH);
+        if (IsWindowBackgroundBrush(hdc, hbr)) {
+            HGDIOBJ prevBrush = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+            BOOL result = PatBlt_Original(hdc, x, y, w, h, rop);
+            SelectObject(hdc, prevBrush);
+            return result;
+        }
+        if (IsSelectionOrHoverBrush(hdc, hbr, nullptr)) {
+            RECT rc = {x, y, x + w, y + h};
+            if (FillRectWithAlpha(hdc, &rc, kSelectionGlassColor,
+                                  kSelectionGlassAlpha)) {
+                return TRUE;
+            }
+        }
     }
 
     return PatBlt_Original(hdc, x, y, w, h, rop);
 }
 
-// ZenDesktop: some shell / comctl32 paths fill with Rectangle instead of
-// FillRect / PatBlt. Same brush check; the stock black brush has no outline.
+// ZenDesktop: some shell / comctl32 / DirectUI paths fill with Rectangle
+// instead of FillRect / PatBlt. Clear content bg; paint selection as glass.
 using Rectangle_t = decltype(&Rectangle);
 Rectangle_t Rectangle_Original;
 BOOL WINAPI Rectangle_Hook(HDC hdc, int left, int top, int right, int bottom) {
-    if (IsEntireWindowEffectDC(hdc) &&
-        IsWindowBackgroundBrush(hdc,
-                                (HBRUSH)GetCurrentObject(hdc, OBJ_BRUSH))) {
-        HGDIOBJ prevBrush = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-        HGDIOBJ prevPen = SelectObject(hdc, GetStockObject(NULL_PEN));
-        BOOL result = Rectangle_Original(hdc, left, top, right, bottom);
-        SelectObject(hdc, prevPen);
-        SelectObject(hdc, prevBrush);
-        return result;
+    if (IsEntireWindowEffectDC(hdc)) {
+        HBRUSH hbr = (HBRUSH)GetCurrentObject(hdc, OBJ_BRUSH);
+        if (IsWindowBackgroundBrush(hdc, hbr)) {
+            HGDIOBJ prevBrush = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+            HGDIOBJ prevPen = SelectObject(hdc, GetStockObject(NULL_PEN));
+            BOOL result = Rectangle_Original(hdc, left, top, right, bottom);
+            SelectObject(hdc, prevPen);
+            SelectObject(hdc, prevBrush);
+            return result;
+        }
+        if (IsSelectionOrHoverBrush(hdc, hbr, nullptr)) {
+            // GDI Rectangle excludes the right/bottom edges, matching FillRect.
+            RECT rc = {left, top, right, bottom};
+            if (FillRectWithAlpha(hdc, &rc, kSelectionGlassColor,
+                                  kSelectionGlassAlpha)) {
+                return TRUE;
+            }
+        }
     }
 
     return Rectangle_Original(hdc, left, top, right, bottom);
@@ -11741,13 +11808,10 @@ bool CalcExtTextOutRect(HDC hdc,
 bool PaintExtTextOutBackground(HDC hdc, const RECT* lprect) {
     COLORREF color = GetBkColor(hdc);
 
-    // ZenDesktop: selection highlight as dark glass (was BufferedPaintMakeOpaque).
-    if (color == GetSysColor(COLOR_HIGHLIGHT) ||
-        (g_zenDarkContent.load(std::memory_order_relaxed) &&
-         IsNeutralGreyInRange(color, 0x2A, 0x60)) ||
-        (!g_zenDarkContent.load(std::memory_order_relaxed) &&
-         IsNeutralGreyInRange(color, 0xC0, 0xE8))) {
-        return FillRectWithAlpha(hdc, lprect, color, 0x73);
+    // ZenDesktop: selection highlight as fixed dark glass.
+    if (IsSelectionOrHoverColor(color)) {
+        return FillRectWithAlpha(hdc, lprect, kSelectionGlassColor,
+                                 kSelectionGlassAlpha);
     }
 
     HBRUSH brush = CreateSolidBrush(color);
@@ -11852,6 +11916,40 @@ BOOL ExtTextOutWithAlpha(HDC hdc,
     return result;
 }
 
+
+// ZenDesktop 1.7.2: classic Control Panel (DirectUI) draws category links in
+// dark blue / purple. Over a translucent dark window those become unreadable
+// ("ghost" text). Lift dark glyphs toward a light, hue-preserving tint when the
+// window is in dark content mode and the user has not forced a textColorMode.
+COLORREF LiftDarkTextForDarkGlass(COLORREF color) {
+    if (!g_zenDarkContent.load(std::memory_order_relaxed)) {
+        return color;
+    }
+    int r = GetRValue(color);
+    int g = GetGValue(color);
+    int b = GetBValue(color);
+    int hi = std::max({r, g, b});
+    int lo = std::min({r, g, b});
+    // Only chromatic colors (Control Panel category links). Leave greys alone
+    // so disabled labels and intentional dark text keep their weight.
+    if (hi - lo <= 18) {
+        return color;
+    }
+    int luma = r * 299 + g * 587 + b * 114;
+    if (luma >= 140000) {
+        return color;  // already light enough
+    }
+    // Blend toward a soft light tint so link hue survives.
+    const int tr = std::min(255, r + 160);
+    const int tg = std::min(255, g + 160);
+    const int tb = std::min(255, b + 160);
+    const int amount = 75;  // percent toward target
+    r = r + (tr - r) * amount / 100;
+    g = g + (tg - g) * amount / 100;
+    b = b + (tb - b) * amount / 100;
+    return RGB(r, g, b);
+}
+
 BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
                              int x,
                              int y,
@@ -11871,8 +11969,15 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
 
     // ZenDesktop: the textColorMode setting. Set on the DC, so that both the
     // alpha rendering and the fallback to the original function use it. Text
-    // drawn by DrawTextWithGlow also ends up here.
+    // drawn by DrawTextWithGlow also ends up here. When unset, lift dark link
+    // colors on dark glass (Control Panel category links).
     std::optional<COLORREF> textColor = g_settings.win32TextColor;
+    if (!textColor) {
+        textColor = LiftDarkTextForDarkGlass(GetTextColor(hdc));
+        if (*textColor == GetTextColor(hdc)) {
+            textColor.reset();
+        }
+    }
     COLORREF prevTextColor =
         textColor ? SetTextColor(hdc, *textColor) : CLR_INVALID;
 
@@ -11931,7 +12036,10 @@ HRESULT WINAPI DrawTextWithGlow_Hook(HDC hdcMem,
     }
 
     // Draw plain text, the alpha is handled by the ExtTextOutW hook.
-    COLORREF prevTextColor = SetTextColor(hdcMem, crText);
+    // Lift dark DirectUI link colors on dark glass when textColorMode is default.
+    COLORREF drawColor = g_settings.win32TextColor.value_or(
+        LiftDarkTextForDarkGlass(crText));
+    COLORREF prevTextColor = SetTextColor(hdcMem, drawColor);
     COLORREF prevBkColor = SetBkColor(hdcMem, RGB(0, 0, 0));
 
     HRESULT result;
