@@ -733,8 +733,8 @@ from the **TranslucentTB** project.
       $description:zh-CN: "任务栏图标大小（像素），建议 16–48。0 = 系统默认（24），不做改动。"
   $name: "Taskbar size"
   $name:zh-CN: "任务栏尺寸"
-  $description: "Based on m417z's Taskbar height and icon size. Do not enable that mod or TAI's height options at the same time. Switching between 0 and non-zero reloads the mod."
-  $description:zh-CN: "基于 m417z 的「Taskbar height and icon size」。请勿同时开启该 mod 或 TAI 的高度/图标调节。在 0 与非 0 之间切换会自动重载本 mod。"
+  $description: "Based on m417z's Taskbar height and icon size. Do not enable that mod at the same time. Switching between 0 and non-zero reloads the mod."
+  $description:zh-CN: "基于 m417z 的「Taskbar height and icon size」。请勿同时开启该 mod。在 0 与非 0 之间切换会自动重载本 mod。"
 - unifyFlyouts: true
   $name: "Unify flyouts"
   $name:zh-CN: "统一设置"

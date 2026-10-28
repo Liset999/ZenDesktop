@@ -309,7 +309,7 @@ if (Test-Path $upstreamExplorerStyler) {
 # 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
 
 $optionalDir = Join-Path $PSScriptRoot "optional"
-$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@taskbar-dock-like", "local@desktop-live-overlay")
+$optionalModIds = @("local@wobbly-windows", "local@windows-animations")
 $preselected = @()
 if ($Optional) {
     $preselected = $Optional.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -ne "none" } | ForEach-Object {
