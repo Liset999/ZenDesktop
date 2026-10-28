@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.2
+// @version         1.6.3
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -104,9 +104,10 @@
 
 ## 更新日志
 
-- **1.6.2**：修复零雾开窗编译：将 `IsOurWindow` 定义前移到首次使用之前（Windhawk undeclared identifier）。
+- **1.6.3**：按用户要求移除「零雾开窗」（设置项、覆盖层实现与相关钩子一并删除）；资源管理器 / 设置开窗仍可用本组「启用启动动画」。
+- **1.6.2**：曾修复零雾开窗编译（`IsOurWindow` 前移；功能已在 1.6.3 移除）。
 - **1.6.1**：性能：进程名按 PID 二级缓存，减少重复 OpenProcess。
-- **1.6.0**：新增可选「零雾开窗」：资源管理器 / 设置首次打开时从柔雾模糊溶入玻璃界面（默认关闭，不影响黑闪预涂）。
+- **1.6.0**：曾新增可选「零雾开窗」（已在 1.6.3 移除）。
 - **1.5.3**：开机后预热 Direct2D，减轻首次使用 macOS 神奇效果时的卡顿。
 - **1.5.2**：微信赞赏链接改为指向 `main` 分支。
 - **1.5.1**：说明开头加入作者信息与捐助链接，原作者的捐助链接保留。
@@ -378,21 +379,6 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
   $description: "Animation played when switching windows with Alt+Tab."
   $description:zh-CN: "使用 Alt+Tab 切换窗口时播放的动画。"
 
-- fog_clear:
-  - enable: false
-    $name: "Zero-fog open"
-    $name:zh-CN: "启用零雾开窗"
-    $description: "When File Explorer or Settings first opens, dissolve a soft blurred fog into the glass UI (Minecraft-inspired). Default: off."
-    $description:zh-CN: "资源管理器或「设置」首次打开时，先以柔雾模糊罩住窗口，再溶入玻璃界面（灵感来自《我的世界》零雾）。默认关闭。"
-  - duration_ms: 450
-    $name: "Duration (ms)"
-    $name:zh-CN: "时长（毫秒）"
-    $description: "Fog-clear duration, 200–1200 ms. Default: 450."
-    $description:zh-CN: "零雾溶解时长，范围 200–1200 毫秒。默认 450。"
-  $name: "Zero-fog open"
-  $name:zh-CN: "零雾开窗"
-  $description: "Optional open animation for File Explorer and Settings only. Uses an overlay; does not cloak the real window."
-  $description:zh-CN: "仅作用于资源管理器与「设置」的可选开窗动画。使用覆盖层，不会遮罩真实窗口，也不影响文件管理器美化的黑闪预涂。"
 
 - excluded_programs: [""]
   $name: "Excluded programs"
@@ -833,7 +819,6 @@ DWORD g_seenTaskbarExplorerPid = 0;
 std::unordered_map<HWND, ProcessNameCacheValue> g_ProcessNameCache;
 std::unordered_map<DWORD, std::wstring> g_ProcessNameByPid;
 std::unordered_set<HWND> g_LaunchSeen;
-std::unordered_set<HWND> g_FogSeen;
 std::unordered_set<HWND> g_AnimActive;
 std::unordered_map<HWND, bool> g_AnimWantRising;
 std::unordered_map<HWND, HWND> g_AnimRestoreRequestForeground;
@@ -895,8 +880,6 @@ std::atomic<bool> g_restoreAnimation{true};
 std::atomic<bool> g_closeAnimation{true};
 std::atomic<bool> g_hideAsClose{false};
 std::atomic<bool> g_launchAnimation{false};
-std::atomic<bool> g_fogClearEnable{false};
-std::atomic<int> g_fogClearDurationMs{450};
 std::atomic<bool> g_switchAnimation{true};
 std::atomic<int> g_switchDurationMs{200};
 std::atomic<bool> g_unhideEnabled{false};
@@ -2309,10 +2292,6 @@ static void SweepStaleData() {
         if (!IsWindow(*it)) it = g_LaunchSeen.erase(it);
         else ++it;
     }
-    for (auto it = g_FogSeen.begin(); it != g_FogSeen.end();) {
-        if (!IsWindow(*it)) it = g_FogSeen.erase(it);
-        else ++it;
-    }
     for (auto it = g_AnimActive.begin(); it != g_AnimActive.end();) {
         if (!IsWindow(*it)) it = g_AnimActive.erase(it);
         else ++it;
@@ -2825,8 +2804,6 @@ void LoadAnimSettings() {
     g_closeAnimation.store(getBool(L"close.close_animation", true), std::memory_order_relaxed);
     g_hideAsClose.store(getBool(L"close.hide_as_close", true), std::memory_order_relaxed);
     g_launchAnimation.store(getBool(L"minimize_restore.launch_animation", false), std::memory_order_relaxed);
-    g_fogClearEnable.store(getBool(L"fog_clear.enable", false), std::memory_order_relaxed);
-    g_fogClearDurationMs.store(getInt(L"fog_clear.duration_ms", 450, 200, 1200), std::memory_order_relaxed);
     g_switchAnimation.store(getBool(L"window_switch.switch_animation", false), std::memory_order_relaxed);
     g_switchDurationMs.store(getInt(L"window_switch.duration_ms", 200, 50, 1000), std::memory_order_relaxed);
     g_unhideEnabled.store(getBool(L"minimize_restore.unhide_taskbar", true), std::memory_order_relaxed);
@@ -3535,8 +3512,7 @@ static bool NeedsLocalWinEventThread() {
         g_closeAnimation.load(std::memory_order_relaxed) &&
         g_hideAsClose.load(std::memory_order_relaxed);
     return g_switchAnimation.load(std::memory_order_relaxed) ||
-           needTaskbarObserver || needTrayHideVisibilityObserver ||
-           g_fogClearEnable.load(std::memory_order_relaxed);
+           needTaskbarObserver || needTrayHideVisibilityObserver;
 }
 
 void EnsureWinEventThreadStarted() {
@@ -5383,8 +5359,6 @@ void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD event, HWND hWnd,
     }
 }
 
-static void TryScheduleFogClear(HWND hWnd);
-
 void CALLBACK TrayHideVisibilityEventProc(HWINEVENTHOOK, DWORD event,
                                           HWND hWnd, LONG idObject,
                                           LONG idChild, DWORD, DWORD) {
@@ -5402,9 +5376,6 @@ void CALLBACK TrayHideVisibilityEventProc(HWINEVENTHOOK, DWORD event,
     // exported show API. This also covers DefWindowProc restores,
     // DeferWindowPos/EndDeferWindowPos, AnimateWindow and late async shows.
     ReleaseVisibleTrayHideCloak(hWnd);
-    if (IsWindowVisible(hWnd) && !IsIconic(hWnd)) {
-        TryScheduleFogClear(hWnd);
-    }
 }
 
 static bool IsTaskbarEventWindow(HWND hWnd) {
@@ -14118,398 +14089,10 @@ DWORD WINAPI AsyncRestoreAnimThread(LPVOID lpParam) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-// ZenDesktop: zero-fog open (Minecraft-inspired fog clear) for File Explorer
-// and Settings. Uses a layered overlay after the real window is shown — does
-// not cloak or alpha-hide the HWND, so explorer styler black-flash precoat
-// and Settings glass stay intact.
-// ---------------------------------------------------------------------------
-static constexpr PCWSTR kFogOverlayClass = L"ZenDesktop.FogClearOverlay";
-static std::atomic<bool> g_fogOverlayClassRegistered{false};
-
-static bool EnsureFogOverlayClass() {
-    if (g_fogOverlayClassRegistered.load(std::memory_order_relaxed)) return true;
-    WNDCLASSEXW wc{};
-    wc.cbSize = sizeof(wc);
-    wc.lpfnWndProc = DefWindowProcW;
-    wc.hInstance = GetModuleHandleW(nullptr);
-    wc.lpszClassName = kFogOverlayClass;
-    wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-    const ATOM atom = RegisterClassExW(&wc);
-    if (!atom && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
-        Wh_Log(L"Fog overlay RegisterClassEx failed err=%lu", GetLastError());
-        return false;
-    }
-    g_fogOverlayClassRegistered.store(true, std::memory_order_relaxed);
-    return true;
-}
-
-static bool IsFogClearTargetWindow(HWND hWnd) {
-    if (!hWnd || GetAncestor(hWnd, GA_ROOT) != hWnd) return false;
-    if (IsUserExcludedWindow(hWnd)) return false;
-    WCHAR className[64]{};
-    if (!GetClassNameW(hWnd, className, ARRAYSIZE(className))) return false;
-    if (_wcsicmp(className, L"CabinetWClass") == 0 ||
-        _wcsicmp(className, L"ExploreWClass") == 0) {
-        return true;
-    }
-    const std::wstring proc = GetProcessNameCached(hWnd);
-    if (proc == L"systemsettings") {
-        // Packaged Settings host or CoreWindow root.
-        return (GetWindowLongPtrW(hWnd, GWL_STYLE) & WS_CAPTION) != 0 ||
-               _wcsicmp(className, L"ApplicationFrameWindow") == 0 ||
-               _wcsicmp(className, L"Windows.UI.Core.CoreWindow") == 0;
-    }
-    return false;
-}
-
-static bool ShouldPreferFogClearOverLaunch(HWND hWnd) {
-    return g_fogClearEnable.load(std::memory_order_relaxed) &&
-           IsFogClearTargetWindow(hWnd);
-}
-
-// Separable box blur on BGRA8 top-down DIBs. radius>=1; in/out may alias via tmp.
-static void FogBoxBlurPass(const uint8_t* src, uint8_t* dst, int w, int h,
-                           int stride, int radius, bool horizontal) {
-    const int diam = radius * 2 + 1;
-    if (horizontal) {
-        for (int y = 0; y < h; ++y) {
-            const uint8_t* row = src + y * stride;
-            uint8_t* out = dst + y * stride;
-            int sumB = 0, sumG = 0, sumR = 0, sumA = 0;
-            for (int i = -radius; i <= radius; ++i) {
-                const int x = std::clamp(i, 0, w - 1);
-                const uint8_t* p = row + x * 4;
-                sumB += p[0]; sumG += p[1]; sumR += p[2]; sumA += p[3];
-            }
-            for (int x = 0; x < w; ++x) {
-                out[x * 4 + 0] = static_cast<uint8_t>(sumB / diam);
-                out[x * 4 + 1] = static_cast<uint8_t>(sumG / diam);
-                out[x * 4 + 2] = static_cast<uint8_t>(sumR / diam);
-                out[x * 4 + 3] = static_cast<uint8_t>(sumA / diam);
-                const int xOut = std::clamp(x - radius, 0, w - 1);
-                const int xIn = std::clamp(x + radius + 1, 0, w - 1);
-                const uint8_t* pOut = row + xOut * 4;
-                const uint8_t* pIn = row + xIn * 4;
-                sumB += pIn[0] - pOut[0];
-                sumG += pIn[1] - pOut[1];
-                sumR += pIn[2] - pOut[2];
-                sumA += pIn[3] - pOut[3];
-            }
-        }
-    } else {
-        for (int x = 0; x < w; ++x) {
-            int sumB = 0, sumG = 0, sumR = 0, sumA = 0;
-            for (int i = -radius; i <= radius; ++i) {
-                const int y = std::clamp(i, 0, h - 1);
-                const uint8_t* p = src + y * stride + x * 4;
-                sumB += p[0]; sumG += p[1]; sumR += p[2]; sumA += p[3];
-            }
-            for (int y = 0; y < h; ++y) {
-                uint8_t* out = dst + y * stride + x * 4;
-                out[0] = static_cast<uint8_t>(sumB / diam);
-                out[1] = static_cast<uint8_t>(sumG / diam);
-                out[2] = static_cast<uint8_t>(sumR / diam);
-                out[3] = static_cast<uint8_t>(sumA / diam);
-                const int yOut = std::clamp(y - radius, 0, h - 1);
-                const int yIn = std::clamp(y + radius + 1, 0, h - 1);
-                const uint8_t* pOut = src + yOut * stride + x * 4;
-                const uint8_t* pIn = src + yIn * stride + x * 4;
-                sumB += pIn[0] - pOut[0];
-                sumG += pIn[1] - pOut[1];
-                sumR += pIn[2] - pOut[2];
-                sumA += pIn[3] - pOut[3];
-            }
-        }
-    }
-}
-
-static void FogMakeBlurredCopy(const uint8_t* src, uint8_t* dst, int w, int h,
-                               int radius) {
-    if (w <= 0 || h <= 0) return;
-    const int stride = w * 4;
-    // Downscale → blur → upscale for a soft, cheap fog (value over blink).
-    const int sw = std::max(1, w / 2);
-    const int sh = std::max(1, h / 2);
-    std::vector<uint8_t> small(static_cast<size_t>(sw * 4) * sh);
-    std::vector<uint8_t> smallTmp(small.size());
-    for (int y = 0; y < sh; ++y) {
-        const int sy = std::min(h - 1, y * 2);
-        for (int x = 0; x < sw; ++x) {
-            const int sx = std::min(w - 1, x * 2);
-            const uint8_t* p = src + sy * stride + sx * 4;
-            uint8_t* o = small.data() + (y * sw + x) * 4;
-            o[0] = p[0]; o[1] = p[1]; o[2] = p[2]; o[3] = p[3];
-        }
-    }
-    const int r = std::clamp(radius / 2, 1, 24);
-    FogBoxBlurPass(small.data(), smallTmp.data(), sw, sh, sw * 4, r, true);
-    FogBoxBlurPass(smallTmp.data(), small.data(), sw, sh, sw * 4, r, false);
-    FogBoxBlurPass(small.data(), smallTmp.data(), sw, sh, sw * 4, r, true);
-    FogBoxBlurPass(smallTmp.data(), small.data(), sw, sh, sw * 4, r, false);
-    for (int y = 0; y < h; ++y) {
-        const int sy = std::min(sh - 1, y / 2);
-        for (int x = 0; x < w; ++x) {
-            const int sx = std::min(sw - 1, x / 2);
-            const uint8_t* p = small.data() + (sy * sw + sx) * 4;
-            uint8_t* o = dst + y * stride + x * 4;
-            o[0] = p[0]; o[1] = p[1]; o[2] = p[2]; o[3] = 255;
-        }
-    }
-}
-
-static void FogComposeFrame(const uint8_t* sharp, const uint8_t* blur,
-                            uint8_t* out, int w, int h, float clear01,
-                            bool lightFog) {
-    const int stride = w * 4;
-    const float t = std::clamp(clear01, 0.0f, 1.0f);
-    // Soft veil clears slightly ahead of the blur so glass shows through.
-    const float veil = (1.0f - t) * (1.0f - t);
-    const int veilA = static_cast<int>(veil * (lightFog ? 150.0f : 170.0f));
-    const int vb = lightFog ? 245 : 24;
-    const int vg = lightFog ? 245 : 24;
-    const int vr = lightFog ? 248 : 28;
-    for (int i = 0; i < w * h; ++i) {
-        const uint8_t* s = sharp + i * 4;
-        const uint8_t* b = blur + i * 4;
-        // Premultiplied-ish composite for UpdateLayeredWindow ULW_ALPHA.
-        int c0 = static_cast<int>(b[0] + (s[0] - b[0]) * t);
-        int c1 = static_cast<int>(b[1] + (s[1] - b[1]) * t);
-        int c2 = static_cast<int>(b[2] + (s[2] - b[2]) * t);
-        c0 = (c0 * (255 - veilA) + vb * veilA) / 255;
-        c1 = (c1 * (255 - veilA) + vg * veilA) / 255;
-        c2 = (c2 * (255 - veilA) + vr * veilA) / 255;
-        uint8_t* o = out + i * 4;
-        o[0] = static_cast<uint8_t>(std::clamp(c0, 0, 255));
-        o[1] = static_cast<uint8_t>(std::clamp(c1, 0, 255));
-        o[2] = static_cast<uint8_t>(std::clamp(c2, 0, 255));
-        o[3] = 255;
-    }
-    (void)stride;
-}
-
-struct FogClearAnimData {
-    HWND hWnd;
-};
-
-static bool CaptureWindowToDib(HWND hWnd, HBITMAP* outBmp, void** outBits,
-                               int* outW, int* outH) {
-    RECT rc{};
-    if (!GetWindowRect(hWnd, &rc)) return false;
-    const int w = rc.right - rc.left;
-    const int h = rc.bottom - rc.top;
-    if (w < 32 || h < 32) return false;
-    HDC screen = GetDC(nullptr);
-    if (!screen) return false;
-    void* bits = nullptr;
-    HBITMAP bmp = CreateDib32(screen, w, h, &bits);
-    HDC mem = bmp ? CreateCompatibleDC(screen) : nullptr;
-    HBITMAP old = nullptr;
-    bool ok = false;
-    if (bmp && bits && mem) {
-        old = static_cast<HBITMAP>(SelectObject(mem, bmp));
-        ok = PrintWindow(hWnd, mem, PW_RENDERFULLCONTENT) != FALSE;
-        if (!ok) {
-            // Fallback: BitBlt from screen (glass may look flatter).
-            ok = BitBlt(mem, 0, 0, w, h, screen, rc.left, rc.top, SRCCOPY) != FALSE;
-        }
-        GdiFlush();
-        if (old) SelectObject(mem, old);
-    }
-    if (mem) DeleteDC(mem);
-    ReleaseDC(nullptr, screen);
-    if (!ok) {
-        if (bmp) DeleteObject(bmp);
-        return false;
-    }
-    *outBmp = bmp;
-    *outBits = bits;
-    *outW = w;
-    *outH = h;
-    return true;
-}
-
-DWORD WINAPI FogClearAnimThread(LPVOID lpParam) {
-    auto* data = static_cast<FogClearAnimData*>(lpParam);
-    HWND hWnd = data ? data->hWnd : nullptr;
-    delete data;
-    if (!hWnd) return 0;
-
-    // Let explorer/settings styler finish accent/blur precoat before capture.
-    for (int i = 0; i < 12; ++i) {
-        if (g_unloading.load(std::memory_order_relaxed) || !IsWindow(hWnd)) {
-            std::lock_guard<std::mutex> lock(g_StateMutex);
-            g_FogSeen.erase(hWnd);
-            return 0;
-        }
-        if (IsWindowVisible(hWnd) && !IsIconic(hWnd)) break;
-        Sleep(16);
-    }
-    Sleep(72);
-
-    if (g_unloading.load(std::memory_order_relaxed) || !IsWindow(hWnd) ||
-        !IsWindowVisible(hWnd) || IsIconic(hWnd) || IsAnimating(hWnd)) {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-
-    HBITMAP sharpBmp = nullptr;
-    void* sharpBits = nullptr;
-    int w = 0, h = 0;
-    if (!CaptureWindowToDib(hWnd, &sharpBmp, &sharpBits, &w, &h)) {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-
-    std::vector<uint8_t> sharp(
-        static_cast<const uint8_t*>(sharpBits),
-        static_cast<const uint8_t*>(sharpBits) + static_cast<size_t>(w) * h * 4);
-    DeleteObject(sharpBmp);
-    sharpBmp = nullptr;
-    sharpBits = nullptr;
-
-    std::vector<uint8_t> blur(sharp.size());
-    FogMakeBlurredCopy(sharp.data(), blur.data(), w, h, /*radius=*/28);
-
-    // Approximate light vs dark from capture center (no extra theme probes).
-    const size_t mid = (static_cast<size_t>(h / 2) * w + w / 2) * 4;
-    const int lum = (sharp[mid + 0] + sharp[mid + 1] + sharp[mid + 2]) / 3;
-    const bool light = lum > 140;
-
-    if (!EnsureFogOverlayClass()) {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-
-    RECT rc{};
-    if (!GetWindowRect(hWnd, &rc)) {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-    // If the window moved/resized during settle, recapture size from rect.
-    if (rc.right - rc.left != w || rc.bottom - rc.top != h) {
-        // Size changed — skip rather than stretch a stale capture badly.
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-
-    HWND overlay = CreateWindowExW(
-        WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW |
-            WS_EX_NOACTIVATE,
-        kFogOverlayClass, L"", WS_POPUP, rc.left, rc.top, w, h, nullptr,
-        nullptr, GetModuleHandleW(nullptr), nullptr);
-    if (!overlay) {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-        return 0;
-    }
-
-    HDC screen = GetDC(nullptr);
-    HDC mem = screen ? CreateCompatibleDC(screen) : nullptr;
-    void* frameBits = nullptr;
-    HBITMAP frameBmp =
-        mem ? CreateDib32(screen, w, h, &frameBits) : nullptr;
-    HBITMAP oldBmp = nullptr;
-    if (frameBmp && frameBits) {
-        oldBmp = static_cast<HBITMAP>(SelectObject(mem, frameBmp));
-    }
-
-    const int durationMs =
-        g_fogClearDurationMs.load(std::memory_order_relaxed);
-    const DWORD startTick = GetTickCount();
-    POINT ptSrc{0, 0};
-    SIZE size{w, h};
-    BLENDFUNCTION blend{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-
-    auto present = [&](float clear01, BYTE overallAlpha) {
-        if (!frameBits || !mem) return;
-        FogComposeFrame(sharp.data(), blur.data(),
-                        static_cast<uint8_t*>(frameBits), w, h, clear01,
-                        light);
-        // Premultiply for ULW_ALPHA.
-        uint8_t* p = static_cast<uint8_t*>(frameBits);
-        for (int i = 0; i < w * h; ++i) {
-            const int a = (p[i * 4 + 3] * overallAlpha) / 255;
-            p[i * 4 + 0] = static_cast<uint8_t>((p[i * 4 + 0] * a) / 255);
-            p[i * 4 + 1] = static_cast<uint8_t>((p[i * 4 + 1] * a) / 255);
-            p[i * 4 + 2] = static_cast<uint8_t>((p[i * 4 + 2] * a) / 255);
-            p[i * 4 + 3] = static_cast<uint8_t>(a);
-        }
-        POINT ptDst{rc.left, rc.top};
-        blend.SourceConstantAlpha = 255;
-        UpdateLayeredWindow(overlay, screen, &ptDst, &size, mem, &ptSrc, 0,
-                            &blend, ULW_ALPHA);
-    };
-
-    present(0.0f, 255);
-    ShowWindow(overlay, SW_SHOWNOACTIVATE);
-
-    while (!g_unloading.load(std::memory_order_relaxed) && IsWindow(hWnd) &&
-           IsWindow(overlay)) {
-        const DWORD now = GetTickCount();
-        float t = durationMs > 0
-                      ? static_cast<float>(now - startTick) /
-                            static_cast<float>(durationMs)
-                      : 1.0f;
-        if (t >= 1.0f) break;
-        // Ease-out cubic — clears quickly at the end like zero fog.
-        const float clear01 = 1.0f - (1.0f - t) * (1.0f - t) * (1.0f - t);
-        present(clear01, 255);
-        Sleep(12);
-    }
-
-    // Brief fade of the (now sharp) veil so the real glass window owns the
-    // pixels without a hard pop.
-    for (int step = 0; step < 8; ++step) {
-        if (g_unloading.load(std::memory_order_relaxed) || !IsWindow(overlay))
-            break;
-        const BYTE a = static_cast<BYTE>(255 - (step + 1) * 32);
-        present(1.0f, a > 32 ? a : 0);
-        Sleep(10);
-    }
-
-    if (oldBmp && mem) SelectObject(mem, oldBmp);
-    if (frameBmp) DeleteObject(frameBmp);
-    if (mem) DeleteDC(mem);
-    if (screen) ReleaseDC(nullptr, screen);
-    if (IsWindow(overlay)) DestroyWindow(overlay);
-
-    // Keep hWnd in g_FogSeen for the window's lifetime so minimize/restore
-    // and later SHOW events do not replay zero-fog on the same frame.
-    return 0;
-}
-
 static bool IsOurWindow(HWND hWnd) {
     DWORD pid = 0;
     GetWindowThreadProcessId(hWnd, &pid);
     return pid == GetCurrentProcessId();
-}
-
-static void TryScheduleFogClear(HWND hWnd) {
-    if (!g_fogClearEnable.load(std::memory_order_relaxed)) return;
-    if (g_unloading.load(std::memory_order_relaxed)) return;
-    if (!hWnd || !IsOurWindow(hWnd)) return;
-    if (!IsFogClearTargetWindow(hWnd)) return;
-    if (IsIconic(hWnd)) return;
-    {
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        if (g_FogSeen.count(hWnd) || g_LaunchSeen.count(hWnd) ||
-            g_AnimActive.count(hWnd)) {
-            return;
-        }
-        if (!g_FogSeen.insert(hWnd).second) return;
-    }
-    auto* data = new (std::nothrow) FogClearAnimData{hWnd};
-    if (!data || !StartWorkerThread(FogClearAnimThread, data)) {
-        delete data;
-        std::lock_guard<std::mutex> lock(g_StateMutex);
-        g_FogSeen.erase(hWnd);
-    }
 }
 
 static void KeepLaunchWindowTransparent(HWND hWnd) {
@@ -14533,8 +14116,6 @@ static bool PrepareLaunchAnim(HWND hWnd, int nCmdShow, LONG_PTR* origExOut,
     if (!IsLaunchCommand(nCmdShow)) return false;
     if (!IsLaunchWindow(hWnd)) return false;
     if (IsUserExcludedWindow(hWnd)) return false;
-    // Zero-fog owns Explorer/Settings opens — do not cloak those HWNDs.
-    if (ShouldPreferFogClearOverLaunch(hWnd)) return false;
     {
         std::lock_guard<std::mutex> lock(g_StateMutex);
         if (g_LaunchSeen.count(hWnd)) return false;
@@ -14970,10 +14551,6 @@ BOOL WINAPI ShowWindow_Hook(HWND hWnd, int cmd) {
     {
         const bool wasVisible = IsWindowVisible(hWnd) != FALSE;
         BOOL result = lastError.Call(ShowWindow_Original, hWnd, cmd);
-        if (result && IsLaunchCommand(cmd) && !wasVisible &&
-            IsWindowVisible(hWnd) && !IsIconic(hWnd)) {
-            TryScheduleFogClear(hWnd);
-        }
         return result;
     }
 }
@@ -15075,10 +14652,6 @@ BOOL WINAPI ShowWindowAsync_Hook(HWND hWnd, int cmd) {
     {
         const bool wasVisible = IsWindowVisible(hWnd) != FALSE;
         BOOL result = lastError.Call(ShowWindowAsync_Original, hWnd, cmd);
-        if (result && IsLaunchCommand(cmd) && !wasVisible) {
-            // Visibility may land later; WinEvent SHOW also schedules fog.
-            TryScheduleFogClear(hWnd);
-        }
         return result;
     }
 }
@@ -15982,7 +15555,7 @@ void Wh_ModUninit() {
         g_TaskbarDockLookupStartedTicks.clear();
         g_TaskbarDockNegativeUntilTicks.clear();
         g_TaskbarDockPositiveUntilTicks.clear();
-        g_ProcessNameCache.clear(); g_ProcessNameByPid.clear(); g_LaunchSeen.clear(); g_FogSeen.clear();
+        g_ProcessNameCache.clear(); g_ProcessNameByPid.clear(); g_LaunchSeen.clear();
         g_TaskbarWindowSetSignature = 0;
         g_TaskbarWindowSetSignatureInitialized = false;
         g_seenTaskbarLayoutEpoch = 0;
