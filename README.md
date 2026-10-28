@@ -47,11 +47,11 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 完整更新日志见 [CHANGELOG_v5.0.0.md](CHANGELOG_v5.0.0.md)。
 
-- **任务栏高度 / 图标大小**：「任务栏美化」新增「任务栏尺寸」分组，0 = 系统默认；不要同时开启 m417z 的「Taskbar height and icon size」或 TAI 的高度/图标调节。
+- **任务栏高度 / 图标大小**：「任务栏美化」新增「任务栏尺寸」分组，0 = 系统默认；不要同时开启 m417z 的「Taskbar height and icon size」。
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
 - **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
-- **可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果等）；桌面小组件改用社区 **Desktop Live Overlay**；Dock 改用社区 **TAI (taskbar as island)**（见 docs）。自制卡片/Dock MVP 已废弃。
+- **可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果等）。
 - **浅色模式**：通知栏和「设置」加了白底并加深文字；开始菜单去掉了液态玻璃的白雾，修好了应用名称不显示。
 - **更像原生**：液态玻璃全部去掉额外描边，圆角与 Windows 一致；「设置」窗口失去焦点也保持透明。
 - **任务栏设置分区**：新增「统一设置」（默认打开），托盘和音量浮窗跟着任务栏一起调。
@@ -137,22 +137,6 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 每组可单独开关、选样式和时长，也可以每次随机。
 - 可按进程名排除指定程序，常见游戏和反作弊程序已默认排除。
 - **可选 mod**，默认关闭。原作者 ReDrag（Windows Animations，MIT），macOS 神奇效果来自 Abdullah Masood 的 macOS Minimize Animation。以前装过独立的「macOS 神奇效果最小化动画」请关掉，否则会播两次。
-
-### 桌面小组件（社区：Desktop Live Overlay）
-
-在桌面图标后方显示可配置的实时内容（时间、日期、系统指标、天气等）。**直接采用社区方案**，不再维护自制玻璃卡片。
-
-- Windhawk 名：**Desktop Live Overlay**（`local@desktop-live-overlay`），作者 m417z，**GPL-3.0**。
-- **可选 mod**，deploy 默认关闭。安装与设置见 [docs/desktop-widgets.md](docs/desktop-widgets.md)。
-- 自制 `zen-desktop-widgets` 已移至 `optional/deprecated/`（仅回退，不再部署）。
-
-### Dock（社区：TAI / taskbar-dock-like）
-
-把 Windows 11 任务栏变成居中浮起的「岛式」Dock，保留开始、搜索、托盘等原生能力。**直接采用社区方案**，不再维护自制 popup 启动栏。
-
-- Windhawk 名：**TAI (taskbar as island) for Windows 11**（`local@taskbar-dock-like`），作者 DarkionAvey，基于 **GPL-3.0**。
-- **可选 mod**，deploy 默认关闭。说明见 [docs/nexus-dock.md](docs/nexus-dock.md)。
-- 自制 `zen-dock` 已移至 `optional/deprecated/`（已废弃，不再部署）。
 
 ### ZenDesktop: 设置美化
 
@@ -254,8 +238,6 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **果冻窗口没效果**：打开后需要重启电脑；确认 Windhawk 进程包含列表里有 `dwm.exe`。
 - **最小化动画播了两次**：关掉独立的「macOS 神奇效果最小化动画」，只留「窗口动画」。
 
-- **桌面小组件怎么开**：Windhawk 打开可选 Mod **Desktop Live Overlay**（`local@desktop-live-overlay`）并编译；在设置里配内容。详情见 docs/desktop-widgets.md。
-- **Dock 怎么开**：Windhawk 打开可选 Mod **TAI (taskbar as island)**（`local@taskbar-dock-like`）并编译。详情见 docs/nexus-dock.md。
 - **窗口动画在哪**：可选 Mod **「ZenDesktop: 窗口动画」**（`local@windows-animations`），deploy 已拷贝且**默认关**；在 Windhawk「已安装的 Mod」里打开并编译即可（含关闭/最小化/Alt+Tab 与 macOS 神奇效果）。
 
 问题反馈：[github.com/Liset999/ZenDesktop/issues](https://github.com/Liset999/ZenDesktop/issues)
@@ -267,8 +249,6 @@ ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布。
 - [Windhawk](https://windhawk.net) 和任务栏、开始菜单、通知中心、设置、文件管理器的上游 Styler mod：[m417z](https://github.com/m417z)（GPL-3.0）。ZenDesktop 的修改版同样以 GPL-3.0 发布。
 - 内置的社区主题由各自作者贡献，详见各 Windows 11 styling guide 仓库。
 - 果冻窗口：[lalimatyus](https://github.com/lalimatyus/Wobbly-Windows)（GPL-3.0）。
-- Dock（TAI）：[DarkionAvey](https://github.com/DarkionAvey)（GPL-3.0）。
-- 桌面 Overlay：[m417z](https://github.com/m417z) Desktop Live Overlay（GPL-3.0）。
 - 窗口动画：[ReDrag](https://github.com/redrag2105)（MIT）；macOS 神奇效果：Abdullah Masood、Potassiumuncher。
 - 玻璃画刷和控件树监听参考了 [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB)。
 - 歌词数据来自 LRCLIB、网易云音乐、QQ 音乐，版权归原权利人所有。
@@ -301,8 +281,6 @@ ZenDesktop is a Windows 11 desktop styling suite of 9 [Windhawk](https://windhaw
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
 | 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
 | 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
-| 桌面小组件 (Desktop Widgets) | Optional. Community **Desktop Live Overlay** (m417z, GPL-3.0). Homemade cards deprecated. See docs/desktop-widgets.md. |
-| Dock | Optional. Community **TAI / taskbar-dock-like** (DarkionAvey, GPL-3.0). Homemade zen-dock deprecated. See docs/nexus-dock.md. |
 | 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
 | 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
 
