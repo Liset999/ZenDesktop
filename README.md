@@ -104,6 +104,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 适配浅色模式；改完设置，已打开的窗口立即刷新。
 - 桌面和文件管理器的新版右键菜单可换成可调磨砂程度的玻璃（默认开启，仍在测试）。
 - 取代 ExplorerBlurMica，**不要两个同时用**。
+- 也不要同时开启上游「Windows 11 File Explorer Styler」：两者争用 XAML 诊断，会反复弹出 “trying to use XAML diagnostics” 提示；在 Windhawk 里关掉上游即可（deploy.ps1 检测到会提示）。
 - 核心 mod。基于 m417z 的 Windows 11 File Explorer Styler（GPL-3.0）。
 
 ### ZenDesktop: 果冻窗口

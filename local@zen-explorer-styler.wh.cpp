@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.3
+// @version         1.7.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.4**：修复开窗先闪一下：1.7.3 的选中/导航栏透明清除改为窗口显示且背景已生效后才执行；XAML 诊断被其他 mod（如上游「Windows 11 File Explorer Styler」）占用时本进程不再反复尝试，减少报错弹窗。
 - **1.7.3**：选中改走主题位图钩子（ItemsView/ListView/TreeView 的 DrawThemeBackground），先清成透明再叠真正半透明深色，去掉浅色描边；控制面板顶部导航栏（Rebar/地址栏背景）清成透明，去掉黑条；日志输出 [zen-theme] 便于确认。
 - **1.7.2**：选中改为固定深色玻璃（加宽灰阶/轻度强调色检测，FillRect/PatBlt/Rectangle/ExtTextOut 统一）；深色内容下抬亮控制面板彩色链接并清掉漏出的浅色地址栏底/白条。
 - **1.7.1**：性能：GetTargetWnds 短缓存，减少重复 EnumWindows。
@@ -2375,8 +2376,15 @@ bool g_inInjectWindhawkTAP = false;
 
 using PFN_INITIALIZE_XAML_DIAGNOSTICS_EX = decltype(&InitializeXamlDiagnosticsEx);
 
+static std::atomic<bool> g_zenTapBlocked{false};
+
 HRESULT InjectWindhawkTAP() noexcept
 {
+    if (g_zenTapBlocked.load())
+    {
+        Wh_Log(L"InjectWindhawkTAP skipped: XAML diagnostics owned by another mod");
+        return E_ACCESSDENIED;
+    }
     HMODULE module = GetCurrentModuleHandle();
     if (!module)
     {
@@ -2444,6 +2452,17 @@ HRESULT InjectWindhawkTAP() noexcept
         {
             consecutiveNotFound++;
             continue;
+        }
+        if (FAILED(hr))
+        {
+            // ZenDesktop 1.7.4: another consumer (e.g. upstream "Windows 11
+            // File Explorer Styler") owns XAML diagnostics. Every further call
+            // makes it pop its conflict dialog again, so stop for this process.
+            g_zenTapBlocked = true;
+            Wh_Log(L"InitializeXamlDiagnosticsEx(%s) refused %08X; "
+                   L"stop TAP injection for this process", connectionName, hr);
+            lastHr = hr;
+            break;
         }
 
         foundAny = true;
@@ -12483,11 +12502,26 @@ bool PaintThemeBackground(HTHEME hTheme,
     // tests can confirm which path paints selection and toolbar chrome.
     ZenLogThemePartOnce(themeClass, iPartId, iStateId);
 
+    // ZenDesktop 1.7.4: the 1.7.3 clears below punch alpha-0 holes. Before the
+    // window is shown with our backdrop, DWM has no blur behind them yet and
+    // they flash black on open. Only clear once the root is visible and
+    // carries our backdrop; until then the theme draws as usual.
+    bool zenClearReady = false;
+    {
+        HWND dcWnd = WindowFromDC(hdc);
+        const DCWnd* memWnd = dcWnd ? nullptr : GetMemoryDCWnd(hdc);
+        HWND root = GetAncestor(dcWnd ? dcWnd : (memWnd ? memWnd->hWnd : nullptr),
+                                GA_ROOT);
+        zenClearReady =
+            root && IsWindowVisible(root) &&
+            GetProp(root, L"windhawk_background_effect-" WH_MOD_ID);
+    }
+
     // ZenDesktop 1.7.3: list/tree selection (ItemsView, ListView, TreeView) is
     // a themed bitmap with alpha 255 plus a light 1px frame, so the GDI
     // FillRect hooks never saw it. Clear it to alpha 0 and lay a real
     // premultiplied dark tint on top; the frame is not drawn.
-    if (iPartId == 1 && iStateId > 1 &&
+    if (zenClearReady && iPartId == 1 && iStateId > 1 &&
         (wcsstr(themeClass, L"ItemsView") || wcsstr(themeClass, L"ListView") ||
          wcsstr(themeClass, L"TreeView"))) {
         RECT rc = *pRect;
@@ -12516,7 +12550,7 @@ bool PaintThemeBackground(HTHEME hTheme,
                       wcsstr(themeClass, L"AddressComposited")) &&
                      iPartId == 1;
     bool navBg = wcsstr(themeClass, L"Navigation") && iPartId == 0;
-    if (rebarBg || addressBg || navBg) {
+    if (zenClearReady && (rebarBg || addressBg || navBg)) {
         RECT rc = *pRect;
         if (pClipRect && !IntersectRect(&rc, &rc, pClipRect)) {
             return true;
