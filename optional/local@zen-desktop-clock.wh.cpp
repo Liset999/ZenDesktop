@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.2.2
+// @version         1.3.0
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -32,7 +32,9 @@
 在桌面图标**后方**绘制大号时间与日期，不挡图标、不抢焦点、不吃鼠标。
 
 - **17 种样式预设**：倾斜阴影、极简、霓虹、翻页、大字封面、竖排、描边空心、玻璃卡片、复古数码管、彩虹渐变、日落渐变、中文大写、文字时钟、圆形表盘、进度环、左侧细线、双色错位；另有「自定义」。
-- **设置很短**：样式、位置（九宫格 + 微调偏移）、大小、颜色/强调色、24 小时、显示秒、日期格式、资源占用、日历（+农历）、显示器。细调（字体、旋转、投影、光晕、描边、渐变、版式…）都收在「高级」里，只对「自定义」样式生效。
+- **设置很短**：样式、位置（九宫格 + 微调偏移）、大小、颜色/强调色、24 小时、显示秒、日期格式、资源占用、日历（+农历）、显示器。
+- **鼠标拖动定位**：打开「拖动调整位置」，把时钟上的半透明框拖到想要的位置，松手即保存，然后关掉这一项。「锁定位置」可防止误开；「重置拖动位置」打开一次就恢复九宫格位置（之后再关掉）。
+- 细调（字体、旋转、投影、光晕、描边、渐变、版式…）都收在「高级」里，只对「自定义」样式生效。
 - **资源占用**：可选显示 CPU / 内存占用，每 2 秒刷新（只在开启时采样）；进度环、圆形表盘样式下显示为两个小圆环，其他样式为一行小字。
 - **月历**：可放在时钟右侧或下方，今天用强调色高亮，可显示农历（内置 1999–2099 农历表，不联网）。
 - 只在分钟（或开了秒时每秒；开了资源占用时每 2 秒）变化时重绘；资源管理器重启后自动恢复。
@@ -178,6 +180,20 @@
   $name:zh-CN: "显示器"
   $description: "1 = first, 2 = second… 0 = all."
   $description:zh-CN: "1 = 第一个，2 = 第二个……0 = 全部。"
+- dragMode: false
+  $name: "Drag to position"
+  $name:zh-CN: "拖动调整位置"
+  $description: "Shows a handle over the clock; drag it, then turn this off. The dragged position overrides Position/offset."
+  $description:zh-CN: "在时钟上显示一个拖动框，拖到想要的位置后把这项关掉。拖动后的位置会覆盖「位置」和偏移。"
+- lockPosition: false
+  $name: "Lock position"
+  $name:zh-CN: "锁定位置"
+  $description:zh-CN: "打开后忽略「拖动调整位置」。"
+- resetPosition: false
+  $name: "Reset dragged position"
+  $name:zh-CN: "重置拖动位置"
+  $description: "Turn on to forget the dragged position (back to Position/offset), then turn it off again."
+  $description:zh-CN: "打开一次即清除拖动位置（恢复用「位置」和偏移），之后请再关掉。"
 - advanced:
   - layout: normal
     $name: "Layout"
@@ -364,6 +380,7 @@ struct ZcSettings {
     bool resources = false;
     int calendar = 0;    // 0 off, 1 right, 2 below
     bool lunar = true;
+    bool drag = false, lock = false, reset = false;
     ZcStyle style;
 } g_zc;
 
@@ -811,6 +828,13 @@ void ZcLoadSettings() {
     std::wstring cal = ZcStr(L"calendar");
     z.calendar = cal == L"right" ? 1 : cal == L"below" ? 2 : 0;
     z.lunar = Wh_GetIntSetting(L"lunar") != 0;
+    z.drag = Wh_GetIntSetting(L"dragMode") != 0;
+    z.lock = Wh_GetIntSetting(L"lockPosition") != 0;
+    z.reset = Wh_GetIntSetting(L"resetPosition") != 0;
+    if (z.reset && Wh_GetIntValue(L"posSet", 0)) {
+        Wh_SetIntValue(L"posSet", 0);
+        Wh_Log(L"dragged position cleared");
+    }
 
     ZcStyle& s = z.style;
     std::wstring style = ZcStr(L"style");
@@ -1606,11 +1630,23 @@ ComPtr<ID2D1Effect> ZcShadowEffect(ID2D1Image* input, D2D1_COLOR_F color,
 }
 
 bool g_zcDiagPending = true;  // log one diagnostic frame
+D2D1_SIZE_F g_zcLastSize{};   // unrotated block size of the last drawn block (px)
+// Dragged position: block center relative to the monitor work area, logical px.
+struct ZcPos { bool set = false; int x = 0, y = 0; };
+ZcPos g_zcPos;
+bool g_zcPosLoaded = false;
+void ZcLoadPos() {
+    g_zcPos.set = Wh_GetIntValue(L"posSet", 0) != 0;
+    g_zcPos.x = Wh_GetIntValue(L"posX", 0);
+    g_zcPos.y = Wh_GetIntValue(L"posY", 0);
+    g_zcPosLoaded = true;
+}
 
 void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
     const ZcStyle& s = g_zc.style;
     ZcFrame f;
     ZcBuildFrame(scale, f);
+    g_zcLastSize = f.size;
     if (g_zcDiagPending) {
         Wh_Log(L"diag frame pieces=%d dial=%d size=%.0fx%.0f text=(%.2f,%.2f,%.2f,a%.2f) "
                L"timeSize=%d font=%s",
@@ -1797,6 +1833,139 @@ bool ZcResizeSwapChain(UINT width, UINT height) {
     return ZcBindTarget();
 }
 
+POINT g_zcLastCenter{};      // screen coords of the first drawn block center
+HMONITOR g_zcLastMon = nullptr;
+
+////////////////////////////////////////////////////////////////////////////////
+// Drag handle (only exists while 「拖动调整位置」 is on)
+
+#define ZC_DRAG_CLASS (L"ZenDesktopClockDrag_" WH_MOD_ID)
+HWND g_zcDragWnd = nullptr;
+bool g_zcDragClass = false;
+DWORD g_zcLastDragRender = 0;
+void ZcRender();
+
+RECT ZcDragRectFor(POINT c) {
+    float w = (std::max)(g_zcLastSize.width, 160.0f) + 40;
+    float h = (std::max)(g_zcLastSize.height, 80.0f) + 40;
+    return {c.x - (LONG)(w / 2), c.y - (LONG)(h / 2), c.x + (LONG)(w / 2),
+            c.y + (LONG)(h / 2)};
+}
+
+// Window center (screen) -> stored monitor-relative logical position.
+void ZcPosFromWindow(HWND hWnd) {
+    RECT wr;
+    GetWindowRect(hWnd, &wr);
+    POINT c{(wr.left + wr.right) / 2, (wr.top + wr.bottom) / 2};
+    HMONITOR m = g_zcLastMon ? g_zcLastMon : MonitorFromPoint(c, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi{sizeof(mi)};
+    if (!GetMonitorInfo(m, &mi)) return;
+    float scale = ZcMonitorScale(m);
+    LONG cx = (std::min)((std::max)(c.x, mi.rcWork.left), mi.rcWork.right);
+    LONG cy = (std::min)((std::max)(c.y, mi.rcWork.top), mi.rcWork.bottom);
+    g_zcPos.set = true;
+    g_zcPos.x = (int)std::lround((cx - mi.rcWork.left) / scale);
+    g_zcPos.y = (int)std::lround((cy - mi.rcWork.top) / scale);
+    g_zcPosLoaded = true;
+}
+
+LRESULT CALLBACK ZcDragProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+    switch (msg) {
+        case WM_NCHITTEST:
+            return HTCAPTION;  // whole window drags
+        case WM_MOUSEACTIVATE:
+            return MA_NOACTIVATE;
+        case WM_MOVING: {
+            ZcPosFromWindow(hWnd);
+            DWORD now = GetTickCount();
+            if (now - g_zcLastDragRender > 33) {  // ~30 fps max
+                g_zcLastDragRender = now;
+                ZcRender();
+            }
+            break;
+        }
+        case WM_EXITSIZEMOVE:
+            ZcPosFromWindow(hWnd);
+            Wh_SetIntValue(L"posX", g_zcPos.x);
+            Wh_SetIntValue(L"posY", g_zcPos.y);
+            Wh_SetIntValue(L"posSet", 1);
+            Wh_Log(L"dragged position saved: (%d,%d) logical px", g_zcPos.x, g_zcPos.y);
+            ZcRender();
+            return 0;
+        case WM_PAINT: {
+            PAINTSTRUCT ps;
+            HDC dc = BeginPaint(hWnd, &ps);
+            RECT rc;
+            GetClientRect(hWnd, &rc);
+            HBRUSH bg = CreateSolidBrush(RGB(20, 20, 24));
+            FillRect(dc, &rc, bg);
+            DeleteObject(bg);
+            HBRUSH fr = CreateSolidBrush(RGB(0, 170, 255));
+            for (int i = 0; i < 3; i++) {
+                RECT r = rc;
+                InflateRect(&r, -i, -i);
+                FrameRect(dc, &r, fr);
+            }
+            DeleteObject(fr);
+            SetBkMode(dc, TRANSPARENT);
+            SetTextColor(dc, RGB(255, 255, 255));
+            HFONT font = CreateFont(-18, 0, 0, 0, FW_SEMIBOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0,
+                                    CLEARTYPE_QUALITY, 0, L"Microsoft YaHei UI");
+            HGDIOBJ old = SelectObject(dc, font);
+            RECT tr = rc;
+            InflateRect(&tr, -8, -8);
+            DrawText(dc, L"拖动以移动，完成后在设置里关闭拖动", -1, &tr,
+                     DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
+            SelectObject(dc, old);
+            DeleteObject(font);
+            EndPaint(hWnd, &ps);
+            return 0;
+        }
+        case WM_DESTROY:
+            g_zcDragWnd = nullptr;
+            return 0;
+    }
+    return DefWindowProc(hWnd, msg, wp, lp);
+}
+
+void ZcDestroyDragWindow() {
+    if (g_zcDragWnd) DestroyWindow(g_zcDragWnd);
+    g_zcDragWnd = nullptr;
+}
+
+// Create/remove the drag handle to match the settings. Must run on the
+// overlay's thread.
+void ZcSyncDragWindow() {
+    bool want = g_zc.drag && !g_zc.lock && g_zcOverlayWnd && !g_zcUnloading;
+    if (!want) {
+        ZcDestroyDragWindow();
+        return;
+    }
+    if (g_zcDragWnd) return;
+    if (!g_zcDragClass) {
+        WNDCLASS wc = {};
+        wc.lpfnWndProc = ZcDragProc;
+        wc.hInstance = ZcModule();
+        wc.hCursor = LoadCursor(nullptr, IDC_SIZEALL);
+        wc.lpszClassName = ZC_DRAG_CLASS;
+        g_zcDragClass = RegisterClass(&wc) != 0;
+        if (!g_zcDragClass) return;
+    }
+    RECT r = ZcDragRectFor(g_zcLastCenter);
+    g_zcDragWnd = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_NOACTIVATE,
+                                 ZC_DRAG_CLASS, L"", WS_POPUP, r.left, r.top,
+                                 r.right - r.left, r.bottom - r.top, nullptr, nullptr,
+                                 ZcModule(), nullptr);
+    if (!g_zcDragWnd) {
+        Wh_Log(L"drag window failed: %u", GetLastError());
+        return;
+    }
+    SetLayeredWindowAttributes(g_zcDragWnd, 0, 110, LWA_ALPHA);
+    SetWindowPos(g_zcDragWnd, HWND_TOP, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    Wh_Log(L"drag window shown");
+}
+
 // Wallpaper Engine (WPEDesktopDX11Window) and similar tools add children to
 // the same WorkerW and can cover the overlay. Keep the overlay on top of its
 // siblings. Returns true if other siblings exist (so we keep checking).
@@ -1871,6 +2040,7 @@ void ZcRender() {
     if (g_zc.resources) ZcSampleResources();
     g_zcDc->BeginDraw();
     g_zcDc->Clear(D2D1::ColorF(0, 0, 0, 0));
+    bool first = true;
     for (HMONITOR m : ZcTargetMonitors()) {
         MONITORINFO mi{sizeof(mi)};
         if (!GetMonitorInfo(m, &mi)) continue;
@@ -1884,6 +2054,11 @@ void ZcRender() {
         D2D1_POINT_2F c = D2D1::Point2F(
             r.left + (r.right - r.left) * fx[col] + g_zc.offsetX * scale,
             r.top + (r.bottom - r.top) * fy[row] + g_zc.offsetY * scale);
+        if (!g_zcPosLoaded) ZcLoadPos();
+        if (g_zcPos.set) {
+            // Dragged position overrides anchor/offset (logical px -> physical).
+            c = D2D1::Point2F(r.left + g_zcPos.x * scale, r.top + g_zcPos.y * scale);
+        }
         // Never let the offset push the block center off its monitor.
         c.x = (std::min)((std::max)(c.x, (float)r.left + 20), (float)r.right - 20);
         c.y = (std::min)((std::max)(c.y, (float)r.top + 20), (float)r.bottom - 20);
@@ -1894,6 +2069,11 @@ void ZcRender() {
                    r.left, r.top, r.right, r.bottom, scale, c.x, c.y);
         }
         ZcDrawBlock(c, scale * g_zc.size / 100.0f);
+        if (first) {
+            first = false;
+            g_zcLastCenter = {(LONG)(c.x + hostRc.left), (LONG)(c.y + hostRc.top)};
+            g_zcLastMon = m;
+        }
     }
     HRESULT hr = g_zcDc->EndDraw();
     if (FAILED(hr) || g_zcDiagPending) {
@@ -1976,6 +2156,7 @@ LRESULT CALLBACK ZcOverlayProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
         case WM_DESTROY:
             KillTimer(hWnd, ZC_TIMER_REFRESH);
             KillTimer(hWnd, ZC_TIMER_ZORDER);
+            ZcDestroyDragWindow();
             ZcReleaseSwapChain();
             g_zcOverlayWnd = nullptr;
             if (!g_zcUnloading && g_zcMessageWnd) {
@@ -1987,9 +2168,11 @@ LRESULT CALLBACK ZcOverlayProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         case ZC_WM_SETTINGS:
             ZcLoadSettings();
+            ZcLoadPos();
             g_zcDiagPending = true;
             ZcRender();
             ZcScheduleNext();
+            ZcSyncDragWindow();
             return 0;
     }
     return DefWindowProc(hWnd, msg, wp, lp);
@@ -2083,6 +2266,7 @@ void ZcCreateOverlay() {
     if (ZcCreateSwapChain(rc.right - rc.left, rc.bottom - rc.top)) {
         ZcRender();
         ZcScheduleNext();
+        ZcSyncDragWindow();
     } else {
         ZcReleaseSwapChain();
     }
@@ -2161,6 +2345,7 @@ void Wh_ModUninit() {
     if (g_zcMessageWnd) SendMessage(g_zcMessageWnd, ZC_WM_CLEANUP, 0, 0);
     if (g_zcOverlayClass) UnregisterClass(ZC_OVERLAY_CLASS, ZcModule());
     if (g_zcMessageClass) UnregisterClass(ZC_MESSAGE_CLASS, ZcModule());
+    if (g_zcDragClass) UnregisterClass(ZC_DRAG_CLASS, ZcModule());
     ZcUninitDirectX();
 }
 
