@@ -27,6 +27,7 @@ common_files = [
     # v4.2: optional mods (installed only on opt-in by deploy.ps1)
     'optional/local@wobbly-windows.wh.cpp',
     'optional/local@windows-animations.wh.cpp',
+    'optional/local@zen-desktop-clock.wh.cpp',
     'optional/THIRD_PARTY_NOTICES.md',
 ]
 
