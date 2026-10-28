@@ -2,15 +2,15 @@
 // @id              zen-desktop-clock
 // @name            ZenDesktop: 桌面时钟
 // @name:zh-CN      ZenDesktop: 桌面时钟
-// @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
-// @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.3.2
+// @description     Clock, calendar and resource widgets behind the desktop icons. Each can be shown, resized and dragged on its own.
+// @description:zh-CN 在桌面图标后方显示时钟、日历和资源占用（CPU、内存、GPU、网速），三块可单独开关、单独拖动。
+// @version         1.4.0
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32 -ladvapi32
+// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32 -ladvapi32 -lpdh -liphlpapi
 // ==/WindhawkMod==
 
 // Source code is published under The GNU General Public License v3.0.
@@ -29,15 +29,11 @@
 
 # ZenDesktop: 桌面时钟
 
-在桌面图标**后方**绘制大号时间与日期，不挡图标、不抢焦点、不吃鼠标。
+在桌面图标**后方**放小组件，不挡图标、不抢焦点。关掉拖动后不吃鼠标。
 
-- **17 种样式预设**：倾斜阴影、极简、霓虹、翻页、大字封面、竖排、描边空心、玻璃卡片、复古数码管、彩虹渐变、日落渐变、中文大写、文字时钟、圆形表盘、进度环、左侧细线、双色错位；另有「自定义」。
-- **设置很短**：样式、位置（九宫格 + 微调偏移）、大小、颜色/强调色、24 小时、显示秒、日期格式、资源占用、日历（+农历）、显示器。
-- **鼠标拖动定位**：打开「拖动调整位置」，把时钟上的半透明框拖到想要的位置，松手即保存，然后关掉这一项。「锁定位置」可防止误开；「重置拖动位置」打开一次就恢复九宫格位置（之后再关掉）。
-- 细调（字体、旋转、投影、光晕、描边、渐变、版式…）都收在「高级」里，只对「自定义」样式生效。
-- **资源占用**：可选显示 CPU / 内存占用，每 2 秒刷新（只在开启时采样）；进度环、圆形表盘样式下显示为两个小圆环，其他样式为一行小字。
-- **月历**：可放在时钟右侧或下方，今天用强调色高亮，可显示农历（内置 1999–2099 农历表，不联网）。
-- 只在分钟（或开了秒时每秒；开了资源占用时每 2 秒）变化时重绘；资源管理器重启后自动恢复。
+- **三块，各自开关、各自大小、各自拖动**：时钟、日历（整月、紧凑、本周、今天、一行，可选农历）、资源占用（CPU、内存、GPU、网速可以单独关，每 2 秒刷新）。拖框中间移动，拖四个角连续改大小。
+- **摆位置**：「拖动调整位置」和「重置拖动位置」在设置最上面。打开拖动后每块出现一个半透明框，拖好后关掉。重置打开一次就忘掉拖过的位置。
+- **17 种样式**加自定义。颜色、24 小时、秒、日期、农历和九宫格都在「高级」里。
 
 基于 m417z 的 Desktop Live Overlay（GPL-3.0）的桌面宿主与渲染框架。
 */
@@ -45,6 +41,16 @@
 
 // ==WindhawkModSettings==
 /*
+- dragMode: false
+  $name: "Drag to position"
+  $name:zh-CN: "拖动调整位置"
+  $description: "Drag the box to move. Drag a corner to resize freely, then turn this off."
+  $description:zh-CN: "拖框中间移动，拖四个角连续改大小。调好后把这项关掉。"
+- resetPosition: false
+  $name: "Reset dragged position"
+  $name:zh-CN: "重置拖动位置"
+  $description: "Turn on once to forget every dragged position, then turn it off again."
+  $description:zh-CN: "打开一次即清除时钟、日历、资源占用记住的位置，之后请再关掉。"
 - style: tilted
   $name: "Style"
   $name:zh-CN: "样式"
@@ -86,181 +92,215 @@
   - accent: "左侧细线"
   - glitch: "双色错位"
   - custom: "自定义（用「高级」设置）"
-- anchor: center
-  $name: "Position"
-  $name:zh-CN: "位置"
-  $options:
-  - topLeft: "Top left"
-  - top: "Top"
-  - topRight: "Top right"
-  - left: "Left"
-  - center: "Center"
-  - right: "Right"
-  - bottomLeft: "Bottom left"
-  - bottom: "Bottom"
-  - bottomRight: "Bottom right"
-  $options:zh-CN:
-  - topLeft: "左上"
-  - top: "上"
-  - topRight: "右上"
-  - left: "左"
-  - center: "正中"
-  - right: "右"
-  - bottomLeft: "左下"
-  - bottom: "下"
-  - bottomRight: "右下"
-- offset:
-  - x: 0
-    $name: "Horizontal"
-    $name:zh-CN: "水平（正数向右）"
-  - y: -80
-    $name: "Vertical"
-    $name:zh-CN: "垂直（正数向下）"
-  $name: "Fine offset (px at 100%)"
-  $name:zh-CN: "微调偏移（像素）"
+- showClock: true
+  $name: "Clock"
+  $name:zh-CN: "时钟"
+  $description: "Turn off to keep only the calendar or the resource widget."
+  $description:zh-CN: "关掉后可以只留日历或资源占用。"
 - size: 100
-  $name: "Size (%)"
-  $name:zh-CN: "大小（%）"
-  $description: "50–300. Scales everything, on top of display scaling."
-  $description:zh-CN: "50–300，整体缩放（已自动适配显示器缩放）。"
-- color: default
-  $name: "Text color"
-  $name:zh-CN: "颜色"
-  $options:
-  - default: "Follow style"
-  - white: "White"
-  - black: "Black"
-  - lightgray: "Light gray"
-  - red: "Red"
-  - orange: "Orange"
-  - gold: "Gold"
-  - green: "Green"
-  - cyan: "Cyan"
-  - blue: "Blue"
-  - purple: "Purple"
-  - pink: "Pink"
-  - system: "System accent color"
-  - custom: "Custom (fill in below)"
-  $options:zh-CN:
-  - default: "跟随样式"
-  - white: "白色"
-  - black: "黑色"
-  - lightgray: "浅灰"
-  - red: "红"
-  - orange: "橙"
-  - gold: "金黄"
-  - green: "绿"
-  - cyan: "青"
-  - blue: "蓝"
-  - purple: "紫"
-  - pink: "粉"
-  - system: "跟随系统强调色"
-  - custom: "自定义（填下面的代码）"
-- customColor: ""
-  $name: "Custom text color code"
-  $name:zh-CN: "自定义颜色代码"
-  $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
-  $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
-- accentColor: default
-  $name: "Accent color"
-  $name:zh-CN: "强调色（进度环、竖线、秒针、日历今天）"
-  $options:
-  - default: "Follow style"
-  - white: "White"
-  - black: "Black"
-  - lightgray: "Light gray"
-  - red: "Red"
-  - orange: "Orange"
-  - gold: "Gold"
-  - green: "Green"
-  - cyan: "Cyan"
-  - blue: "Blue"
-  - purple: "Purple"
-  - pink: "Pink"
-  - system: "System accent color"
-  - custom: "Custom (fill in below)"
-  $options:zh-CN:
-  - default: "跟随样式"
-  - white: "白色"
-  - black: "黑色"
-  - lightgray: "浅灰"
-  - red: "红"
-  - orange: "橙"
-  - gold: "金黄"
-  - green: "绿"
-  - cyan: "青"
-  - blue: "蓝"
-  - purple: "紫"
-  - pink: "粉"
-  - system: "跟随系统强调色"
-  - custom: "自定义（填下面的代码）"
-- customAccent: ""
-  $name: "Custom accent color code"
-  $name:zh-CN: "自定义强调色代码"
-  $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
-  $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
-- use24Hour: true
-  $name: "24-hour time"
-  $name:zh-CN: "24 小时制"
-- showSeconds: false
-  $name: "Show seconds"
-  $name:zh-CN: "显示秒"
-- dateFormat: cn
-  $name: "Date"
-  $name:zh-CN: "日期格式"
-  $options:
-  - cn: "10月28日 周三"
-  - cnFull: "2026年10月28日 星期三"
-  - iso: "2026-10-28"
-  - mdy: "10/28/2026"
-  - dmy: "28/10/2026"
-  - none: "Hidden"
-  $options:zh-CN:
-  - cn: "10月28日 周三"
-  - cnFull: "2026年10月28日 星期三"
-  - iso: "2026-10-28"
-  - mdy: "10/28/2026"
-  - dmy: "28/10/2026"
-  - none: "不显示"
-- showResources: false
-  $name: "Show CPU / memory usage"
-  $name:zh-CN: "显示资源占用（CPU / 内存）"
-  $description: "Refreshes every 2 s while on."
-  $description:zh-CN: "开启后每 2 秒刷新一次；关闭时不采样。"
+  $name: "Clock size (%)"
+  $name:zh-CN: "时钟大小（%）"
+  $description: "20-800. Or drag a corner while Drag to position is on."
+  $description:zh-CN: "20-800。也可以在「拖动调整位置」时拖角落连续改。"
 - calendar: none
-  $name: "Month calendar"
-  $name:zh-CN: "显示日历"
+  $name: "Calendar"
+  $name:zh-CN: "日历"
   $options:
   - none: "Off"
-  - right: "Right of clock"
-  - below: "Below clock"
+  - on: "On"
+  - right: "On (was: right of clock)"
+  - below: "On (was: below clock)"
   $options:zh-CN:
-  - none: "不显示"
-  - right: "时钟右侧"
-  - below: "时钟下方"
-- lunar: true
-  $name: "Lunar dates in calendar"
-  $name:zh-CN: "日历显示农历"
+  - none: "关闭"
+  - on: "开启"
+  - right: "开启（以前在右侧）"
+  - below: "开启（以前在下方）"
+  $description: "Its own widget. Drag to place it. Today is marked with the accent color."
+  $description:zh-CN: "单独一块，用「拖动调整位置」摆放。今天用强调色标出。"
+- calendarStyle: month
+  $name: "Calendar style"
+  $name:zh-CN: "日历样式"
+  $options:
+  - month: "Month"
+  - compact: "Compact month"
+  - week: "This week"
+  - today: "Today"
+  - strip: "One line"
+  $options:zh-CN:
+  - month: "整月"
+  - compact: "紧凑整月"
+  - week: "本周"
+  - today: "今天"
+  - strip: "一行日期"
+  $description: "Compact hides lunar dates and uses smaller cells."
+  $description:zh-CN: "紧凑整月不显示农历，格子更小。其余样式仍按「高级」里的农历开关。"
+- calendarSize: 100
+  $name: "Calendar size (%)"
+  $name:zh-CN: "日历大小（%）"
+  $description: "20-800. Or drag a corner."
+  $description:zh-CN: "20-800。也可以拖角落连续改。"
+- showResources: false
+  $name: "Resource usage"
+  $name:zh-CN: "资源占用"
+  $description: "Its own widget, refreshed every 2 s. Pick the rows below. GPU shows -- if it cannot be read."
+  $description:zh-CN: "单独一块，每 2 秒刷新。下面勾选要显示的项。读不到 GPU 时显示 --。"
+- resCpu: true
+  $name: "CPU"
+  $name:zh-CN: "CPU"
+- resMem: true
+  $name: "Memory"
+  $name:zh-CN: "内存"
+- resGpu: true
+  $name: "GPU"
+  $name:zh-CN: "GPU"
+- resNet: true
+  $name: "Network speed"
+  $name:zh-CN: "网速"
+- resourcesSize: 100
+  $name: "Usage size (%)"
+  $name:zh-CN: "资源占用大小（%）"
+  $description: "20-800. Or drag a corner."
+  $description:zh-CN: "20-800。也可以拖角落连续改。"
 - monitor: 1
   $name: "Monitor"
   $name:zh-CN: "显示器"
   $description: "1 = first, 2 = second… 0 = all."
   $description:zh-CN: "1 = 第一个，2 = 第二个……0 = 全部。"
-- dragMode: false
-  $name: "Drag to position"
-  $name:zh-CN: "拖动调整位置"
-  $description: "Shows a handle over the clock; drag it, then turn this off. The dragged position overrides Position/offset."
-  $description:zh-CN: "在时钟上显示一个拖动框，拖到想要的位置后把这项关掉。拖动后的位置会覆盖「位置」和偏移。"
-- lockPosition: false
-  $name: "Lock position"
-  $name:zh-CN: "锁定位置"
-  $description:zh-CN: "打开后忽略「拖动调整位置」。"
-- resetPosition: false
-  $name: "Reset dragged position"
-  $name:zh-CN: "重置拖动位置"
-  $description: "Turn on to forget the dragged position (back to Position/offset), then turn it off again."
-  $description:zh-CN: "打开一次即清除拖动位置（恢复用「位置」和偏移），之后请再关掉。"
 - advanced:
+  - anchor: center
+    $name: "Position"
+    $name:zh-CN: "位置"
+    $options:
+    - topLeft: "Top left"
+    - top: "Top"
+    - topRight: "Top right"
+    - left: "Left"
+    - center: "Center"
+    - right: "Right"
+    - bottomLeft: "Bottom left"
+    - bottom: "Bottom"
+    - bottomRight: "Bottom right"
+    $options:zh-CN:
+    - topLeft: "左上"
+    - top: "上"
+    - topRight: "右上"
+    - left: "左"
+    - center: "正中"
+    - right: "右"
+    - bottomLeft: "左下"
+    - bottom: "下"
+    - bottomRight: "右下"
+  - offset:
+    - x: 0
+      $name: "Horizontal"
+      $name:zh-CN: "水平（正数向右）"
+    - y: -80
+      $name: "Vertical"
+      $name:zh-CN: "垂直（正数向下）"
+    $name: "Fine offset (px at 100%)"
+    $name:zh-CN: "微调偏移（像素）"
+  - use24Hour: true
+    $name: "24-hour time"
+    $name:zh-CN: "24 小时制"
+  - showSeconds: false
+    $name: "Show seconds"
+    $name:zh-CN: "显示秒"
+  - dateFormat: cn
+    $name: "Date"
+    $name:zh-CN: "日期格式"
+    $options:
+    - cn: "10月28日 周三"
+    - cnFull: "2026年10月28日 星期三"
+    - iso: "2026-10-28"
+    - mdy: "10/28/2026"
+    - dmy: "28/10/2026"
+    - none: "Hidden"
+    $options:zh-CN:
+    - cn: "10月28日 周三"
+    - cnFull: "2026年10月28日 星期三"
+    - iso: "2026-10-28"
+    - mdy: "10/28/2026"
+    - dmy: "28/10/2026"
+    - none: "不显示"
+  - lunar: true
+    $name: "Lunar dates in calendar"
+    $name:zh-CN: "日历显示农历"
+  - color: default
+    $name: "Text color"
+    $name:zh-CN: "颜色"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "跟随样式"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - customColor: ""
+    $name: "Custom text color code"
+    $name:zh-CN: "自定义颜色代码"
+    $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+    $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
+  - accentColor: default
+    $name: "Accent color"
+    $name:zh-CN: "强调色（进度环、竖线、秒针、日历今天）"
+    $options:
+    - default: "Follow style"
+    - white: "White"
+    - black: "Black"
+    - lightgray: "Light gray"
+    - red: "Red"
+    - orange: "Orange"
+    - gold: "Gold"
+    - green: "Green"
+    - cyan: "Cyan"
+    - blue: "Blue"
+    - purple: "Purple"
+    - pink: "Pink"
+    - system: "System accent color"
+    - custom: "Custom (fill in below)"
+    $options:zh-CN:
+    - default: "跟随样式"
+    - white: "白色"
+    - black: "黑色"
+    - lightgray: "浅灰"
+    - red: "红"
+    - orange: "橙"
+    - gold: "金黄"
+    - green: "绿"
+    - cyan: "青"
+    - blue: "蓝"
+    - purple: "紫"
+    - pink: "粉"
+    - system: "跟随系统强调色"
+    - custom: "自定义（填下面的代码）"
+  - customAccent: ""
+    $name: "Custom accent color code"
+    $name:zh-CN: "自定义强调色代码"
+    $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+    $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
   - layout: normal
     $name: "Layout"
     $name:zh-CN: "版式"
@@ -536,10 +576,19 @@
     $name:zh-CN: "左侧竖线"
   - showWeekday: false
     $name:zh-CN: "日期加星期"
-  $name: "Advanced (Custom style only)"
-  $name:zh-CN: "高级（仅「自定义」样式生效）"
+  $name: "Advanced"
+  $name:zh-CN: "高级"
+  $description: "Color, time format, lunar dates, anchor, and custom-style details."
+  $description:zh-CN: "颜色、时间格式、农历、九宫格，以及自定义样式的细调。平时不用打开。"
+
 */
 // ==/WindhawkModSettings==
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-W#warnings"
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma clang diagnostic pop
 
 #include <windhawk_utils.h>
 
@@ -557,6 +606,11 @@
 #include <cmath>
 #include <string>
 #include <vector>
+
+#include <netioapi.h>
+#include <iphlpapi.h>
+#include <pdh.h>
+#include <pdhmsg.h>
 
 using Microsoft::WRL::ComPtr;
 
@@ -628,31 +682,135 @@ struct ZcStyle {
     D2D1_COLOR_F track{1, 1, 1, 0.18f};  // ring track / dial face line
 };
 
+enum class ZcCalKind { month, compact, week, today, strip };
+
 struct ZcSettings {
+    bool showClock = true;
     bool use24 = true, seconds = false;
-    ZcDate date = ZcDate::mdy;
+    ZcDate date = ZcDate::cn;
     ZcAlign align = ZcAlign::left;
-    int anchor = 4;  // 0..8, row-major 3x3
+    int anchor = 4;  // 0..8, used until a widget has been dragged
     int offsetX = 0, offsetY = -80, monitor = 1, lineGap = 4;
-    int size = 100;      // user scale, %
+    int size = 100, calendarSize = 100, resourcesSize = 100;
     bool resources = false;
-    int calendar = 0;    // 0 off, 1 right, 2 below
+    bool resCpu = true, resMem = true, resGpu = true, resNet = true;
+    bool calendar = false;
     bool lunar = true;
-    bool drag = false, lock = false, reset = false;
+    ZcCalKind calKind = ZcCalKind::month;
+    bool drag = false, reset = false;
     ZcStyle style;
 } g_zc;
 
-// Latest CPU / memory load in percent (sampled only when shown).
-float g_zcCpu = 0, g_zcMem = 0;
+bool ZcResOn() {
+    return g_zc.resources && (g_zc.resCpu || g_zc.resMem || g_zc.resGpu || g_zc.resNet);
+}
+
+// Default calendar spot before it is dragged: 1 = right of the clock, 2 = below.
+int g_zcCalPlace = 1;
+
+// Latest resource sample. GPU stays unknown until a PDH sample succeeds.
+float g_zcCpu = 0, g_zcMem = 0, g_zcGpu = 0;
+bool g_zcGpuKnown = false;
+double g_zcDownBps = 0, g_zcUpBps = 0;
 ULONGLONG g_zcPrevIdle = 0, g_zcPrevTotal = 0;
+PDH_HQUERY g_zcGpuQuery = nullptr;
+PDH_HCOUNTER g_zcGpuCounter = nullptr;
+bool g_zcGpuOpen = false;
+ULONGLONG g_zcNetIn = 0, g_zcNetOut = 0, g_zcNetTick = 0;
+bool g_zcNetHave = false;
 
 ULONGLONG ZcFt(const FILETIME& f) {
     return ((ULONGLONG)f.dwHighDateTime << 32) | f.dwLowDateTime;
 }
 
+void ZcGpuClose() {
+    if (g_zcGpuQuery) PdhCloseQuery(g_zcGpuQuery);
+    g_zcGpuQuery = nullptr;
+    g_zcGpuCounter = nullptr;
+    g_zcGpuOpen = false;
+}
+
+// English counter path works on a Chinese Windows install.
+bool ZcGpuEnsure() {
+    if (g_zcGpuOpen) return g_zcGpuQuery != nullptr;
+    g_zcGpuOpen = true;
+    if (PdhOpenQuery(nullptr, 0, &g_zcGpuQuery) != ERROR_SUCCESS) {
+        g_zcGpuQuery = nullptr;
+        return false;
+    }
+    if (PdhAddEnglishCounterW(g_zcGpuQuery, L"\\GPU Engine(*)\\Utilization Percentage", 0,
+                              &g_zcGpuCounter) != ERROR_SUCCESS) {
+        ZcGpuClose();
+        g_zcGpuOpen = true;  // don't retry every sample
+        return false;
+    }
+    return true;
+}
+
+void ZcSampleGpu() {
+    if (!ZcGpuEnsure()) return;
+    if (PdhCollectQueryData(g_zcGpuQuery) != ERROR_SUCCESS) return;
+    DWORD bytes = 0, count = 0;
+    PDH_STATUS st = PdhGetFormattedCounterArrayW(
+        g_zcGpuCounter, PDH_FMT_DOUBLE, &bytes, &count, nullptr);
+    if (st != PDH_MORE_DATA || bytes == 0) return;
+    std::vector<unsigned char> buf(bytes);
+    auto* items = (PDH_FMT_COUNTERVALUE_ITEM_W*)buf.data();
+    st = PdhGetFormattedCounterArrayW(g_zcGpuCounter, PDH_FMT_DOUBLE, &bytes, &count, items);
+    if (st != ERROR_SUCCESS) return;
+    double best3d = -1, bestAny = -1;
+    for (DWORD i = 0; i < count; i++) {
+        if (items[i].FmtValue.CStatus != ERROR_SUCCESS) continue;
+        double v = items[i].FmtValue.doubleValue;
+        if (v < 0) continue;
+        if (v > bestAny) bestAny = v;
+        if (items[i].szName && wcsstr(items[i].szName, L"engtype_3D") && v > best3d)
+            best3d = v;
+    }
+    double pick = best3d >= 0 ? best3d : bestAny;
+    if (pick < 0) return;
+    if (pick > 100) pick = 100;
+    g_zcGpu = (float)pick;
+    g_zcGpuKnown = true;
+}
+
+void ZcSampleNet() {
+    PMIB_IF_TABLE2 table = nullptr;
+    if (GetIfTable2(&table) != NO_ERROR) {
+        if (table) FreeMibTable(table);
+        return;
+    }
+    ULONGLONG inB = 0, outB = 0;
+    for (ULONG i = 0; i < table->NumEntries; i++) {
+        const MIB_IF_ROW2& row = table->Table[i];
+        if (row.Type == IF_TYPE_SOFTWARE_LOOPBACK || row.Type == IF_TYPE_TUNNEL) continue;
+        if (!row.InterfaceAndOperStatusFlags.HardwareInterface) continue;
+        if (row.OperStatus != IfOperStatusUp) continue;
+        inB += row.InOctets;
+        outB += row.OutOctets;
+    }
+    FreeMibTable(table);
+    ULONGLONG now = GetTickCount64();
+    if (!g_zcNetHave) {
+        g_zcNetIn = inB;
+        g_zcNetOut = outB;
+        g_zcNetTick = now;
+        g_zcNetHave = true;
+        return;
+    }
+    if (now <= g_zcNetTick) return;
+    double dt = (double)(now - g_zcNetTick) / 1000.0;
+    if (dt < 0.2) return;  // keep the baseline so the next delta stays meaningful
+    if (inB >= g_zcNetIn) g_zcDownBps = (double)(inB - g_zcNetIn) / dt;
+    if (outB >= g_zcNetOut) g_zcUpBps = (double)(outB - g_zcNetOut) / dt;
+    g_zcNetIn = inB;
+    g_zcNetOut = outB;
+    g_zcNetTick = now;
+}
+
 void ZcSampleResources() {
     FILETIME idle, kernel, user;
-    if (GetSystemTimes(&idle, &kernel, &user)) {
+    if (g_zc.resCpu && GetSystemTimes(&idle, &kernel, &user)) {
         ULONGLONG i = ZcFt(idle), total = ZcFt(kernel) + ZcFt(user);  // kernel includes idle
         if (g_zcPrevTotal && total > g_zcPrevTotal) {
             double busy = 1.0 - (double)(i - g_zcPrevIdle) / (double)(total - g_zcPrevTotal);
@@ -663,7 +821,9 @@ void ZcSampleResources() {
     }
     MEMORYSTATUSEX ms{};
     ms.dwLength = sizeof(ms);
-    if (GlobalMemoryStatusEx(&ms)) g_zcMem = (float)ms.dwMemoryLoad;
+    if (g_zc.resMem && GlobalMemoryStatusEx(&ms)) g_zcMem = (float)ms.dwMemoryLoad;
+    if (g_zc.resGpu) ZcSampleGpu();
+    if (g_zc.resNet) ZcSampleNet();
 }
 
 std::atomic<bool> g_zcUnloading{false};
@@ -892,10 +1052,9 @@ bool ZcSystemAccent(D2D1_COLOR_F* out) {
 
 // Dropdown color: preset name, "system", "custom" (+ custom field), or a legacy
 // hex string (old versions stored the code directly). false = keep style default.
-bool ZcChoiceColor(PCWSTR choiceKey, PCWSTR customKey, D2D1_COLOR_F* out) {
-    std::wstring v = ZcStr(choiceKey);
+bool ZcApplyChoice(const std::wstring& v, const std::wstring& custom, D2D1_COLOR_F* out) {
     if (v.empty() || v == L"default") return false;
-    if (v == L"custom") return ZcParseColor(ZcStr(customKey).c_str(), out);
+    if (v == L"custom") return ZcParseColor(custom.c_str(), out);
     if (v == L"system") return ZcSystemAccent(out);
     static const struct { const wchar_t* n; unsigned rgb; } k[] = {
         {L"white", 0xFFFFFF}, {L"black", 0x000000}, {L"lightgray", 0xC8C8C8},
@@ -913,8 +1072,86 @@ bool ZcChoiceColor(PCWSTR choiceKey, PCWSTR customKey, D2D1_COLOR_F* out) {
     return ZcParseColor(v.c_str(), out);  // legacy hex
 }
 
+bool ZcChoiceColor(PCWSTR choiceKey, PCWSTR customKey, D2D1_COLOR_F* out) {
+    return ZcApplyChoice(ZcStr(choiceKey), ZcStr(customKey), out);
+}
+
+std::wstring ZcStored(PCWSTR key) {
+    WCHAR b[180];
+    b[0] = 0;
+    Wh_GetStringValue(key, b, ARRAYSIZE(b));
+    return b;
+}
+
+std::wstring ZcPinnedStr(PCWSTR advKey, PCWSTR legacyKey, PCWSTR pinKey, PCWSTR seenKey) {
+    std::wstring now = ZcStr(advKey);
+    std::wstring seen = ZcStored(seenKey);
+    if (seen.empty()) {
+        std::wstring leg = ZcStr(legacyKey);
+        Wh_SetStringValue(seenKey, now.c_str());
+        if (!leg.empty() && leg != now) {
+            Wh_SetStringValue(pinKey, leg.c_str());
+            return leg;
+        }
+        return now;
+    }
+    if (now != seen) {
+        Wh_SetStringValue(seenKey, now.c_str());
+        Wh_SetStringValue(pinKey, L"");
+        return now;
+    }
+    std::wstring pin = ZcStored(pinKey);
+    return pin.empty() ? now : pin;
+}
+
+int ZcPinnedInt(PCWSTR advKey, PCWSTR legacyKey, PCWSTR pinKey, PCWSTR seenKey) {
+    int now = Wh_GetIntSetting(advKey);
+    std::wstring seen = ZcStored(seenKey);
+    WCHAR buf[32];
+    if (seen.empty()) {
+        swprintf_s(buf, L"%d", now);
+        Wh_SetStringValue(seenKey, buf);
+        std::wstring legS = ZcStr(legacyKey);
+        if (!legS.empty()) {
+            int leg = _wtoi(legS.c_str());
+            if (leg != now) {
+                swprintf_s(buf, L"%d", leg);
+                Wh_SetStringValue(pinKey, buf);
+                return leg;
+            }
+        }
+        return now;
+    }
+    if (now != _wtoi(seen.c_str())) {
+        swprintf_s(buf, L"%d", now);
+        Wh_SetStringValue(seenKey, buf);
+        Wh_SetStringValue(pinKey, L"");
+        return now;
+    }
+    std::wstring pin = ZcStored(pinKey);
+    return pin.empty() ? now : _wtoi(pin.c_str());
+}
+
 int ZcClamp(int v, int lo, int hi) {
     return v < lo ? lo : (v > hi ? hi : v);
+}
+
+// Corner-drag size overrides the percent box until that box is edited.
+int ZcLivePct(PCWSTR settingKey, PCWSTR pinKey, PCWSTR seenKey) {
+    int now = Wh_GetIntSetting(settingKey);
+    if (now <= 0) now = 100;
+    int seen = Wh_GetIntValue(seenKey, -1);
+    if (seen < 0) {
+        Wh_SetIntValue(seenKey, now);
+        return ZcClamp(now, 20, 800);
+    }
+    if (now != seen) {
+        Wh_SetIntValue(seenKey, now);
+        Wh_SetIntValue(pinKey, 0);
+        return ZcClamp(now, 20, 800);
+    }
+    int pin = Wh_GetIntValue(pinKey, 0);
+    return ZcClamp(pin > 0 ? pin : now, 20, 800);
 }
 
 // Chinese font with fallbacks (first installed family wins).
@@ -1096,10 +1333,11 @@ void ZcApplyPreset(const std::wstring& name, ZcStyle& s) {
 
 void ZcLoadSettings() {
     ZcSettings z;
-    z.use24 = Wh_GetIntSetting(L"use24Hour") != 0;
-    z.seconds = Wh_GetIntSetting(L"showSeconds") != 0;
+    z.showClock = Wh_GetIntSetting(L"showClock") != 0;
+    z.use24 = ZcPinnedInt(L"advanced.use24Hour", L"use24Hour", L"pin24", L"seen24") != 0;
+    z.seconds = ZcPinnedInt(L"advanced.showSeconds", L"showSeconds", L"pinSec", L"seenSec") != 0;
 
-    std::wstring d = ZcStr(L"dateFormat");
+    std::wstring d = ZcPinnedStr(L"advanced.dateFormat", L"dateFormat", L"pinDate", L"seenDate");
     z.date = d == L"dmy"      ? ZcDate::dmy
              : d == L"iso"    ? ZcDate::iso
              : d == L"mdy"    ? ZcDate::mdy
@@ -1109,26 +1347,53 @@ void ZcLoadSettings() {
     static const wchar_t* kAnchors[] = {L"topLeft", L"top",        L"topRight",
                                         L"left",    L"center",     L"right",
                                         L"bottomLeft", L"bottom", L"bottomRight"};
-    std::wstring an = ZcStr(L"anchor");
+    std::wstring an = ZcPinnedStr(L"advanced.anchor", L"anchor", L"pinAnchor", L"seenAnchor");
     z.anchor = 4;
     for (int i = 0; i < 9; i++) {
         if (an == kAnchors[i]) z.anchor = i;
     }
-    z.offsetX = Wh_GetIntSetting(L"offset.x");
-    z.offsetY = Wh_GetIntSetting(L"offset.y");
-    z.size = ZcClamp(Wh_GetIntSetting(L"size"), 50, 300);
-    if (!Wh_GetIntSetting(L"size")) z.size = 100;
+    z.offsetX = ZcPinnedInt(L"advanced.offset.x", L"offset.x", L"pinOffX", L"seenOffX");
+    z.offsetY = ZcPinnedInt(L"advanced.offset.y", L"offset.y", L"pinOffY", L"seenOffY");
+    z.size = ZcLivePct(L"size", L"sizePin", L"sizeSeen");
+    z.calendarSize = ZcLivePct(L"calendarSize", L"calSizePin", L"calSizeSeen");
+    z.resourcesSize = ZcLivePct(L"resourcesSize", L"resSizePin", L"resSizeSeen");
     z.monitor = Wh_GetIntSetting(L"monitor");
     z.resources = Wh_GetIntSetting(L"showResources") != 0;
+    z.resCpu = Wh_GetIntSetting(L"resCpu") != 0;
+    z.resMem = Wh_GetIntSetting(L"resMem") != 0;
+    z.resGpu = Wh_GetIntSetting(L"resGpu") != 0;
+    z.resNet = Wh_GetIntSetting(L"resNet") != 0;
+    // Missing keys come back as 0, which would hide every row after an upgrade.
+    // 0 = not seen, 1 = still using that fallback, 2 = the saved settings are real.
+    int raw = (z.resCpu ? 1 : 0) | (z.resMem ? 2 : 0) | (z.resGpu ? 4 : 0) |
+              (z.resNet ? 8 : 0);
+    int seen = Wh_GetIntValue(L"resPickSeen", 0);
+    if (seen != 2 && raw == 0) {
+        z.resCpu = z.resMem = z.resGpu = z.resNet = true;
+        if (seen != 1) Wh_SetIntValue(L"resPickSeen", 1);
+    } else if (seen != 2) {
+        Wh_SetIntValue(L"resPickSeen", 2);
+    }
     std::wstring cal = ZcStr(L"calendar");
-    z.calendar = cal == L"right" ? 1 : cal == L"below" ? 2 : 0;
-    z.lunar = Wh_GetIntSetting(L"lunar") != 0;
+    z.calendar = cal == L"on" || cal == L"right" || cal == L"below";
+    if (cal == L"below") Wh_SetIntValue(L"calPlace", 2);
+    else if (cal == L"right") Wh_SetIntValue(L"calPlace", 1);
+    g_zcCalPlace = Wh_GetIntValue(L"calPlace", 1) == 2 ? 2 : 1;
+    z.lunar = ZcPinnedInt(L"advanced.lunar", L"lunar", L"pinLunar", L"seenLunar") != 0;
     z.drag = Wh_GetIntSetting(L"dragMode") != 0;
-    z.lock = Wh_GetIntSetting(L"lockPosition") != 0;
     z.reset = Wh_GetIntSetting(L"resetPosition") != 0;
-    if (z.reset && Wh_GetIntValue(L"posSet", 0)) {
+    std::wstring ck = ZcStr(L"calendarStyle");
+    z.calKind = ck == L"compact" ? ZcCalKind::compact
+             : ck == L"week"    ? ZcCalKind::week
+             : ck == L"today"   ? ZcCalKind::today
+             : ck == L"strip"   ? ZcCalKind::strip
+                                  : ZcCalKind::month;
+    if (z.reset && (Wh_GetIntValue(L"posSet", 0) || Wh_GetIntValue(L"calSet", 0) ||
+                    Wh_GetIntValue(L"resSet", 0))) {
         Wh_SetIntValue(L"posSet", 0);
-        Wh_Log(L"dragged position cleared");
+        Wh_SetIntValue(L"calSet", 0);
+        Wh_SetIntValue(L"resSet", 0);
+        Wh_Log(L"dragged positions cleared");
     }
 
     ZcStyle& s = z.style;
@@ -1195,28 +1460,31 @@ void ZcLoadSettings() {
                                         : ZcLayoutKind::normal;
         s.dateAbove = lay == L"cover";
     }
-    // Top-level color overrides apply to every style.
     D2D1_COLOR_F c;
-    if (ZcChoiceColor(L"color", L"customColor", &c)) {
+    std::wstring color = ZcPinnedStr(L"advanced.color", L"color", L"pinColor", L"seenColor");
+    std::wstring colorC =
+        ZcPinnedStr(L"advanced.customColor", L"customColor", L"pinColorC", L"seenColorC");
+    if (ZcApplyChoice(color, colorC, &c)) {
         s.text = c;
         s.grad.clear();
     }
-    if (ZcChoiceColor(L"accentColor", L"customAccent", &c)) s.accent = c;
+    std::wstring accent =
+        ZcPinnedStr(L"advanced.accentColor", L"accentColor", L"pinAccent", L"seenAccent");
+    std::wstring accentC =
+        ZcPinnedStr(L"advanced.customAccent", L"customAccent", L"pinAccentC", L"seenAccentC");
+    if (ZcApplyChoice(accent, accentC, &c)) s.accent = c;
     s.timeSize = ZcClamp(s.timeSize ? s.timeSize : 140, 8, 600);
     s.dateSize = ZcClamp(s.dateSize ? s.dateSize : 40, 6, 300);
     s.timeWeight = ZcClamp(s.timeWeight ? s.timeWeight : 400, 100, 950);
     s.dateWeight = ZcClamp(s.dateWeight ? s.dateWeight : 400, 100, 950);
 
     g_zc = z;
-    Wh_Log(L"settings: style=%s size=%d seconds=%d res=%d cal=%d lunar=%d monitor=%d "
-           L"anchor=%d offset=(%d,%d) color='%s' accent='%s'",
-           style.c_str(), z.size, (int)z.seconds, (int)z.resources, z.calendar,
-           (int)z.lunar, z.monitor, z.anchor, z.offsetX, z.offsetY,
-           ZcStr(L"color").c_str(), ZcStr(L"accentColor").c_str());
+    Wh_Log(L"settings: style=%s clock=%d size=%d cal=%d calSize=%d res=%d resSize=%d "
+           L"lunar=%d seconds=%d monitor=%d anchor=%d offset=(%d,%d)",
+           style.c_str(), (int)z.showClock, z.size, (int)z.calendar, z.calendarSize,
+           (int)z.resources, z.resourcesSize, (int)z.lunar, (int)z.seconds, z.monitor,
+           z.anchor, z.offsetX, z.offsetY);
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Text
 
 void ZcFormat(const SYSTEMTIME& t, std::wstring& hh, std::wstring& mm,
               std::wstring& ss, std::wstring& suffix, std::wstring& date) {
@@ -1576,133 +1844,6 @@ void ZcBuildFrame(float scale, ZcFrame& f) {
                                       s.dateAbove ? 0 : rowH + dateGap);
         f.pieces.push_back(datePiece);
     }
-    // ---- Resource usage (CPU / memory) ----
-    if (g_zc.resources) {
-        float ds = s.dateSize * scale;
-        float y0 = blockH + ds * 0.5f;
-        bool rings = s.layout == ZcLayoutKind::ring || s.layout == ZcLayoutKind::analog;
-        float vals[2] = {g_zcCpu, g_zcMem};
-        const wchar_t* names[2] = {L"CPU", L"内存"};
-        if (rings) {
-            float rr = ds * 1.05f, gap = ds * 1.2f;
-            float total = rr * 4 + gap;
-            float x0 = (blockW - total) / 2;
-            float maxH = 0;
-            for (int i = 0; i < 2; i++) {
-                D2D1_POINT_2F c = D2D1::Point2F(x0 + rr + i * (2 * rr + gap), y0 + rr);
-                f.minis.push_back({c, rr, vals[i] / 100.0f});
-                WCHAR b[16];
-                swprintf_s(b, L"%.0f%%", (double)vals[i]);
-                ZcPiece p{ZcLayout(b, s.dateFont, s.dateWeight, ds * 0.55f), {}, {}, false};
-                ZcPiece q{ZcLayout(names[i], s.dateFont, s.dateWeight, ds * 0.42f), {}, {}, false};
-                if (p.layout && q.layout) {
-                    p.size = ZcMeasure(p.layout.Get());
-                    q.size = ZcMeasure(q.layout.Get());
-                    p.pos = D2D1::Point2F(c.x - p.size.width / 2, c.y - p.size.height / 2);
-                    q.pos = D2D1::Point2F(c.x - q.size.width / 2, c.y + rr + ds * 0.15f);
-                    f.pieces.push_back(p);
-                    f.pieces.push_back(q);
-                    maxH = (std::max)(maxH, 2 * rr + ds * 0.15f + q.size.height);
-                }
-            }
-            if (x0 < 0) {
-                for (auto& p : f.pieces) p.pos.x -= x0;
-                for (auto& m : f.minis) m.c.x -= x0;
-                f.dialC.x -= x0;
-                blockW = total;
-            }
-            blockH = y0 + maxH;
-        } else {
-            WCHAR b[64];
-            swprintf_s(b, L"CPU %.0f%%  ·  内存 %.0f%%", (double)vals[0], (double)vals[1]);
-            ZcPiece p{ZcLayout(b, s.dateFont, s.dateWeight, ds * 0.62f), {}, {}, false};
-            if (p.layout) {
-                p.size = ZcMeasure(p.layout.Get());
-                blockW = (std::max)(blockW, p.size.width);
-                p.pos = D2D1::Point2F(alignX(p.size.width), y0 - ds * 0.3f);
-                blockH = p.pos.y + p.size.height;
-                f.pieces.push_back(p);
-            }
-        }
-    }
-
-    // ---- Month calendar (right of or below the clock) ----
-    if (g_zc.calendar) {
-        float cs = (std::max)(12.0f, s.dateSize * scale * 0.62f);
-        float cellW = cs * (g_zc.lunar ? 2.5f : 1.9f), cellH = cs * (g_zc.lunar ? 2.1f : 1.5f);
-        float ox, oy;
-        if (g_zc.calendar == 1) {
-            ox = blockW + s.timeSize * scale * 0.35f;
-            oy = 0;
-        } else {
-            ox = 0;
-            oy = blockH + cs * 1.2f;
-        }
-        auto put = [&](const std::wstring& txt, float size, int weight, float cx, float y,
-                       bool dim) {
-            ZcPiece p{ZcLayout(txt, s.dateFont, weight, size), {}, {}, false};
-            if (!p.layout) return;
-            p.size = ZcMeasure(p.layout.Get());
-            p.pos = D2D1::Point2F(cx - p.size.width / 2, y);
-            p.dim = dim;
-            f.pieces.push_back(p);
-        };
-        WCHAR b[48];
-        swprintf_s(b, L"%d年%d月", t.wYear, t.wMonth);
-        put(b, cs * 1.15f, (std::max)(s.dateWeight, 600), ox + cellW * 3.5f, oy, false);
-        float gy = oy + cs * 2.0f;
-        static const wchar_t* kHead[] = {L"一", L"二", L"三", L"四", L"五", L"六", L"日"};
-        for (int i = 0; i < 7; i++)
-            put(kHead[i], cs * 0.8f, s.dateWeight, ox + cellW * (i + 0.5f), gy, true);
-        gy += cs * 1.4f;
-        static const int kMonthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-        int days = kMonthDays[t.wMonth - 1];
-        if (t.wMonth == 2 && ((t.wYear % 4 == 0 && t.wYear % 100) || t.wYear % 400 == 0))
-            days = 29;
-        // Weekday of the 1st, Monday-first column.
-        int first = (ZcDaysFromCivil(t.wYear, t.wMonth, 1) + 3) % 7;  // 1970-01-01 = Thu
-        if (first < 0) first += 7;
-        static const wchar_t* kLm[] = {L"正", L"二", L"三", L"四", L"五", L"六",
-                                       L"七", L"八", L"九", L"十", L"冬", L"腊"};
-        int rows = (first + days + 6) / 7;
-        for (int dday = 1; dday <= days; dday++) {
-            int idx = first + dday - 1, col = idx % 7, row = idx / 7;
-            float cx = ox + cellW * (col + 0.5f), y = gy + row * cellH;
-            if (dday == t.wDay) {
-                f.calHi = true;
-                f.calHiRect = D2D1::RectF(cx - cellW * 0.46f, y - cs * 0.15f,
-                                          cx + cellW * 0.46f, y + cellH - cs * 0.25f);
-            }
-            swprintf_s(b, L"%d", dday);
-            put(b, cs, dday == t.wDay ? 700 : s.dateWeight, cx, y, col >= 5 && dday != t.wDay);
-            int lm, ld;
-            bool leap;
-            if (g_zc.lunar && ZcLunarDate(t.wYear, t.wMonth, dday, &lm, &ld, &leap)) {
-                std::wstring lt;
-                if (ld == 1) {
-                    lt = std::wstring(leap ? L"闰" : L"") + kLm[lm - 1] + L"月";
-                } else if (ld <= 10) {
-                    lt = std::wstring(L"初") + ZcCnNum(ld, false);
-                } else if (ld == 20) {
-                    lt = L"二十";
-                } else if (ld == 30) {
-                    lt = L"三十";
-                } else {
-                    lt = ZcCnNum(ld, true);
-                }
-                put(lt, cs * 0.55f, s.dateWeight, cx, y + cs * 1.25f, dday != t.wDay);
-            }
-        }
-        float calW = cellW * 7, calH = gy - oy + rows * cellH;
-        if (g_zc.calendar == 1) {
-            blockW = ox + calW;
-            blockH = (std::max)(blockH, calH);
-        } else {
-            blockW = (std::max)(blockW, calW);
-            blockH = oy + calH;
-        }
-    }
-
     auto shiftAll = [&](float dx, float dy) {
         for (auto& p : f.pieces) {
             p.pos.x += dx;
@@ -1733,6 +1874,308 @@ void ZcBuildFrame(float scale, ZcFrame& f) {
         f.glassRect = D2D1::RectF(0, 0, blockW, blockH);
     }
     f.size = D2D1::SizeF(blockW, blockH);
+}
+
+std::wstring ZcLunarText(int y, int m, int d) {
+    int lm, ld;
+    bool leap = false;
+    if (!ZcLunarDate(y, m, d, &lm, &ld, &leap) || lm < 1 || lm > 12) return L"";
+    static const wchar_t* kLm[] = {L"\u6b63", L"\u4e8c", L"\u4e09", L"\u56db", L"\u4e94", L"\u516d",
+                                   L"\u4e03", L"\u516b", L"\u4e5d", L"\u5341", L"\u51ac", L"\u814a"};
+    if (ld == 1) return std::wstring(leap ? L"\u95f0" : L"") + kLm[lm - 1] + L"\u6708";
+    if (ld <= 10) return std::wstring(L"\u521d") + ZcCnNum(ld, false);
+    if (ld == 20) return L"\u4e8c\u5341";
+    if (ld == 30) return L"\u4e09\u5341";
+    return ZcCnNum(ld, true);
+}
+
+int ZcMonthDays(int y, int m) {
+    static const int md[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int n = md[m - 1];
+    if (m == 2 && ((y % 4 == 0 && y % 100) || y % 400 == 0)) n = 29;
+    return n;
+}
+
+SYSTEMTIME ZcAddDays(SYSTEMTIME t, int delta) {
+    int y = t.wYear, m = t.wMonth, d = (int)t.wDay + delta;
+    while (d > ZcMonthDays(y, m)) {
+        d -= ZcMonthDays(y, m);
+        if (++m == 13) {
+            m = 1;
+            ++y;
+        }
+    }
+    while (d < 1) {
+        if (--m == 0) {
+            m = 12;
+            --y;
+        }
+        d += ZcMonthDays(y, m);
+    }
+    SYSTEMTIME o = t;
+    o.wYear = (WORD)y;
+    o.wMonth = (WORD)m;
+    o.wDay = (WORD)d;
+    int wd = (ZcDaysFromCivil(y, m, d) + 4) % 7;  // 1970-01-01 = Thursday
+    if (wd < 0) wd += 7;
+    o.wDayOfWeek = (WORD)wd;
+    return o;
+}
+
+std::wstring ZcRateText(double bps) {
+    WCHAR b[32];
+    if (bps < 0) bps = 0;
+    if (bps >= 1024.0 * 1024.0) swprintf_s(b, L"%.1f MB/s", bps / (1024.0 * 1024.0));
+    else if (bps >= 1024.0) swprintf_s(b, L"%.0f KB/s", bps / 1024.0);
+    else swprintf_s(b, L"%.0f B/s", bps);
+    return b;
+}
+
+std::wstring ZcRateLine() {
+    return std::wstring(L"\u2193 ") + ZcRateText(g_zcDownBps) + L"   \u2191 " + ZcRateText(g_zcUpBps);
+}
+
+void ZcBuildCalendar(float scale, ZcFrame& f) {
+    const ZcStyle& s = g_zc.style;
+    f = {};
+    f.scale = scale;
+    GetLocalTime(&f.t);
+    const SYSTEMTIME& t = f.t;
+    ZcCalKind kind = g_zc.calKind;
+    bool lunarOn = g_zc.lunar && kind != ZcCalKind::compact;
+    float cs = (std::max)(13.0f, s.dateSize * scale * (kind == ZcCalKind::compact ? 0.58f : 0.72f));
+    static const wchar_t* kWeek[] = {L"\u5468\u65e5", L"\u5468\u4e00", L"\u5468\u4e8c", L"\u5468\u4e09",
+                                     L"\u5468\u56db", L"\u5468\u4e94", L"\u5468\u516d"};
+
+    auto addLine = [&](const std::wstring& txt, float size, int weight, bool dim) {
+        ZcPiece p{};
+        p.layout = ZcLayout(txt, s.dateFont, weight, size);
+        if (!p.layout) return;
+        p.size = ZcMeasure(p.layout.Get());
+        p.dim = dim;
+        float y = f.pieces.empty() ? 0 : f.pieces.back().pos.y + f.pieces.back().size.height + size * 0.12f;
+        p.pos = D2D1::Point2F(0, y);
+        f.pieces.push_back(p);
+    };
+    auto finishLines = [&]() {
+        float w = 1, h = 1;
+        for (auto& p : f.pieces) w = (std::max)(w, p.size.width);
+        for (auto& p : f.pieces) p.pos.x = (w - p.size.width) / 2;
+        if (!f.pieces.empty()) {
+            auto& last = f.pieces.back();
+            h = last.pos.y + last.size.height;
+        }
+        f.size = D2D1::SizeF(w, h);
+    };
+
+    if (kind == ZcCalKind::today || kind == ZcCalKind::strip) {
+        WCHAR b[64];
+        if (kind == ZcCalKind::today) {
+            swprintf_s(b, L"%d", t.wDay);
+            addLine(b, cs * 3.1f, 700, false);
+            swprintf_s(b, L"%d\u6708  %s", t.wMonth, kWeek[t.wDayOfWeek % 7]);
+            addLine(b, cs * 0.95f, (std::max)(s.dateWeight, 600), false);
+        } else {
+            swprintf_s(b, L"%d\u6708%d\u65e5 %s", t.wMonth, t.wDay, kWeek[t.wDayOfWeek % 7]);
+            std::wstring line = b;
+            if (lunarOn) {
+                std::wstring lt = ZcLunarText(t.wYear, t.wMonth, t.wDay);
+                if (!lt.empty()) line += L"  " + lt;
+            }
+            addLine(line, cs * 1.05f, s.dateWeight, false);
+            lunarOn = false;
+        }
+        if (lunarOn) {
+            std::wstring lt = ZcLunarText(t.wYear, t.wMonth, t.wDay);
+            if (!lt.empty()) addLine(lt, cs * 0.72f, s.dateWeight, true);
+        }
+        finishLines();
+        return;
+    }
+
+    bool compact = kind == ZcCalKind::compact;
+    float cellW = cs * (lunarOn ? 2.5f : compact ? 1.42f : 1.9f);
+    float cellH = cs * (lunarOn ? 2.1f : compact ? 1.18f : 1.5f);
+    auto put = [&](const std::wstring& txt, float size, int weight, float cx, float y, bool dim) {
+        ZcPiece p{};
+        p.layout = ZcLayout(txt, s.dateFont, weight, size);
+        if (!p.layout) return;
+        p.size = ZcMeasure(p.layout.Get());
+        p.pos = D2D1::Point2F(cx - p.size.width / 2, y);
+        p.dim = dim;
+        f.pieces.push_back(p);
+    };
+    WCHAR b[64];
+    static const wchar_t* kHead[] = {L"\u4e00", L"\u4e8c", L"\u4e09", L"\u56db", L"\u4e94", L"\u516d", L"\u65e5"};
+    if (kind == ZcCalKind::week) {
+        SYSTEMTIME mon = ZcAddDays(t, t.wDayOfWeek == 0 ? -6 : 1 - (int)t.wDayOfWeek);
+        SYSTEMTIME sun = ZcAddDays(mon, 6);
+        if (mon.wYear == sun.wYear && mon.wMonth == sun.wMonth)
+            swprintf_s(b, L"%d\u5e74%d\u6708", mon.wYear, mon.wMonth);
+        else if (mon.wYear == sun.wYear)
+            swprintf_s(b, L"%d\u5e74%d\u6708 / %d\u6708", mon.wYear, mon.wMonth, sun.wMonth);
+        else
+            swprintf_s(b, L"%d\u5e74%d\u6708 / %d\u5e74%d\u6708", mon.wYear, mon.wMonth, sun.wYear, sun.wMonth);
+        put(b, cs * 1.05f, (std::max)(s.dateWeight, 600), cellW * 3.5f, 0, false);
+        float gy = cs * 1.7f;
+        for (int i = 0; i < 7; i++)
+            put(kHead[i], cs * 0.8f, s.dateWeight, cellW * (i + 0.5f), gy, true);
+        gy += compact ? cs * 1.05f : cs * 1.35f;
+        for (int i = 0; i < 7; i++) {
+            SYSTEMTIME day = ZcAddDays(mon, i);
+            bool today = day.wYear == t.wYear && day.wMonth == t.wMonth && day.wDay == t.wDay;
+            float cx = cellW * (i + 0.5f);
+            if (today) {
+                f.calHi = true;
+                f.calHiRect = D2D1::RectF(cx - cellW * 0.46f, gy - cs * 0.15f,
+                                          cx + cellW * 0.46f, gy + cellH - cs * 0.25f);
+            }
+            swprintf_s(b, L"%d", day.wDay);
+            put(b, cs, today ? 700 : s.dateWeight, cx, gy, !today && (i >= 5 || day.wMonth != t.wMonth));
+            if (lunarOn) {
+                std::wstring lt = ZcLunarText(day.wYear, day.wMonth, day.wDay);
+                if (!lt.empty())
+                    put(lt, cs * 0.55f, s.dateWeight, cx, gy + cs * 1.25f, !today);
+            }
+        }
+        f.size = D2D1::SizeF(cellW * 7, gy + cellH);
+    } else {
+        swprintf_s(b, L"%d\u5e74%d\u6708", t.wYear, t.wMonth);
+        put(b, cs * (compact ? 1.0f : 1.15f), (std::max)(s.dateWeight, 600), cellW * 3.5f, 0, false);
+        float gy = cs * (compact ? 1.55f : 2.0f);
+        for (int i = 0; i < 7; i++)
+            put(kHead[i], cs * 0.8f, s.dateWeight, cellW * (i + 0.5f), gy, true);
+        gy += compact ? cs * 1.05f : cs * 1.4f;
+        int days = ZcMonthDays(t.wYear, t.wMonth);
+        int first = (ZcDaysFromCivil(t.wYear, t.wMonth, 1) + 3) % 7;  // 1970-01-01 = Thu
+        if (first < 0) first += 7;
+        int rows = (first + days + 6) / 7;
+        for (int dday = 1; dday <= days; dday++) {
+            int idx = first + dday - 1, col = idx % 7, row = idx / 7;
+            float cx = cellW * (col + 0.5f), y = gy + row * cellH;
+            if (dday == t.wDay) {
+                f.calHi = true;
+                f.calHiRect = D2D1::RectF(cx - cellW * 0.46f, y - cs * 0.15f,
+                                          cx + cellW * 0.46f, y + cellH - cs * 0.25f);
+            }
+            swprintf_s(b, L"%d", dday);
+            put(b, cs, dday == t.wDay ? 700 : s.dateWeight, cx, y, col >= 5 && dday != t.wDay);
+            if (lunarOn) {
+                std::wstring lt = ZcLunarText(t.wYear, t.wMonth, dday);
+                if (!lt.empty())
+                    put(lt, cs * 0.55f, s.dateWeight, cx, y + cs * 1.25f, dday != t.wDay);
+            }
+        }
+        f.size = D2D1::SizeF(cellW * 7, gy + rows * cellH);
+    }
+    float minL = 0, maxR = f.size.width, maxB = f.size.height;
+    for (auto& p : f.pieces) {
+        minL = (std::min)(minL, p.pos.x);
+        maxR = (std::max)(maxR, p.pos.x + p.size.width);
+        maxB = (std::max)(maxB, p.pos.y + p.size.height);
+    }
+    if (minL < 0) {
+        for (auto& p : f.pieces) p.pos.x -= minL;
+        f.calHiRect.left -= minL;
+        f.calHiRect.right -= minL;
+        maxR -= minL;
+    }
+    f.size = D2D1::SizeF((std::max)(maxR, 1.0f), (std::max)(maxB, 1.0f));
+}
+
+void ZcBuildResources(float scale, ZcFrame& f) {
+    const ZcStyle& s = g_zc.style;
+    f = {};
+    f.scale = scale;
+    GetLocalTime(&f.t);
+    float ds = (std::max)(12.0f, s.dateSize * scale * 0.72f);
+    struct Item { float val; bool known; const wchar_t* name; };
+    Item items[3];
+    int n = 0;
+    if (g_zc.resCpu) items[n++] = {g_zcCpu, true, L"CPU"};
+    if (g_zc.resMem) items[n++] = {g_zcMem, true, L"\u5185\u5b58"};
+    if (g_zc.resGpu) items[n++] = {g_zcGpu, g_zcGpuKnown, L"GPU"};
+    bool net = g_zc.resNet;
+    bool rings = n > 0 && (s.layout == ZcLayoutKind::ring || s.layout == ZcLayoutKind::analog);
+    std::wstring rate = net ? ZcRateLine() : L"";
+    auto addText = [&](const std::wstring& txt, float size, float y) -> float {
+        if (txt.empty()) return y;
+        ZcPiece p{};
+        p.layout = ZcLayout(txt, s.dateFont, s.dateWeight, size);
+        if (!p.layout) return y;
+        p.size = ZcMeasure(p.layout.Get());
+        p.pos = D2D1::Point2F(0, y);
+        f.pieces.push_back(p);
+        f.size.width = (std::max)(f.size.width, p.size.width);
+        f.size.height = p.pos.y + p.size.height;
+        return f.size.height + ds * 0.16f;
+    };
+    if (!rings) {
+        std::wstring line;
+        WCHAR b[48];
+        for (int i = 0; i < n; i++) {
+            if (items[i].known) swprintf_s(b, L"%s %.0f%%", items[i].name, (double)items[i].val);
+            else swprintf_s(b, L"%s --", items[i].name);
+            if (!line.empty()) line += L"   ";
+            line += b;
+        }
+        float y = addText(line, ds, 0);
+        addText(rate, ds * 0.86f, y);
+        if (f.size.width < 1) f.size.width = 1;
+        if (f.size.height < 1) f.size.height = 1;
+        return;
+    }
+    float rr = ds * 1.15f, gap = ds * 0.55f, x = 0, blockH = 0;
+    for (int i = 0; i < n; i++) {
+        D2D1_POINT_2F c = D2D1::Point2F(x + rr, rr);
+        float frac = items[i].known ? items[i].val / 100.0f : 0;
+        if (frac < 0) frac = 0;
+        if (frac > 1) frac = 1;
+        f.minis.push_back({c, rr, frac});
+        WCHAR vb[16];
+        if (!items[i].known) swprintf_s(vb, L"--");
+        else swprintf_s(vb, L"%.0f%%", (double)items[i].val);
+        ZcPiece p{};
+        p.layout = ZcLayout(vb, s.dateFont, s.dateWeight, ds * 0.55f);
+        ZcPiece q{};
+        q.layout = ZcLayout(items[i].name, s.dateFont, s.dateWeight, ds * 0.42f);
+        float colW = rr * 2, bottom = rr * 2;
+        if (p.layout) {
+            p.size = ZcMeasure(p.layout.Get());
+            p.pos = D2D1::Point2F(c.x - p.size.width / 2, c.y - p.size.height / 2);
+            f.pieces.push_back(p);
+            colW = (std::max)(colW, p.size.width);
+        }
+        if (q.layout) {
+            q.size = ZcMeasure(q.layout.Get());
+            q.pos = D2D1::Point2F(c.x - q.size.width / 2, c.y + rr + ds * 0.12f);
+            f.pieces.push_back(q);
+            colW = (std::max)(colW, q.size.width);
+            bottom = q.pos.y + q.size.height;
+        }
+        blockH = (std::max)(blockH, bottom);
+        x += colW + gap;
+    }
+    float blockW = (std::max)(x - gap, 1.0f);
+    if (net) {
+        ZcPiece sp{};
+        sp.layout = ZcLayout(rate, s.dateFont, s.dateWeight, ds * 0.62f);
+        if (sp.layout) {
+            sp.size = ZcMeasure(sp.layout.Get());
+            if (sp.size.width > blockW) {
+                float shift = (sp.size.width - blockW) / 2;
+                for (auto& m : f.minis) m.c.x += shift;
+                for (auto& piece : f.pieces) piece.pos.x += shift;
+                sp.pos = D2D1::Point2F(0, blockH + ds * 0.28f);
+                blockW = sp.size.width;
+            } else {
+                sp.pos = D2D1::Point2F((blockW - sp.size.width) / 2, blockH + ds * 0.28f);
+            }
+            blockH = sp.pos.y + sp.size.height;
+            f.pieces.push_back(sp);
+        }
+    }
+    f.size = D2D1::SizeF((std::max)(blockW, 1.0f), (std::max)(blockH, 1.0f));
 }
 
 // Arc from 12 o'clock clockwise by `frac` of a full turn.
@@ -1933,35 +2376,41 @@ ComPtr<ID2D1Effect> ZcShadowEffect(ID2D1Image* input, D2D1_COLOR_F color,
 }
 
 bool g_zcDiagPending = true;  // log one diagnostic frame
-D2D1_SIZE_F g_zcLastSize{};   // unrotated block size of the last drawn block (px)
-// Dragged position: block center relative to the monitor work area, logical px.
-struct ZcPos { bool set = false; int x = 0, y = 0; };
-ZcPos g_zcPos;
+// Dragged centers relative to the monitor work area, logical px.
+// 0 clock, 1 calendar, 2 resources.
+struct ZcWPos { bool set = false; int x = 0, y = 0; };
+ZcWPos g_zcWPos[3];
 bool g_zcPosLoaded = false;
+
+struct ZcSlot {
+    bool on = false;
+    POINT center{};
+    D2D1_SIZE_F size{};
+    HWND wnd = nullptr;
+};
+ZcSlot g_zcSlot[3];
+HWND g_zcDragMoving = nullptr;
+
 void ZcLoadPos() {
-    g_zcPos.set = Wh_GetIntValue(L"posSet", 0) != 0;
-    g_zcPos.x = Wh_GetIntValue(L"posX", 0);
-    g_zcPos.y = Wh_GetIntValue(L"posY", 0);
+    auto one = [](int i, const wchar_t* setK, const wchar_t* xK, const wchar_t* yK) {
+        g_zcWPos[i].set = Wh_GetIntValue(setK, 0) != 0;
+        g_zcWPos[i].x = Wh_GetIntValue(xK, 0);
+        g_zcWPos[i].y = Wh_GetIntValue(yK, 0);
+    };
+    one(0, L"posSet", L"posX", L"posY");
+    one(1, L"calSet", L"calX", L"calY");
+    one(2, L"resSet", L"resX", L"resY");
     g_zcPosLoaded = true;
 }
 
-void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
+void ZcDrawFrame(const ZcFrame& f, D2D1_POINT_2F center, bool rotate) {
     const ZcStyle& s = g_zc.style;
-    ZcFrame f;
-    ZcBuildFrame(scale, f);
-    g_zcLastSize = f.size;
-    if (g_zcDiagPending) {
-        Wh_Log(L"diag frame pieces=%d dial=%d size=%.0fx%.0f text=(%.2f,%.2f,%.2f,a%.2f) "
-               L"timeSize=%d font=%s",
-               (int)f.pieces.size(), (int)f.dial, f.size.width, f.size.height, s.text.r,
-               s.text.g, s.text.b, s.text.a, s.timeSize, s.timeFont.c_str());
-    }
-    if (f.pieces.empty() && !f.dial) return;
+    if (f.pieces.empty() && !f.dial && f.minis.empty()) return;
 
-    // Rotate around the block center, then move the center into place.
+    float rot = rotate ? s.rotation : 0;
     D2D1_POINT_2F half = D2D1::Point2F(f.size.width / 2, f.size.height / 2);
     D2D1::Matrix3x2F place =
-        D2D1::Matrix3x2F::Rotation(s.rotation, half) *
+        D2D1::Matrix3x2F::Rotation(rot, half) *
         D2D1::Matrix3x2F::Translation(center.x - half.x, center.y - half.y);
 
     ComPtr<ID2D1CommandList> content = ZcRecord(f, s.text, true);
@@ -1973,16 +2422,16 @@ void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
         s.hollow ? ZcRecord(f, D2D1::ColorF(1, 1, 1, 1), false) : content;
 
     if (s.shadow && s.shadowColor.a > 0 && solid) {
-        if (auto fx = ZcShadowEffect(solid.Get(), s.shadowColor, s.shadowBlur * scale)) {
+        if (auto fx = ZcShadowEffect(solid.Get(), s.shadowColor, s.shadowBlur * f.scale)) {
             // Offset in screen space so the light comes from the same side
             // regardless of rotation.
             g_zcDc->SetTransform(place * D2D1::Matrix3x2F::Translation(
-                                             s.shadowDx * scale, s.shadowDy * scale));
+                                             s.shadowDx * f.scale, s.shadowDy * f.scale));
             g_zcDc->DrawImage(fx.Get());
         }
     }
     if (s.dup) {
-        float o = s.dupOffset * scale;
+        float o = s.dupOffset * f.scale;
         if (auto a = ZcRecord(f, s.dupA, false)) {
             g_zcDc->SetTransform(D2D1::Matrix3x2F::Translation(-o, -o * 0.4f) * place);
             g_zcDc->DrawImage(a.Get());
@@ -1997,10 +2446,10 @@ void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
         ComPtr<ID2D1CommandList> mask = ZcRecord(f, s.glowColor, false);
         if (mask) {
             // Wide soft halo plus a tighter bright core.
-            if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor, s.glowRadius * scale))
+            if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor, s.glowRadius * f.scale))
                 g_zcDc->DrawImage(fx.Get());
             if (auto fx = ZcShadowEffect(mask.Get(), s.glowColor,
-                                         s.glowRadius * scale * 0.35f))
+                                         s.glowRadius * f.scale * 0.35f))
                 g_zcDc->DrawImage(fx.Get());
         }
     }
@@ -2009,7 +2458,7 @@ void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
         ComPtr<ID2D1CommandList> mask = ZcRecord(f, oc, false);
         ComPtr<ID2D1Effect> fx;
         if (mask && SUCCEEDED(g_zcDc->CreateEffect(kZcClsidMorphology, &fx))) {
-            UINT32 w = (UINT32)ZcClamp((int)std::lround(s.outlineWidth * scale), 1, 50);
+            UINT32 w = (UINT32)ZcClamp((int)std::lround(s.outlineWidth * f.scale), 1, 50);
             fx->SetInput(0, mask.Get());
             fx->SetValue(kZcMorphPropMode, (UINT32)kZcMorphModeDilate);
             fx->SetValue(kZcMorphPropWidth, w * 2 + 1);
@@ -2140,59 +2589,224 @@ POINT g_zcLastCenter{};      // screen coords of the first drawn block center
 HMONITOR g_zcLastMon = nullptr;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Drag handle (only exists while 「拖动调整位置」 is on)
+// Drag handles (only while drag-to-position is on). One window per visible widget.
 
 #define ZC_DRAG_CLASS (L"ZenDesktopClockDrag_" WH_MOD_ID)
-HWND g_zcDragWnd = nullptr;
 bool g_zcDragClass = false;
 DWORD g_zcLastDragRender = 0;
 void ZcRender();
+void ZcSyncDragWindow();
 
-RECT ZcDragRectFor(POINT c) {
-    float w = (std::max)(g_zcLastSize.width, 160.0f) + 40;
-    float h = (std::max)(g_zcLastSize.height, 80.0f) + 40;
+static const wchar_t* kZcSetKey[] = {L"posSet", L"calSet", L"resSet"};
+static const wchar_t* kZcXKey[] = {L"posX", L"calX", L"resX"};
+static const wchar_t* kZcYKey[] = {L"posY", L"calY", L"resY"};
+static const wchar_t* kZcDragLabel[] = {
+    L"时钟\r\n拖中间移动\r\n拖角落改大小",
+    L"日历\r\n拖中间移动\r\n拖角落改大小",
+    L"资源占用\r\n拖中间移动\r\n拖角落改大小",
+};
+
+RECT ZcDragRect(POINT c, D2D1_SIZE_F s) {
+    float w = (std::max)(s.width, 180.0f) + 36;
+    float h = (std::max)(s.height, 72.0f) + 36;
     return {c.x - (LONG)(w / 2), c.y - (LONG)(h / 2), c.x + (LONG)(w / 2),
             c.y + (LONG)(h / 2)};
 }
 
-// Window center (screen) -> stored monitor-relative logical position.
-void ZcPosFromWindow(HWND hWnd) {
-    RECT wr;
-    GetWindowRect(hWnd, &wr);
-    POINT c{(wr.left + wr.right) / 2, (wr.top + wr.bottom) / 2};
+void ZcStoreCenter(int idx, POINT c) {
+    if (idx < 0 || idx > 2) return;
     HMONITOR m = g_zcLastMon ? g_zcLastMon : MonitorFromPoint(c, MONITOR_DEFAULTTONEAREST);
     MONITORINFO mi{sizeof(mi)};
     if (!GetMonitorInfo(m, &mi)) return;
     float scale = ZcMonitorScale(m);
+    if (scale < 0.01f) scale = 1;
     LONG cx = (std::min)((std::max)(c.x, mi.rcWork.left), mi.rcWork.right);
     LONG cy = (std::min)((std::max)(c.y, mi.rcWork.top), mi.rcWork.bottom);
-    g_zcPos.set = true;
-    g_zcPos.x = (int)std::lround((cx - mi.rcWork.left) / scale);
-    g_zcPos.y = (int)std::lround((cy - mi.rcWork.top) / scale);
+    g_zcWPos[idx].set = true;
+    g_zcWPos[idx].x = (int)std::lround((cx - mi.rcWork.left) / scale);
+    g_zcWPos[idx].y = (int)std::lround((cy - mi.rcWork.top) / scale);
     g_zcPosLoaded = true;
 }
 
+void ZcPosFromWindow(HWND hWnd) {
+    int idx = (int)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (idx < 0 || idx > 2) return;
+    RECT wr;
+    GetWindowRect(hWnd, &wr);
+    ZcStoreCenter(idx, POINT{(wr.left + wr.right) / 2, (wr.top + wr.bottom) / 2});
+}
+
+// 0 top-left, 1 top-right, 2 bottom-left, 3 bottom-right, -1 elsewhere.
+int ZcHitCorner(HWND hWnd, POINT screen) {
+    RECT rc;
+    GetWindowRect(hWnd, &rc);
+    const int m = 28;
+    bool L = screen.x < rc.left + m;
+    bool R = screen.x >= rc.right - m;
+    bool T = screen.y < rc.top + m;
+    bool B = screen.y >= rc.bottom - m;
+    if (T && L) return 0;
+    if (T && R) return 1;
+    if (B && L) return 2;
+    if (B && R) return 3;
+    return -1;
+}
+
+struct ZcCornerDrag {
+    bool on = false;
+    int idx = 0;
+    POINT anchor{};
+    float startDist = 1;
+    int startPct = 100;
+    float startW = 1, startH = 1;
+    int signX = 1, signY = 1;
+};
+ZcCornerDrag g_zcCorner;
+
+static const wchar_t* kZcSizeKey[] = {L"size", L"calendarSize", L"resourcesSize"};
+static const wchar_t* kZcSizePin[] = {L"sizePin", L"calSizePin", L"resSizePin"};
+static const wchar_t* kZcSizeSeen[] = {L"sizeSeen", L"calSizeSeen", L"resSizeSeen"};
+
+int ZcPctOf(int idx) {
+    if (idx == 0) return g_zc.size;
+    if (idx == 1) return g_zc.calendarSize;
+    return g_zc.resourcesSize;
+}
+
+void ZcSetPct(int idx, int pct) {
+    pct = ZcClamp(pct, 20, 800);
+    if (idx == 0) g_zc.size = pct;
+    else if (idx == 1) g_zc.calendarSize = pct;
+    else g_zc.resourcesSize = pct;
+}
+
+void ZcSaveLiveSize(int idx) {
+    if (idx < 0 || idx > 2) return;
+    Wh_SetIntValue(kZcSizePin[idx], ZcPctOf(idx));
+    int setting = Wh_GetIntSetting(kZcSizeKey[idx]);
+    if (setting <= 0) setting = 100;
+    Wh_SetIntValue(kZcSizeSeen[idx], setting);
+    Wh_SetIntValue(kZcXKey[idx], g_zcWPos[idx].x);
+    Wh_SetIntValue(kZcYKey[idx], g_zcWPos[idx].y);
+    Wh_SetIntValue(kZcSetKey[idx], 1);
+}
+
+void ZcBeginCorner(HWND hWnd, int corner, POINT cursor) {
+    int idx = (int)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (idx < 0 || idx > 2 || !g_zcSlot[idx].on) return;
+    const ZcSlot& slot = g_zcSlot[idx];
+    float hw = slot.size.width / 2, hh = slot.size.height / 2;
+    if (hw < 1) hw = 1;
+    if (hh < 1) hh = 1;
+    float ax, ay;
+    int sx, sy;
+    if (corner == 0) { ax = slot.center.x + hw; ay = slot.center.y + hh; sx = -1; sy = -1; }
+    else if (corner == 1) { ax = slot.center.x - hw; ay = slot.center.y + hh; sx = 1; sy = -1; }
+    else if (corner == 2) { ax = slot.center.x + hw; ay = slot.center.y - hh; sx = -1; sy = 1; }
+    else { ax = slot.center.x - hw; ay = slot.center.y - hh; sx = 1; sy = 1; }
+    float dx = cursor.x - ax, dy = cursor.y - ay;
+    float dist = std::hypot(dx, dy);
+    if (dist < 8) dist = 8;
+    g_zcCorner = {};
+    g_zcCorner.on = true;
+    g_zcCorner.idx = idx;
+    g_zcCorner.anchor = {(LONG)std::lround(ax), (LONG)std::lround(ay)};
+    g_zcCorner.startDist = dist;
+    g_zcCorner.startPct = ZcPctOf(idx);
+    g_zcCorner.startW = slot.size.width;
+    g_zcCorner.startH = slot.size.height;
+    g_zcCorner.signX = sx;
+    g_zcCorner.signY = sy;
+    SetCapture(hWnd);
+}
+
+void ZcCornerMove(POINT cursor) {
+    ZcCornerDrag& d = g_zcCorner;
+    if (!d.on) return;
+    float dist = std::hypot((float)(cursor.x - d.anchor.x), (float)(cursor.y - d.anchor.y));
+    float factor = dist / d.startDist;
+    int pct = ZcClamp((int)std::lround(d.startPct * factor), 20, 800);
+    ZcSetPct(d.idx, pct);
+    float ratio = d.startPct ? (float)pct / (float)d.startPct : 1;
+    POINT c{d.anchor.x + (LONG)std::lround(d.signX * d.startW * ratio / 2),
+            d.anchor.y + (LONG)std::lround(d.signY * d.startH * ratio / 2)};
+    ZcStoreCenter(d.idx, c);
+    DWORD now = GetTickCount();
+    if (now - g_zcLastDragRender > 33) {
+        g_zcLastDragRender = now;
+        ZcRender();
+        ZcSyncDragWindow();
+    }
+}
+
+void ZcEndCorner() {
+    if (!g_zcCorner.on) return;
+    int idx = g_zcCorner.idx;
+    g_zcCorner.on = false;
+    if (GetCapture()) ReleaseCapture();
+    ZcRender();
+    ZcSyncDragWindow();
+    ZcSaveLiveSize(idx);
+    Wh_Log(L"corner size saved [%d]: %d%%", idx, ZcPctOf(idx));
+}
+
 LRESULT CALLBACK ZcDragProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+    int idx = (int)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+    if (idx < 0 || idx > 2) idx = 0;
     switch (msg) {
-        case WM_NCHITTEST:
-            return HTCAPTION;  // whole window drags
+        case WM_NCHITTEST: {
+            POINT pt{(SHORT)LOWORD(lp), (SHORT)HIWORD(lp)};
+            if (ZcHitCorner(hWnd, pt) >= 0) return HTCLIENT;
+            return HTCAPTION;
+        }
+        case WM_SETCURSOR: {
+            POINT pt;
+            GetCursorPos(&pt);
+            int c = ZcHitCorner(hWnd, pt);
+            LPCWSTR cur = IDC_SIZEALL;
+            if (c == 0 || c == 3) cur = IDC_SIZENWSE;
+            else if (c > 0) cur = IDC_SIZENESW;
+            SetCursor(LoadCursor(nullptr, cur));
+            return TRUE;
+        }
         case WM_MOUSEACTIVATE:
             return MA_NOACTIVATE;
+        case WM_LBUTTONDOWN: {
+            POINT pt{(SHORT)LOWORD(lp), (SHORT)HIWORD(lp)};
+            ClientToScreen(hWnd, &pt);
+            int c = ZcHitCorner(hWnd, pt);
+            if (c >= 0) ZcBeginCorner(hWnd, c, pt);
+            return 0;
+        }
+        case WM_MOUSEMOVE:
+            if (g_zcCorner.on && g_zcCorner.idx == idx) {
+                POINT pt;
+                GetCursorPos(&pt);
+                ZcCornerMove(pt);
+            }
+            return 0;
+        case WM_LBUTTONUP:
+        case WM_CAPTURECHANGED:
+            if (g_zcCorner.on && g_zcCorner.idx == idx) ZcEndCorner();
+            return 0;
         case WM_MOVING: {
+            g_zcDragMoving = hWnd;
             ZcPosFromWindow(hWnd);
             DWORD now = GetTickCount();
-            if (now - g_zcLastDragRender > 33) {  // ~30 fps max
+            if (now - g_zcLastDragRender > 33) {
                 g_zcLastDragRender = now;
                 ZcRender();
             }
             break;
         }
         case WM_EXITSIZEMOVE:
+            g_zcDragMoving = nullptr;
             ZcPosFromWindow(hWnd);
-            Wh_SetIntValue(L"posX", g_zcPos.x);
-            Wh_SetIntValue(L"posY", g_zcPos.y);
-            Wh_SetIntValue(L"posSet", 1);
-            Wh_Log(L"dragged position saved: (%d,%d) logical px", g_zcPos.x, g_zcPos.y);
+            Wh_SetIntValue(kZcXKey[idx], g_zcWPos[idx].x);
+            Wh_SetIntValue(kZcYKey[idx], g_zcWPos[idx].y);
+            Wh_SetIntValue(kZcSetKey[idx], 1);
+            Wh_Log(L"dragged position saved [%d]: (%d,%d) logical px", idx, g_zcWPos[idx].x,
+                   g_zcWPos[idx].y);
             ZcRender();
             return 0;
         case WM_PAINT: {
@@ -2210,41 +2824,52 @@ LRESULT CALLBACK ZcDragProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
                 FrameRect(dc, &r, fr);
             }
             DeleteObject(fr);
+            HBRUSH grip = CreateSolidBrush(RGB(255, 255, 255));
+            for (int i = 0; i < 4; i++) {
+                int x = (i & 1) ? rc.right - 16 : rc.left + 6;
+                int y = (i & 2) ? rc.bottom - 16 : rc.top + 6;
+                RECT g{x, y, x + 10, y + 10};
+                FillRect(dc, &g, grip);
+            }
+            DeleteObject(grip);
             SetBkMode(dc, TRANSPARENT);
             SetTextColor(dc, RGB(255, 255, 255));
             HFONT font = CreateFont(-18, 0, 0, 0, FW_SEMIBOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0,
                                     CLEARTYPE_QUALITY, 0, L"Microsoft YaHei UI");
             HGDIOBJ old = SelectObject(dc, font);
             RECT tr = rc;
-            InflateRect(&tr, -8, -8);
-            DrawText(dc, L"拖动以移动，完成后在设置里关闭拖动", -1, &tr,
-                     DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
+            InflateRect(&tr, -18, -18);
+            DrawText(dc, kZcDragLabel[idx], -1, &tr, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
             SelectObject(dc, old);
             DeleteObject(font);
             EndPaint(hWnd, &ps);
             return 0;
         }
         case WM_DESTROY:
-            g_zcDragWnd = nullptr;
+            if (g_zcDragMoving == hWnd) g_zcDragMoving = nullptr;
+            if (g_zcCorner.on && g_zcCorner.idx == idx) g_zcCorner.on = false;
+            for (auto& s : g_zcSlot) {
+                if (s.wnd == hWnd) s.wnd = nullptr;
+            }
             return 0;
     }
     return DefWindowProc(hWnd, msg, wp, lp);
 }
 
 void ZcDestroyDragWindow() {
-    if (g_zcDragWnd) DestroyWindow(g_zcDragWnd);
-    g_zcDragWnd = nullptr;
+    g_zcDragMoving = nullptr;
+    for (auto& s : g_zcSlot) {
+        if (s.wnd) DestroyWindow(s.wnd);
+        s.wnd = nullptr;
+    }
 }
 
-// Create/remove the drag handle to match the settings. Must run on the
-// overlay's thread.
 void ZcSyncDragWindow() {
-    bool want = g_zc.drag && !g_zc.lock && g_zcOverlayWnd && !g_zcUnloading;
+    bool want = g_zc.drag && g_zcOverlayWnd && !g_zcUnloading;
     if (!want) {
         ZcDestroyDragWindow();
         return;
     }
-    if (g_zcDragWnd) return;
     if (!g_zcDragClass) {
         WNDCLASS wc = {};
         wc.lpfnWndProc = ZcDragProc;
@@ -2254,20 +2879,36 @@ void ZcSyncDragWindow() {
         g_zcDragClass = RegisterClass(&wc) != 0;
         if (!g_zcDragClass) return;
     }
-    RECT r = ZcDragRectFor(g_zcLastCenter);
-    g_zcDragWnd = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_NOACTIVATE,
-                                 ZC_DRAG_CLASS, L"", WS_POPUP, r.left, r.top,
-                                 r.right - r.left, r.bottom - r.top, nullptr, nullptr,
-                                 ZcModule(), nullptr);
-    if (!g_zcDragWnd) {
-        Wh_Log(L"drag window failed: %u", GetLastError());
-        return;
+    for (int i = 0; i < 3; i++) {
+        if (!g_zcSlot[i].on) {
+            if (g_zcSlot[i].wnd) {
+                DestroyWindow(g_zcSlot[i].wnd);
+                g_zcSlot[i].wnd = nullptr;
+            }
+            continue;
+        }
+        RECT r = ZcDragRect(g_zcSlot[i].center, g_zcSlot[i].size);
+        int w = r.right - r.left, h = r.bottom - r.top;
+        if (!g_zcSlot[i].wnd) {
+            g_zcSlot[i].wnd = CreateWindowEx(
+                WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_NOACTIVATE, ZC_DRAG_CLASS, L"",
+                WS_POPUP, r.left, r.top, w, h, nullptr, nullptr, ZcModule(), nullptr);
+            if (!g_zcSlot[i].wnd) {
+                Wh_Log(L"drag window %d failed: %u", i, GetLastError());
+                continue;
+            }
+            SetWindowLongPtr(g_zcSlot[i].wnd, GWLP_USERDATA, i);
+            SetLayeredWindowAttributes(g_zcSlot[i].wnd, 0, 110, LWA_ALPHA);
+            SetWindowPos(g_zcSlot[i].wnd, HWND_TOP, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            Wh_Log(L"drag window %d shown", i);
+        } else if (g_zcSlot[i].wnd != g_zcDragMoving) {
+            SetWindowPos(g_zcSlot[i].wnd, HWND_TOP, r.left, r.top, w, h,
+                         SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        }
     }
-    SetLayeredWindowAttributes(g_zcDragWnd, 0, 110, LWA_ALPHA);
-    SetWindowPos(g_zcDragWnd, HWND_TOP, 0, 0, 0, 0,
-                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-    Wh_Log(L"drag window shown");
 }
+
 
 // Wallpaper Engine (WPEDesktopDX11Window) and similar tools add children to
 // the same WorkerW and can cover the overlay. Keep the overlay on top of its
@@ -2340,9 +2981,10 @@ void ZcRender() {
     RECT hostRc{};
     if (host) GetWindowRect(host, &hostRc);
 
-    if (g_zc.resources) ZcSampleResources();
+    if (ZcResOn()) ZcSampleResources();
     g_zcDc->BeginDraw();
     g_zcDc->Clear(D2D1::ColorF(0, 0, 0, 0));
+    for (auto& slot : g_zcSlot) slot.on = false;
     bool first = true;
     for (HMONITOR m : ZcTargetMonitors()) {
         MONITORINFO mi{sizeof(mi)};
@@ -2351,32 +2993,75 @@ void ZcRender() {
         RECT r = mi.rcWork;
         OffsetRect(&r, -hostRc.left, -hostRc.top);
         int col = g_zc.anchor % 3, row = g_zc.anchor / 3;
-        // Anchor the block center at 1/4, 1/2 or 3/4 of the work area.
         float fx[] = {0.22f, 0.5f, 0.78f};
         float fy[] = {0.2f, 0.5f, 0.8f};
-        D2D1_POINT_2F c = D2D1::Point2F(
+        D2D1_POINT_2F anchor = D2D1::Point2F(
             r.left + (r.right - r.left) * fx[col] + g_zc.offsetX * scale,
             r.top + (r.bottom - r.top) * fy[row] + g_zc.offsetY * scale);
         if (!g_zcPosLoaded) ZcLoadPos();
-        if (g_zcPos.set) {
-            // Dragged position overrides anchor/offset (logical px -> physical).
-            c = D2D1::Point2F(r.left + g_zcPos.x * scale, r.top + g_zcPos.y * scale);
+        auto clampC = [&](D2D1_POINT_2F c) {
+            c.x = (std::min)((std::max)(c.x, (float)r.left + 20), (float)r.right - 20);
+            c.y = (std::min)((std::max)(c.y, (float)r.top + 20), (float)r.bottom - 20);
+            return c;
+        };
+        auto fromPos = [&](const ZcWPos& p, D2D1_POINT_2F fallback) {
+            if (!p.set) return fallback;
+            return D2D1::Point2F(r.left + p.x * scale, r.top + p.y * scale);
+        };
+        ZcFrame clockF, calF, resF;
+        if (g_zc.showClock) ZcBuildFrame(scale * g_zc.size / 100.0f, clockF);
+        if (g_zc.calendar) ZcBuildCalendar(scale * g_zc.calendarSize / 100.0f, calF);
+        if (ZcResOn()) ZcBuildResources(scale * g_zc.resourcesSize / 100.0f, resF);
+        float gap = 28.0f * scale;
+        D2D1_POINT_2F clockC = clampC(fromPos(g_zcWPos[0], anchor));
+        D2D1_POINT_2F calFallback = anchor;
+        if (g_zc.showClock) {
+            if (g_zcCalPlace == 2) {
+                calFallback = D2D1::Point2F(
+                    clockC.x, clockC.y + clockF.size.height / 2 + calF.size.height / 2 + gap);
+            } else {
+                calFallback = D2D1::Point2F(
+                    clockC.x + clockF.size.width / 2 + calF.size.width / 2 + gap, clockC.y);
+            }
         }
-        // Never let the offset push the block center off its monitor.
-        c.x = (std::min)((std::max)(c.x, (float)r.left + 20), (float)r.right - 20);
-        c.y = (std::min)((std::max)(c.y, (float)r.top + 20), (float)r.bottom - 20);
+        D2D1_POINT_2F calC = clampC(fromPos(g_zcWPos[1], calFallback));
+        D2D1_POINT_2F resBase = g_zc.showClock ? clockC : anchor;
+        float resAbove = g_zc.showClock ? clockF.size.height / 2 : 0;
+        if (g_zc.calendar && !g_zcWPos[1].set && (g_zcCalPlace == 2 || !g_zc.showClock)) {
+            resBase = calC;
+            resAbove = calF.size.height / 2;
+        }
+        D2D1_POINT_2F resFallback =
+            D2D1::Point2F(resBase.x, resBase.y + resAbove + resF.size.height / 2 + gap);
+        D2D1_POINT_2F resC = clampC(fromPos(g_zcWPos[2], resFallback));
+        if (ZcResOn()) ZcDrawFrame(resF, resC, false);
+        if (g_zc.calendar) ZcDrawFrame(calF, calC, false);
+        if (g_zc.showClock) ZcDrawFrame(clockF, clockC, true);
         if (g_zcDiagPending) {
-            Wh_Log(L"diag monitor %p rcWork=(%ld,%ld,%ld,%ld) local=(%ld,%ld,%ld,%ld) "
-                   L"scale=%.2f center=(%.0f,%.0f)",
-                   m, mi.rcWork.left, mi.rcWork.top, mi.rcWork.right, mi.rcWork.bottom,
-                   r.left, r.top, r.right, r.bottom, scale, c.x, c.y);
+            Wh_Log(L"diag monitor %p scale=%.2f clock=(%.0f,%.0f) cal=(%.0f,%.0f) res=(%.0f,%.0f)",
+                   m, scale, clockC.x, clockC.y, calC.x, calC.y, resC.x, resC.y);
         }
-        ZcDrawBlock(c, scale * g_zc.size / 100.0f);
         if (first) {
             first = false;
-            g_zcLastCenter = {(LONG)(c.x + hostRc.left), (LONG)(c.y + hostRc.top)};
+            auto screenOf = [&](D2D1_POINT_2F c) {
+                return POINT{(LONG)std::lround(c.x + hostRc.left),
+                             (LONG)std::lround(c.y + hostRc.top)};
+            };
+            g_zcSlot[0].on = g_zc.showClock;
+            g_zcSlot[0].center = screenOf(clockC);
+            g_zcSlot[0].size = clockF.size;
+            g_zcSlot[1].on = g_zc.calendar;
+            g_zcSlot[1].center = screenOf(calC);
+            g_zcSlot[1].size = calF.size;
+            g_zcSlot[2].on = ZcResOn();
+            g_zcSlot[2].center = screenOf(resC);
+            g_zcSlot[2].size = resF.size;
+            g_zcLastCenter = g_zcSlot[0].on ? g_zcSlot[0].center
+                             : g_zcSlot[1].on ? g_zcSlot[1].center
+                                              : g_zcSlot[2].center;
             g_zcLastMon = m;
         }
+
     }
     HRESULT hr = g_zcDc->EndDraw();
     if (FAILED(hr) || g_zcDiagPending) {
@@ -2413,7 +3098,7 @@ void ZcScheduleNext() {
     UINT ms = g_zc.seconds ? 1000 - t.wMilliseconds
                            : (60 - t.wSecond) * 1000 - t.wMilliseconds;
     // Resource usage refreshes every ~2 s, only while it is shown.
-    if (g_zc.resources && ms > 2000) ms = 2000 - t.wMilliseconds % 1000;
+    if (ZcResOn() && ms > 2000) ms = 2000 - t.wMilliseconds % 1000;
     // While other windows share the WorkerW (e.g. Wallpaper Engine), re-check
     // only the z-order every 2 s (no redraw).
     if (ZcEnsureTop()) SetTimer(g_zcOverlayWnd, ZC_TIMER_ZORDER, 2000, nullptr);
@@ -2649,6 +3334,7 @@ void Wh_ModUninit() {
     if (g_zcOverlayClass) UnregisterClass(ZC_OVERLAY_CLASS, ZcModule());
     if (g_zcMessageClass) UnregisterClass(ZC_MESSAGE_CLASS, ZcModule());
     if (g_zcDragClass) UnregisterClass(ZC_DRAG_CLASS, ZcModule());
+    ZcGpuClose();
     ZcUninitDirectX();
 }
 
