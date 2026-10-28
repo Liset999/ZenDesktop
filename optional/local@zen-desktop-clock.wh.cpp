@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 桌面时钟
 // @description     A stylish clock and date drawn on the desktop behind the icons: tilt, soft drop shadow, glow, outline and flip-card presets.
 // @description:zh-CN 在桌面图标后方显示花样时钟与日期：倾斜、柔和投影、霓虹光晕、描边、翻页卡片等预设。
-// @version         1.2.0
+// @version         1.2.1
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -880,9 +880,11 @@ void ZcLoadSettings() {
     s.dateWeight = ZcClamp(s.dateWeight ? s.dateWeight : 400, 100, 950);
 
     g_zc = z;
-    Wh_Log(L"settings: style=%s size=%d seconds=%d res=%d cal=%d lunar=%d monitor=%d",
+    Wh_Log(L"settings: style=%s size=%d seconds=%d res=%d cal=%d lunar=%d monitor=%d "
+           L"anchor=%d offset=(%d,%d) color='%s' accent='%s'",
            style.c_str(), z.size, (int)z.seconds, (int)z.resources, z.calendar,
-           (int)z.lunar, z.monitor);
+           (int)z.lunar, z.monitor, z.anchor, z.offsetX, z.offsetY,
+           ZcStr(L"color").c_str(), ZcStr(L"accentColor").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1602,10 +1604,18 @@ ComPtr<ID2D1Effect> ZcShadowEffect(ID2D1Image* input, D2D1_COLOR_F color,
     return fx;
 }
 
+bool g_zcDiagPending = true;  // log one diagnostic frame
+
 void ZcDrawBlock(D2D1_POINT_2F center, float scale) {
     const ZcStyle& s = g_zc.style;
     ZcFrame f;
     ZcBuildFrame(scale, f);
+    if (g_zcDiagPending) {
+        Wh_Log(L"diag frame pieces=%d dial=%d size=%.0fx%.0f text=(%.2f,%.2f,%.2f,a%.2f) "
+               L"timeSize=%d font=%s",
+               (int)f.pieces.size(), (int)f.dial, f.size.width, f.size.height, s.text.r,
+               s.text.g, s.text.b, s.text.a, s.timeSize, s.timeFont.c_str());
+    }
     if (f.pieces.empty() && !f.dial) return;
 
     // Rotate around the block center, then move the center into place.
@@ -1786,6 +1796,51 @@ bool ZcResizeSwapChain(UINT width, UINT height) {
     return ZcBindTarget();
 }
 
+// ---- Diagnostics (logged once per overlay / on demand) ----
+
+std::wstring ZcClassOf(HWND h) {
+    WCHAR b[128] = L"";
+    if (h) GetClassName(h, b, ARRAYSIZE(b));
+    return b;
+}
+
+void ZcLogHostDiag() {
+    if (!g_zcOverlayWnd) return;
+    HWND host = GetParent(g_zcOverlayWnd);
+    HWND hp = host ? GetParent(host) : nullptr;
+    RECT hr{}, orc{};
+    if (host) GetWindowRect(host, &hr);
+    GetWindowRect(g_zcOverlayWnd, &orc);
+    Wh_Log(L"diag host=%p class=%s parent=%p class=%s visible=%d rect=(%ld,%ld,%ld,%ld)",
+           host, ZcClassOf(host).c_str(), hp, ZcClassOf(hp).c_str(),
+           host ? (int)IsWindowVisible(host) : -1, hr.left, hr.top, hr.right, hr.bottom);
+    Wh_Log(L"diag overlay=%p visible=%d rect=(%ld,%ld,%ld,%ld) exstyle=0x%08lX",
+           g_zcOverlayWnd, (int)IsWindowVisible(g_zcOverlayWnd), orc.left, orc.top,
+           orc.right, orc.bottom, (unsigned long)GetWindowLongPtr(g_zcOverlayWnd, GWL_EXSTYLE));
+    Wh_Log(L"diag virtual screen=(%d,%d %dx%d)", GetSystemMetrics(SM_XVIRTUALSCREEN),
+           GetSystemMetrics(SM_YVIRTUALSCREEN), GetSystemMetrics(SM_CXVIRTUALSCREEN),
+           GetSystemMetrics(SM_CYVIRTUALSCREEN));
+    // Z-order of the host's parent children (top first).
+    HWND top = hp ? hp : host;
+    int i = 0;
+    for (HWND c = top ? GetWindow(top, GW_CHILD) : nullptr; c && i < 12;
+         c = GetWindow(c, GW_HWNDNEXT), i++) {
+        RECT r{};
+        GetWindowRect(c, &r);
+        Wh_Log(L"diag z[%d] %p class=%s visible=%d rect=(%ld,%ld,%ld,%ld)%s", i, c,
+               ZcClassOf(c).c_str(), (int)IsWindowVisible(c), r.left, r.top, r.right,
+               r.bottom, c == host ? L" <= host" : L"");
+    }
+    if (host) {
+        i = 0;
+        for (HWND c = GetWindow(host, GW_CHILD); c && i < 8;
+             c = GetWindow(c, GW_HWNDNEXT), i++) {
+            Wh_Log(L"diag host child[%d] %p class=%s%s", i, c, ZcClassOf(c).c_str(),
+                   c == g_zcOverlayWnd ? L" <= overlay" : L"");
+        }
+    }
+}
+
 void ZcRender() {
     if (g_zcUnloading || !g_zcDc || !g_zcSwapChain || !g_zcOverlayWnd) return;
 
@@ -1809,9 +1864,21 @@ void ZcRender() {
         D2D1_POINT_2F c = D2D1::Point2F(
             r.left + (r.right - r.left) * fx[col] + g_zc.offsetX * scale,
             r.top + (r.bottom - r.top) * fy[row] + g_zc.offsetY * scale);
+        // Never let the offset push the block center off its monitor.
+        c.x = (std::min)((std::max)(c.x, (float)r.left + 20), (float)r.right - 20);
+        c.y = (std::min)((std::max)(c.y, (float)r.top + 20), (float)r.bottom - 20);
+        if (g_zcDiagPending) {
+            Wh_Log(L"diag monitor %p rcWork=(%ld,%ld,%ld,%ld) local=(%ld,%ld,%ld,%ld) "
+                   L"scale=%.2f center=(%.0f,%.0f)",
+                   m, mi.rcWork.left, mi.rcWork.top, mi.rcWork.right, mi.rcWork.bottom,
+                   r.left, r.top, r.right, r.bottom, scale, c.x, c.y);
+        }
         ZcDrawBlock(c, scale * g_zc.size / 100.0f);
     }
     HRESULT hr = g_zcDc->EndDraw();
+    if (FAILED(hr) || g_zcDiagPending) {
+        Wh_Log(L"diag EndDraw hr=0x%08X", (unsigned)hr);
+    }
     if (hr == (HRESULT)D2DERR_RECREATE_TARGET) {
         Wh_Log(L"Device lost, recreating");
         RECT rc;
@@ -1820,7 +1887,16 @@ void ZcRender() {
         ZcCreateSwapChain(rc.right, rc.bottom);
         return;
     }
-    g_zcSwapChain->Present(0, 0);
+    HRESULT phr = g_zcSwapChain->Present(0, 0);
+    if (FAILED(phr) || g_zcDiagPending) {
+        DXGI_SWAP_CHAIN_DESC1 d{};
+        g_zcSwapChain->GetDesc1(&d);
+        Wh_Log(L"diag Present hr=0x%08X swapchain=%ux%u", (unsigned)phr, d.Width, d.Height);
+    }
+    if (g_zcDiagPending) {
+        g_zcDiagPending = false;
+        ZcLogHostDiag();
+    }
 }
 
 // Wake up right after the next minute (or second) boundary only.
@@ -1880,6 +1956,7 @@ LRESULT CALLBACK ZcOverlayProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         case ZC_WM_SETTINGS:
             ZcLoadSettings();
+            g_zcDiagPending = true;
             ZcRender();
             ZcScheduleNext();
             return 0;
@@ -1969,6 +2046,7 @@ void ZcCreateOverlay() {
     }
     Wh_Log(L"overlay created on %p (%ldx%ld)", worker, rc.right - rc.left,
            rc.bottom - rc.top);
+    g_zcDiagPending = true;
     if (ZcCreateSwapChain(rc.right - rc.left, rc.bottom - rc.top)) {
         ZcRender();
         ZcScheduleNext();
