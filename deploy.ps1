@@ -285,6 +285,16 @@ if ($files.Count -eq 0) {
 }
 
 # v4.2: deploy 仅负责将所有 Mod 源码及元数据装入 Windhawk，不负责开启，不负责编译。
+# 上游「Windows 11 File Explorer Styler」与「文件管理器美化」争用 XAML 诊断，同时开启会反复弹冲突窗口。只提示，不改动它。
+$upstreamExplorerStyler = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\windows-11-file-explorer-styling"
+if (Test-Path $upstreamExplorerStyler) {
+    $upDisabled = (Get-ItemProperty -Path $upstreamExplorerStyler -Name Disabled -ErrorAction SilentlyContinue).Disabled
+    if ($upDisabled -ne 1) {
+        Write-Host "[ZenDeploy] 检测到已启用上游「Windows 11 File Explorer Styler」：请在 Windhawk 中关闭它，否则会与「文件管理器美化」冲突并弹出 XAML diagnostics 提示。" -ForegroundColor Yellow
+        Write-Host "[ZenDeploy] Upstream 'Windows 11 File Explorer Styler' is enabled; disable it in Windhawk to avoid XAML diagnostics conflicts." -ForegroundColor Yellow
+    }
+}
+
 # 所有 Mod（包括核心 Mod 与 optional Mod）在首次部署时默认全部处于关闭状态（Disabled=1）。
 # 用户在 Windhawk UI 中自行按需开启开关并在提示时编译。
 # 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
