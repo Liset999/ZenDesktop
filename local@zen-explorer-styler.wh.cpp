@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.2
+// @version         1.7.3
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.3**：选中改走主题位图钩子（ItemsView/ListView/TreeView 的 DrawThemeBackground），先清成透明再叠真正半透明深色，去掉浅色描边；控制面板顶部导航栏（Rebar/地址栏背景）清成透明，去掉黑条；日志输出 [zen-theme] 便于确认。
 - **1.7.2**：选中改为固定深色玻璃（加宽灰阶/轻度强调色检测，FillRect/PatBlt/Rectangle/ExtTextOut 统一）；深色内容下抬亮控制面板彩色链接并清掉漏出的浅色地址栏底/白条。
 - **1.7.1**：性能：GetTargetWnds 短缓存，减少重复 EnumWindows。
 - **1.7.0**：列表选中改为半透明深色玻璃；首次打开窗口前预涂背景效果，减轻黑闪；子菜单在安全范围内跟主菜单玻璃对齐（仍不接管 Popup 材质所有权）；说明写明仅支持 Win11 现代右键菜单，经典 Win32 /「显示更多选项」不支持。
@@ -12450,6 +12451,19 @@ using GetThemeClass_t = HRESULT(WINAPI*)(HTHEME hTheme,
                                          int cchClassName);
 GetThemeClass_t g_pGetThemeClass;
 
+// ZenDesktop 1.7.3: one Wh_Log per theme class/part/state seen on a glass DC.
+void ZenLogThemePartOnce(PCWSTR themeClass, int part, int state) {
+    static std::mutex m;
+    static std::unordered_set<std::wstring> seen;
+    std::wstring key = std::wstring(themeClass) + L"|" + std::to_wstring(part) +
+                       L"|" + std::to_wstring(state);
+    std::lock_guard<std::mutex> lock(m);
+    if (seen.size() > 256 || !seen.insert(key).second) {
+        return;
+    }
+    Wh_Log(L"[zen-theme] class=%s part=%d state=%d", themeClass, part, state);
+}
+
 bool PaintThemeBackground(HTHEME hTheme,
                           HDC hdc,
                           int iPartId,
@@ -12463,6 +12477,52 @@ bool PaintThemeBackground(HTHEME hTheme,
     WCHAR themeClass[64];
     if (FAILED(g_pGetThemeClass(hTheme, themeClass, ARRAYSIZE(themeClass)))) {
         return false;
+    }
+
+    // ZenDesktop 1.7.3: log each theme class/part/state once so real-machine
+    // tests can confirm which path paints selection and toolbar chrome.
+    ZenLogThemePartOnce(themeClass, iPartId, iStateId);
+
+    // ZenDesktop 1.7.3: list/tree selection (ItemsView, ListView, TreeView) is
+    // a themed bitmap with alpha 255 plus a light 1px frame, so the GDI
+    // FillRect hooks never saw it. Clear it to alpha 0 and lay a real
+    // premultiplied dark tint on top; the frame is not drawn.
+    if (iPartId == 1 && iStateId > 1 &&
+        (wcsstr(themeClass, L"ItemsView") || wcsstr(themeClass, L"ListView") ||
+         wcsstr(themeClass, L"TreeView"))) {
+        RECT rc = *pRect;
+        if (pClipRect && !IntersectRect(&rc, &rc, pClipRect)) {
+            return true;
+        }
+        FillRect_Original(hdc, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
+        // States: 2 hot, 3 selected, 4 disabled, 5 selected-not-focus,
+        // 6 hot-selected (TreeView uses 2 hot, 3 selected, 5 selected-nf,
+        // 6 hot-selected too).
+        BYTE alpha = iStateId == 2 ? 0x28 : (iStateId == 6 ? 0x60 : 0x48);
+        if (iStateId != 4) {
+            FillRectWithAlpha(hdc, &rc, kSelectionGlassColor, alpha);
+        }
+        return true;
+    }
+
+    // ZenDesktop 1.7.3: Control Panel still hosts the legacy navigation rebar
+    // (back/forward, address, search). In dark mode its band background is
+    // a DarkMode_* theme bitmap painted opaque, which shows as a solid black
+    // strip. Clear only the background parts to alpha 0 like the Explorer
+    // top bar; buttons and text keep drawing normally.
+    bool rebarBg = wcsstr(themeClass, L"Rebar") &&
+                   (iPartId == 3 /*RP_BAND*/ || iPartId == 6 /*RP_BACKGROUND*/);
+    bool addressBg = (wcsstr(themeClass, L"AddressBand") ||
+                      wcsstr(themeClass, L"AddressComposited")) &&
+                     iPartId == 1;
+    bool navBg = wcsstr(themeClass, L"Navigation") && iPartId == 0;
+    if (rebarBg || addressBg || navBg) {
+        RECT rc = *pRect;
+        if (pClipRect && !IntersectRect(&rc, &rc, pClipRect)) {
+            return true;
+        }
+        FillRect_Original(hdc, &rc, (HBRUSH)GetStockObject(BLACK_BRUSH));
+        return true;
     }
 
     enum class Part { ScrollBar, Header, PaneSeparator };
