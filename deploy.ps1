@@ -313,7 +313,7 @@ if (Test-Path $upstreamExplorerStyler) {
 # 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
 
 $optionalDir = Join-Path $PSScriptRoot "optional"
-$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-widgets")
+$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-widgets", "local@zen-liquid-glass")
 # zen-desktop-clock 和 zen-audio-bars 已并入 zen-desktop-widgets 2.0.0（不再单独发布）。
 $preselected = @()
 if ($Optional) {
