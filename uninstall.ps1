@@ -56,6 +56,7 @@ foreach ($id in @(
     "local@windows-11-settings-styler-fork",
     "local@wobbly-windows",
     "local@windows-animations",
+    "local@zen-liquid-glass",
     "local@zen-desktop-clock",
     "local@zen-desktop-widgets",
     "local@zen-dock",
