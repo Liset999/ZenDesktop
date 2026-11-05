@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.7
+// @version         1.7.8
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.8**：#18 显卡驱动重置加固。以前每次显示窗口、每轮补挂、资源管理器每次设置深浅色时，都会把背景材质、模糊和强调色重新发给 DWM，即使没变也会让 DWM 重建效果。现在每个窗口记住已设的背景，没变就不再发，也不再强制刷新合成；全进程 2 秒内最多改 12 次背景；10 秒内连续失败 3 次就降一级（模糊→亚克力→云母→无），保存设置后重新尝试原选项。
 - **1.7.7**：修复 #18「文字颜色更改无效，固定为白色」：文字颜色改为直接使用设置里的颜色，不再从绘图上下文读回；文件列表在离屏缓冲里画的文字也会套用设置的颜色（只改黑白灰的字，菜单打开时不改）；修正半透明文字的预乘计算，去掉发白发雾的边。
 - **1.7.6**：「文字颜色」新增「自定义」，配合「自定义文字颜色」填色值（如 #FF8800）；控制面板地址栏下方那条白色标题带改为透明。
 - **1.7.5**：修复右键菜单偶发让资源管理器崩溃（#17）：异常在钩子边界吞掉，不再抛进 explorer。
@@ -11159,13 +11160,91 @@ TargetWindowType GetTargetWindowType(HWND hWnd) {
     return TargetWindowType::None;
 }
 
+// ZenDesktop 1.7.8 (#18): backdrop downgrade after failures. Each level steps
+// one place down Blur -> Acrylic -> Mica -> None; MicaAlt -> Mica -> None.
+// Raised when DWM keeps rejecting the calls (seen around a driver reset), so
+// we stop asking DWM to rebuild an effect it can't render. Reset on settings
+// change.
+std::atomic<int> g_zenBackdropDowngrade{0};
+
+BackgroundTranslucentEffect ZenDowngradeEffect(BackgroundTranslucentEffect e,
+                                               int levels) {
+    using E = BackgroundTranslucentEffect;
+    for (int i = 0; i < levels; i++) {
+        switch (e) {
+            case E::kBlur: e = E::kAcrylic; break;
+            case E::kAcrylic: e = E::kMica; break;
+            case E::kMicaAlt: e = E::kMica; break;
+            case E::kMica: e = E::kNone; break;
+            default: return e;
+        }
+    }
+    return e;
+}
+
 BackgroundTranslucentEffect GetEffectiveBackgroundTranslucentEffect() {
     if (FindAtom(L"WindhawkFileExplorerStylerNoBackgroundEffect")) {
         return BackgroundTranslucentEffect::kDefault;
     }
 
-    return g_settings.backgroundTranslucentEffect.value_or(
-        g_themeBackgroundTranslucentEffect);
+    return ZenDowngradeEffect(g_settings.backgroundTranslucentEffect.value_or(
+                                  g_themeBackgroundTranslucentEffect),
+                              g_zenBackdropDowngrade.load());
+}
+
+// Failures within kZenBackdropFailWindowMs; kZenBackdropFailLimit of them
+// raise the downgrade level by one.
+constexpr ULONGLONG kZenBackdropFailWindowMs = 10000;
+constexpr int kZenBackdropFailLimit = 3;
+std::mutex g_zenBackdropFailMutex;
+ULONGLONG g_zenBackdropFailWindowStart;
+int g_zenBackdropFailCount;
+
+void ZenNoteBackdropResult(bool ok, PCWSTR what) {
+    if (ok) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_zenBackdropFailMutex);
+    ULONGLONG now = GetTickCount64();
+    if (now - g_zenBackdropFailWindowStart > kZenBackdropFailWindowMs) {
+        g_zenBackdropFailWindowStart = now;
+        g_zenBackdropFailCount = 0;
+    }
+    if (++g_zenBackdropFailCount >= kZenBackdropFailLimit &&
+        g_zenBackdropDowngrade.load() < 3) {
+        int level = g_zenBackdropDowngrade.fetch_add(1) + 1;
+        g_zenBackdropFailCount = 0;
+        Wh_Log(L"[zen-backdrop] %s failed repeatedly, downgrade level %d",
+               what, level);
+    }
+}
+
+// Process-wide budget for real backdrop changes, so that no path (show hooks,
+// retries, dark mode flips) can turn into a tight loop of DWM effect rebuilds.
+constexpr ULONGLONG kZenBackdropBudgetWindowMs = 2000;
+constexpr int kZenBackdropBudget = 12;
+
+bool ZenTakeBackdropBudget() {
+    static std::mutex m;
+    static ULONGLONG windowStart;
+    static int used;
+    static bool logged;
+    std::lock_guard<std::mutex> lock(m);
+    ULONGLONG now = GetTickCount64();
+    if (now - windowStart > kZenBackdropBudgetWindowMs) {
+        windowStart = now;
+        used = 0;
+        logged = false;
+    }
+    if (used >= kZenBackdropBudget) {
+        if (!logged) {
+            logged = true;
+            Wh_Log(L"[zen-backdrop] budget exhausted, deferring changes");
+        }
+        return false;
+    }
+    used++;
+    return true;
 }
 
 void SetAccentBlurBehind(HWND hWnd,
@@ -11246,8 +11325,10 @@ HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
 
     Wh_Log(L">");
 
-    return DwmSetWindowAttribute_Original(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
-                                          &backdropType, sizeof(backdropType));
+    HRESULT hr = DwmSetWindowAttribute_Original(
+        hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdropType, sizeof(backdropType));
+    ZenNoteBackdropResult(SUCCEEDED(hr), L"DWMWA_SYSTEMBACKDROP_TYPE (hook)");
+    return hr;
 }
 
 using DwmExtendFrameIntoClientArea_t = decltype(&DwmExtendFrameIntoClientArea);
@@ -12834,6 +12915,23 @@ void ApplyZenContextMenuStyles() {
 
 // Based on the Translucent Windows mod.
 void SetAccentBlurBehind(HWND hWnd, bool enable, std::optional<bool> darkTheme) {
+    // ZenDesktop 1.7.8 (#18): File Explorer sets the dark mode attribute often
+    // (every theme / focus refresh), and each call used to re-send blur behind
+    // and the accent policy, making DWM rebuild the effect even with nothing
+    // changed. Skip when the window already has this exact accent.
+    constexpr WCHAR kAccentKey[] = L"zen_accent_state-" WH_MOD_ID;
+    ULONG_PTR accentState =
+        enable ? (0x100000000ULL |
+                  (ULONG_PTR)(DWORD)GetAccentGradientColor(darkTheme))
+               : 0;
+    if (GetPropW(hWnd, kAccentKey) == (HANDLE)(accentState + 1)) {
+        return;
+    }
+    if (!ZenTakeBackdropBudget()) {
+        return;
+    }
+    SetPropW(hWnd, kAccentKey, (HANDLE)(accentState + 1));
+
     // Without blur behind, the extended frame is drawn over the accent blur.
     HRGN hRgn = enable ? CreateRectRgn(0, 0, -1, -1) : nullptr;
     DWM_BLURBEHIND blurBehind = {
@@ -12895,17 +12993,47 @@ void SetAccentBlurBehind(HWND hWnd, bool enable, std::optional<bool> darkTheme) 
         .cbData = sizeof(accentPolicy),
     };
 
-    pSetWindowCompositionAttribute(hWnd, &data);
+    if (!pSetWindowCompositionAttribute(hWnd, &data)) {
+        RemovePropW(hWnd, kAccentKey);
+        ZenNoteBackdropResult(false, L"SetWindowCompositionAttribute");
+    }
 }
 
-void ApplyBackgroundTranslucentEffect(
+// ZenDesktop 1.7.8 (#18): returns whether anything was sent to DWM, so that
+// callers only force a composition update after a real change. The last
+// applied {effect, region} is kept per window; the same request again (every
+// ShowWindow, every boot retry) is a no-op instead of rebuilding the backdrop.
+constexpr WCHAR kZenBackdropStateKey[] = L"zen_backdrop_state-" WH_MOD_ID;
+
+void ZenForgetBackdropState(HWND hWnd) {
+    RemovePropW(hWnd, kZenBackdropStateKey);
+    RemovePropW(hWnd, L"zen_accent_state-" WH_MOD_ID);
+}
+
+bool ApplyBackgroundTranslucentEffect(
     HWND hWnd,
     std::optional<BackgroundTranslucentEffect> effectToApply = std::nullopt) {
     constexpr WCHAR kBackgroundTranslucentEffectAppliedKey[] =
         L"windhawk_background_effect-" WH_MOD_ID;
 
+    if (!IsWindow(hWnd)) {
+        return false;
+    }
+
     auto effect =
         effectToApply.value_or(GetEffectiveBackgroundTranslucentEffect());
+
+    ULONG_PTR wantedState =
+        1 + (ULONG_PTR)effect +
+        ((ULONG_PTR)g_settings.backgroundTranslucentEffectRegion << 8);
+    if ((ULONG_PTR)GetPropW(hWnd, kZenBackdropStateKey) == wantedState) {
+        return false;
+    }
+    // Restoring the default (unload) is never deferred.
+    if (effect != BackgroundTranslucentEffect::kDefault &&
+        !ZenTakeBackdropBudget()) {
+        return false;
+    }
 
     bool entireWindowEffect =
         effect != BackgroundTranslucentEffect::kDefault &&
@@ -12918,7 +13046,8 @@ void ApplyBackgroundTranslucentEffect(
 
     if (effect == BackgroundTranslucentEffect::kDefault) {
         if (!RemoveProp(hWnd, kBackgroundTranslucentEffectAppliedKey)) {
-            return;
+            SetPropW(hWnd, kZenBackdropStateKey, (HANDLE)wantedState);
+            return false;
         }
     } else {
         SetProp(hWnd, kBackgroundTranslucentEffectAppliedKey, (HANDLE)1);
@@ -12956,10 +13085,17 @@ void ApplyBackgroundTranslucentEffect(
             break;
     }
 
-    DwmSetWindowAttribute_Original(hWnd, DWMWA_SYSTEMBACKDROP_TYPE,
-                                   &backdropType, sizeof(backdropType));
+    HRESULT hr = DwmSetWindowAttribute_Original(
+        hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdropType, sizeof(backdropType));
+    ZenNoteBackdropResult(SUCCEEDED(hr), L"DWMWA_SYSTEMBACKDROP_TYPE");
+    if (SUCCEEDED(hr)) {
+        SetPropW(hWnd, kZenBackdropStateKey, (HANDLE)wantedState);
+    } else {
+        RemovePropW(hWnd, kZenBackdropStateKey);
+    }
 
     SetAccentBlurBehind(hWnd, effect == BackgroundTranslucentEffect::kBlur);
+    return true;
 }
 
 void TriggerWindowCompositionUpdate(HWND hWnd) {
@@ -13815,8 +13951,9 @@ void ZenExplorerStyleRetryTick() {
                         InitializeForCurrentThread();
                         if (GetTargetWindowType(hTargetWnd) ==
                             TargetWindowType::FileExplorer) {
-                            ApplyBackgroundTranslucentEffect(hTargetWnd);
-                            TriggerWindowCompositionUpdate(hTargetWnd);
+                            if (ApplyBackgroundTranslucentEffect(hTargetWnd)) {
+                                TriggerWindowCompositionUpdate(hTargetWnd);
+                            }
                         }
                     },
                     (PVOID)hTargetWnd);
@@ -14014,8 +14151,9 @@ void Wh_ModAfterInit() {
 
                 if (GetTargetWindowType(hTargetWnd) ==
                     TargetWindowType::FileExplorer) {
-                    ApplyBackgroundTranslucentEffect(hTargetWnd);
-                    TriggerWindowCompositionUpdate(hTargetWnd);
+                    if (ApplyBackgroundTranslucentEffect(hTargetWnd)) {
+                        TriggerWindowCompositionUpdate(hTargetWnd);
+                    }
                 }
             },
             (PVOID)hTargetWnd);
@@ -14062,6 +14200,8 @@ void Wh_ModUninit() {
                     ApplyBackgroundTranslucentEffect(
                         hTargetWnd, BackgroundTranslucentEffect::kDefault);
                     TriggerWindowCompositionUpdate(hTargetWnd);
+                    // A later load must not take the window for styled.
+                    ZenForgetBackdropState(hTargetWnd);
                 }
             },
             (PVOID)hTargetWnd);
@@ -14077,6 +14217,9 @@ void Wh_ModUninit() {
 
 void Wh_ModSettingsChanged() {
     Wh_Log(L">");
+
+    // A new choice gets a fresh try at the requested backdrop.
+    g_zenBackdropDowngrade = 0;
 
     UninitializeSettingsAndTap();
 
@@ -14096,8 +14239,9 @@ void Wh_ModSettingsChanged() {
 
                 if (GetTargetWindowType(hTargetWnd) ==
                     TargetWindowType::FileExplorer) {
-                    ApplyBackgroundTranslucentEffect(hTargetWnd);
-                    TriggerWindowCompositionUpdate(hTargetWnd);
+                    if (ApplyBackgroundTranslucentEffect(hTargetWnd)) {
+                        TriggerWindowCompositionUpdate(hTargetWnd);
+                    }
                 }
             },
             (PVOID)hTargetWnd);
