@@ -7,6 +7,9 @@ These mods are bundled for optional install (filename gets a `local@` prefix). F
 | Mod | Author | License | Source |
 |---|---|---|---|
 | Wobbly Windows v0.115 | lalimatyus | GPL-3.0-only | https://windhawk.net/mods/wobbly-windows |
-| ZenDesktop: 桌面时钟（自制，桌面宿主 WorkerW 与 D2D/DComp 渲染框架改编自 Desktop Live Overlay v1.2） | Lanbo；框架：m417z | GPL-3.0 | https://github.com/m417z/my-windhawk-mods · https://windhawk.net/mods/desktop-live-overlay |
+| ZenDesktop: 桌面小组件（原桌面时钟；自制，桌面宿主 WorkerW 与 D2D/DComp 渲染框架改编自 Desktop Live Overlay v1.2） | Lanbo；框架：m417z | GPL-3.0 | https://github.com/m417z/my-windhawk-mods · https://windhawk.net/mods/desktop-live-overlay |
 | Windows Animations（ZenDesktop: 窗口动画，基于 v1.3.7+ 修改） | ReDrag；macOS Genie：Abdullah Masood / Potassiumuncher | MIT | https://windhawk.net/mods/windows-animations |
 
+
+| ZenDesktop: 桌面小组件 · 音频条（原音频可视化条，自制） | Lanbo | GPL-3.0 | 桌面宿主见 zen-desktop-host.h；频谱思路参考 Wallpaper Engine audio listener 文档 |
+| ZenDesktop: 桌面小组件 共用宿主头 | Lanbo | GPL-3.0 | optional/zen-desktop-host.h（WE / Lively / Ivy 24H2 挂载方式） |

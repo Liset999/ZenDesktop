@@ -35,27 +35,19 @@ echo.
 echo [提示] 正在申请管理员权限...
 echo.
 
-if not exist "%~dp0elevate-run.vbs" (
-    color 0E
-    echo [错误] 缺少 elevate-run.vbs（应与 deploy.bat 同目录）。
-    echo [提示] 请右键 deploy.bat，选择【以管理员身份运行】。
-    echo.
-    pause
-    exit /b 1
-)
+set "ZD_BAT=%~f0"
+set "ZD_DIR=%~dp0"
+set "ZD_ARGS=%*"
 
-set "ZD_ERR=%TEMP%\ZenDesktop_elevate_deploy.err"
-del /q "%ZD_ERR%" >nul 2>&1
+:: Primary: PowerShell Start-Process -Verb RunAs. No double quotes inside the
+:: -Command string (cmd would split on them and run "&" itself); paths come in via env vars.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $q=[char]34; $a='/c '+$q+$q+$env:ZD_BAT+$q+' '+$env:ZD_ARGS+$q; Start-Process -FilePath $env:ComSpec -ArgumentList $a -WorkingDirectory $env:ZD_DIR -Verb RunAs -ErrorAction Stop; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }"
+if not errorlevel 1 goto ElevateLaunched
 
-:: Primary: VBScript ShellExecute runas (shows UAC reliably from Explorer double-click)
-cscript //nologo "%~dp0elevate-run.vbs" "%~f0" "%~dp0" "%*" 2>"%ZD_ERR%"
-set "ZD_EL=!errorlevel!"
-if "!ZD_EL!"=="0" goto ElevateLaunched
-
-echo [警告] VBScript 提权失败，尝试 PowerShell 备用方式...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c','cd /d \"%~dp0\" & \"%~f0\"') -WorkingDirectory '%~dp0.' -Verb RunAs"
-set "ZD_EL=!errorlevel!"
-if not "!ZD_EL!"=="0" goto ElevateFailed
+:: Fallback: VBScript (VBScript may be disabled on newer Windows 11 builds)
+if not exist "%~dp0elevate-run.vbs" goto ElevateFailed
+cscript //nologo "%~dp0elevate-run.vbs" "%~f0" "%~dp0" "%*"
+if errorlevel 1 goto ElevateFailed
 
 :ElevateLaunched
 echo.

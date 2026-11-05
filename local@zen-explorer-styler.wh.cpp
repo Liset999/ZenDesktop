@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.4
+// @version         1.7.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,8 @@
 
 ## 更新日志
 
+- **1.7.6**：「文字颜色」新增「自定义」，配合「自定义文字颜色」填色值（如 #FF8800）；控制面板地址栏下方那条白色标题带改为透明。
+- **1.7.5**：修复右键菜单偶发让资源管理器崩溃（#17）：异常在钩子边界吞掉，不再抛进 explorer。
 - **1.7.4**：修复开窗先闪一下：1.7.3 的选中/导航栏透明清除改为窗口显示且背景已生效后才执行；XAML 诊断被其他 mod（如上游「Windows 11 File Explorer Styler」）占用时本进程不再反复尝试，减少报错弹窗。
 - **1.7.3**：选中改走主题位图钩子（ItemsView/ListView/TreeView 的 DrawThemeBackground），先清成透明再叠真正半透明深色，去掉浅色描边；控制面板顶部导航栏（Rebar/地址栏背景）清成透明，去掉黑条；日志输出 [zen-theme] 便于确认。
 - **1.7.2**：选中改为固定深色玻璃（加宽灰阶/轻度强调色检测，FillRect/PatBlt/Rectangle/ExtTextOut 统一）；深色内容下抬亮控制面板彩色链接并清掉漏出的浅色地址栏底/白条。
@@ -400,6 +402,12 @@ Background:=<AcrylicBrush TintColor="$mainColor" TintOpacity="0.3" />
     - purple: "紫色"
     - pink: "粉色"
     - cyan: "青色"
+    - custom: "自定义"
+- textColorCustom: ""
+  $name: "Custom text color"
+  $name:zh-CN: "自定义文字颜色"
+  $description: "Color code used when text color is \"Custom\", for example #FF8800 or FF8800. Empty or invalid falls back to the theme default."
+  $description:zh-CN: "文字颜色选「自定义」时使用的色值，例如 #FF8800 或 FF8800。留空或格式不对时按主题默认。"
 - fieldOpacity: 0
   $name: "Address/search box opacity"
   $name:zh-CN: "地址栏与搜索框不透明度"
@@ -6454,7 +6462,8 @@ void ZenContextMenuApply(
         menu.SetValue(property, backdrop);
     } catch (...) {
         g_zenContextMenuWriting = prevWriting;
-        throw;
+        Wh_Log(L"[ctxmenu] SetValue failed (%s), skipping", reason);
+        return;
     }
     g_zenContextMenuWriting = prevWriting;
 
@@ -6505,6 +6514,8 @@ void ZenContextMenuWaitLoaded(
             } catch (winrt::hresult_error const& ex) {
                 Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
                        ex.message().c_str());
+            } catch (...) {
+                Wh_Log(L"[ctxmenu] unexpected exception");
             }
         });
 }
@@ -6543,6 +6554,8 @@ void ZenContextMenuScheduleApply(
             } catch (winrt::hresult_error const& ex) {
                 Wh_Log(L"[ctxmenu] apply error %08X: %s", ex.code(),
                        ex.message().c_str());
+            } catch (...) {
+                Wh_Log(L"[ctxmenu] unexpected exception");
             }
         });
 
@@ -6719,6 +6732,8 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
         } catch (winrt::hresult_error const& ex) {
             Wh_Log(L"[ctxmenu] error %08X: %s", ex.code(),
                    ex.message().c_str());
+        } catch (...) {
+            Wh_Log(L"[ctxmenu] unexpected exception");
         }
         return;
     }
@@ -6763,6 +6778,8 @@ void ZenContextMenuOnElementAdded(FrameworkElement const& element) {
         ZenContextMenuWaitLoaded(key, menu, entry);
     } catch (winrt::hresult_error const& ex) {
         Wh_Log(L"[ctxmenu] error %08X: %s", ex.code(), ex.message().c_str());
+    } catch (...) {
+        Wh_Log(L"[ctxmenu] unexpected exception");
     }
 }
 
@@ -10755,10 +10772,46 @@ constexpr TextColorMode kTextColorModes[] = {
     {L"cyan", L"#FF33FFFF", 0x33FFFF},
 };
 
+// ZenDesktop 1.7.6: "custom" + textColorCustom (#RRGGBB / RRGGBB).
+// Returns -1 if empty or invalid.
+int ParseTextColorCustom() {
+    PCWSTR value = Wh_GetStringSetting(L"textColorCustom");
+    int rgb = -1;
+    PCWSTR p = value;
+    while (*p == L' ') p++;
+    if (*p == L'#') p++;
+    if (wcslen(p) >= 6) {
+        int v = 0;
+        bool ok = true;
+        for (int i = 0; i < 6 && ok; i++) {
+            WCHAR ch = p[i];
+            int d = (ch >= L'0' && ch <= L'9')   ? ch - L'0'
+                    : (ch >= L'a' && ch <= L'f') ? ch - L'a' + 10
+                    : (ch >= L'A' && ch <= L'F') ? ch - L'A' + 10
+                                                 : -1;
+            ok = d >= 0;
+            v = (v << 4) | (ok ? d : 0);
+        }
+        if (ok) rgb = v;
+    }
+    Wh_FreeStringSetting(value);
+    return rgb;
+}
+
 // Returns nullptr for "default", an empty or an unknown value.
 const TextColorMode* GetTextColorMode() {
     PCWSTR textColorMode = Wh_GetStringSetting(L"textColorMode");
     const TextColorMode* result = nullptr;
+    if (wcscmp(textColorMode, L"custom") == 0) {
+        Wh_FreeStringSetting(textColorMode);
+        int rgb = ParseTextColorCustom();
+        if (rgb < 0) return nullptr;
+        static WCHAR brush[16];
+        static TextColorMode custom;
+        swprintf_s(brush, L"#FF%06X", rgb);
+        custom = {L"custom", brush, rgb};
+        return &custom;
+    }
     for (const auto& mode : kTextColorModes) {
         if (wcscmp(textColorMode, mode.id) == 0) {
             result = &mode;
@@ -11979,6 +12032,19 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
                              UINT c,
                              const INT* lpDx) {
     if (!IsEntireWindowEffectDC(hdc)) {
+        // ZenDesktop 1.7.6 diag (#18): text on an Explorer thread that the
+        // color hook skipped. Logged once per window class.
+        if (g_entireWindowEffectWndForThread && g_settings.win32TextColor) {
+            static std::mutex m;
+            static std::unordered_set<std::wstring> seen;
+            HWND w = WindowFromDC(hdc);
+            WCHAR cls[64] = L"(memdc)";
+            if (w) GetClassName(w, cls, ARRAYSIZE(cls));
+            std::lock_guard<std::mutex> lock(m);
+            if (seen.size() < 64 && seen.insert(cls).second) {
+                Wh_Log(L"[zen-text] skipped DC wnd=%p class=%s", w, cls);
+            }
+        }
         return ExtTextOutW_Original(hdc, x, y, options, lprect, lpString, c,
                                     lpDx);
     }
@@ -12550,7 +12616,15 @@ bool PaintThemeBackground(HTHEME hTheme,
                       wcsstr(themeClass, L"AddressComposited")) &&
                      iPartId == 1;
     bool navBg = wcsstr(themeClass, L"Navigation") && iPartId == 0;
-    if (zenClearReady && (rebarBg || addressBg || navBg)) {
+    // ZenDesktop 1.7.6: Control Panel (category view) header strip under the
+    // address bar ("调整计算机的设置 / 查看方式") is a ControlPanel theme part
+    // that has no dark variant, so it stays a light/white band over the glass.
+    // CPANEL_CONTENTPANE=2, LARGECOMMANDAREA=12, SMALLCOMMANDAREA=13,
+    // BANNERAREA=18 are backgrounds only; text parts keep drawing.
+    bool cplBg = wcsstr(themeClass, L"ControlPanel") &&
+                 (iPartId == 2 || iPartId == 12 || iPartId == 13 ||
+                  iPartId == 18);
+    if (zenClearReady && (rebarBg || addressBg || navBg || cplBg)) {
         RECT rc = *pRect;
         if (pClipRect && !IntersectRect(&rc, &rc, pClipRect)) {
             return true;
@@ -13158,7 +13232,13 @@ bool RunFromWindowThread(HWND hWnd,
     }
 
     if (dwThreadId == GetCurrentThreadId()) {
-        proc(procParam);
+        try {
+            proc(procParam);
+        } catch (...) {
+            // Same rule as the hook path: never let C++ exceptions escape
+            // into explorer.exe (STATUS_GCC_THROW 0x20474343).
+            Wh_Log(L"RunFromWindowThread: exception on same thread, swallowed");
+        }
         return true;
     }
 
@@ -13170,7 +13250,13 @@ bool RunFromWindowThread(HWND hWnd,
                 if (cwp->message == runFromWindowThreadRegisteredMsg) {
                     RUN_FROM_WINDOW_THREAD_PARAM* param =
                         (RUN_FROM_WINDOW_THREAD_PARAM*)cwp->lParam;
-                    param->proc(param->procParam);
+                    // Never let an exception cross the hook boundary, it
+                    // would take down explorer.exe (0x20474343).
+                    try {
+                        param->proc(param->procParam);
+                    } catch (...) {
+                        Wh_Log(L"RunFromWindowThread: proc threw");
+                    }
                 }
             }
 

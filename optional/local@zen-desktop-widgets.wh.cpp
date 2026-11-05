@@ -1,16 +1,16 @@
 // ==WindhawkMod==
-// @id              zen-desktop-clock
-// @name            ZenDesktop: 桌面时钟
-// @name:zh-CN      ZenDesktop: 桌面时钟
-// @description     Clock, calendar and resource widgets behind the desktop icons. Each can be shown, resized and dragged on its own.
-// @description:zh-CN 在桌面图标后方显示时钟、日历和资源占用（CPU、内存、GPU、网速），三块可单独开关、单独拖动。
-// @version         1.4.0
+// @id              zen-desktop-widgets
+// @name            ZenDesktop: 桌面小组件
+// @name:zh-CN      ZenDesktop: 桌面小组件
+// @description     Desktop widgets behind the icons: clock, calendar, resource usage, audio bars. Each can be toggled, resized and dragged.
+// @description:zh-CN 桌面图标后方的小组件：时钟、日历、资源占用、音频条，每块单独开关、单独拖动。
+// @version         2.0.0
 // @author          Lanbo, m417z
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32 -ladvapi32 -lpdh -liphlpapi
+// @compilerOptions -ld2d1 -ldwrite -ld3d11 -ldxgi -ldcomp -lshcore -luuid -lole32 -lgdi32 -ladvapi32 -lpdh -liphlpapi -lavrt -luser32
 // ==/WindhawkMod==
 
 // Source code is published under The GNU General Public License v3.0.
@@ -27,13 +27,14 @@
 > **作者：Lanbo**
 > [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
 
-# ZenDesktop: 桌面时钟
+# ZenDesktop: 桌面小组件
 
-在桌面图标**后方**放小组件，不挡图标、不抢焦点。关掉拖动后不吃鼠标。
+在桌面图标**后方**放小组件，不挡图标、不抢焦点。由原「桌面时钟」和「音频可视化条」合并而来。
 
-- **三块，各自开关、各自大小、各自拖动**：时钟、日历（整月、紧凑、本周、今天、一行，可选农历）、资源占用（CPU、内存、GPU、网速可以单独关，每 2 秒刷新）。拖框中间移动，拖四个角连续改大小。
-- **摆位置**：「拖动调整位置」和「重置拖动位置」在设置最上面。打开拖动后每块出现一个半透明框，拖好后关掉。重置打开一次就忘掉拖过的位置。
-- **17 种样式**加自定义。颜色、24 小时、秒、日期、农历和九宫格都在「高级」里。
+- **2.0.0**：时钟、日历、资源占用、音频条合成一个 mod；设置按小组件分组，每组第一项是「启用」。
+- **小组件**：🕒 时钟（17 种样式 + 自定义）、📅 日历、📊 资源占用、🎵 音频条（WASAPI 环回 + FFT，可放桌面／任务栏，安静自动休眠）。
+- **摆位置**：打开最上面的「拖动摆放」，拖框移动、拖角改大小，调好后关掉。
+- 桌面挂载和 Wallpaper Engine 同一套（`zen-desktop-host.h`：0x052C 只发一次、24H2 Progman 子窗口、不和 WPEDesktopDX11Window 抢层级）。
 
 基于 m417z 的 Desktop Live Overlay（GPL-3.0）的桌面宿主与渲染框架。
 */
@@ -43,544 +44,578 @@
 /*
 - dragMode: false
   $name: "Drag to position"
-  $name:zh-CN: "拖动调整位置"
-  $description: "Drag the box to move. Drag a corner to resize freely, then turn this off."
-  $description:zh-CN: "拖框中间移动，拖四个角连续改大小。调好后把这项关掉。"
+  $name:zh-CN: "拖动摆放"
+  $description: "Drag a box to move, a corner to resize. Turn off when done."
+  $description:zh-CN: "拖框中间移动，拖角改大小。调好后关掉。"
 - resetPosition: false
-  $name: "Reset dragged position"
-  $name:zh-CN: "重置拖动位置"
-  $description: "Turn on once to forget every dragged position, then turn it off again."
-  $description:zh-CN: "打开一次即清除时钟、日历、资源占用记住的位置，之后请再关掉。"
-- style: tilted
-  $name: "Style"
-  $name:zh-CN: "样式"
-  $options:
-  - tilted: "Tilted shadow"
-  - minimal: "Minimal"
-  - neon: "Neon glow"
-  - flip: "Flip cards"
-  - cover: "Magazine cover"
-  - stacked: "Stacked"
-  - hollow: "Hollow outline"
-  - glass: "Glass card"
-  - segment: "Retro 7-segment"
-  - rainbow: "Rainbow gradient"
-  - sunset: "Sunset gradient"
-  - chinese: "Chinese numerals"
-  - sentence: "Word clock"
-  - analog: "Analog dial"
-  - ring: "Progress ring"
-  - accent: "Accent bar"
-  - glitch: "Two-tone glitch"
-  - custom: "Custom (Advanced)"
-  $options:zh-CN:
-  - tilted: "倾斜阴影"
-  - minimal: "极简"
-  - neon: "霓虹"
-  - flip: "翻页"
-  - cover: "大字封面"
-  - stacked: "竖排"
-  - hollow: "描边空心"
-  - glass: "玻璃卡片"
-  - segment: "复古数码管"
-  - rainbow: "彩虹渐变"
-  - sunset: "日落渐变"
-  - chinese: "中文大写"
-  - sentence: "文字时钟"
-  - analog: "圆形表盘"
-  - ring: "进度环"
-  - accent: "左侧细线"
-  - glitch: "双色错位"
-  - custom: "自定义（用「高级」设置）"
-- showClock: true
-  $name: "Clock"
-  $name:zh-CN: "时钟"
-  $description: "Turn off to keep only the calendar or the resource widget."
-  $description:zh-CN: "关掉后可以只留日历或资源占用。"
-- size: 100
-  $name: "Clock size (%)"
-  $name:zh-CN: "时钟大小（%）"
-  $description: "20-800. Or drag a corner while Drag to position is on."
-  $description:zh-CN: "20-800。也可以在「拖动调整位置」时拖角落连续改。"
-- calendar: none
-  $name: "Calendar"
-  $name:zh-CN: "日历"
-  $options:
-  - none: "Off"
-  - on: "On"
-  - right: "On (was: right of clock)"
-  - below: "On (was: below clock)"
-  $options:zh-CN:
-  - none: "关闭"
-  - on: "开启"
-  - right: "开启（以前在右侧）"
-  - below: "开启（以前在下方）"
-  $description: "Its own widget. Drag to place it. Today is marked with the accent color."
-  $description:zh-CN: "单独一块，用「拖动调整位置」摆放。今天用强调色标出。"
-- calendarStyle: month
-  $name: "Calendar style"
-  $name:zh-CN: "日历样式"
-  $options:
-  - month: "Month"
-  - compact: "Compact month"
-  - week: "This week"
-  - today: "Today"
-  - strip: "One line"
-  $options:zh-CN:
-  - month: "整月"
-  - compact: "紧凑整月"
-  - week: "本周"
-  - today: "今天"
-  - strip: "一行日期"
-  $description: "Compact hides lunar dates and uses smaller cells."
-  $description:zh-CN: "紧凑整月不显示农历，格子更小。其余样式仍按「高级」里的农历开关。"
-- calendarSize: 100
-  $name: "Calendar size (%)"
-  $name:zh-CN: "日历大小（%）"
-  $description: "20-800. Or drag a corner."
-  $description:zh-CN: "20-800。也可以拖角落连续改。"
-- showResources: false
-  $name: "Resource usage"
-  $name:zh-CN: "资源占用"
-  $description: "Its own widget, refreshed every 2 s. Pick the rows below. GPU shows -- if it cannot be read."
-  $description:zh-CN: "单独一块，每 2 秒刷新。下面勾选要显示的项。读不到 GPU 时显示 --。"
-- resCpu: true
-  $name: "CPU"
-  $name:zh-CN: "CPU"
-- resMem: true
-  $name: "Memory"
-  $name:zh-CN: "内存"
-- resGpu: true
-  $name: "GPU"
-  $name:zh-CN: "GPU"
-- resNet: true
-  $name: "Network speed"
-  $name:zh-CN: "网速"
-- resourcesSize: 100
-  $name: "Usage size (%)"
-  $name:zh-CN: "资源占用大小（%）"
-  $description: "20-800. Or drag a corner."
-  $description:zh-CN: "20-800。也可以拖角落连续改。"
+  $name: "Reset positions"
+  $name:zh-CN: "重置位置"
+  $description:zh-CN: "打开一次即清除所有拖过的位置，之后再关掉。"
 - monitor: 1
   $name: "Monitor"
   $name:zh-CN: "显示器"
-  $description: "1 = first, 2 = second… 0 = all."
   $description:zh-CN: "1 = 第一个，2 = 第二个……0 = 全部。"
-- advanced:
-  - anchor: center
-    $name: "Position"
-    $name:zh-CN: "位置"
+- clock:
+  - enabled: true
+    $name: "Enable"
+    $name:zh-CN: "启用"
+  - style: tilted
+    $name: "Style"
+    $name:zh-CN: "样式"
     $options:
-    - topLeft: "Top left"
-    - top: "Top"
-    - topRight: "Top right"
-    - left: "Left"
-    - center: "Center"
-    - right: "Right"
-    - bottomLeft: "Bottom left"
-    - bottom: "Bottom"
-    - bottomRight: "Bottom right"
-    $options:zh-CN:
-    - topLeft: "左上"
-    - top: "上"
-    - topRight: "右上"
-    - left: "左"
-    - center: "正中"
-    - right: "右"
-    - bottomLeft: "左下"
-    - bottom: "下"
-    - bottomRight: "右下"
-  - offset:
-    - x: 0
-      $name: "Horizontal"
-      $name:zh-CN: "水平（正数向右）"
-    - y: -80
-      $name: "Vertical"
-      $name:zh-CN: "垂直（正数向下）"
-    $name: "Fine offset (px at 100%)"
-    $name:zh-CN: "微调偏移（像素）"
-  - use24Hour: true
-    $name: "24-hour time"
-    $name:zh-CN: "24 小时制"
-  - showSeconds: false
-    $name: "Show seconds"
-    $name:zh-CN: "显示秒"
-  - dateFormat: cn
-    $name: "Date"
-    $name:zh-CN: "日期格式"
-    $options:
-    - cn: "10月28日 周三"
-    - cnFull: "2026年10月28日 星期三"
-    - iso: "2026-10-28"
-    - mdy: "10/28/2026"
-    - dmy: "28/10/2026"
-    - none: "Hidden"
-    $options:zh-CN:
-    - cn: "10月28日 周三"
-    - cnFull: "2026年10月28日 星期三"
-    - iso: "2026-10-28"
-    - mdy: "10/28/2026"
-    - dmy: "28/10/2026"
-    - none: "不显示"
-  - lunar: true
-    $name: "Lunar dates in calendar"
-    $name:zh-CN: "日历显示农历"
-  - color: default
-    $name: "Text color"
-    $name:zh-CN: "颜色"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "跟随样式"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - customColor: ""
-    $name: "Custom text color code"
-    $name:zh-CN: "自定义颜色代码"
-    $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
-    $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
-  - accentColor: default
-    $name: "Accent color"
-    $name:zh-CN: "强调色（进度环、竖线、秒针、日历今天）"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "跟随样式"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - customAccent: ""
-    $name: "Custom accent color code"
-    $name:zh-CN: "自定义强调色代码"
-    $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
-    $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
-  - layout: normal
-    $name: "Layout"
-    $name:zh-CN: "版式"
-    $options:
-    - normal: "Time + date"
-    - stacked: "Hours over minutes"
-    - cover: "Date above"
-    - sentence: "Sentence"
+    - tilted: "Tilted shadow"
+    - minimal: "Minimal"
+    - neon: "Neon glow"
+    - flip: "Flip cards"
+    - cover: "Magazine cover"
+    - stacked: "Stacked"
+    - hollow: "Hollow outline"
+    - glass: "Glass card"
+    - segment: "Retro 7-segment"
+    - rainbow: "Rainbow gradient"
+    - sunset: "Sunset gradient"
     - chinese: "Chinese numerals"
+    - sentence: "Word clock"
     - analog: "Analog dial"
     - ring: "Progress ring"
+    - accent: "Accent bar"
+    - glitch: "Two-tone glitch"
+    - custom: "Custom (Advanced)"
     $options:zh-CN:
-    - normal: "时间 + 日期"
+    - tilted: "倾斜阴影"
+    - minimal: "极简"
+    - neon: "霓虹"
+    - flip: "翻页"
+    - cover: "大字封面"
     - stacked: "竖排"
-    - cover: "日期在上"
-    - sentence: "文字句子"
+    - hollow: "描边空心"
+    - glass: "玻璃卡片"
+    - segment: "复古数码管"
+    - rainbow: "彩虹渐变"
+    - sunset: "日落渐变"
     - chinese: "中文大写"
+    - sentence: "文字时钟"
     - analog: "圆形表盘"
     - ring: "进度环"
-  - timeFont: "Segoe UI Variable Display"
-    $name:zh-CN: "时间字体"
-  - timeFontSize: 140
-    $name:zh-CN: "时间字号"
-  - timeFontWeight: 600
-    $name:zh-CN: "时间字重（100–900）"
-  - dateFont: "Segoe UI Variable Display"
-    $name:zh-CN: "日期字体"
-  - dateFontSize: 40
-    $name:zh-CN: "日期字号"
-  - dateFontWeight: 500
-    $name:zh-CN: "日期字重"
-  - textAlign: left
-    $name:zh-CN: "行对齐"
+    - accent: "左侧细线"
+    - glitch: "双色错位"
+    - custom: "自定义（用「高级」设置）"
+  - size: 100
+    $name: "Size (%)"
+    $name:zh-CN: "大小（%）"
+    $description:zh-CN: "20-800，也可拖角改。"
+  - advanced:
+    - anchor: center
+      $name: "Position"
+      $name:zh-CN: "位置"
+      $options:
+      - topLeft: "Top left"
+      - top: "Top"
+      - topRight: "Top right"
+      - left: "Left"
+      - center: "Center"
+      - right: "Right"
+      - bottomLeft: "Bottom left"
+      - bottom: "Bottom"
+      - bottomRight: "Bottom right"
+      $options:zh-CN:
+      - topLeft: "左上"
+      - top: "上"
+      - topRight: "右上"
+      - left: "左"
+      - center: "正中"
+      - right: "右"
+      - bottomLeft: "左下"
+      - bottom: "下"
+      - bottomRight: "右下"
+    - offset:
+      - x: 0
+        $name: "Horizontal"
+        $name:zh-CN: "水平（正数向右）"
+      - y: -80
+        $name: "Vertical"
+        $name:zh-CN: "垂直（正数向下）"
+      $name: "Fine offset (px at 100%)"
+      $name:zh-CN: "微调偏移（像素）"
+    - use24Hour: true
+      $name: "24-hour time"
+      $name:zh-CN: "24 小时制"
+    - showSeconds: false
+      $name: "Show seconds"
+      $name:zh-CN: "显示秒"
+    - dateFormat: cn
+      $name: "Date"
+      $name:zh-CN: "日期格式"
+      $options:
+      - cn: "10月28日 周三"
+      - cnFull: "2026年10月28日 星期三"
+      - iso: "2026-10-28"
+      - mdy: "10/28/2026"
+      - dmy: "28/10/2026"
+      - none: "Hidden"
+      $options:zh-CN:
+      - cn: "10月28日 周三"
+      - cnFull: "2026年10月28日 星期三"
+      - iso: "2026-10-28"
+      - mdy: "10/28/2026"
+      - dmy: "28/10/2026"
+      - none: "不显示"
+    - lunar: true
+      $name: "Lunar dates in calendar"
+      $name:zh-CN: "日历显示农历"
+    - color: default
+      $name: "Text color"
+      $name:zh-CN: "颜色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "跟随样式"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - customColor: ""
+      $name: "Custom text color code"
+      $name:zh-CN: "自定义颜色代码"
+      $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+      $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
+    - accentColor: default
+      $name: "Accent color"
+      $name:zh-CN: "强调色（进度环、竖线、秒针、日历今天）"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "跟随样式"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - customAccent: ""
+      $name: "Custom accent color code"
+      $name:zh-CN: "自定义强调色代码"
+      $description: "Only used when Custom is selected above. #RRGGBB or #AARRGGBB."
+      $description:zh-CN: "只在上面选「自定义」时生效，格式 #RRGGBB 或 #AARRGGBB（如 #FF8800）。"
+    - layout: normal
+      $name: "Layout"
+      $name:zh-CN: "版式"
+      $options:
+      - normal: "Time + date"
+      - stacked: "Hours over minutes"
+      - cover: "Date above"
+      - sentence: "Sentence"
+      - chinese: "Chinese numerals"
+      - analog: "Analog dial"
+      - ring: "Progress ring"
+      $options:zh-CN:
+      - normal: "时间 + 日期"
+      - stacked: "竖排"
+      - cover: "日期在上"
+      - sentence: "文字句子"
+      - chinese: "中文大写"
+      - analog: "圆形表盘"
+      - ring: "进度环"
+    - timeFont: "Segoe UI Variable Display"
+      $name:zh-CN: "时间字体"
+    - timeFontSize: 140
+      $name:zh-CN: "时间字号"
+    - timeFontWeight: 600
+      $name:zh-CN: "时间字重（100–900）"
+    - dateFont: "Segoe UI Variable Display"
+      $name:zh-CN: "日期字体"
+    - dateFontSize: 40
+      $name:zh-CN: "日期字号"
+    - dateFontWeight: 500
+      $name:zh-CN: "日期字重"
+    - textAlign: left
+      $name:zh-CN: "行对齐"
+      $options:
+      - left: "Left"
+      - center: "Center"
+      - right: "Right"
+      $options:zh-CN:
+      - left: "左"
+      - center: "中"
+      - right: "右"
+    - lineGap: 4
+      $name:zh-CN: "行间距"
+    - rotation: -8
+      $name:zh-CN: "旋转角度（-45~45）"
+    - shadow: true
+      $name:zh-CN: "投影"
+    - shadowColor: default
+      $name:zh-CN: "投影颜色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - shadowColorCustom: ""
+      $name:zh-CN: "投影颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - shadowBlur: 8
+      $name:zh-CN: "投影模糊"
+    - shadowOffsetX: 6
+      $name:zh-CN: "投影水平偏移"
+    - shadowOffsetY: 8
+      $name:zh-CN: "投影垂直偏移"
+    - glow: false
+      $name:zh-CN: "光晕"
+    - glowColor: default
+      $name:zh-CN: "光晕颜色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - glowColorCustom: ""
+      $name:zh-CN: "光晕颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - glowRadius: 12
+      $name:zh-CN: "光晕半径"
+    - outline: false
+      $name:zh-CN: "描边"
+    - outlineColor: default
+      $name:zh-CN: "描边颜色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - outlineColorCustom: ""
+      $name:zh-CN: "描边颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - outlineWidth: 2
+      $name:zh-CN: "描边宽度"
+    - hollow: false
+      $name:zh-CN: "空心字（只留描边）"
+    - gradientStart: default
+      $name:zh-CN: "渐变起始色（起止都选才启用）"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - gradientStartCustom: ""
+      $name:zh-CN: "渐变起始色（起止都选才启用）：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - gradientEnd: default
+      $name:zh-CN: "渐变结束色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - gradientEndCustom: ""
+      $name:zh-CN: "渐变结束色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - flipCards: false
+      $name:zh-CN: "翻页卡片底"
+    - cardColor: default
+      $name:zh-CN: "翻页卡片颜色"
+      $options:
+      - default: "Follow style"
+      - white: "White"
+      - black: "Black"
+      - lightgray: "Light gray"
+      - red: "Red"
+      - orange: "Orange"
+      - gold: "Gold"
+      - green: "Green"
+      - cyan: "Cyan"
+      - blue: "Blue"
+      - purple: "Purple"
+      - pink: "Pink"
+      - system: "System accent color"
+      - custom: "Custom (fill in below)"
+      $options:zh-CN:
+      - default: "默认"
+      - white: "白色"
+      - black: "黑色"
+      - lightgray: "浅灰"
+      - red: "红"
+      - orange: "橙"
+      - gold: "金黄"
+      - green: "绿"
+      - cyan: "青"
+      - blue: "蓝"
+      - purple: "紫"
+      - pink: "粉"
+      - system: "跟随系统强调色"
+      - custom: "自定义（填下面的代码）"
+    - cardColorCustom: ""
+      $name:zh-CN: "翻页卡片颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
+    - glassCard: false
+      $name:zh-CN: "玻璃卡片底"
+    - accentBar: false
+      $name:zh-CN: "左侧竖线"
+    - showWeekday: false
+      $name:zh-CN: "日期加星期"
+    $name: "Advanced"
+    $name:zh-CN: "高级"
+    $description: "Color, time format, lunar dates, anchor, and custom-style details."
+    $description:zh-CN: "颜色、时间格式、农历、九宫格，以及自定义样式的细调。平时不用打开。"
+  $name: "Clock"
+  $name:zh-CN: "🕒 时钟"
+- calendar:
+  - enabled: false
+    $name: "Enable"
+    $name:zh-CN: "启用"
+  - style: month
+    $name: "Style"
+    $name:zh-CN: "样式"
     $options:
-    - left: "Left"
-    - center: "Center"
-    - right: "Right"
+    - month: "Month"
+    - compact: "Compact month"
+    - week: "This week"
+    - today: "Today"
+    - strip: "One line"
     $options:zh-CN:
-    - left: "左"
-    - center: "中"
-    - right: "右"
-  - lineGap: 4
-    $name:zh-CN: "行间距"
-  - rotation: -8
-    $name:zh-CN: "旋转角度（-45~45）"
-  - shadow: true
-    $name:zh-CN: "投影"
-  - shadowColor: default
-    $name:zh-CN: "投影颜色"
+    - month: "整月"
+    - compact: "紧凑整月"
+    - week: "本周"
+    - today: "今天"
+    - strip: "一行日期"
+  - size: 100
+    $name: "Size (%)"
+    $name:zh-CN: "大小（%）"
+  $name: "Calendar"
+  $name:zh-CN: "📅 日历"
+  $description:zh-CN: "农历开关在「时钟 → 高级」里。"
+- resources:
+  - enabled: false
+    $name: "Enable"
+    $name:zh-CN: "启用"
+  - cpu: true
+    $name:zh-CN: "CPU"
+  - mem: true
+    $name:zh-CN: "内存"
+  - gpu: true
+    $name:zh-CN: "GPU"
+  - net: true
+    $name:zh-CN: "网速"
+  - size: 100
+    $name: "Size (%)"
+    $name:zh-CN: "大小（%）"
+  $name: "Resource usage"
+  $name:zh-CN: "📊 资源占用"
+  $description:zh-CN: "每 2 秒刷新，读不到 GPU 时显示 --。"
+- audio:
+  - enabled: false
+    $name: "Enable"
+    $name:zh-CN: "启用"
+  - placement: desktop
+    $name: "Placement"
+    $name:zh-CN: "位置"
     $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
+    - desktop: "Desktop (above wallpaper)"
+    - taskbar: "Taskbar strip"
+    - both: "Desktop + taskbar"
     $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - shadowColorCustom: ""
-    $name:zh-CN: "投影颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - shadowBlur: 8
-    $name:zh-CN: "投影模糊"
-  - shadowOffsetX: 6
-    $name:zh-CN: "投影水平偏移"
-  - shadowOffsetY: 8
-    $name:zh-CN: "投影垂直偏移"
-  - glow: false
-    $name:zh-CN: "光晕"
-  - glowColor: default
-    $name:zh-CN: "光晕颜色"
+    - desktop: "桌面（壁纸上方）"
+    - taskbar: "任务栏"
+    - both: "桌面 + 任务栏"
+  - barCount: 64
+    $name: "Bar count"
+    $name:zh-CN: "条数"
+    $description: "16–128. Default 64 (Wallpaper Engine style)."
+    $description:zh-CN: "16–128。默认 64（和 Wallpaper Engine 一致）。"
+  - color: "#5B9DFF"
+    $name: "Bar color"
+    $name:zh-CN: "颜色"
+    $description: "#RRGGBB"
+  - color2: ""
+    $name: "Gradient end color"
+    $name:zh-CN: "渐变终点色"
+    $description: "Optional second #RRGGBB. Empty = solid color."
+    $description:zh-CN: "可选第二个 #RRGGBB。留空则纯色。"
+  - height: 120
+    $name: "Height (px)"
+    $name:zh-CN: "高度（像素）"
+  - position: bottom
+    $name: "Edge"
+    $name:zh-CN: "贴边"
     $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
+    - bottom: "Bottom"
+    - top: "Top"
     $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - glowColorCustom: ""
-    $name:zh-CN: "光晕颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - glowRadius: 12
-    $name:zh-CN: "光晕半径"
-  - outline: false
-    $name:zh-CN: "描边"
-  - outlineColor: default
-    $name:zh-CN: "描边颜色"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - outlineColorCustom: ""
-    $name:zh-CN: "描边颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - outlineWidth: 2
-    $name:zh-CN: "描边宽度"
-  - hollow: false
-    $name:zh-CN: "空心字（只留描边）"
-  - gradientStart: default
-    $name:zh-CN: "渐变起始色（起止都选才启用）"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - gradientStartCustom: ""
-    $name:zh-CN: "渐变起始色（起止都选才启用）：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - gradientEnd: default
-    $name:zh-CN: "渐变结束色"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - gradientEndCustom: ""
-    $name:zh-CN: "渐变结束色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - flipCards: false
-    $name:zh-CN: "翻页卡片底"
-  - cardColor: default
-    $name:zh-CN: "翻页卡片颜色"
-    $options:
-    - default: "Follow style"
-    - white: "White"
-    - black: "Black"
-    - lightgray: "Light gray"
-    - red: "Red"
-    - orange: "Orange"
-    - gold: "Gold"
-    - green: "Green"
-    - cyan: "Cyan"
-    - blue: "Blue"
-    - purple: "Purple"
-    - pink: "Pink"
-    - system: "System accent color"
-    - custom: "Custom (fill in below)"
-    $options:zh-CN:
-    - default: "默认"
-    - white: "白色"
-    - black: "黑色"
-    - lightgray: "浅灰"
-    - red: "红"
-    - orange: "橙"
-    - gold: "金黄"
-    - green: "绿"
-    - cyan: "青"
-    - blue: "蓝"
-    - purple: "紫"
-    - pink: "粉"
-    - system: "跟随系统强调色"
-    - custom: "自定义（填下面的代码）"
-  - cardColorCustom: ""
-    $name:zh-CN: "翻页卡片颜色：自定义代码（选「自定义」时用，#RRGGBB / #AARRGGBB）"
-  - glassCard: false
-    $name:zh-CN: "玻璃卡片底"
-  - accentBar: false
-    $name:zh-CN: "左侧竖线"
-  - showWeekday: false
-    $name:zh-CN: "日期加星期"
-  $name: "Advanced"
-  $name:zh-CN: "高级"
-  $description: "Color, time format, lunar dates, anchor, and custom-style details."
-  $description:zh-CN: "颜色、时间格式、农历、九宫格，以及自定义样式的细调。平时不用打开。"
-
+    - bottom: "底部"
+    - top: "顶部"
+  - opacity: 85
+    $name: "Opacity (0–100)"
+    $name:zh-CN: "不透明度（0–100）"
+  - mirror: true
+    $name: "Mirror (center bass)"
+    $name:zh-CN: "镜像（中间低频）"
+  - sensitivity: 50
+    $name: "Sensitivity (0–100)"
+    $name:zh-CN: "灵敏度（0–100）"
+  $name: "Audio bars"
+  $name:zh-CN: "🎵 音频条"
+  $description:zh-CN: "系统声音的频谱条。安静约 2 秒后自动休眠。"
 */
 // ==/WindhawkModSettings==
 
@@ -591,6 +626,35 @@
 #pragma clang diagnostic pop
 
 #include <windhawk_utils.h>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Widgets 2.0: grouped settings. The clock code below still asks for its old
+// flat keys; ZwKey maps them onto the per-widget groups.
+
+#include <string>
+
+static std::wstring ZwKey(PCWSTR k) {
+    static const struct { const wchar_t* from; const wchar_t* to; } kMap[] = {
+        {L"showClock", L"clock.enabled"},   {L"style", L"clock.style"},
+        {L"size", L"clock.size"},           {L"calendarStyle", L"calendar.style"},
+        {L"calendarSize", L"calendar.size"},{L"showResources", L"resources.enabled"},
+        {L"resCpu", L"resources.cpu"},      {L"resMem", L"resources.mem"},
+        {L"resGpu", L"resources.gpu"},      {L"resNet", L"resources.net"},
+        {L"resourcesSize", L"resources.size"},
+    };
+    for (auto& m : kMap) if (!wcscmp(k, m.from)) return m.to;
+    if (!wcsncmp(k, L"advanced.", 9)) return std::wstring(L"clock.") + k;
+    return k;  // dragMode, resetPosition, monitor; legacy flat keys -> absent
+}
+
+static int ZwGetInt(PCWSTR k) { return Wh_GetIntSetting(ZwKey(k).c_str()); }
+
+static PCWSTR ZwGetStr(PCWSTR k) {
+    return Wh_GetStringSetting(ZwKey(k).c_str());
+}
+
+#include "zen-desktop-host.h"
 
 #include <d2d1_1.h>
 #include <d2d1_1helper.h>
@@ -935,37 +999,10 @@ HWND ZcGetProgman() {
     return pid == GetCurrentProcessId() ? progman : nullptr;
 }
 
-BOOL CALLBACK ZcFindWorkerProc(HWND hWnd, LPARAM lParam) {
-    if (!FindWindowEx(hWnd, nullptr, L"SHELLDLL_DefView", nullptr)) {
-        return TRUE;
-    }
-    HWND worker = FindWindowEx(nullptr, hWnd, L"WorkerW", nullptr);
-    if (worker) {
-        *(HWND*)lParam = worker;
-        return FALSE;
-    }
-    return TRUE;
-}
-
-// The WorkerW window that sits behind the desktop icons.
+// Desktop host (WorkerW / Progman / Wallpaper Engine) — shared helper.
 HWND ZcGetWorkerW() {
-    HWND progman = ZcGetProgman();
-    if (!progman) {
-        return nullptr;
-    }
-    SendMessage(progman, 0x052C, 0xD, 0);
-    SendMessage(progman, 0x052C, 0xD, 1);
-    HWND worker = nullptr;
-    EnumWindows(ZcFindWorkerProc, (LPARAM)&worker);
-    if (!worker) {
-        SendMessage(progman, 0x052C, 0, 0);
-        EnumWindows(ZcFindWorkerProc, (LPARAM)&worker);
-    }
-    if (!worker) {
-        // 24H2+: WorkerW is a child of Progman.
-        worker = FindWindowEx(progman, nullptr, L"WorkerW", nullptr);
-    }
-    return worker ? worker : progman;
+    ZenDesktopHost host = ZenGetDesktopHost();
+    return host.valid ? host.parent : nullptr;
 }
 
 float ZcMonitorScale(HMONITOR monitor) {
@@ -1021,7 +1058,7 @@ bool ZcParseColor(PCWSTR s, D2D1_COLOR_F* out) {
 // Settings
 
 std::wstring ZcStr(PCWSTR name) {
-    PCWSTR v = Wh_GetStringSetting(name);
+    PCWSTR v = ZwGetStr(name);
     std::wstring s = v ? v : L"";
     Wh_FreeStringSetting(v);
     return s;
@@ -1105,7 +1142,7 @@ std::wstring ZcPinnedStr(PCWSTR advKey, PCWSTR legacyKey, PCWSTR pinKey, PCWSTR 
 }
 
 int ZcPinnedInt(PCWSTR advKey, PCWSTR legacyKey, PCWSTR pinKey, PCWSTR seenKey) {
-    int now = Wh_GetIntSetting(advKey);
+    int now = ZwGetInt(advKey);
     std::wstring seen = ZcStored(seenKey);
     WCHAR buf[32];
     if (seen.empty()) {
@@ -1138,7 +1175,7 @@ int ZcClamp(int v, int lo, int hi) {
 
 // Corner-drag size overrides the percent box until that box is edited.
 int ZcLivePct(PCWSTR settingKey, PCWSTR pinKey, PCWSTR seenKey) {
-    int now = Wh_GetIntSetting(settingKey);
+    int now = ZwGetInt(settingKey);
     if (now <= 0) now = 100;
     int seen = Wh_GetIntValue(seenKey, -1);
     if (seen < 0) {
@@ -1333,7 +1370,7 @@ void ZcApplyPreset(const std::wstring& name, ZcStyle& s) {
 
 void ZcLoadSettings() {
     ZcSettings z;
-    z.showClock = Wh_GetIntSetting(L"showClock") != 0;
+    z.showClock = ZwGetInt(L"showClock") != 0;
     z.use24 = ZcPinnedInt(L"advanced.use24Hour", L"use24Hour", L"pin24", L"seen24") != 0;
     z.seconds = ZcPinnedInt(L"advanced.showSeconds", L"showSeconds", L"pinSec", L"seenSec") != 0;
 
@@ -1357,12 +1394,12 @@ void ZcLoadSettings() {
     z.size = ZcLivePct(L"size", L"sizePin", L"sizeSeen");
     z.calendarSize = ZcLivePct(L"calendarSize", L"calSizePin", L"calSizeSeen");
     z.resourcesSize = ZcLivePct(L"resourcesSize", L"resSizePin", L"resSizeSeen");
-    z.monitor = Wh_GetIntSetting(L"monitor");
-    z.resources = Wh_GetIntSetting(L"showResources") != 0;
-    z.resCpu = Wh_GetIntSetting(L"resCpu") != 0;
-    z.resMem = Wh_GetIntSetting(L"resMem") != 0;
-    z.resGpu = Wh_GetIntSetting(L"resGpu") != 0;
-    z.resNet = Wh_GetIntSetting(L"resNet") != 0;
+    z.monitor = ZwGetInt(L"monitor");
+    z.resources = ZwGetInt(L"showResources") != 0;
+    z.resCpu = ZwGetInt(L"resCpu") != 0;
+    z.resMem = ZwGetInt(L"resMem") != 0;
+    z.resGpu = ZwGetInt(L"resGpu") != 0;
+    z.resNet = ZwGetInt(L"resNet") != 0;
     // Missing keys come back as 0, which would hide every row after an upgrade.
     // 0 = not seen, 1 = still using that fallback, 2 = the saved settings are real.
     int raw = (z.resCpu ? 1 : 0) | (z.resMem ? 2 : 0) | (z.resGpu ? 4 : 0) |
@@ -1374,14 +1411,11 @@ void ZcLoadSettings() {
     } else if (seen != 2) {
         Wh_SetIntValue(L"resPickSeen", 2);
     }
-    std::wstring cal = ZcStr(L"calendar");
-    z.calendar = cal == L"on" || cal == L"right" || cal == L"below";
-    if (cal == L"below") Wh_SetIntValue(L"calPlace", 2);
-    else if (cal == L"right") Wh_SetIntValue(L"calPlace", 1);
+    z.calendar = Wh_GetIntSetting(L"calendar.enabled") != 0;
     g_zcCalPlace = Wh_GetIntValue(L"calPlace", 1) == 2 ? 2 : 1;
     z.lunar = ZcPinnedInt(L"advanced.lunar", L"lunar", L"pinLunar", L"seenLunar") != 0;
-    z.drag = Wh_GetIntSetting(L"dragMode") != 0;
-    z.reset = Wh_GetIntSetting(L"resetPosition") != 0;
+    z.drag = ZwGetInt(L"dragMode") != 0;
+    z.reset = ZwGetInt(L"resetPosition") != 0;
     std::wstring ck = ZcStr(L"calendarStyle");
     z.calKind = ck == L"compact" ? ZcCalKind::compact
              : ck == L"week"    ? ZcCalKind::week
@@ -1402,7 +1436,7 @@ void ZcLoadSettings() {
         ZcApplyPreset(style.empty() ? L"tilted" : style, s);
     } else {
         auto A = [](const wchar_t* k) { return std::wstring(L"advanced.") + k; };
-        auto I = [&](const wchar_t* k) { return Wh_GetIntSetting(A(k).c_str()); };
+        auto I = [&](const wchar_t* k) { return ZwGetInt(A(k).c_str()); };
         auto S = [&](const wchar_t* k) { return ZcStr(A(k).c_str()); };
         auto C = [&](const wchar_t* k, D2D1_COLOR_F def) {
             D2D1_COLOR_F c = def;
@@ -2683,7 +2717,7 @@ void ZcSetPct(int idx, int pct) {
 void ZcSaveLiveSize(int idx) {
     if (idx < 0 || idx > 2) return;
     Wh_SetIntValue(kZcSizePin[idx], ZcPctOf(idx));
-    int setting = Wh_GetIntSetting(kZcSizeKey[idx]);
+    int setting = ZwGetInt(kZcSizeKey[idx]);
     if (setting <= 0) setting = 100;
     Wh_SetIntValue(kZcSizeSeen[idx], setting);
     Wh_SetIntValue(kZcXKey[idx], g_zcWPos[idx].x);
@@ -2910,21 +2944,12 @@ void ZcSyncDragWindow() {
 }
 
 
-// Wallpaper Engine (WPEDesktopDX11Window) and similar tools add children to
-// the same WorkerW and can cover the overlay. Keep the overlay on top of its
-// siblings. Returns true if other siblings exist (so we keep checking).
+// Z-order via shared helper (cooperate with Wallpaper Engine, no flashing).
+int g_zcRaiseStreak = 0;
+
 bool ZcEnsureTop() {
     if (!g_zcOverlayWnd) return false;
-    HWND host = GetParent(g_zcOverlayWnd);
-    if (!host) return false;
-    HWND first = GetWindow(host, GW_CHILD);
-    if (first && first != g_zcOverlayWnd) {
-        SetWindowPos(g_zcOverlayWnd, HWND_TOP, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-        Wh_Log(L"raised overlay above %p", first);
-    }
-    return GetWindow(g_zcOverlayWnd, GW_HWNDNEXT) != nullptr ||
-           GetWindow(host, GW_CHILD) != g_zcOverlayWnd;
+    return ZenPlaceOverlay(g_zcOverlayWnd, &g_zcRaiseStreak);
 }
 
 bool g_zcHostDiagDone = false;  // z-order dump only once per overlay
@@ -3075,7 +3100,7 @@ void ZcRender() {
         ZcCreateSwapChain(rc.right, rc.bottom);
         return;
     }
-    HRESULT phr = g_zcSwapChain->Present(0, 0);
+    HRESULT phr = g_zcSwapChain->Present(1, 0);
     if (FAILED(phr) || g_zcDiagPending) {
         DXGI_SWAP_CHAIN_DESC1 d{};
         g_zcSwapChain->GetDesc1(&d);
@@ -3101,7 +3126,9 @@ void ZcScheduleNext() {
     if (ZcResOn() && ms > 2000) ms = 2000 - t.wMilliseconds % 1000;
     // While other windows share the WorkerW (e.g. Wallpaper Engine), re-check
     // only the z-order every 2 s (no redraw).
-    if (ZcEnsureTop()) SetTimer(g_zcOverlayWnd, ZC_TIMER_ZORDER, 2000, nullptr);
+    if (ZcEnsureTop())
+        SetTimer(g_zcOverlayWnd, ZC_TIMER_ZORDER,
+                 g_zcRaiseStreak > 3 ? 30000 : 2000, nullptr);
     SetTimer(g_zcOverlayWnd, ZC_TIMER_REFRESH, ms + 20, nullptr);
 }
 
@@ -3170,6 +3197,7 @@ LRESULT CALLBACK ZcMessageProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
     if (msg == g_zcTaskbarCreatedMsg && g_zcTaskbarCreatedMsg) {
         // Shell restarted inside this process: rebind to the new WorkerW.
         Wh_Log(L"TaskbarCreated");
+        ZenInvalidateDesktopHost();  // new shell: re-query once
         if (!g_zcUnloading) SetTimer(hWnd, ZC_TIMER_MSG_RECREATE, 1000, nullptr);
         return 0;
     }
@@ -3250,6 +3278,7 @@ void ZcCreateOverlay() {
            rc.bottom - rc.top);
     g_zcDiagPending = true;
     g_zcHostDiagDone = false;
+    g_zcRaiseStreak = 0;
     ZcEnsureTop();
     if (ZcCreateSwapChain(rc.right - rc.left, rc.bottom - rc.top)) {
         ZcRender();
@@ -3299,7 +3328,7 @@ HWND WINAPI ZcCreateWindowExW_Hook(DWORD exStyle, LPCWSTR cls, LPCWSTR name,
 ////////////////////////////////////////////////////////////////////////////////
 // Mod life cycle
 
-BOOL Wh_ModInit() {
+BOOL ZcModInit() {
     Wh_Log(L">");
     ZcLoadSettings();
     g_zcTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
@@ -3308,14 +3337,14 @@ BOOL Wh_ModInit() {
     return TRUE;
 }
 
-void Wh_ModAfterInit() {
+void ZcModAfterInit() {
     Wh_Log(L">");
     if (HWND progman = ZcGetProgman()) {
         ZcRunFromWindowThread(progman, ZcCreateAll, nullptr);
     }
 }
 
-void Wh_ModUninit() {
+void ZcModUninit() {
     Wh_Log(L">");
     g_zcUnloading = true;
     if (HWND progman = ZcGetProgman()) {
@@ -3338,11 +3367,988 @@ void Wh_ModUninit() {
     ZcUninitDirectX();
 }
 
-void Wh_ModSettingsChanged() {
+void ZcModSettingsChanged() {
     Wh_Log(L">");
     if (g_zcOverlayWnd) {
         SendMessage(g_zcOverlayWnd, ZC_WM_SETTINGS, 0, 0);
     } else {
         ZcLoadSettings();
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Widget: audio bars (was zen-audio-bars 0.1.0)
+
+
+
+#include <audioclient.h>
+#include <mmreg.h>
+#include <avrt.h>
+#include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
+
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <cstring>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#ifndef AUDCLNT_STREAMFLAGS_LOOPBACK
+#define AUDCLNT_STREAMFLAGS_LOOPBACK 0x00020000
+#endif
+#ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
+#define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM 0x80000000
+#endif
+#ifndef AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
+#define AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY 0x08000000
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Settings
+
+struct ZabSettings {
+    enum class Placement { Desktop, Taskbar, Both } placement = Placement::Desktop;
+    int barCount = 64;
+    COLORREF color = RGB(0x5B, 0x9D, 0xFF);
+    COLORREF color2 = 0;  // 0 = unused
+    bool hasGradient = false;
+    int height = 120;
+    bool top = false;
+    int opacity = 85;  // 0-100
+    bool mirror = true;
+    float sensitivity = 1.0f;
+};
+
+ZabSettings g_zab;
+std::atomic<bool> g_zabUnloading{false};
+
+COLORREF ZabParseColor(PCWSTR s, COLORREF fallback) {
+    if (!s || !*s) return fallback;
+    while (*s == L' ' || *s == L'#') ++s;
+    unsigned v = 0;
+    int n = 0;
+    for (; n < 6 && s[n]; ++n) {
+        wchar_t c = s[n];
+        int d = (c >= L'0' && c <= L'9')   ? c - L'0'
+              : (c >= L'a' && c <= L'f') ? c - L'a' + 10
+              : (c >= L'A' && c <= L'F') ? c - L'A' + 10
+                                         : -1;
+        if (d < 0) return fallback;
+        v = (v << 4) | (unsigned)d;
+    }
+    if (n != 6) return fallback;
+    return RGB((v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF);
+}
+
+void ZabLoadSettings() {
+    ZabSettings s;
+    PCWSTR place = Wh_GetStringSetting(L"audio.placement");
+    if (place) {
+        if (!_wcsicmp(place, L"taskbar")) s.placement = ZabSettings::Placement::Taskbar;
+        else if (!_wcsicmp(place, L"both")) s.placement = ZabSettings::Placement::Both;
+        Wh_FreeStringSetting(place);
+    }
+    s.barCount = Wh_GetIntSetting(L"audio.barCount");
+    if (s.barCount < 16) s.barCount = 16;
+    if (s.barCount > 128) s.barCount = 128;
+    PCWSTR c1 = Wh_GetStringSetting(L"audio.color");
+    s.color = ZabParseColor(c1, RGB(0x5B, 0x9D, 0xFF));
+    if (c1) Wh_FreeStringSetting(c1);
+    PCWSTR c2 = Wh_GetStringSetting(L"audio.color2");
+    if (c2 && *c2) {
+        s.color2 = ZabParseColor(c2, 0);
+        s.hasGradient = s.color2 != 0;
+        Wh_FreeStringSetting(c2);
+    } else if (c2) {
+        Wh_FreeStringSetting(c2);
+    }
+    s.height = Wh_GetIntSetting(L"audio.height");
+    if (s.height < 20) s.height = 20;
+    if (s.height > 600) s.height = 600;
+    PCWSTR pos = Wh_GetStringSetting(L"audio.position");
+    s.top = pos && !_wcsicmp(pos, L"top");
+    if (pos) Wh_FreeStringSetting(pos);
+    s.opacity = Wh_GetIntSetting(L"audio.opacity");
+    if (s.opacity < 0) s.opacity = 0;
+    if (s.opacity > 100) s.opacity = 100;
+    s.mirror = Wh_GetIntSetting(L"audio.mirror") != 0;
+    int sens = Wh_GetIntSetting(L"audio.sensitivity");
+    if (sens < 0) sens = 0;
+    if (sens > 100) sens = 100;
+    s.sensitivity = 0.25f + sens / 100.f * 2.75f;  // 0.25 .. 3.0
+    g_zab = s;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// FFT (radix-2, real input → magnitude). N must be power of two.
+
+constexpr int kFftN = 2048;
+constexpr int kFftHalf = kFftN / 2;
+
+void ZabFftRadix2(float* re, float* im, int n) {
+    // Bit-reverse
+    for (int i = 1, j = 0; i < n; i++) {
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) {
+            std::swap(re[i], re[j]);
+            std::swap(im[i], im[j]);
+        }
+    }
+    for (int len = 2; len <= n; len <<= 1) {
+        float ang = -2.f * 3.14159265358979323846f / len;
+        float wlenRe = cosf(ang), wlenIm = sinf(ang);
+        for (int i = 0; i < n; i += len) {
+            float wRe = 1.f, wIm = 0.f;
+            for (int j = 0; j < len / 2; j++) {
+                float uRe = re[i + j], uIm = im[i + j];
+                float vRe = re[i + j + len / 2] * wRe - im[i + j + len / 2] * wIm;
+                float vIm = re[i + j + len / 2] * wIm + im[i + j + len / 2] * wRe;
+                re[i + j] = uRe + vRe;
+                im[i + j] = uIm + vIm;
+                re[i + j + len / 2] = uRe - vRe;
+                im[i + j + len / 2] = uIm - vIm;
+                float nWRe = wRe * wlenRe - wIm * wlenIm;
+                wIm = wRe * wlenIm + wIm * wlenRe;
+                wRe = nWRe;
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Spectrum state (written by capture thread, read by UI thread)
+
+struct ZabSpectrum {
+    std::mutex mu;
+    std::vector<float> bands;   // smoothed 0..1
+    std::vector<float> peaks;   // peak hold
+    float rms = 0.f;
+    ULONGLONG lastLoudTick = 0;
+    bool deviceFailed = false;
+};
+
+ZabSpectrum g_spec;
+std::atomic<bool> g_captureRun{false};
+HANDLE g_captureThread = nullptr;
+HWND g_zabMsgWnd = nullptr;
+
+constexpr UINT ZAB_WM_FRAME = WM_APP + 40;
+constexpr UINT ZAB_WM_SILENT = WM_APP + 41;
+constexpr UINT ZAB_TIMER_RENDER = 1;
+constexpr UINT ZAB_TIMER_IDLE_POLL = 2;
+constexpr UINT ZAB_TIMER_RECREATE = 3;
+constexpr UINT ZAB_TIMER_ZORDER = 4;
+
+void ZabPublishBands(const float* mags, int nMags, float rms) {
+    ZabSettings s = g_zab;
+    int bars = s.barCount;
+    std::vector<float> raw(bars, 0.f);
+
+    // Log-spaced bins over ~40 Hz .. Nyquist (assume 48 kHz → 24 kHz).
+    const float sampleRate = 48000.f;
+    const float fMin = 40.f;
+    const float fMax = sampleRate * 0.45f;
+    auto binForFreq = [&](float f) -> int {
+        int b = (int)(f / sampleRate * kFftN);
+        if (b < 1) b = 1;
+        if (b >= nMags) b = nMags - 1;
+        return b;
+    };
+
+    for (int i = 0; i < bars; i++) {
+        float t0 = (float)i / bars;
+        float t1 = (float)(i + 1) / bars;
+        float f0 = fMin * powf(fMax / fMin, t0);
+        float f1 = fMin * powf(fMax / fMin, t1);
+        int b0 = binForFreq(f0);
+        int b1 = binForFreq(f1);
+        if (b1 <= b0) b1 = b0 + 1;
+        float sum = 0.f;
+        for (int b = b0; b < b1 && b < nMags; b++) sum += mags[b];
+        float v = sum / (b1 - b0);
+        v *= s.sensitivity;
+        if (v > 1.f) v = 1.f;
+        raw[i] = v;
+    }
+
+    if (s.mirror) {
+        // Outer = treble, center = bass (classic visualizer mirror).
+        std::vector<float> mir(bars, 0.f);
+        int half = bars / 2;
+        for (int i = 0; i < half; i++) {
+            int srcIdx = half - 1 - i;  // i=0 (left edge) <- highest of left half
+            if (srcIdx < 0) srcIdx = 0;
+            mir[i] = raw[srcIdx];
+            mir[bars - 1 - i] = raw[srcIdx];
+        }
+        if (bars % 2) mir[half] = raw[0];
+        raw.swap(mir);
+    }
+
+    ULONGLONG now = GetTickCount64();
+    std::lock_guard<std::mutex> lock(g_spec.mu);
+    if ((int)g_spec.bands.size() != bars) {
+        g_spec.bands.assign(bars, 0.f);
+        g_spec.peaks.assign(bars, 0.f);
+    }
+    const float attack = 0.45f;
+    const float release = 0.18f;
+    const float peakDecay = 0.96f;
+    for (int i = 0; i < bars; i++) {
+        float& b = g_spec.bands[i];
+        float t = raw[i];
+        b = t > b ? b + (t - b) * attack : b + (t - b) * release;
+        float& p = g_spec.peaks[i];
+        if (b > p) p = b;
+        else p *= peakDecay;
+    }
+    g_spec.rms = rms;
+    if (rms > 0.008f) g_spec.lastLoudTick = now;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// WASAPI loopback capture thread
+
+class ZabComInit {
+public:
+    ZabComInit() { hr_ = CoInitializeEx(nullptr, COINIT_MULTITHREADED); }
+    ~ZabComInit() {
+        if (SUCCEEDED(hr_) || hr_ == S_FALSE || hr_ == RPC_E_CHANGED_MODE)
+            CoUninitialize();
+    }
+    HRESULT hr_ = E_FAIL;
+};
+
+bool ZabCaptureOnce(HANDLE stopEvent) {
+    ZabComInit com;
+    if (FAILED(com.hr_) && com.hr_ != S_FALSE && com.hr_ != RPC_E_CHANGED_MODE) {
+        Wh_Log(L"[zab] CoInitializeEx failed 0x%08X", (unsigned)com.hr_);
+        return false;
+    }
+
+    IMMDeviceEnumerator* enumer = nullptr;
+    HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+                                  CLSCTX_ALL, IID_PPV_ARGS(&enumer));
+    if (FAILED(hr) || !enumer) {
+        Wh_Log(L"[zab] MMDeviceEnumerator 0x%08X", (unsigned)hr);
+        return false;
+    }
+
+    IMMDevice* device = nullptr;
+    hr = enumer->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+    enumer->Release();
+    if (FAILED(hr) || !device) {
+        Wh_Log(L"[zab] GetDefaultAudioEndpoint 0x%08X", (unsigned)hr);
+        return false;
+    }
+
+    IAudioClient* client = nullptr;
+    hr = device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr,
+                          (void**)&client);
+    device->Release();
+    if (FAILED(hr) || !client) {
+        Wh_Log(L"[zab] Activate IAudioClient 0x%08X", (unsigned)hr);
+        return false;
+    }
+
+    WAVEFORMATEX* mix = nullptr;
+    hr = client->GetMixFormat(&mix);
+    if (FAILED(hr) || !mix) {
+        client->Release();
+        return false;
+    }
+
+    // Prefer float32 stereo; ask WASAPI to convert if needed.
+    WAVEFORMATEX want = {};
+    want.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+    want.nChannels = 2;
+    want.nSamplesPerSec = mix->nSamplesPerSec ? mix->nSamplesPerSec : 48000;
+    want.wBitsPerSample = 32;
+    want.nBlockAlign = want.nChannels * want.wBitsPerSample / 8;
+    want.nAvgBytesPerSec = want.nSamplesPerSec * want.nBlockAlign;
+
+    REFERENCE_TIME buf100ns = 20 * 10000;  // 20 ms
+    hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED,
+                            AUDCLNT_STREAMFLAGS_LOOPBACK |
+                                AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM |
+                                AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
+                            buf100ns, 0, &want, nullptr);
+    if (FAILED(hr)) {
+        // Fall back to mix format.
+        hr = client->Initialize(AUDCLNT_SHAREMODE_SHARED,
+                                AUDCLNT_STREAMFLAGS_LOOPBACK, buf100ns, 0, mix,
+                                nullptr);
+    }
+    CoTaskMemFree(mix);
+    mix = nullptr;
+    if (FAILED(hr)) {
+        Wh_Log(L"[zab] IAudioClient::Initialize 0x%08X", (unsigned)hr);
+        client->Release();
+        return false;
+    }
+
+    WAVEFORMATEX* fmt = nullptr;
+    client->GetMixFormat(&fmt);
+    const int channels = fmt ? fmt->nChannels : 2;
+    const int bits = fmt ? fmt->wBitsPerSample : 32;
+    bool isFloat = false;
+    if (fmt) {
+        if (fmt->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
+            isFloat = true;
+        } else if (fmt->wFormatTag == WAVE_FORMAT_EXTENSIBLE &&
+                   fmt->wBitsPerSample == 32) {
+            // Treat 32-bit extensible mix as float (default shared mode).
+            isFloat = true;
+        }
+        CoTaskMemFree(fmt);
+    }
+
+    IAudioCaptureClient* capture = nullptr;
+    hr = client->GetService(__uuidof(IAudioCaptureClient), (void**)&capture);
+    if (FAILED(hr) || !capture) {
+        client->Release();
+        return false;
+    }
+
+    hr = client->Start();
+    if (FAILED(hr)) {
+        capture->Release();
+        client->Release();
+        return false;
+    }
+
+    DWORD taskIndex = 0;
+    HANDLE mmcss = AvSetMmThreadCharacteristicsW(L"Audio", &taskIndex);
+
+    std::vector<float> ring(kFftN, 0.f);
+    int ringWrite = 0;
+    int ringFilled = 0;
+    float re[kFftN];
+    float im[kFftN];
+    float mags[kFftHalf];
+
+    Wh_Log(L"[zab] capture started ch=%d bits=%d float=%d", channels, bits,
+           isFloat ? 1 : 0);
+
+    while (g_captureRun.load(std::memory_order_relaxed) && !g_zabUnloading.load()) {
+        if (WaitForSingleObject(stopEvent, 0) == WAIT_OBJECT_0) break;
+
+        // Quiet audio: poll slowly so idle desktop costs almost nothing.
+        DWORD waitMs = 10;
+        {
+            std::lock_guard<std::mutex> lock(g_spec.mu);
+            ULONGLONG now = GetTickCount64();
+            if (g_spec.rms < 0.008f && now - g_spec.lastLoudTick > 2000)
+                waitMs = 250;
+        }
+        Sleep(waitMs);
+        UINT32 packet = 0;
+        hr = capture->GetNextPacketSize(&packet);
+        if (FAILED(hr)) break;
+
+        while (packet > 0) {
+            BYTE* data = nullptr;
+            UINT32 frames = 0;
+            DWORD flags = 0;
+            hr = capture->GetBuffer(&data, &frames, &flags, nullptr, nullptr);
+            if (FAILED(hr)) break;
+
+            if (!(flags & AUDCLNT_BUFFERFLAGS_SILENT) && data && frames) {
+                for (UINT32 i = 0; i < frames; i++) {
+                    float sample = 0.f;
+                    if (isFloat && bits == 32) {
+                        const float* f = (const float*)data;
+                        float L = f[i * channels];
+                        float R = channels > 1 ? f[i * channels + 1] : L;
+                        sample = 0.5f * (L + R);
+                    } else if (bits == 16) {
+                        const short* p = (const short*)data;
+                        float L = p[i * channels] / 32768.f;
+                        float R = channels > 1 ? p[i * channels + 1] / 32768.f : L;
+                        sample = 0.5f * (L + R);
+                    }
+                    ring[ringWrite] = sample;
+                    ringWrite = (ringWrite + 1) % kFftN;
+                    if (ringFilled < kFftN) ringFilled++;
+                }
+            }
+            capture->ReleaseBuffer(frames);
+            if (FAILED(capture->GetNextPacketSize(&packet))) break;
+        }
+
+        if (ringFilled >= kFftN) {
+            // Copy oldest→newest into FFT buffers with Hann window.
+            int start = ringWrite;  // next write = oldest
+            double sumSq = 0.0;
+            for (int i = 0; i < kFftN; i++) {
+                float w = 0.5f * (1.f - cosf(2.f * 3.14159265f * i / (kFftN - 1)));
+                float v = ring[(start + i) % kFftN] * w;
+                re[i] = v;
+                im[i] = 0.f;
+                sumSq += (double)v * v;
+            }
+            ZabFftRadix2(re, im, kFftN);
+            for (int i = 0; i < kFftHalf; i++) {
+                float mag = sqrtf(re[i] * re[i] + im[i] * im[i]) / (kFftN * 0.25f);
+                mags[i] = mag;
+            }
+            float rms = sqrtf((float)(sumSq / kFftN));
+            ZabPublishBands(mags, kFftHalf, rms);
+
+            if (g_zabMsgWnd) {
+                PostMessageW(g_zabMsgWnd, ZAB_WM_FRAME, 0, 0);
+            }
+        }
+    }
+
+    client->Stop();
+    if (mmcss) AvRevertMmThreadCharacteristics(mmcss);
+    capture->Release();
+    client->Release();
+    Wh_Log(L"[zab] capture stopped");
+    return true;
+}
+
+DWORD WINAPI ZabCaptureThread(LPVOID stopEvent) {
+    HANDLE stop = (HANDLE)stopEvent;
+    while (g_captureRun.load() && !g_zabUnloading.load()) {
+        if (!ZabCaptureOnce(stop)) {
+            g_spec.deviceFailed = true;
+            // Device missing / change — wait and retry.
+            if (WaitForSingleObject(stop, 2000) == WAIT_OBJECT_0) break;
+            continue;
+        }
+        // Clean exit from CaptureOnce usually means stop or error; retry on
+        // device change unless we're unloading.
+        if (!g_captureRun.load() || g_zabUnloading.load()) break;
+        if (WaitForSingleObject(stop, 500) == WAIT_OBJECT_0) break;
+    }
+    return 0;
+}
+
+HANDLE g_captureStop = nullptr;
+
+void ZabStartCapture() {
+    if (g_captureThread) return;
+    g_captureStop = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    g_captureRun = true;
+    g_captureThread =
+        CreateThread(nullptr, 0, ZabCaptureThread, g_captureStop, 0, nullptr);
+}
+
+void ZabStopCapture() {
+    g_captureRun = false;
+    if (g_captureStop) SetEvent(g_captureStop);
+    if (g_captureThread) {
+        WaitForSingleObject(g_captureThread, 3000);
+        CloseHandle(g_captureThread);
+        g_captureThread = nullptr;
+    }
+    if (g_captureStop) {
+        CloseHandle(g_captureStop);
+        g_captureStop = nullptr;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Rendering (layered windows)
+
+struct ZabSurface {
+    HWND hwnd = nullptr;
+    HBITMAP dib = nullptr;
+    void* bits = nullptr;
+    int w = 0;
+    int h = 0;
+    bool desktop = false;
+    int raiseStreak = 0;
+};
+
+ZabSurface g_desktopSurf;
+ZabSurface g_taskbarSurf;
+bool g_zabClassReg = false;
+UINT g_zabTaskbarCreatedMsg = 0;
+bool g_renderActive = false;
+
+HINSTANCE ZabModule() {
+    HMODULE module;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                           GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                       (LPCWSTR)&ZabModule, &module);
+    return module;
+}
+
+const WCHAR kZabClass[] = L"ZenAudioBars_" WH_MOD_ID;
+
+void ZabFreeSurfaceBitmap(ZabSurface& s) {
+    if (s.dib) {
+        DeleteObject(s.dib);
+        s.dib = nullptr;
+        s.bits = nullptr;
+        s.w = s.h = 0;
+    }
+}
+
+bool ZabEnsureBitmap(ZabSurface& s, int w, int h) {
+    if (s.dib && s.w == w && s.h == h) return true;
+    ZabFreeSurfaceBitmap(s);
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = w;
+    bmi.bmiHeader.biHeight = -h;  // top-down
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    s.dib = CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, &s.bits, nullptr, 0);
+    if (!s.dib) return false;
+    s.w = w;
+    s.h = h;
+    return true;
+}
+
+COLORREF ZabLerp(COLORREF a, COLORREF b, float t) {
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    return RGB((int)(GetRValue(a) + (GetRValue(b) - GetRValue(a)) * t),
+               (int)(GetGValue(a) + (GetGValue(b) - GetGValue(a)) * t),
+               (int)(GetBValue(a) + (GetBValue(b) - GetBValue(a)) * t));
+}
+
+void ZabPaintBars(ZabSurface& s) {
+    if (!s.bits || s.w <= 0 || s.h <= 0) return;
+    std::vector<float> bands, peaks;
+    {
+        std::lock_guard<std::mutex> lock(g_spec.mu);
+        bands = g_spec.bands;
+        peaks = g_spec.peaks;
+    }
+    const int n = (int)bands.size();
+    auto* px = (BYTE*)s.bits;
+    memset(px, 0, s.w * s.h * 4);
+    if (n <= 0) return;
+
+    const BYTE alpha = (BYTE)(g_zab.opacity * 255 / 100);
+    const float gap = 1.f;
+    float barW = (s.w - gap * (n + 1)) / n;
+    if (barW < 1.f) barW = 1.f;
+
+    for (int i = 0; i < n; i++) {
+        float v = bands[i];
+        if (v < 0.01f && peaks[i] < 0.02f) continue;
+        int bh = (int)(v * (s.h - 2));
+        if (bh < 1 && v > 0.01f) bh = 1;
+        int x0 = (int)(gap + i * (barW + gap));
+        int x1 = (int)(x0 + barW);
+        if (x1 > s.w) x1 = s.w;
+        int y0 = g_zab.top ? 0 : s.h - bh;
+        int y1 = g_zab.top ? bh : s.h;
+        COLORREF col = g_zab.hasGradient
+                           ? ZabLerp(g_zab.color, g_zab.color2, (float)i / (n - 1))
+                           : g_zab.color;
+        BYTE r = GetRValue(col), g = GetGValue(col), b = GetBValue(col);
+        // Premultiplied alpha for UpdateLayeredWindow
+        BYTE pr = (BYTE)(r * alpha / 255), pg = (BYTE)(g * alpha / 255),
+             pb = (BYTE)(b * alpha / 255);
+        for (int y = y0; y < y1; y++) {
+            BYTE* row = px + y * s.w * 4;
+            for (int x = x0; x < x1; x++) {
+                BYTE* p = row + x * 4;
+                p[0] = pb;
+                p[1] = pg;
+                p[2] = pr;
+                p[3] = alpha;
+            }
+        }
+        // Peak cap
+        int py = g_zab.top ? (int)(peaks[i] * (s.h - 2))
+                           : s.h - 1 - (int)(peaks[i] * (s.h - 2));
+        if (py >= 0 && py < s.h) {
+            BYTE* row = px + py * s.w * 4;
+            for (int x = x0; x < x1; x++) {
+                BYTE* p = row + x * 4;
+                p[0] = pb;
+                p[1] = pg;
+                p[2] = pr;
+                p[3] = alpha;
+            }
+        }
+    }
+}
+
+void ZabPresent(ZabSurface& s, int x, int y) {
+    if (!s.hwnd || !s.dib) return;
+    HDC screen = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(screen);
+    HGDIOBJ old = SelectObject(mem, s.dib);
+    POINT ptDst = {x, y};
+    SIZE size = {s.w, s.h};
+    POINT ptSrc = {0, 0};
+    BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+    UpdateLayeredWindow(s.hwnd, screen, &ptDst, &size, mem, &ptSrc, 0, &bf,
+                        ULW_ALPHA);
+    SelectObject(mem, old);
+    DeleteDC(mem);
+    ReleaseDC(nullptr, screen);
+}
+
+LRESULT CALLBACK ZabWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
+
+bool ZabRegisterClass() {
+    if (g_zabClassReg) return true;
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = ZabWndProc;
+    wc.hInstance = ZabModule();
+    wc.lpszClassName = kZabClass;
+    g_zabClassReg = RegisterClassW(&wc) != 0;
+    return g_zabClassReg;
+}
+
+void ZabDestroySurface(ZabSurface& s) {
+    if (s.hwnd) {
+        DestroyWindow(s.hwnd);
+        s.hwnd = nullptr;
+    }
+    ZabFreeSurfaceBitmap(s);
+    s.raiseStreak = 0;
+}
+
+bool ZabCreateDesktopSurface() {
+    if (g_desktopSurf.hwnd) return true;
+    if (!ZabRegisterClass()) return false;
+    ZenDesktopHost host = ZenGetDesktopHost();
+    if (!host.valid) {
+        Wh_Log(L"[zab] no desktop host");
+        return false;
+    }
+    RECT rc = ZenHostClientRect(host);
+    int w = rc.right - rc.left;
+    int h = g_zab.height;
+    if (w <= 0) return false;
+
+    // Layered child + UpdateLayeredWindow (same as taskbar lyrics). Do not set
+    // WS_EX_NOREDIRECTIONBITMAP here — that path is for DComp swap chains.
+    HWND hwnd = CreateWindowExW(
+        WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
+        kZabClass, L"ZenAudioBarsDesktop", WS_CHILD | WS_VISIBLE | WS_DISABLED, 0,
+        g_zab.top ? 0 : (rc.bottom - h), w, h, host.parent, nullptr, ZabModule(),
+        nullptr);
+    if (!hwnd) {
+        Wh_Log(L"[zab] desktop CreateWindowEx %u", GetLastError());
+        return false;
+    }
+    g_desktopSurf.hwnd = hwnd;
+    g_desktopSurf.desktop = true;
+    ZabEnsureBitmap(g_desktopSurf, w, h);
+    ZenPlaceOverlay(hwnd, &g_desktopSurf.raiseStreak);
+    ZabPaintBars(g_desktopSurf);
+    // Child layered: destination is in parent client coords via SetWindowPos;
+    // UpdateLayeredWindow still wants screen coords.
+    RECT wr;
+    GetWindowRect(hwnd, &wr);
+    ZabPresent(g_desktopSurf, wr.left, wr.top);
+    Wh_Log(L"[zab] desktop surface on parent=%p %dx%d", host.parent, w, h);
+    return true;
+}
+
+HWND ZabFindPrimaryTaskbar() {
+    return FindWindowW(L"Shell_TrayWnd", nullptr);
+}
+
+bool ZabCreateTaskbarSurface() {
+    if (g_taskbarSurf.hwnd) return true;
+    if (!ZabRegisterClass()) return false;
+    HWND tray = ZabFindPrimaryTaskbar();
+    if (!tray) return false;
+    RECT rc;
+    GetClientRect(tray, &rc);
+    int w = rc.right - rc.left;
+    int h = g_zab.height;
+    if (h > (rc.bottom - rc.top)) h = rc.bottom - rc.top;
+    if (w <= 0 || h <= 0) return false;
+
+    HWND hwnd = CreateWindowExW(
+        WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY,
+        kZabClass, L"ZenAudioBarsTaskbar", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
+        0, g_zab.top ? 0 : (rc.bottom - rc.top - h), w, h, tray, nullptr,
+        ZabModule(), nullptr);
+    if (!hwnd) {
+        Wh_Log(L"[zab] taskbar CreateWindowEx %u", GetLastError());
+        return false;
+    }
+    g_taskbarSurf.hwnd = hwnd;
+    g_taskbarSurf.desktop = false;
+    ZabEnsureBitmap(g_taskbarSurf, w, h);
+    ZabPaintBars(g_taskbarSurf);
+    RECT wr;
+    GetWindowRect(hwnd, &wr);
+    ZabPresent(g_taskbarSurf, wr.left, wr.top);
+    Wh_Log(L"[zab] taskbar surface %dx%d", w, h);
+    return true;
+}
+
+void ZabCreateSurfaces() {
+    auto p = g_zab.placement;
+    if (p == ZabSettings::Placement::Desktop ||
+        p == ZabSettings::Placement::Both)
+        ZabCreateDesktopSurface();
+    else
+        ZabDestroySurface(g_desktopSurf);
+    if (p == ZabSettings::Placement::Taskbar ||
+        p == ZabSettings::Placement::Both)
+        ZabCreateTaskbarSurface();
+    else
+        ZabDestroySurface(g_taskbarSurf);
+}
+
+void ZabRenderAll() {
+    if (g_desktopSurf.hwnd) {
+        RECT rc;
+        GetClientRect(GetParent(g_desktopSurf.hwnd), &rc);
+        int w = rc.right - rc.left;
+        int h = g_zab.height;
+        SetWindowPos(g_desktopSurf.hwnd, nullptr, 0,
+                     g_zab.top ? 0 : (rc.bottom - h), w, h,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        ZabEnsureBitmap(g_desktopSurf, w, h);
+        ZabPaintBars(g_desktopSurf);
+        RECT wr;
+        GetWindowRect(g_desktopSurf.hwnd, &wr);
+        ZabPresent(g_desktopSurf, wr.left, wr.top);
+    }
+    if (g_taskbarSurf.hwnd) {
+        HWND tray = GetParent(g_taskbarSurf.hwnd);
+        RECT rc;
+        GetClientRect(tray, &rc);
+        int w = rc.right - rc.left;
+        int h = g_zab.height;
+        if (h > rc.bottom - rc.top) h = rc.bottom - rc.top;
+        SetWindowPos(g_taskbarSurf.hwnd, HWND_TOP, 0,
+                     g_zab.top ? 0 : (rc.bottom - rc.top - h), w, h,
+                     SWP_NOACTIVATE);
+        ZabEnsureBitmap(g_taskbarSurf, w, h);
+        ZabPaintBars(g_taskbarSurf);
+        RECT wr;
+        GetWindowRect(g_taskbarSurf.hwnd, &wr);
+        ZabPresent(g_taskbarSurf, wr.left, wr.top);
+    }
+}
+
+bool ZabIsSilent() {
+    std::lock_guard<std::mutex> lock(g_spec.mu);
+    ULONGLONG now = GetTickCount64();
+    return g_spec.rms < 0.008f && now - g_spec.lastLoudTick > 2000;
+}
+
+void ZabSetRenderActive(bool on) {
+    if (!g_zabMsgWnd) return;
+    if (on && !g_renderActive) {
+        g_renderActive = true;
+        SetTimer(g_zabMsgWnd, ZAB_TIMER_RENDER, 33, nullptr);  // ~30 fps
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_IDLE_POLL);
+        Wh_Log(L"[zab] render active");
+    } else if (!on && g_renderActive) {
+        g_renderActive = false;
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_RENDER);
+        SetTimer(g_zabMsgWnd, ZAB_TIMER_IDLE_POLL, 500, nullptr);
+        // Clear bars once.
+        {
+            std::lock_guard<std::mutex> lock(g_spec.mu);
+            std::fill(g_spec.bands.begin(), g_spec.bands.end(), 0.f);
+            std::fill(g_spec.peaks.begin(), g_spec.peaks.end(), 0.f);
+        }
+        ZabRenderAll();
+        Wh_Log(L"[zab] render idle");
+    }
+}
+
+LRESULT CALLBACK ZabWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == WM_NCHITTEST) return HTTRANSPARENT;
+    if (msg == WM_DESTROY) {
+        if (hWnd == g_desktopSurf.hwnd) g_desktopSurf.hwnd = nullptr;
+        if (hWnd == g_taskbarSurf.hwnd) g_taskbarSurf.hwnd = nullptr;
+    }
+    return DefWindowProcW(hWnd, msg, wp, lp);
+}
+
+LRESULT CALLBACK ZabMsgProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == g_zabTaskbarCreatedMsg && g_zabTaskbarCreatedMsg) {
+        Wh_Log(L"[zab] TaskbarCreated");
+        ZenInvalidateDesktopHost();
+        if (!g_zabUnloading)
+            SetTimer(hWnd, ZAB_TIMER_RECREATE, 800, nullptr);
+        return 0;
+    }
+    switch (msg) {
+        case ZAB_WM_FRAME:
+            if (!g_zabUnloading) ZabSetRenderActive(true);
+            return 0;
+        case WM_TIMER:
+            if (wp == ZAB_TIMER_RENDER) {
+                if (g_zabUnloading) {
+                    KillTimer(hWnd, wp);
+                    return 0;
+                }
+                if (ZabIsSilent()) {
+                    ZabSetRenderActive(false);
+                } else {
+                    ZabRenderAll();
+                    if (g_desktopSurf.hwnd &&
+                        ZenPlaceOverlay(g_desktopSurf.hwnd,
+                                        &g_desktopSurf.raiseStreak)) {
+                        // Slow re-check only while siblings exist.
+                        SetTimer(hWnd, ZAB_TIMER_ZORDER,
+                                 g_desktopSurf.raiseStreak > 3 ? 30000 : 5000,
+                                 nullptr);
+                    }
+                }
+                return 0;
+            }
+            if (wp == ZAB_TIMER_IDLE_POLL) {
+                // Capture thread still runs lightly; wake render if loud.
+                if (!ZabIsSilent()) ZabSetRenderActive(true);
+                return 0;
+            }
+            if (wp == ZAB_TIMER_RECREATE) {
+                KillTimer(hWnd, wp);
+                ZabDestroySurface(g_desktopSurf);
+                ZabDestroySurface(g_taskbarSurf);
+                ZabCreateSurfaces();
+                return 0;
+            }
+            if (wp == ZAB_TIMER_ZORDER) {
+                KillTimer(hWnd, wp);
+                if (g_desktopSurf.hwnd)
+                    ZenPlaceOverlay(g_desktopSurf.hwnd,
+                                    &g_desktopSurf.raiseStreak);
+                return 0;
+            }
+            break;
+        case WM_DISPLAYCHANGE:
+        case WM_DPICHANGED:
+            if (!g_zabUnloading)
+                SetTimer(hWnd, ZAB_TIMER_RECREATE, 400, nullptr);
+            return 0;
+        case WM_DESTROY:
+            g_zabMsgWnd = nullptr;
+            return 0;
+    }
+    return DefWindowProcW(hWnd, msg, wp, lp);
+}
+
+bool g_zabMsgClass = false;
+const WCHAR kZabMsgClass[] = L"ZenAudioBarsMsg_" WH_MOD_ID;
+
+void ZabCreateMessageWindow() {
+    if (g_zabMsgWnd) return;
+    if (!g_zabMsgClass) {
+        WNDCLASSW wc = {};
+        wc.lpfnWndProc = ZabMsgProc;
+        wc.hInstance = ZabModule();
+        wc.lpszClassName = kZabMsgClass;
+        g_zabMsgClass = RegisterClassW(&wc) != 0;
+    }
+    if (!g_zabMsgClass) return;
+    g_zabMsgWnd =
+        CreateWindowExW(0, kZabMsgClass, nullptr, 0, 0, 0, 0, 0, nullptr,
+                        nullptr, ZabModule(), nullptr);
+    SetTimer(g_zabMsgWnd, ZAB_TIMER_IDLE_POLL, 500, nullptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Lifecycle
+
+bool ZabModInit() {
+    Wh_Log(L"[zab] init");
+    ZabLoadSettings();
+    g_zabTaskbarCreatedMsg = RegisterWindowMessageW(L"TaskbarCreated");
+    return true;
+}
+
+void ZabModAfterInit() {
+    ZabCreateMessageWindow();
+    ZabCreateSurfaces();
+    ZabStartCapture();
+}
+
+void ZabModUninit() {
+    Wh_Log(L"[zab] uninit");
+    g_zabUnloading = true;
+    ZabStopCapture();
+    if (g_zabMsgWnd) {
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_RENDER);
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_IDLE_POLL);
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_RECREATE);
+        KillTimer(g_zabMsgWnd, ZAB_TIMER_ZORDER);
+        DestroyWindow(g_zabMsgWnd);
+        g_zabMsgWnd = nullptr;
+    }
+    ZabDestroySurface(g_desktopSurf);
+    ZabDestroySurface(g_taskbarSurf);
+    if (g_zabClassReg) {
+        UnregisterClassW(kZabClass, ZabModule());
+        g_zabClassReg = false;
+    }
+    if (g_zabMsgClass) {
+        UnregisterClassW(kZabMsgClass, ZabModule());
+        g_zabMsgClass = false;
+    }
+    ZenInvalidateDesktopHost();
+}
+
+void ZabModSettingsChanged() {
+    ZabLoadSettings();
+    ZabDestroySurface(g_desktopSurf);
+    ZabDestroySurface(g_taskbarSurf);
+    ZabCreateSurfaces();
+    ZabSetRenderActive(!ZabIsSilent());
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Widgets life cycle: clock/calendar/resources share one DComp overlay;
+// audio bars own a light layered surface + capture thread, started only when
+// audio.enabled is on.
+
+bool g_zwAudioOn = false;
+
+bool ZwAudioWanted() { return Wh_GetIntSetting(L"audio.enabled") != 0; }
+
+void ZwAudioStart() {
+    if (g_zwAudioOn) return;
+    g_zabUnloading = false;
+    ZabModInit();
+    ZabModAfterInit();
+    g_zwAudioOn = true;
+}
+
+void ZwAudioStop() {
+    if (!g_zwAudioOn) return;
+    ZabModUninit();
+    g_zwAudioOn = false;
+}
+
+BOOL Wh_ModInit() {
+    ZcModInit();
+    return TRUE;
+}
+
+void Wh_ModAfterInit() {
+    ZcModAfterInit();
+    if (ZwAudioWanted()) ZwAudioStart();
+}
+
+void Wh_ModUninit() {
+    ZwAudioStop();
+    ZcModUninit();
+}
+
+void Wh_ModSettingsChanged() {
+    ZcModSettingsChanged();
+    bool want = ZwAudioWanted();
+    if (want && g_zwAudioOn) ZabModSettingsChanged();
+    else if (want) ZwAudioStart();
+    else ZwAudioStop();
 }

@@ -8,7 +8,7 @@
 [![Engine Windhawk](https://img.shields.io/badge/Engine-Windhawk-ff69b4?style=flat-square)](https://windhawk.net)
 [![Release](https://img.shields.io/github/v/release/Liset999/ZenDesktop?style=flat-square)](https://github.com/Liset999/ZenDesktop/releases)
 
-ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://windhawk.net) 上：任务栏、开始菜单、通知栏、「设置」和文件管理器统一换成透明玻璃风格，任务栏左下角还能显示歌词和 AI 编程助手的工作状态。新的桌面时钟放在图标后面，时钟、日历和资源占用（CPU、内存、GPU、网速）可以单独开关、单独拖动。一共 10 个 mod，一键部署，所有效果都在 Windhawk 的设置页里调，改完立即生效。
+ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 [Windhawk](https://windhawk.net) 上：任务栏、开始菜单、通知栏、「设置」和文件管理器统一换成透明玻璃风格，任务栏左下角还能显示歌词和 AI 编程助手的工作状态。桌面小组件放在图标后面，时钟、日历、资源占用（CPU、内存、GPU、网速）和音频条可以单独开关、单独拖动。一共 10 个 mod，一键部署，所有效果都在 Windhawk 的设置页里调，改完立即生效。
 
 # 效果预览
 
@@ -51,7 +51,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
 - **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
-- **可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果等）、桌面时钟。
+- **可选 mod**：果冻窗口、窗口动画（含 macOS 神奇效果等）、桌面小组件（时钟、日历、资源占用、音频条）。
 - **浅色模式**：通知栏和「设置」加了白底并加深文字；开始菜单去掉了液态玻璃的白雾，修好了应用名称不显示。
 - **更像原生**：液态玻璃全部去掉额外描边，圆角与 Windows 一致；「设置」窗口失去焦点也保持透明。
 - **任务栏设置分区**：新增「统一设置」（默认打开），托盘和音量浮窗跟着任务栏一起调。
@@ -61,7 +61,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 ## Mod 介绍
 
-7 个核心 mod 加可选 mod（果冻窗口、窗口动画、桌面时钟）。**部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。核心美化 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
+7 个核心 mod 加可选 mod（果冻窗口、窗口动画、桌面小组件）。**部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。核心美化 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
 
 ### ZenDesktop: 任务栏美化
 
@@ -138,10 +138,12 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 可按进程名排除指定程序，常见游戏和反作弊程序已默认排除。
 - **可选 mod**，默认关闭。原作者 ReDrag（Windows Animations，MIT），macOS 神奇效果来自 Abdullah Masood 的 macOS Minimize Animation。以前装过独立的「macOS 神奇效果最小化动画」请关掉，否则会播两次。
 
-### ZenDesktop: 桌面时钟
+### ZenDesktop: 桌面小组件
 
 在桌面图标**后方**放小组件，不挡图标。关掉拖动后不吃鼠标。
+- **2.0.0：合并成一个 mod**（`local@zen-desktop-widgets`）：🕒 时钟、📅 日历、📊 资源占用、🎵 音频条。原「桌面时钟」「音频可视化条」不再单独发布，旧版请在 Windhawk 里关掉或卸载。设置按小组件分组：全局（拖动摆放、重置位置、显示器）在最上面，下面每个小组件一组，第一项是「启用」。
 - **三块各自开关、各自大小、各自拖动**（1.4.0）：时钟、日历、资源占用。设置最上面是「拖动调整位置」和「重置拖动位置」。打开拖动后每块上有一个半透明框，拖好再关掉。重置打开一次就忘掉拖过的位置。拖框中间移动，拖四个角连续改大小（20-800）。改了大小百分比，就以百分比为准。
+- **修复开 Wallpaper Engine 时桌面一闪一闪**（1.4.1／1.5.0）：壁纸层只在第一次和资源管理器重启时查询一次；1.5.0 起与 WE 同一套挂载（共用 `zen-desktop-host.h`），遇到 `WPEDesktopDX11Window` 不抢层级；刷新跟随屏幕。
 
 
 - 17 种样式预设 + 自定义：
@@ -164,9 +166,17 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
   - **自定义**：用「高级」里的细调（版式、字体、旋转、投影、光晕、描边、渐变、空心字、玻璃卡片、左侧竖线等）
 - **资源占用**：单独一块，CPU、内存、GPU 和上传下载速度，每 2 秒刷新、只在开启时采样。CPU、内存、GPU、网速可以单独勾选，没勾的不采样；四项都关则不显示这一块。读不到 GPU 时显示 --。进度环和圆形表盘样式下是三个小圆环，下面一行网速；其他样式是两行字。
 - **日历**：单独一块。样式有整月、紧凑整月、本周、今天、一行日期。今天用强调色标出，可显示农历（内置 1999–2099 农历表，不联网，不含节假日）；紧凑整月不显示农历。没拖过时，以前选「右侧」的仍在时钟右边，选「下方」的仍在下方。
-- **设置就这些**：拖动、重置、样式、时钟开关和大小、日历开关、日历样式和大小、资源占用开关、要显示的项（CPU / 内存 / GPU / 网速）和大小、显示器。沠有锁定位置。颜色、24 小时、秒、日期、农历、九宫格和自定义样式的细调都在「高级」里。
+- 时钟的颜色、24 小时、秒、日期、农历、九宫格和自定义样式细调在「时钟 → 高级」里。
 - 按显示器 DPI 缩放；只在分钟（或秒 / 资源占用的 2 秒）变化时重绘；资源管理器重启后自动恢复。
-- **可选 mod**（`local@zen-desktop-clock`），deploy 默认关闭。桌面宿主与渲染框架改编自 m417z 的 Desktop Live Overlay（GPL-3.0）。
+- **可选 mod**（`local@zen-desktop-widgets`），deploy 默认关闭。桌面宿主与渲染框架改编自 m417z 的 Desktop Live Overlay（GPL-3.0）。
+- **1.5.0**：桌面挂载与 Wallpaper Engine 对齐（`0x052C` 只发一次、缓存宿主、Win11 24H2 Progman 子窗口、遇到 `WPEDesktopDX11Window` 不抢层级）；逻辑在 `optional/zen-desktop-host.h`。
+
+#### 🎵 音频条（小组件内）
+
+- 在「桌面小组件 → 音频条」里启用；关着时不采集、不建窗口。
+- WASAPI 环回采集默认播放设备 → FFT → 对数频段；可挂桌面（壁纸上方）和／或任务栏。
+- 安静约 2 秒后休眠渲染；桌面挂载与时钟共用 `zen-desktop-host.h`。
+- 设置：位置、条数、颜色／渐变、高度、贴边、不透明度、镜像、灵敏度。
 
 ### ZenDesktop: 设置美化
 
@@ -279,7 +289,7 @@ ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布。
 - [Windhawk](https://windhawk.net) 和任务栏、开始菜单、通知中心、设置、文件管理器的上游 Styler mod：[m417z](https://github.com/m417z)（GPL-3.0）。ZenDesktop 的修改版同样以 GPL-3.0 发布。
 - 内置的社区主题由各自作者贡献，详见各 Windows 11 styling guide 仓库。
 - 果冻窗口：[lalimatyus](https://github.com/lalimatyus/Wobbly-Windows)（GPL-3.0）。
-- 桌面时钟：桌面宿主与渲染框架改编自 [m417z](https://github.com/m417z) 的 Desktop Live Overlay（GPL-3.0）。
+- 桌面小组件：桌面宿主与渲染框架改编自 [m417z](https://github.com/m417z) 的 Desktop Live Overlay（GPL-3.0）。
 - 窗口动画：[ReDrag](https://github.com/redrag2105)（MIT）；macOS 神奇效果：Abdullah Masood、Potassiumuncher。
 - 玻璃画刷和控件树监听参考了 [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB)。
 - 歌词数据来自 LRCLIB、网易云音乐、QQ 音乐，版权归原权利人所有。
@@ -299,7 +309,7 @@ ZenDesktop 以 [GNU General Public License v3.0](LICENSE) 发布。
 <details>
 <summary><b>English</b></summary>
 
-ZenDesktop is a Windows 11 desktop styling suite of 10 [Windhawk](https://windhawk.net) mods by Lanbo. It gives the taskbar, Start menu, notification center, Settings app and File Explorer a consistent translucent glass look, and adds a taskbar music/lyrics panel that can also show AI coding agent status. The new desktop clock sits behind the icons: clock, calendar and CPU/memory/GPU/network widgets can each be toggled, resized and dragged.
+ZenDesktop is a Windows 11 desktop styling suite of 10 [Windhawk](https://windhawk.net) mods by Lanbo. It gives the taskbar, Start menu, notification center, Settings app and File Explorer a consistent translucent glass look, and adds a taskbar music/lyrics panel that can also show AI coding agent status. Desktop widgets sit behind the icons: clock, calendar, CPU/memory/GPU/network and audio bars can each be toggled, resized and dragged.
 
 **Mods** (all installed disabled; enable the ones you want in Windhawk):
 
@@ -311,7 +321,7 @@ ZenDesktop is a Windows 11 desktop styling suite of 10 [Windhawk](https://windha
 | 文件管理器美化 (File Explorer) | Translucent Explorer with adjustable tint and transparent chrome; glass context menus (experimental). Replaces ExplorerBlurMica |
 | 果冻窗口 (Wobbly Windows) | Optional. Compiz/KDE style wobbly windows (injects `dwm.exe`, reboot after enabling). By lalimatyus, GPL-3.0 |
 | 桌面双击隐藏图标 (Desktop icons) | Double-click the desktop to hide/show icons; optional auto-hide when idle |
-| 桌面时钟 (Desktop Clock) | Optional. Big clock + date behind desktop icons; 17 presets (tilted shadow, minimal, neon, flip cards, magazine cover, stacked, hollow, glass card, 7-segment, rainbow/sunset gradient, Chinese numerals, word clock, analog dial, progress ring, accent bar, two-tone glitch) + custom; clock, calendar and CPU/memory/GPU/network are separate widgets; each resource row can be hidden, and drag-mode corners resize continuously; other options sit under Advanced. Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
+| 桌面小组件 (Desktop Widgets) | Optional. One mod with clock, calendar, resource usage and audio-spectrum bars (WASAPI loopback, idles when silent), settings grouped per widget. Big clock + date behind desktop icons; 17 presets (tilted shadow, minimal, neon, flip cards, magazine cover, stacked, hollow, glass card, 7-segment, rainbow/sunset gradient, Chinese numerals, word clock, analog dial, progress ring, accent bar, two-tone glitch) + custom; clock, calendar and CPU/memory/GPU/network are separate widgets; each resource row can be hidden, and drag-mode corners resize continuously; other options sit under Advanced. Host/rendering adapted from m417z's Desktop Live Overlay, GPL-3.0 |
 | 窗口动画 (Window Animations) | Optional. Close/minimize/restore/launch/Alt+Tab animations incl. macOS genie. By ReDrag, MIT |
 | 设置美化 (Settings) | Glass background for the Settings app; stays translucent when unfocused; light-mode white base |
 | 通知栏美化 (Notification center) | Acrylic notification center, quick settings and calendar; light-mode contrast boost |
