@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.4.0
+// @version         4.4.1
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -65,6 +65,7 @@
 
 ## 更新日志
 
+- **4.4.1**（#17/#18）：修资源管理器重启或开机后任务栏、音量浮窗样式丢失。根因：新 explorer 里有的 XAML 线程在 mod 认出它的窗口之前就开始建界面树，这些元素被直接丢掉且不会再上报，只有手动重置才会重新遍历。现在这种线程在第一个元素到达时就初始化（仅限任务栏/浮窗宿主线程）；有元素被丢过时兜底定时器不再误判为「已就绪」；TaskbarCreated 和兜底重挂会重新读取设置（和手动保存设置一样）。自动全量重挂之间至少间隔 4 秒，减少短时间内反复重建模糊画刷。
 - **4.4.0**：开机/重启资源管理器后改为「元素一出现就上样式」：不再靠 2.5/8/20 秒的定时重刷当主力，定时器只在关键元素（任务栏框架、托盘）一直没出现时才兜底；按系统版本（22H2/23H2 与 24H2/25H2）识别关键元素并记住其路径；系统把样式改回去时会自动再套上，但同一属性 2 秒内被反复改回超过 30 次就暂停对抗，避免卡顿；样式回写加了防重入保护。
 - **4.3.0**：新增「任务栏尺寸」：可调任务栏高度与图标大小（0 = 系统默认，不改动）；移植自 m417z「Taskbar height and icon size」(GPL-3.0)，主题自带的任务栏高度会跟随该设置。
 - **4.2.9**：性能：缓存 Shell_TrayWnd / Taskbar UI HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
@@ -12084,6 +12085,14 @@ InstanceHandle HandleFromInspectable(wf::IInspectable const& instance)
     return reinterpret_cast<InstanceHandle>(inspectable.get());
 }
 
+// ZenDesktop 4.4.1: elements reported on a thread the mod never initialized.
+// Non-zero means part of a tree was skipped and only a full reapply (which
+// re-dumps the trees) can style it, so the boot fallback must not treat the
+// anchors alone as healthy.
+std::atomic<uint32_t> g_zenDroppedElements{0};
+bool ZenThreadOwnsXamlHost();
+void InitializeForCurrentThread();
+
 class VisualTreeWatcher : public winrt::implements<VisualTreeWatcher, IVisualTreeServiceCallback2, winrt::non_agile>
 {
 public:
@@ -12237,8 +12246,29 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
 
     if (!g_initializedForThread)
     {
-        Wh_Log(L"Not initialized for thread %u", GetCurrentThreadId());
-        return S_OK;
+        // ZenDesktop 4.4.1 (#17): after explorer restarts, an island's thread
+        // can start building its tree before any hook saw a window we
+        // recognize on it (the host was created before Wh_ModInit hooked
+        // CreateWindow, or AfterInit enumerated before it existed). The TAP is
+        // per process, so its elements are reported anyway, but upstream drops
+        // them and the tree is never replayed: taskbar / volume OSD stay stock
+        // until a manual reset. Initialize such a thread on its first element,
+        // but only if it owns a host window the teardown paths also visit.
+        if (g_initialized && ZenThreadOwnsXamlHost())
+        {
+            Wh_Log(L"Initializing for thread %u on its first element",
+                   GetCurrentThreadId());
+            InitializeForCurrentThread();
+        }
+        else
+        {
+            Wh_Log(L"Not initialized for thread %u", GetCurrentThreadId());
+            if (mutationType == Add)
+            {
+                g_zenDroppedElements.fetch_add(1);
+            }
+            return S_OK;
+        }
     }
 
     // Caught here rather than by the handler below, so that the bookkeeping
@@ -22269,6 +22299,7 @@ void UninitializeSettingsAndTap() {
     // No removals are reported once unadvised; drop the anchor handles so the
     // boot fallback does not mistake a dead tree for a healthy one.
     ZenEvtResetLive();
+    g_zenDroppedElements = 0;
 
     g_initialized = false;
 }
@@ -22407,6 +22438,31 @@ bool ZenIsExtraXamlHostClass(PCWSTR className) {
     return _wcsicmp(className, L"TopLevelWindowForOverflowXamlIsland") == 0 ||
            _wcsicmp(className, L"NotifyIconOverflowWindow") == 0 ||
            _wcsicmp(className, L"TaskListThumbnailWnd") == 0;
+}
+
+// Whether the current thread owns a window that Wh_ModUninit and
+// ReapplyTaskbarStyles reach (GetTaskbarUiWnd / GetXamlHostWnds), so that a
+// thread initialized lazily is also torn down.
+bool ZenThreadOwnsXamlHost() {
+    bool found = false;
+    EnumThreadWindows(
+        GetCurrentThreadId(),
+        [](HWND hWnd, LPARAM lParam) -> BOOL {
+            WCHAR className[64];
+            if (!GetClassName(hWnd, className, ARRAYSIZE(className))) {
+                return TRUE;
+            }
+            if (_wcsicmp(className, L"Shell_TrayWnd") == 0 ||
+                _wcsicmp(className, L"XamlExplorerHostIslandWindow") == 0 ||
+                _wcsicmp(className, L"Shell_InputSwitchTopLevelWindow") == 0 ||
+                ZenIsExtraXamlHostClass(className)) {
+                *reinterpret_cast<bool*>(lParam) = true;
+                return FALSE;
+            }
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&found));
+    return found;
 }
 
 void OnWindowCreated(HWND hWnd,
@@ -22968,7 +23024,27 @@ void LoadSettings() {
 // TAP and re-init every taskbar / flyout island. Used by TaskbarCreated and
 // the staged boot retries so tray / volume chrome don't stay stock after an
 // explorer soft-restart (g_initialized can stay true while the TAP is dead).
+// ZenDesktop 4.4.1 (#18): a full reapply tears down and rebuilds every
+// WindhawkBlur / acrylic brush, i.e. new composition backdrop effects in DWM.
+// Several of them back to back (TaskbarCreated, boot retries, a theme flip)
+// are exactly the burst that has been seen to reset the Nvidia driver, so the
+// automatic paths are spaced out. Settings changes are user-driven and exempt.
+constexpr ULONGLONG kZenMinAutoReapplyIntervalMs = 4000;
+std::atomic<ULONGLONG> g_zenLastReapplyTick{0};
+
+bool ZenReapplyAllowed() {
+    ULONGLONG now = GetTickCount64();
+    ULONGLONG last = g_zenLastReapplyTick.load();
+    if (last && now - last < kZenMinAutoReapplyIntervalMs) {
+        Wh_Log(L"[zen-reapply] skipped, last full reapply %llums ago",
+               now - last);
+        return false;
+    }
+    return true;
+}
+
 void ReapplyTaskbarStyles(bool reloadSettings) {
+    g_zenLastReapplyTick = GetTickCount64();
     UninitializeSettingsAndTap();
 
     if (reloadSettings) {
@@ -23079,7 +23155,8 @@ void ScheduleBootStyleReinit() {
             // ZenDesktop 4.4.0: the timer is only a fallback now. Styles go on
             // from OnVisualTreeChange as elements appear; if every anchor is
             // alive the tree was styled and there is nothing to retry.
-            if (g_initialized.load() && ZenEvtAnchorsHealthy()) {
+            if (g_initialized.load() && ZenEvtAnchorsHealthy() &&
+                g_zenDroppedElements.load() == 0) {
                 Wh_Log(L"[boot-retry] anchors alive, no retry needed "
                        L"(attempt %d)", g_bootRetryIndex + 1);
                 return;
@@ -23114,7 +23191,12 @@ void ScheduleBootStyleReinit() {
 
             Wh_Log(L"[boot-retry] full reapply (attempt %d)",
                    g_bootRetryIndex + 1);
-            ReapplyTaskbarStyles(false);
+            if (!ZenReapplyAllowed()) {
+                ArmNextBootRetry();
+                return;
+            }
+            g_zenTapRetryUsed = false;
+            ReapplyTaskbarStyles(true);
             ArmNextBootRetry();
         },
         nullptr, nullptr);
@@ -23164,7 +23246,15 @@ static LRESULT CALLBACK TaskbarCreatedWndProc(HWND hWnd,
         {
             std::lock_guard<std::mutex> lock(g_zenLifecycleMutex);
             if (!g_zenUnloading) {
-                ReapplyTaskbarStyles(false);
+                // Same as saving settings (what users found fixes it): also
+                // re-read the settings, which Wh_ModInit may have read before
+                // this explorer instance was fully up.
+                // A brand-new taskbar always needs styling, but coalesce with
+                // a boot retry that just did the same work.
+                if (ZenReapplyAllowed() || !ZenEvtAnchorsHealthy()) {
+                    g_zenTapRetryUsed = false;
+                    ReapplyTaskbarStyles(true);
+                }
             }
         }
         if (!g_zenUnloading) {
