@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.6
+// @version         1.7.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.7**：修复 #18「文字颜色更改无效，固定为白色」：文字颜色改为直接使用设置里的颜色，不再从绘图上下文读回；文件列表在离屏缓冲里画的文字也会套用设置的颜色（只改黑白灰的字，菜单打开时不改）；修正半透明文字的预乘计算，去掉发白发雾的边。
 - **1.7.6**：「文字颜色」新增「自定义」，配合「自定义文字颜色」填色值（如 #FF8800）；控制面板地址栏下方那条白色标题带改为透明。
 - **1.7.5**：修复右键菜单偶发让资源管理器崩溃（#17）：异常在钩子边界吞掉，不再抛进 explorer。
 - **1.7.4**：修复开窗先闪一下：1.7.3 的选中/导航栏透明清除改为窗口显示且背景已生效后才执行；XAML 诊断被其他 mod（如上游「Windows 11 File Explorer Styler」）占用时本进程不再反复尝试，减少报错弹窗。
@@ -11896,6 +11897,10 @@ bool PaintExtTextOutBackground(HDC hdc, const RECT* lprect) {
 using ExtTextOutW_t = decltype(&ExtTextOutW);
 ExtTextOutW_t ExtTextOutW_Original;
 
+// ZenDesktop 1.7.7 (#18): the color is passed in by the caller (the
+// configured textColorMode when set) instead of being read back with
+// GetTextColor(hdc) here. Reading it back picked up whatever the DC held at
+// that moment, which on some DirectUI paths is still the theme's white.
 BOOL ExtTextOutWithAlpha(HDC hdc,
                          int x,
                          int y,
@@ -11903,7 +11908,8 @@ BOOL ExtTextOutWithAlpha(HDC hdc,
                          const RECT* lprect,
                          LPCWSTR lpString,
                          UINT c,
-                         const INT* lpDx) {
+                         const INT* lpDx,
+                         COLORREF textColor) {
     auto original = [=]() {
         return ExtTextOutW_Original(hdc, x, y, options, lprect, lpString, c,
                                     lpDx);
@@ -11958,7 +11964,6 @@ BOOL ExtTextOutWithAlpha(HDC hdc,
         return original();
     }
 
-    COLORREF textColor = GetTextColor(hdc);
     BYTE textRed = GetRValue(textColor);
     BYTE textGreen = GetGValue(textColor);
     BYTE textBlue = GetBValue(textColor);
@@ -11978,9 +11983,16 @@ BOOL ExtTextOutWithAlpha(HDC hdc,
 
             BYTE luma = (px.rgbBlue + (px.rgbGreen << 1) + px.rgbRed) >> 2;
             BYTE alpha = alphaLut[luma];
-            px.rgbBlue = (textBlue * alpha) >> 8;
-            px.rgbGreen = (textGreen * alpha) >> 8;
-            px.rgbRed = (textRed * alpha) >> 8;
+            // ZenDesktop 1.7.7: exact premultiply (x*a/255, rounded). The old
+            // >>8 was close but could leave a channel above alpha after the
+            // LUT's gamma boost on light text, which AlphaBlend treats as
+            // additive and shows as a milky/white halo.
+            BYTE blue = (BYTE)((textBlue * alpha + 127) / 255);
+            BYTE green = (BYTE)((textGreen * alpha + 127) / 255);
+            BYTE red = (BYTE)((textRed * alpha + 127) / 255);
+            px.rgbBlue = blue > alpha ? alpha : blue;
+            px.rgbGreen = green > alpha ? alpha : green;
+            px.rgbRed = red > alpha ? alpha : red;
             px.rgbReserved = alpha;
         }
     }
@@ -12023,6 +12035,17 @@ COLORREF LiftDarkTextForDarkGlass(COLORREF color) {
     return RGB(r, g, b);
 }
 
+// ZenDesktop 1.7.7: classic menus/tooltips on the same thread also draw into
+// memory DCs; leave them alone so a forced color cannot make them unreadable.
+static bool ZenThreadInMenuMode() {
+    GUITHREADINFO gti = {sizeof(gti)};
+    if (!GetGUIThreadInfo(GetCurrentThreadId(), &gti)) {
+        return false;
+    }
+    return (gti.flags & (GUI_INMENUMODE | GUI_POPUPMENUMODE |
+                         GUI_SYSTEMMENUMODE)) != 0;
+}
+
 BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
                              int x,
                              int y,
@@ -12043,6 +12066,24 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
             std::lock_guard<std::mutex> lock(m);
             if (seen.size() < 64 && seen.insert(cls).second) {
                 Wh_Log(L"[zen-text] skipped DC wnd=%p class=%s", w, cls);
+            }
+        }
+        // ZenDesktop 1.7.7 (#18): DirectUI paints parts of the file list into
+        // an offscreen memory DC (no window), which the alpha path skips, so
+        // the configured color never reached that text and it stayed theme
+        // white. Recolor only, no alpha rendering, and only neutral (grey/
+        // white/black) text so links and accent-colored labels keep theirs.
+        if (g_entireWindowEffectWndForThread && g_settings.win32TextColor &&
+            !WindowFromDC(hdc) && GetObjectType(hdc) == OBJ_MEMDC &&
+            !ZenThreadInMenuMode()) {
+            COLORREF cur = GetTextColor(hdc);
+            int r = GetRValue(cur), g = GetGValue(cur), b = GetBValue(cur);
+            if (std::max({r, g, b}) - std::min({r, g, b}) <= 18) {
+                COLORREF prev = SetTextColor(hdc, *g_settings.win32TextColor);
+                BOOL ret = ExtTextOutW_Original(hdc, x, y, options, lprect,
+                                                lpString, c, lpDx);
+                SetTextColor(hdc, prev);
+                return ret;
             }
         }
         return ExtTextOutW_Original(hdc, x, y, options, lprect, lpString, c,
@@ -12068,7 +12109,8 @@ BOOL WINAPI ExtTextOutW_Hook(HDC hdc,
         textColor ? SetTextColor(hdc, *textColor) : CLR_INVALID;
 
     BOOL result =
-        ExtTextOutWithAlpha(hdc, x, y, options, lprect, lpString, c, lpDx);
+        ExtTextOutWithAlpha(hdc, x, y, options, lprect, lpString, c, lpDx,
+                            textColor ? *textColor : GetTextColor(hdc));
 
     if (textColor && prevTextColor != CLR_INVALID) {
         SetTextColor(hdc, prevTextColor);
