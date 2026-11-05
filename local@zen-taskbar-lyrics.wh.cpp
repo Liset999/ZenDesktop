@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.5.2
+// @version         0.5.3
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -30,7 +30,7 @@
 - 专辑封面：来自系统媒体会话，播放器提供才有。
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
-- **歌词展开面板**（0.5.0）：单击封面或文字，在歌词条上方弹出展开面板（带弹性动画）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关。0.5.2 起可选「液态玻璃」背景（默认关，仅展开时运行）：
+- **歌词展开面板**（0.5.0）：单击封面或文字，从任务栏所在边弹出展开面板（带弹性动画；0.5.3 起自动适配顶／左／右任务栏）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关。0.5.2 起可选「液态玻璃」背景（默认关，仅展开时运行）：
   - 播放控制：封面、歌名歌手、进度条、上一首／播放暂停／下一首、「打开播放器」按钮。
   - AI 状态：和歌词条同一份数据（状态文件、钩子、MCP、进程名），逐个列出助手、状态、项目和说明。
   - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。可设保留天数（默认 3 天），过期或源文件已删的条目会自动移出列表（不删源文件）。列表只在内存里，重载 explorer／mod 会清空。
@@ -147,7 +147,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - AI 状态：一行列出、轮流显示或关闭；「已完成」保留多久；按进程名显示（默认填了 Antigravity 和 DeepSeek Harness 桌面版，清空即可关闭）。
 
 ## 兼容性与已知问题
-- 支持 Windows 11 任务栏（底部）。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。
+- 支持 Windows 11 任务栏。底部横向为默认；顶部／左侧／右侧（含 Windhawk 竖向任务栏、ExplorerPatcher 等把任务栏挪走的情况）会自动检测边并改布局，无需额外开关。默认只在主显示器显示；开启「多显示器」后，每个任务栏（含副屏 `Shell_SecondaryTrayWnd`）各有一个面板。竖向任务栏上具体子窗口结构因美化 mod 而异，托盘／开始按钮避让按常见布局估算。
 - 小组件没关时会和小组件按钮重叠，请在「设置 → 个性化 → 任务栏」里关掉小组件。
 - 任务栏图标靠左时，托盘的位置靠估算，如果和托盘重叠，调「水平偏移」。
 - 面板是任务栏（`Shell_TrayWnd`／`Shell_SecondaryTrayWnd`）的子窗口，排在任务栏自己的 XAML 内容上面。子窗口用不了系统亚克力，所以面板自己不做模糊，透出来的是任务栏本身的材质；「淡淡一层」「卡片」是在上面叠一层半透明色。
@@ -158,6 +158,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.5.3**：自动检测任务栏所在边（底／顶／左／右）：主任务栏用 `SHAppBarMessage(ABM_GETTASKBARPOS)`，副屏或未更新 ABM 的美化 mod 用任务栏矩形相对显示器比较，竖向以高大于宽为准。竖向任务栏收起态改为贴合宽度的方块／竖条（封面＋播放状态；设置「竖向任务栏歌词」可选竖排滚动歌词，默认只显示封面），不超出任务栏宽度。迷你面板与歌词展开面板从对应边弹出（底向上、顶向下、左向右、右向左），弹性动画沿该轴，并夹在显示器工作区内；拖放命中与液态玻璃捕获矩形跟随新几何。底部横向行为与 0.5.2 一致。
 - **0.5.2**：展开面板可选「液态玻璃」背景（默认关闭）：WGC 捕获面板后方区域 + D3D11 模糊／折射／色散／高光边；仅展开时运行，收起即拆除；失败回退到亚克力／半透明。截图／录屏时面板与玻璃层不参与捕获。
 - **0.5.1**：天气支持自动定位（本机定位 → 可选 IP 估计 → 手动城市）；文件中转可按保留天数自动清理（默认 3 天，不删源文件；列表仍不持久化）。展开面板底色与迷你面板一致（跟随面板底色／玻璃设置，半透明；尝试 DWM 亚克力／圆角，失败则保留半透明衬底），文字颜色与阴影也跟迷你面板走。
 - **0.5.0**：新增「歌词展开面板」：单击歌词条展开（弹性动画、点外面或闲置自动收起、不抢焦点），含播放控制、AI 状态详情、文件中转（拖到歌词条暂存，可再拖出）、天气（open-meteo）、资源占用（仅展开时采样）五个可单独开关的板块。「点封面或文字」新增「展开面板」并设为默认。
@@ -245,8 +246,8 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - clickAction: expand
   $name: Click on art or text
   $name:zh-CN: 点封面或文字
-  $description: Expand opens the lyrics expand panel above the bar (playback, AI status, file relay, weather, resources). Open brings the playing app to the front. None lets clicks pass through.
-  $description:zh-CN: 「展开面板」在歌词条上方弹出歌词展开面板（播放控制、AI 状态、文件中转、天气、资源占用）；「打开播放器」把正在播放的软件切到前台（旧行为）；「不响应」为点击穿透。
+  $description: Expand opens the lyrics expand panel from the taskbar edge (playback, AI status, file relay, weather, resources). Open brings the playing app to the front. None lets clicks pass through.
+  $description:zh-CN: 「展开面板」从任务栏所在边弹出歌词展开面板（播放控制、AI 状态、文件中转、天气、资源占用）；「打开播放器」把正在播放的软件切到前台（旧行为）；「不响应」为点击穿透。
   $options:
   - expand: 展开面板
   - open: 打开播放器
@@ -369,6 +370,14 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
   $name:zh-CN: 按进程名显示
   $description: For tools without hooks. Comma separated process names, for example Antigravity.exe, gemini.exe, aider.exe. Shows Running while the process exists. Skipped when that agent already writes a status file (hooks / MCP). Clear it to turn off.
   $description:zh-CN: 给没有钩子的工具用。填进程名，用逗号分隔，例如 Antigravity.exe, gemini.exe, aider.exe。进程在运行时显示「运行中」。这个助手已经用钩子或 MCP 汇报状态时不会重复显示。清空即可关闭。
+- verticalLyric: cover
+  $name: Vertical taskbar lyrics
+  $name:zh-CN: 竖向任务栏歌词
+  $description: Used when the taskbar is on the left or right (auto-detected). Cover only = a square tile with album art and play state. Scroll = also show the current lyric in vertical writing.
+  $description:zh-CN: 任务栏在左边或右边时使用（自动检测，不用另开开关）。「只显示封面」为正方形封面加播放状态；「竖排滚动歌词」另外用竖排显示当前歌词。
+  $options:
+  - cover: 只显示封面
+  - scroll: 竖排滚动歌词
 - expandPanel:
   - width: normal
     $name: Panel width
@@ -533,6 +542,7 @@ struct Settings {
     int weatherRefreshMin = 30;
     int filesRetentionDays = 3;       // 0 = never expire by age
     bool expandLiquidGlass = false;   // optional WGC+D3D11 glass behind expand panel
+    bool verticalScrollLyric = false; // vertical taskbar: cover-only (false) or 竖排滚动歌词
     std::wstring textColorMode = L"default";
     PanelBg panelBg = PanelBg::None;
     std::wstring font = L"Microsoft YaHei UI";
@@ -610,6 +620,7 @@ static void LoadSettings() {
             s.filesRetentionDays = fd < 0 ? 3 : std::clamp(fd, 0, 3650);
             s.expandLiquidGlass = Wh_GetIntSetting(L"expandPanel.liquidGlass") != 0;
         }
+        s.verticalScrollLyric = GetStr(L"verticalLyric") == L"scroll";
         s.textColorMode = GetStr(L"textColorMode");
         if (s.textColorMode.empty()) s.textColorMode = L"default";
         std::wstring bg = GetStr(L"panelBackground");
@@ -2395,6 +2406,65 @@ static PanelLook LookFor(PanelBg bg, bool glass, bool light) {
     return light ? PanelLook{0xEEF9F9F9, 0x38000000} : PanelLook{0xE8262626, 0x38FFFFFF};
 }
 
+
+// Taskbar edge. Auto-detected per Shell_TrayWnd / Shell_SecondaryTrayWnd — no user setting.
+enum class TaskbarEdge { Bottom = 0, Top, Left, Right };
+
+static bool IsVerticalEdge(TaskbarEdge e) {
+    return e == TaskbarEdge::Left || e == TaskbarEdge::Right;
+}
+
+// Primary: SHAppBarMessage(ABM_GETTASKBARPOS) when its rect still matches this tray.
+// Secondary / mods that don't update ABM: compare tray rect to its monitor.
+// Clearly taller-than-wide trays are treated as vertical even if ABM still says bottom.
+static TaskbarEdge DetectTaskbarEdge(HWND tray) {
+    RECT tr{};
+    if (!tray || !GetWindowRect(tray, &tr)) return TaskbarEdge::Bottom;
+    const int tw = tr.right - tr.left, th = tr.bottom - tr.top;
+    const bool clearlyVertical = th > tw * 3 / 2;
+    const bool clearlyHorizontal = tw > th * 3 / 2;
+
+    auto fromMonitor = [&]() -> TaskbarEdge {
+        HMONITOR mon = MonitorFromWindow(tray, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi{sizeof(mi)};
+        if (!GetMonitorInfoW(mon, &mi))
+            return clearlyVertical ? TaskbarEdge::Left : TaskbarEdge::Bottom;
+        const RECT& m = mi.rcMonitor;
+        const int dL = abs(tr.left - m.left), dR = abs(tr.right - m.right);
+        const int dT = abs(tr.top - m.top), dB = abs(tr.bottom - m.bottom);
+        if (clearlyVertical || (!clearlyHorizontal && th > tw))
+            return dL <= dR ? TaskbarEdge::Left : TaskbarEdge::Right;
+        return dT <= dB ? TaskbarEdge::Top : TaskbarEdge::Bottom;
+    };
+
+    if (!IsSecondaryTaskbar(tray)) {
+        APPBARDATA abd{};
+        abd.cbSize = sizeof(abd);
+        abd.hWnd = tray;
+        if (SHAppBarMessage(ABM_GETTASKBARPOS, &abd)) {
+            const RECT& ar = abd.rc;
+            const int cxT = (tr.left + tr.right) / 2, cyT = (tr.top + tr.bottom) / 2;
+            const int cxA = (ar.left + ar.right) / 2, cyA = (ar.top + ar.bottom) / 2;
+            const bool matches = abs(cxA - cxT) <= std::max(tw, 96) && abs(cyA - cyT) <= std::max(th, 96);
+            if (matches) {
+                TaskbarEdge e = TaskbarEdge::Bottom;
+                switch (abd.uEdge) {
+                    case ABE_LEFT: e = TaskbarEdge::Left; break;
+                    case ABE_TOP: e = TaskbarEdge::Top; break;
+                    case ABE_RIGHT: e = TaskbarEdge::Right; break;
+                    case ABE_BOTTOM: e = TaskbarEdge::Bottom; break;
+                    default: break;
+                }
+                // Mods that rotate the bar but leave ABM on Bottom/Top: trust geometry.
+                if (clearlyVertical && !IsVerticalEdge(e)) return fromMonitor();
+                if (clearlyHorizontal && IsVerticalEdge(e)) return fromMonitor();
+                return e;
+            }
+        }
+    }
+    return fromMonitor();
+}
+
 struct Layout {
     int cx = 0, cy = 0, w = 0, h = 0;  // client coordinates inside the taskbar
     int dpi = 96;
@@ -2402,6 +2472,9 @@ struct Layout {
     RECT artRc{};
     RECT btnRc[3]{};
     bool showArt = false, showButtons = false, bodyClickable = false;
+    bool vertical = false;           // left/right taskbar
+    bool vertScrollLyric = false;    // setting: 竖排滚动歌词
+    TaskbarEdge edge = TaskbarEdge::Bottom;
     Gdiplus::ARGB text = 0xFFFFFFFF;
     Gdiplus::ARGB shadow = 0;
     bool light = false;
@@ -2432,25 +2505,10 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     L.dpi = (int)dpi;
     auto D = [dpi](double v) { return (int)(v * dpi / 96.0 + 0.5); };
     int cw = cr.right - cr.left;
-    L.w = D(s.width);
-    L.h = cr.bottom - cr.top;
-    if (L.h <= 0 || L.h > 1000 || L.w <= 0 || cw <= 0) { *why = L"bad taskbar height or panel width"; return false; }
-    L.w = std::min(L.w, cw);
-    int gap = MulDiv(s.xOffset, (int)dpi, 96);
-    bool trayMode = s.posMode == PosMode::Tray || (s.posMode == PosMode::Widgets && g_env.alignLeft);
-    POINT origin{0, 0};
-    ClientToScreen(tray, &origin);  // tray notify area rect is in screen coordinates
-    int x = gap;
-    if (trayMode) {
-        HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
-        RECT nr{};
-        if (notify && GetWindowRect(notify, &nr) && nr.right - nr.left > D(40) && nr.left > tr.left && nr.right <= tr.right)
-            x = (nr.left - origin.x) - L.w - gap;
-        else
-            x = cw - L.w - gap - D(260);
-    }
-    L.cx = std::clamp(x, 0, std::max(0, cw - L.w));
-    L.cy = 0;
+    int ch = cr.bottom - cr.top;
+    L.edge = DetectTaskbarEdge(tray);
+    L.vertical = IsVerticalEdge(L.edge);
+    L.vertScrollLyric = L.vertical && s.verticalScrollLyric;
 
     L.light = g_env.lightTaskbar;
     L.text = ResolveTextColor(s.textColorMode, L.light);
@@ -2458,33 +2516,112 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     // shadow / glow only when the chosen color is close to the taskbar's brightness.
     if (IsLightColor(L.text) == L.light) L.shadow = IsLightColor(L.text) ? 0x80000000 : 0x70FFFFFF;
 
-    L.pad = D(6);
-    L.showArt = s.showArt && (L.content.media || L.content.aiOnly);
-    L.showButtons = s.showButtons && L.content.media;
-    L.art = std::min(L.h - D(10), D(40));
-    L.cur = L.pad;
-    if (L.showArt && L.art > 8) {
-        L.artRc = {L.cur, (L.h - L.art) / 2, L.cur + L.art, (L.h - L.art) / 2 + L.art};
-        L.cur += L.art + D(8);
-    }
-    L.btn = std::min(D(32), L.h - D(8));
-    L.textRight = L.w - L.pad;
-    if (L.showButtons) {
-        int right = L.w - D(4);
-        for (int i = 2; i >= 0; --i) {
-            L.btnRc[i] = {right - L.btn, (L.h - L.btn) / 2, right, (L.h - L.btn) / 2 + L.btn};
-            right -= L.btn;
+    int gap = MulDiv(s.xOffset, (int)dpi, 96);
+    bool trayMode = s.posMode == PosMode::Tray || (s.posMode == PosMode::Widgets && g_env.alignLeft);
+    POINT origin{0, 0};
+    ClientToScreen(tray, &origin);  // tray notify area rect is in screen coordinates
+
+    if (!L.vertical) {
+        // Horizontal taskbar (bottom / top): keep 0.5.2 geometry.
+        L.w = D(s.width);
+        L.h = ch;
+        if (L.h <= 0 || L.h > 1000 || L.w <= 0 || cw <= 0) { *why = L"bad taskbar height or panel width"; return false; }
+        L.w = std::min(L.w, cw);
+        int x = gap;
+        if (trayMode) {
+            HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
+            RECT nr{};
+            if (notify && GetWindowRect(notify, &nr) && nr.right - nr.left > D(40) && nr.left > tr.left &&
+                nr.right <= tr.right)
+                x = (nr.left - origin.x) - L.w - gap;
+            else
+                x = cw - L.w - gap - D(260);
         }
-        L.textRight = L.btnRc[0].left - D(4);
+        L.cx = std::clamp(x, 0, std::max(0, cw - L.w));
+        L.cy = 0;
+
+        L.pad = D(6);
+        L.showArt = s.showArt && (L.content.media || L.content.aiOnly);
+        L.showButtons = s.showButtons && L.content.media;
+        L.art = std::min(L.h - D(10), D(40));
+        L.cur = L.pad;
+        if (L.showArt && L.art > 8) {
+            L.artRc = {L.cur, (L.h - L.art) / 2, L.cur + L.art, (L.h - L.art) / 2 + L.art};
+            L.cur += L.art + D(8);
+        }
+        L.btn = std::min(D(32), L.h - D(8));
+        L.textRight = L.w - L.pad;
+        if (L.showButtons) {
+            int right = L.w - D(4);
+            for (int i = 2; i >= 0; --i) {
+                L.btnRc[i] = {right - L.btn, (L.h - L.btn) / 2, right, (L.h - L.btn) / 2 + L.btn};
+                right -= L.btn;
+            }
+            L.textRight = L.btnRc[0].left - D(4);
+        }
+        L.bodyClickable = L.content.media && s.clickOpens;
+        for (int i = 0; i < 3; ++i) panel.ui.hitRects[i] = L.btnRc[i];
+        panel.ui.hitEnabled[HitPrev] = L.showButtons && L.content.canPrev;
+        panel.ui.hitEnabled[HitPlay] = L.showButtons && L.content.canPlayPause;
+        panel.ui.hitEnabled[HitNext] = L.showButtons && L.content.canNext;
+        panel.ui.hitRects[HitBody] =
+            L.bodyClickable ? RECT{D(2), D(2), L.showButtons ? L.btnRc[0].left : L.w - D(2), L.h - D(2)} : RECT{};
+        panel.ui.hitEnabled[HitBody] = L.bodyClickable;
+    } else {
+        // Vertical taskbar (left / right): compact tile that never overflows the bar width.
+        if (cw <= 0 || ch <= 0 || cw > 1000) { *why = L"bad vertical taskbar size"; return false; }
+        L.w = cw;
+        L.pad = D(4);
+        L.showArt = true;  // cover tile is the point of the vertical layout
+        L.showButtons = false;  // too narrow for prev/play/next
+        const int artMax = std::max(D(22), cw - D(8));
+        L.art = artMax;
+        if (L.vertScrollLyric) {
+            // Tall tile: art on top, vertical lyric below. Cap so we don't eat the whole bar.
+            int want = L.art + D(12) + D(std::max(90, s.fontSize * 8));
+            L.h = std::clamp(want, L.art + D(40), std::max(L.art + D(40), ch * 2 / 5));
+        } else {
+            L.h = std::min(ch, L.art + D(8));  // near-square cover tile
+        }
+        L.h = std::min(L.h, ch);
+        int y = gap;
+        if (trayMode) {
+            HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
+            RECT nr{};
+            if (notify && GetWindowRect(notify, &nr) && nr.bottom - nr.top > D(16) && nr.top >= tr.top - 2 &&
+                nr.bottom <= tr.bottom + 2)
+                y = (nr.top - origin.y) - L.h - gap;
+            else
+                y = ch - L.h - gap - D(80);
+        }
+        // Keep clear of a Start / search cluster commonly sitting at the top of a left bar.
+        if (!trayMode) {
+            HWND start = FindWindowExW(tray, nullptr, L"Start", nullptr);
+            if (!start) start = FindWindowExW(tray, nullptr, L"LaunchBand", nullptr);
+            RECT sr{};
+            if (start && GetWindowRect(start, &sr) && sr.bottom > tr.top) {
+                int below = (sr.bottom - origin.y) + gap;
+                if (below > y) y = below;
+            }
+        }
+        L.cx = 0;
+        L.cy = std::clamp(y, 0, std::max(0, ch - L.h));
+        int ax = (L.w - L.art) / 2;
+        int ay = L.vertScrollLyric ? L.pad : (L.h - L.art) / 2;
+        L.artRc = {ax, ay, ax + L.art, ay + L.art};
+        L.cur = L.pad;
+        L.textRight = L.w - L.pad;
+        L.btn = 0;
+        for (int i = 0; i < 3; ++i) L.btnRc[i] = {};
+        L.bodyClickable = (L.content.media || L.content.aiOnly) && s.clickOpens;
+        for (int i = 0; i < 3; ++i) {
+            panel.ui.hitRects[i] = {};
+            panel.ui.hitEnabled[i] = false;
+        }
+        panel.ui.hitRects[HitBody] =
+            L.bodyClickable ? RECT{D(1), D(1), L.w - D(1), L.h - D(1)} : RECT{};
+        panel.ui.hitEnabled[HitBody] = L.bodyClickable;
     }
-    L.bodyClickable = L.content.media && s.clickOpens;
-    for (int i = 0; i < 3; ++i) panel.ui.hitRects[i] = L.btnRc[i];
-    panel.ui.hitEnabled[HitPrev] = L.showButtons && L.content.canPrev;
-    panel.ui.hitEnabled[HitPlay] = L.showButtons && L.content.canPlayPause;
-    panel.ui.hitEnabled[HitNext] = L.showButtons && L.content.canNext;
-    panel.ui.hitRects[HitBody] =
-        L.bodyClickable ? RECT{D(2), D(2), L.showButtons ? L.btnRc[0].left : L.w - D(2), L.h - D(2)} : RECT{};
-    panel.ui.hitEnabled[HitBody] = L.bodyClickable;
     if (panel.ui.hover != HitNone && !panel.ui.hitEnabled[panel.ui.hover]) panel.ui.hover = HitNone;
 
     if (L.showArt && L.content.thumb && (panel.ui.artVersion != L.content.thumbVersion || panel.ui.artPx != L.art)) {
@@ -2511,8 +2648,10 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     g.Clear(Gdiplus::Color(0, 0, 0, 0));
 
     Gdiplus::REAL fw = (Gdiplus::REAL)L.w, fh = (Gdiplus::REAL)L.h;
-    Gdiplus::RectF panelRc((Gdiplus::REAL)D(2), (Gdiplus::REAL)D(4), fw - D(4), fh - D(8));
-    Gdiplus::REAL rad = (Gdiplus::REAL)D(8);
+    Gdiplus::RectF panelRc = L.vertical
+                                  ? Gdiplus::RectF((Gdiplus::REAL)D(1), (Gdiplus::REAL)D(2), fw - D(2), fh - D(4))
+                                  : Gdiplus::RectF((Gdiplus::REAL)D(2), (Gdiplus::REAL)D(4), fw - D(4), fh - D(8));
+    Gdiplus::REAL rad = (Gdiplus::REAL)D(L.vertical ? 6 : 8);
 
     PanelLook look = LookFor(s.panelBg, s.panelGlass, L.light);
     if (look.fill) FillRound(g, look.fill, panelRc, rad);
@@ -2559,6 +2698,53 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
             Gdiplus::SolidBrush b{Gdiplus::Color(WithAlpha(L.text, 0xC0))};
             g.DrawString(L.content.aiOnly ? L"AI" : L"\x266A", -1, &f, ar, &cf, &b);
         }
+        // Vertical cover tile: play/pause badge on the art so state is visible without buttons.
+        if (L.vertical && L.content.media) {
+            Gdiplus::REAL badge = std::max<Gdiplus::REAL>(10.0f, ar.Width * 0.28f);
+            Gdiplus::REAL bx = ar.X + ar.Width - badge - D(2);
+            Gdiplus::REAL by = ar.Y + ar.Height - badge - D(2);
+            FillRound(g, WithAlpha(L.light ? 0xFF000000u : 0xFFFFFFFFu, 0x88),
+                      Gdiplus::RectF(bx, by, badge, badge), badge * 0.35f);
+            DrawIcon(g, HitPlay, L.content.playing, bx + badge / 2, by + badge / 2, badge * 0.42f, L.text);
+        }
+    }
+
+    if (L.vertical) {
+        if (L.vertScrollLyric) {
+            Gdiplus::FontFamily fam(s.font.c_str());
+            const Gdiplus::FontFamily* useFam = fam.IsAvailable() ? &fam : Gdiplus::FontFamily::GenericSansSerif();
+            int style = s.bold ? Gdiplus::FontStyleBold : Gdiplus::FontStyleRegular;
+            Gdiplus::REAL px = (Gdiplus::REAL)s.fontSize * (Gdiplus::REAL)L.dpi / 72.0f;
+            px = std::min(px, (Gdiplus::REAL)std::max(10, L.w - D(6)));
+            Gdiplus::Font font1(useFam, px, style, Gdiplus::UnitPixel);
+            Gdiplus::REAL so = std::max<Gdiplus::REAL>(1.0f, (Gdiplus::REAL)L.dpi / 96.0f);
+            Gdiplus::REAL top = (Gdiplus::REAL)(L.artRc.bottom + D(4));
+            Gdiplus::REAL th = fh - top - (Gdiplus::REAL)D(4);
+            Gdiplus::REAL tx = (Gdiplus::REAL)D(2);
+            Gdiplus::REAL tw = fw - (Gdiplus::REAL)D(4);
+            if (th > 8 && tw > 4 && !L.content.line1.empty()) {
+                // Vertical writing (top → bottom). Current lyric advances as the song does.
+                Gdiplus::StringFormat fmt(Gdiplus::StringFormat::GenericTypographic());
+                fmt.SetFormatFlags(Gdiplus::StringFormatFlagsDirectionVertical |
+                                   Gdiplus::StringFormatFlagsNoWrap |
+                                   Gdiplus::StringFormatFlagsMeasureTrailingSpaces);
+                fmt.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+                fmt.SetAlignment(Gdiplus::StringAlignmentNear);
+                fmt.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+                std::wstring text;
+                for (const Seg& sg : L.content.line1) text += sg.text;
+                Gdiplus::RectF dst(tx, top, tw, th);
+                if (L.shadow) {
+                    Gdiplus::SolidBrush sh{Gdiplus::Color(L.shadow)};
+                    Gdiplus::RectF ds(dst.X, dst.Y + so, dst.Width, dst.Height);
+                    g.DrawString(text.c_str(), -1, &font1, ds, &fmt, &sh);
+                }
+                Gdiplus::SolidBrush b{Gdiplus::Color(L.text)};
+                g.DrawString(text.c_str(), -1, &font1, dst, &fmt, &b);
+            }
+        }
+        g.Flush(Gdiplus::FlushIntentionSync);
+        return;
     }
 
     Gdiplus::FontFamily fam(s.font.c_str());
@@ -2605,7 +2791,9 @@ static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
            (L.content.canPlayPause ? L"1" : L"0") + std::to_wstring(L.content.thumbVersion) +
            (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") + (L.bodyClickable ? L"C" : L"c") +
            std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
-           (s.bold ? L"B" : L"b") + (panel.ui.dropHover ? L"H" : L"h") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
+           (s.bold ? L"B" : L"b") + (panel.ui.dropHover ? L"H" : L"h") +
+           (L.vertical ? L"V" : L"H") + std::to_wstring((int)L.edge) + (L.vertScrollLyric ? L"S" : L"s") +
+           L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
 }
 
 // Keep the panel the top child of the taskbar (above the XAML island). Only acts when
@@ -3114,7 +3302,8 @@ struct ExpandState {
     double p = 0, v = 0;        // spring position (0 closed .. 1 open) and velocity
     double target = 0;
     int w = 0, h = 0;           // full size in px
-    int anchorX = 0, anchorBottom = 0;
+    TaskbarEdge edge = TaskbarEdge::Bottom;
+    int anchorX = 0, anchorY = 0;  // fixed edge of the popup against the bar (screen)
     ULONGLONG lastInteract = 0;
     bool lbuttonWasDown = false;
     int hover = XNone, pressed = XNone, pressedIndex = -1;
@@ -3982,6 +4171,47 @@ static bool ApplyExpandBackdrop(HWND hwnd, bool light) {
     return any;
 }
 
+
+// Place the expand panel relative to the collapsed bar / taskbar edge, clamped to the
+// monitor work area. anchorX/Y is the fixed edge of the popup (bottom for Bottom edge,
+// top for Top, left for Left, right for Right).
+static void ComputeExpandAnchor(HWND bar, int panelW, int panelH, TaskbarEdge& edge, int& anchorX,
+                                int& anchorY) {
+    RECT br{};
+    GetWindowRect(bar, &br);
+    HWND tray = GetAncestor(bar, GA_PARENT);
+    RECT tr{};
+    if (!tray || !GetWindowRect(tray, &tr)) tr = br;
+    edge = DetectTaskbarEdge(tray && IsWindow(tray) ? tray : bar);
+    const int dpi = (int)GetDpiForWindow(bar);
+    HMONITOR mon = MonitorFromWindow(bar, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi{sizeof(mi)};
+    GetMonitorInfoW(mon, &mi);
+    const RECT& work = mi.rcWork;
+    const int gap = MulDiv(8, dpi ? dpi : 96, 96);
+    if (IsVerticalEdge(edge)) {
+        int y = std::clamp((int)br.top, (int)work.top + gap, (int)work.bottom - panelH - gap);
+        if (edge == TaskbarEdge::Left) {
+            anchorX = tr.right + gap;
+            if (anchorX + panelW > work.right - gap) anchorX = std::max((int)work.left + gap, (int)work.right - panelW - gap);
+        } else {
+            anchorX = tr.left - gap;  // right edge of popup will sit here
+            if (anchorX - panelW < work.left + gap) anchorX = std::min((int)work.right - gap, (int)work.left + panelW + gap);
+        }
+        anchorY = y;
+    } else {
+        int x = std::clamp((int)br.left, (int)work.left + gap, (int)work.right - panelW - gap);
+        if (edge == TaskbarEdge::Bottom) {
+            anchorY = tr.top - gap;  // bottom edge of popup
+            if (anchorY - panelH < work.top + gap) anchorY = std::min((int)work.bottom - gap, (int)work.top + panelH + gap);
+        } else {
+            anchorY = tr.bottom + gap;  // top edge of popup
+            if (anchorY + panelH > work.bottom - gap) anchorY = std::max((int)work.top + gap, (int)work.bottom - panelH - gap);
+        }
+        anchorX = x;
+    }
+}
+
 static void ExpandRender() {
     if (!g_x.hwnd) return;
     const Settings& s = GetSettings();
@@ -3989,27 +4219,40 @@ static void ExpandRender() {
     RefreshEnv(false);
     const bool light = g_env.lightTaskbar;
     ExpandLayoutPaint(nullptr, dpi, light);  // measure
+    if (g_x.bar) ComputeExpandAnchor(g_x.bar, g_x.w, g_x.h, g_x.edge, g_x.anchorX, g_x.anchorY);
     const double vis = std::clamp(g_x.p, 0.0, 1.08);
-    const int W = g_x.w, H = std::max(1, (int)(g_x.h * 1.08));
-    const int shownH = std::max(1, (int)(g_x.h * vis));
+    const bool axisX = IsVerticalEdge(g_x.edge);  // left/right: spring along X
+    const int fullW = axisX ? std::max(1, (int)(g_x.w * 1.08)) : g_x.w;
+    const int fullH = axisX ? g_x.h : std::max(1, (int)(g_x.h * 1.08));
+    const int shownW = axisX ? std::max(1, (int)(g_x.w * vis)) : g_x.w;
+    const int shownH = axisX ? g_x.h : std::max(1, (int)(g_x.h * vis));
     HDC screen = GetDC(nullptr);
     HDC mem = CreateCompatibleDC(screen);
     BITMAPINFO bi{};
-    bi.bmiHeader = {sizeof(BITMAPINFOHEADER), W, -H, 1, 32, BI_RGB};
+    bi.bmiHeader = {sizeof(BITMAPINFOHEADER), fullW, -fullH, 1, 32, BI_RGB};
     void* bits = nullptr;
     HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
     const Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
     if (bmp && bits) {
         HGDIOBJ old = SelectObject(mem, bmp);
+        Gdiplus::REAL cardX = 0, cardY = 0;
         {
-            Gdiplus::Bitmap canvas(W, H, W * 4, PixelFormat32bppPARGB, (BYTE*)bits);
+            Gdiplus::Bitmap canvas(fullW, fullH, fullW * 4, PixelFormat32bppPARGB, (BYTE*)bits);
             Gdiplus::Graphics g(&canvas);
             g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
             g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
             g.Clear(Gdiplus::Color(0, 0, 0, 0));
-            // The panel grows upward from the bar: the bottom edge is fixed.
-            const Gdiplus::REAL top = (Gdiplus::REAL)(H - shownH);
-            Gdiplus::RectF card(0, top, (Gdiplus::REAL)W, (Gdiplus::REAL)shownH);
+            if (axisX) {
+                cardX = (g_x.edge == TaskbarEdge::Right) ? (Gdiplus::REAL)(fullW - shownW) : 0;
+                cardY = 0;
+            } else if (g_x.edge == TaskbarEdge::Bottom) {
+                cardX = 0;
+                cardY = (Gdiplus::REAL)(fullH - shownH);  // grows upward; bottom edge fixed
+            } else {
+                cardX = 0;
+                cardY = 0;  // Top: grows downward
+            }
+            Gdiplus::RectF card(cardX, cardY, (Gdiplus::REAL)shownW, (Gdiplus::REAL)shownH);
             // Same look as the mini panel. panelBackground=none still gets a subtle
             // tint so text stays readable on a fully transparent taskbar.
             PanelLook look = LookFor(s.panelBg, s.panelGlass, light);
@@ -4030,22 +4273,34 @@ static void ExpandRender() {
             Gdiplus::GraphicsPath clip;
             RoundRectPath(clip, card.X, card.Y, card.Width, card.Height, rad);
             g.SetClip(&clip);
-            // Content slides with the card, slightly scaled for the spring feel.
-            g.TranslateTransform(0, top + (Gdiplus::REAL)(shownH - g_x.h) * 0.5f);
+            // Content slides with the card, slightly offset for the spring feel.
+            Gdiplus::REAL ox = cardX + (Gdiplus::REAL)(shownW - g_x.w) * 0.5f;
+            Gdiplus::REAL oy = cardY + (Gdiplus::REAL)(shownH - g_x.h) * 0.5f;
+            g.TranslateTransform(ox, oy);
             ExpandLayoutPaint(&g, dpi, light);
         }
-        POINT src{0, 0};
-        SIZE sz{W, H};
-        POINT dst{g_x.anchorX, g_x.anchorBottom - H};
+        POINT srcPt{0, 0};
+        SIZE sz{fullW, fullH};
+        POINT dst{};
+        if (axisX) {
+            if (g_x.edge == TaskbarEdge::Left) dst = {g_x.anchorX, g_x.anchorY};
+            else dst = {g_x.anchorX - fullW, g_x.anchorY};  // Right: right edge fixed at anchorX
+        } else if (g_x.edge == TaskbarEdge::Bottom) {
+            dst = {g_x.anchorX, g_x.anchorY - fullH};
+        } else {
+            dst = {g_x.anchorX, g_x.anchorY};  // Top
+        }
         BYTE alpha = (BYTE)(std::clamp(g_x.p * 1.4, 0.0, 1.0) * 255);
         BLENDFUNCTION bf{AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA};
-        UpdateLayeredWindow(g_x.hwnd, screen, &dst, &sz, mem, &src, 0, &bf, ULW_ALPHA);
+        UpdateLayeredWindow(g_x.hwnd, screen, &dst, &sz, mem, &srcPt, 0, &bf, ULW_ALPHA);
         SelectObject(mem, old);
         // Hit rects are in content coordinates; shift them to window coordinates.
-        LONG dy = (LONG)((H - shownH) + (shownH - g_x.h) * 0.5);
-        for (auto& h : g_x.hits) OffsetRect(&h.rc, 0, dy);
+        LONG dx = (LONG)(cardX + (shownW - g_x.w) * 0.5);
+        LONG dy = (LONG)(cardY + (shownH - g_x.h) * 0.5);
+        for (auto& h : g_x.hits) OffsetRect(&h.rc, dx, dy);
         if (s.expandLiquidGlass) {
-            RECT glassRc{dst.x, dst.y + (H - shownH), dst.x + W, dst.y + H};
+            RECT glassRc{(LONG)(dst.x + cardX), (LONG)(dst.y + cardY),
+                         (LONG)(dst.x + cardX + shownW), (LONG)(dst.y + cardY + shownH)};
             HMONITOR mon = MonitorFromRect(&glassRc, MONITOR_DEFAULTTONEAREST);
             XlgUpdate(glassRc, mon, (float)rad);
         }
@@ -4078,23 +4333,19 @@ static void ExpandOpen(HWND bar) {
         return;
     }
     if (g_x.hwnd && g_x.bar != bar) ExpandClose(true);
-    RECT br{};
-    GetWindowRect(bar, &br);
     HWND tray = GetAncestor(bar, GA_PARENT);
-    RECT tr{};
-    GetWindowRect(tray, &tr);
     const int dpi = (int)GetDpiForWindow(bar);
     ExpandLayoutPaint(nullptr, dpi, g_env.lightTaskbar);
-    HMONITOR mon = MonitorFromWindow(bar, MONITOR_DEFAULTTONEAREST);
-    MONITORINFO mi{sizeof(mi)};
-    GetMonitorInfoW(mon, &mi);
-    const int gap = MulDiv(8, dpi, 96);
-    int x = std::clamp((int)br.left, (int)mi.rcWork.left + gap, (int)mi.rcWork.right - g_x.w - gap);
-    // Bottom taskbar: above it. Top taskbar: not supported by Win11, keep above.
-    int bottom = (tr.top > mi.rcMonitor.top ? tr.top : br.bottom + g_x.h) - gap;
+    TaskbarEdge edge = TaskbarEdge::Bottom;
+    int ax = 0, ay = 0;
+    ComputeExpandAnchor(bar, g_x.w, g_x.h, edge, ax, ay);
+    // Seed window position near the anchor (ExpandRender places the layered surface).
+    int seedX = ax, seedY = ay;
+    if (edge == TaskbarEdge::Bottom) seedY = ay - 1;
+    else if (edge == TaskbarEdge::Right) seedX = ax - 1;
     if (!g_x.hwnd) {
         g_x.hwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST, kExpandClass,
-                                   L"ZenDesktop 歌词展开面板", WS_POPUP, x, bottom - 1, 1, 1, tray, nullptr, g_uiInst,
+                                   L"ZenDesktop 歌词展开面板", WS_POPUP, seedX, seedY, 1, 1, tray, nullptr, g_uiInst,
                                    nullptr);
         if (!g_x.hwnd) {
             Wh_Log(L"[expand] CreateWindowEx failed %u", GetLastError());
@@ -4104,8 +4355,9 @@ static void ExpandOpen(HWND bar) {
         g_x.p = g_x.v = 0;
     }
     g_x.bar = bar;
-    g_x.anchorX = x;
-    g_x.anchorBottom = bottom;
+    g_x.edge = edge;
+    g_x.anchorX = ax;
+    g_x.anchorY = ay;
     g_x.target = 1;
     g_x.lastInteract = GetTickCount64();
     g_x.lbuttonWasDown = true;  // the click that opened us must not count as "outside"
@@ -4724,7 +4976,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread, g_extrasThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.5.2 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.5.3 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
