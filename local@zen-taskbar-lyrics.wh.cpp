@@ -4,13 +4,13 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.5.1
+// @version         0.5.2
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32 -luuid -lpdh -liphlpapi
+// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32 -luuid -lpdh -liphlpapi -ld3d11 -ldxgi -ldcomp -ld3dcompiler_47
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -30,7 +30,7 @@
 - 专辑封面：来自系统媒体会话，播放器提供才有。
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
-- **歌词展开面板**（0.5.0）：单击封面或文字，在歌词条上方弹出展开面板（带弹性动画）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关：
+- **歌词展开面板**（0.5.0）：单击封面或文字，在歌词条上方弹出展开面板（带弹性动画）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关。0.5.2 起可选「液态玻璃」背景（默认关，仅展开时运行）：
   - 播放控制：封面、歌名歌手、进度条、上一首／播放暂停／下一首、「打开播放器」按钮。
   - AI 状态：和歌词条同一份数据（状态文件、钩子、MCP、进程名），逐个列出助手、状态、项目和说明。
   - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。可设保留天数（默认 3 天），过期或源文件已删的条目会自动移出列表（不删源文件）。列表只在内存里，重载 explorer／mod 会清空。
@@ -158,6 +158,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.5.2**：展开面板可选「液态玻璃」背景（默认关闭）：WGC 捕获面板后方区域 + D3D11 模糊／折射／色散／高光边；仅展开时运行，收起即拆除；失败回退到亚克力／半透明。截图／录屏时面板与玻璃层不参与捕获。
 - **0.5.1**：天气支持自动定位（本机定位 → 可选 IP 估计 → 手动城市）；文件中转可按保留天数自动清理（默认 3 天，不删源文件；列表仍不持久化）。展开面板底色与迷你面板一致（跟随面板底色／玻璃设置，半透明；尝试 DWM 亚克力／圆角，失败则保留半透明衬底），文字颜色与阴影也跟迷你面板走。
 - **0.5.0**：新增「歌词展开面板」：单击歌词条展开（弹性动画、点外面或闲置自动收起、不抢焦点），含播放控制、AI 状态详情、文件中转（拖到歌词条暂存，可再拖出）、天气（open-meteo）、资源占用（仅展开时采样）五个可单独开关的板块。「点封面或文字」新增「展开面板」并设为默认。
 - **0.4.8**：性能：PID→进程名缓存、任务栏 HWND 短缓存、设置快照按代际复用。
@@ -436,6 +437,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
     $name:zh-CN: 板块：资源占用
     $description: CPU, memory, GPU and network up/down. Sampled only while the panel is open.
     $description:zh-CN: CPU、内存、GPU、网络上下行。只在面板展开时采样，收起后不占资源。
+  - liquidGlass: false
+    $name: Liquid glass background
+    $name:zh-CN: 液态玻璃背景
+    $description: Experimental. Captures what is behind the expand panel and draws a blurred / refracting glass layer (GPU). Off by default. Only runs while the panel is expanded; falls back to acrylic / translucent if anything fails. Screenshot and screen-share will omit the panel and glass layer while it is on.
+    $description:zh-CN: 实验功能。捕获展开面板后方的画面，用 GPU 画一层带模糊／折射的液态玻璃。默认关闭。只在面板展开时运行；失败则回退到亚克力／半透明。开启时截图／录屏看不到面板和玻璃层。
   $name: Lyrics expand panel
   $name:zh-CN: 歌词展开面板
   $description: Used when Click on art or text is Expand.
@@ -461,6 +467,14 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 #include <pdhmsg.h>
 #include <netioapi.h>
 #include <iphlpapi.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <dcomp.h>
+#include <dxgi1_2.h>
+#include <inspectable.h>
+#include <roapi.h>
+#include <winstring.h>
+#include <wrl/client.h>
 
 #include <windhawk_utils.h>
 
@@ -518,6 +532,7 @@ struct Settings {
     std::wstring weatherCity;
     int weatherRefreshMin = 30;
     int filesRetentionDays = 3;       // 0 = never expire by age
+    bool expandLiquidGlass = false;   // optional WGC+D3D11 glass behind expand panel
     std::wstring textColorMode = L"default";
     PanelBg panelBg = PanelBg::None;
     std::wstring font = L"Microsoft YaHei UI";
@@ -593,6 +608,7 @@ static void LoadSettings() {
             int fd = Wh_GetIntSetting(L"expandPanel.filesRetentionDays");
             // 0 = never by age; negative / missing → default 3
             s.filesRetentionDays = fd < 0 ? 3 : std::clamp(fd, 0, 3650);
+            s.expandLiquidGlass = Wh_GetIntSetting(L"expandPanel.liquidGlass") != 0;
         }
         s.textColorMode = GetStr(L"textColorMode");
         if (s.textColorMode.empty()) s.textColorMode = L"default";
@@ -3318,6 +3334,607 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     g_x.h = (int)y;
 }
 
+// ---------------------------------------------------------------------------
+// Expand-panel liquid glass (0.5.2). Own code; approach matches
+// optional/local@zen-liquid-glass.wh.cpp (WGC + D3D11 blur/refraction/chroma/rim,
+// WDA_EXCLUDEFROMCAPTURE, FPS cap, pause on fullscreen, disable on device removed).
+// Runs only while the expand panel is open; torn down on collapse. Failures leave
+// the acrylic / translucent LookFor fill in place.
+namespace xlg {
+
+struct SizeInt32 { INT32 Width; INT32 Height; };
+
+MIDL_INTERFACE("3628E81B-3CAC-4C60-B7F4-23CE0E0C3356")
+ICaptureItemInterop : public IUnknown {
+    virtual HRESULT STDMETHODCALLTYPE CreateForWindow(HWND, REFIID, void**) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateForMonitor(HMONITOR, REFIID, void**) = 0;
+};
+MIDL_INTERFACE("79C3F95B-31F7-4EC2-A464-632EF5D30760")
+ICaptureItem : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE get_DisplayName(HSTRING*) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Size(SizeInt32*) = 0;
+};
+MIDL_INTERFACE("814E42A9-F70F-4AD7-939B-FDDCC6EB880D")
+ICaptureSession : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE StartCapture() = 0;
+};
+MIDL_INTERFACE("2C39AE40-7D2E-5044-804E-8B6799D4CF9E")
+ICaptureSession2 : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE get_IsCursorCaptureEnabled(boolean*) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_IsCursorCaptureEnabled(boolean) = 0;
+};
+MIDL_INTERFACE("F2CDD966-22AE-5EA1-9596-3A289344C3BE")
+ICaptureSession3 : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE get_IsBorderRequired(boolean*) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_IsBorderRequired(boolean) = 0;
+};
+MIDL_INTERFACE("FA50C623-38DA-4B32-ACF3-FA9734AD800E")
+ICaptureFrame : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE get_Surface(IInspectable**) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_SystemRelativeTime(INT64*) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ContentSize(SizeInt32*) = 0;
+};
+MIDL_INTERFACE("24EB6D22-1975-422E-82E7-780DBD8DDF24")
+ICaptureFramePool : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE Recreate(IInspectable*, INT32, INT32, SizeInt32) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryGetNextFrame(ICaptureFrame**) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_FrameArrived(IUnknown*, INT64*) = 0;
+    virtual HRESULT STDMETHODCALLTYPE remove_FrameArrived(INT64) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateCaptureSession(ICaptureItem*, ICaptureSession**) = 0;
+};
+MIDL_INTERFACE("589B103F-6BBC-5DF5-A991-02E28B3B66D5")
+ICaptureFramePoolStatics2 : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE CreateFreeThreaded(IInspectable*, INT32, INT32, SizeInt32, ICaptureFramePool**) = 0;
+};
+MIDL_INTERFACE("A9B3D012-3DF2-4EE3-B8D1-8695F457D3C1")
+IDxgiInterfaceAccess : public IUnknown {
+    virtual HRESULT STDMETHODCALLTYPE GetInterface(REFIID, void**) = 0;
+};
+MIDL_INTERFACE("30D5A829-7FA4-4026-83BB-D75BAE4EA99E")
+IClosable : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE Close() = 0;
+};
+
+constexpr INT32 kPixelFormatB8G8R8A8 = 87;
+constexpr int kMaxFps = 20;
+constexpr float kBlur = 12.f, kRefract = 18.f, kChroma = 0.15f, kRim = 0.60f, kTint = 0.08f;
+
+const char kShader[] = R"(
+cbuffer P : register(b0) {
+    float2 size; float2 srcOrigin;
+    float2 srcSize; float radius; float blur;
+    float refract; float chroma; float rim; float tint;
+};
+Texture2D tex : register(t0);
+SamplerState smp : register(s0);
+struct V { float4 pos : SV_Position; float2 uv : TEXCOORD0; };
+V vs(uint id : SV_VertexID) {
+    V o; float2 uv = float2((id << 1) & 2, id & 2);
+    o.pos = float4(uv * float2(2, -2) + float2(-1, 1), 0, 1); o.uv = uv; return o;
+}
+float sdRR(float2 p, float2 b, float r) {
+    float2 q = abs(p) - b + r;
+    return length(max(q, 0)) + min(max(q.x, q.y), 0) - r;
+}
+float3 blurAt(float2 px) {
+    float3 acc = 0; float ws = 0;
+    [unroll] for (int i = -2; i <= 2; i++)
+    [unroll] for (int j = -2; j <= 2; j++) {
+        float w = exp(-(i * i + j * j) / 4.5);
+        float2 o = float2(i, j) * (blur * 0.5);
+        acc += tex.SampleLevel(smp, (srcOrigin + px + o) / srcSize, 0).rgb * w;
+        ws += w;
+    }
+    return acc / ws;
+}
+float4 ps(V i) : SV_Target {
+    float2 px = i.uv * size;
+    float2 c = size * 0.5;
+    float2 p = px - c;
+    float r = min(radius, min(c.x, c.y));
+    float d = sdRR(p, c, r);
+    float a = saturate(0.5 - d);
+    if (a <= 0) return 0;
+    float e = 0.5;
+    float2 g = float2(sdRR(p + float2(e, 0), c, r) - sdRR(p - float2(e, 0), c, r),
+                      sdRR(p + float2(0, e), c, r) - sdRR(p - float2(0, e), c, r));
+    float2 n = g / max(length(g), 1e-4);
+    float band = max(min(size.x, size.y) * 0.4, 4.0);
+    float k = saturate(1.0 + d / band);
+    float2 off = -n * (k * k * refract);
+    float3 col;
+    col.r = blurAt(px + off * (1.0 + chroma)).r;
+    col.g = blurAt(px + off).g;
+    col.b = blurAt(px + off * (1.0 - chroma)).b;
+    col = lerp(col, float3(1, 1, 1), tint);
+    float3 L = normalize(float3(-0.35, -0.85, 0.4));
+    float spec = pow(saturate(dot(normalize(float3(n, 0.55)), L)), 10.0) * k * rim;
+    col += spec;
+    return float4(saturate(col) * a, a);
+}
+)";
+
+struct alignas(16) ShaderParams {
+    float size[2], srcOrigin[2];
+    float srcSize[2], radius, blur;
+    float refract, chroma, rim, tint;
+};
+
+using Microsoft::WRL::ComPtr;
+
+struct Glass {
+    HWND hwnd = nullptr;
+    HWND expand = nullptr;
+    RECT target = {};
+    RECT monRect = {};
+    HMONITOR monitor = nullptr;
+    float cornerRadius = 14.f;
+    ComPtr<ID3D11Device> dev;
+    ComPtr<ID3D11DeviceContext> ctx;
+    ComPtr<IDXGISwapChain1> swap;
+    ComPtr<ID3D11RenderTargetView> rtv;
+    ComPtr<IDCompositionDevice> dcomp;
+    ComPtr<IDCompositionTarget> dcompTarget;
+    ComPtr<IDCompositionVisual> visual;
+    ComPtr<ID3D11VertexShader> vs;
+    ComPtr<ID3D11PixelShader> ps;
+    ComPtr<ID3D11Buffer> cb;
+    ComPtr<ID3D11SamplerState> sampler;
+    ComPtr<ID3D11Texture2D> src;
+    ComPtr<ID3D11ShaderResourceView> srv;
+    D3D11_BOX srcBox = {};
+    ComPtr<IInspectable> winrtDevice;
+    ComPtr<ICaptureItem> item;
+    ComPtr<ICaptureFramePool> pool;
+    ComPtr<ICaptureSession> session;
+    SizeInt32 poolSize = {};
+    int width = 0, height = 0;
+    bool visible = false;
+    bool hasContent = false;
+};
+
+std::atomic<bool> g_stop{false};
+std::atomic<bool> g_deviceLost{false};
+std::atomic<bool> g_live{false};       // glass currently presenting
+std::atomic<bool> g_want{false};       // expand open + setting on
+HANDLE g_thread = nullptr;
+HANDLE g_wake = nullptr;
+std::mutex g_geomLock;
+RECT g_geomRect{};
+HMONITOR g_geomMon = nullptr;
+float g_geomRadius = 14.f;
+HWND g_expandHwnd = nullptr;
+DWORD g_expandPrevAffinity = WDA_NONE;
+bool g_expandAffinitySet = false;
+
+template <typename T>
+HRESULT GetFactory(PCWSTR cls, REFIID iid, T** out) {
+    HSTRING h = nullptr;
+    HRESULT hr = WindowsCreateString(cls, (UINT32)wcslen(cls), &h);
+    if (FAILED(hr)) return hr;
+    hr = RoGetActivationFactory(h, iid, (void**)out);
+    WindowsDeleteString(h);
+    return hr;
+}
+
+bool CompileShaders(Glass& g) {
+    ComPtr<ID3DBlob> vsb, psb, err;
+    if (FAILED(D3DCompile(kShader, sizeof(kShader) - 1, "xlg", nullptr, nullptr,
+                          "vs", "vs_4_0", D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &vsb, &err)) ||
+        FAILED(D3DCompile(kShader, sizeof(kShader) - 1, "xlg", nullptr, nullptr,
+                          "ps", "ps_4_0", D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &psb, &err))) {
+        Wh_Log(L"[xlg] shader compile failed: %S",
+               err ? (const char*)err->GetBufferPointer() : "?");
+        return false;
+    }
+    return SUCCEEDED(g.dev->CreateVertexShader(vsb->GetBufferPointer(), vsb->GetBufferSize(), nullptr, &g.vs)) &&
+           SUCCEEDED(g.dev->CreatePixelShader(psb->GetBufferPointer(), psb->GetBufferSize(), nullptr, &g.ps));
+}
+
+bool CreateDevice(Glass& g) {
+    D3D_FEATURE_LEVEL fl[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0};
+    if (FAILED(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
+                                 D3D11_CREATE_DEVICE_BGRA_SUPPORT, fl, (UINT)ARRAYSIZE(fl),
+                                 D3D11_SDK_VERSION, &g.dev, nullptr, &g.ctx))) {
+        return false;
+    }
+    if (!CompileShaders(g)) return false;
+    D3D11_BUFFER_DESC bd = {sizeof(ShaderParams), D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER};
+    if (FAILED(g.dev->CreateBuffer(&bd, nullptr, &g.cb))) return false;
+    D3D11_SAMPLER_DESC sd = {};
+    sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sd.MaxLOD = D3D11_FLOAT32_MAX;
+    if (FAILED(g.dev->CreateSamplerState(&sd, &g.sampler))) return false;
+    ComPtr<IDXGIDevice> dxgi;
+    g.dev.As(&dxgi);
+    if (FAILED(DCompositionCreateDevice(dxgi.Get(), IID_PPV_ARGS(&g.dcomp)))) return false;
+    if (FAILED(g.dcomp->CreateTargetForHwnd(g.hwnd, TRUE, &g.dcompTarget))) return false;
+    if (FAILED(g.dcomp->CreateVisual(&g.visual))) return false;
+    using Create_t = HRESULT(WINAPI*)(IDXGIDevice*, IInspectable**);
+    auto create = reinterpret_cast<Create_t>(
+        GetProcAddress(GetModuleHandleW(L"d3d11.dll"), "CreateDirect3D11DeviceFromDXGIDevice"));
+    return create && SUCCEEDED(create(dxgi.Get(), &g.winrtDevice));
+}
+
+bool EnsureSwapChain(Glass& g, int w, int h) {
+    if (g.swap && w == g.width && h == g.height) return true;
+    g.rtv.Reset();
+    if (g.swap) {
+        if (FAILED(g.swap->ResizeBuffers(2, (UINT)w, (UINT)h, DXGI_FORMAT_B8G8R8A8_UNORM, 0))) return false;
+    } else {
+        ComPtr<IDXGIDevice> dxgi;
+        ComPtr<IDXGIAdapter> adapter;
+        ComPtr<IDXGIFactory2> factory;
+        g.dev.As(&dxgi);
+        dxgi->GetAdapter(&adapter);
+        adapter->GetParent(IID_PPV_ARGS(&factory));
+        DXGI_SWAP_CHAIN_DESC1 d = {};
+        d.Width = (UINT)w;
+        d.Height = (UINT)h;
+        d.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        d.SampleDesc.Count = 1;
+        d.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        d.BufferCount = 2;
+        d.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        d.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+        if (FAILED(factory->CreateSwapChainForComposition(g.dev.Get(), &d, nullptr, &g.swap))) return false;
+        g.visual->SetContent(g.swap.Get());
+        g.dcompTarget->SetRoot(g.visual.Get());
+        g.dcomp->Commit();
+    }
+    ComPtr<ID3D11Texture2D> back;
+    g.swap->GetBuffer(0, IID_PPV_ARGS(&back));
+    if (FAILED(g.dev->CreateRenderTargetView(back.Get(), nullptr, &g.rtv))) return false;
+    g.width = w;
+    g.height = h;
+    return true;
+}
+
+void StopCapture(Glass& g) {
+    ComPtr<IClosable> c;
+    if (g.session && SUCCEEDED(g.session.As(&c))) c->Close();
+    c.Reset();
+    if (g.pool && SUCCEEDED(g.pool.As(&c))) c->Close();
+    g.session.Reset();
+    g.pool.Reset();
+    g.item.Reset();
+    g.monitor = nullptr;
+}
+
+bool StartCapture(Glass& g, HMONITOR mon) {
+    StopCapture(g);
+    ComPtr<ICaptureItemInterop> interop;
+    if (FAILED(GetFactory(L"Windows.Graphics.Capture.GraphicsCaptureItem",
+                          __uuidof(ICaptureItemInterop), interop.GetAddressOf())) ||
+        FAILED(interop->CreateForMonitor(mon, __uuidof(ICaptureItem), (void**)g.item.GetAddressOf()))) {
+        Wh_Log(L"[xlg] CreateForMonitor failed");
+        return false;
+    }
+    g.item->get_Size(&g.poolSize);
+    ComPtr<ICaptureFramePoolStatics2> statics;
+    if (FAILED(GetFactory(L"Windows.Graphics.Capture.Direct3D11CaptureFramePool",
+                          __uuidof(ICaptureFramePoolStatics2), statics.GetAddressOf())) ||
+        FAILED(statics->CreateFreeThreaded(g.winrtDevice.Get(), kPixelFormatB8G8R8A8, 2,
+                                           g.poolSize, &g.pool)) ||
+        FAILED(g.pool->CreateCaptureSession(g.item.Get(), &g.session))) {
+        Wh_Log(L"[xlg] frame pool / session failed");
+        StopCapture(g);
+        return false;
+    }
+    ComPtr<ICaptureSession2> s2;
+    if (SUCCEEDED(g.session.As(&s2))) s2->put_IsCursorCaptureEnabled(false);
+    ComPtr<ICaptureSession3> s3;
+    if (SUCCEEDED(g.session.As(&s3))) s3->put_IsBorderRequired(false);
+    if (FAILED(g.session->StartCapture())) {
+        StopCapture(g);
+        return false;
+    }
+    g.monitor = mon;
+    MONITORINFO mi = {sizeof(mi)};
+    GetMonitorInfoW(mon, &mi);
+    g.monRect = mi.rcMonitor;
+    return true;
+}
+
+bool PullFrame(Glass& g) {
+    ComPtr<ICaptureFrame> frame;
+    if (FAILED(g.pool->TryGetNextFrame(&frame)) || !frame) return false;
+    SizeInt32 cs = {};
+    frame->get_ContentSize(&cs);
+    if (cs.Width != g.poolSize.Width || cs.Height != g.poolSize.Height) {
+        g.poolSize = cs;
+        g.pool->Recreate(g.winrtDevice.Get(), kPixelFormatB8G8R8A8, 2, cs);
+        return false;
+    }
+    ComPtr<IInspectable> surface;
+    ComPtr<IDxgiInterfaceAccess> access;
+    ComPtr<ID3D11Texture2D> tex;
+    if (FAILED(frame->get_Surface(&surface)) || FAILED(surface.As(&access)) ||
+        FAILED(access->GetInterface(IID_PPV_ARGS(&tex)))) {
+        return false;
+    }
+    const int margin = (int)(kBlur + kRefract) + 4;
+    LONG l = std::max<LONG>(0, g.target.left - g.monRect.left - margin);
+    LONG t = std::max<LONG>(0, g.target.top - g.monRect.top - margin);
+    LONG r = std::min<LONG>(cs.Width, g.target.right - g.monRect.left + margin);
+    LONG b = std::min<LONG>(cs.Height, g.target.bottom - g.monRect.top + margin);
+    if (r <= l || b <= t) return false;
+    UINT w = (UINT)(r - l), h = (UINT)(b - t);
+    D3D11_TEXTURE2D_DESC have = {};
+    if (g.src) g.src->GetDesc(&have);
+    if (!g.src || have.Width != w || have.Height != h) {
+        g.src.Reset();
+        g.srv.Reset();
+        D3D11_TEXTURE2D_DESC d = {};
+        d.Width = w;
+        d.Height = h;
+        d.MipLevels = d.ArraySize = 1;
+        d.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        d.SampleDesc.Count = 1;
+        d.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        if (FAILED(g.dev->CreateTexture2D(&d, nullptr, &g.src)) ||
+            FAILED(g.dev->CreateShaderResourceView(g.src.Get(), nullptr, &g.srv))) {
+            return false;
+        }
+    }
+    g.srcBox = {(UINT)l, (UINT)t, 0, (UINT)r, (UINT)b, 1};
+    g.ctx->CopySubresourceRegion(g.src.Get(), 0, 0, 0, 0, tex.Get(), 0, &g.srcBox);
+    g.hasContent = true;
+    return true;
+}
+
+HRESULT Render(Glass& g) {
+    ShaderParams p = {};
+    p.size[0] = (float)g.width;
+    p.size[1] = (float)g.height;
+    p.srcOrigin[0] = (float)(g.target.left - g.monRect.left - (LONG)g.srcBox.left);
+    p.srcOrigin[1] = (float)(g.target.top - g.monRect.top - (LONG)g.srcBox.top);
+    p.srcSize[0] = (float)(g.srcBox.right - g.srcBox.left);
+    p.srcSize[1] = (float)(g.srcBox.bottom - g.srcBox.top);
+    p.radius = g.cornerRadius;
+    p.blur = kBlur;
+    p.refract = kRefract;
+    p.chroma = kChroma;
+    p.rim = kRim;
+    p.tint = kTint;
+    g.ctx->UpdateSubresource(g.cb.Get(), 0, nullptr, &p, 0, 0);
+    D3D11_VIEWPORT vp = {0, 0, (float)g.width, (float)g.height, 0, 1};
+    float clear[4] = {0, 0, 0, 0};
+    ID3D11RenderTargetView* rtv = g.rtv.Get();
+    g.ctx->ClearRenderTargetView(rtv, clear);
+    g.ctx->OMSetRenderTargets(1, &rtv, nullptr);
+    g.ctx->RSSetViewports(1, &vp);
+    g.ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    g.ctx->IASetInputLayout(nullptr);
+    g.ctx->VSSetShader(g.vs.Get(), nullptr, 0);
+    g.ctx->PSSetShader(g.ps.Get(), nullptr, 0);
+    ID3D11Buffer* cb = g.cb.Get();
+    g.ctx->PSSetConstantBuffers(0, 1, &cb);
+    ID3D11ShaderResourceView* srv = g.srv.Get();
+    g.ctx->PSSetShaderResources(0, 1, &srv);
+    ID3D11SamplerState* s = g.sampler.Get();
+    g.ctx->PSSetSamplers(0, 1, &s);
+    g.ctx->Draw(3, 0);
+    return g.swap->Present(0, 0);
+}
+
+bool ShouldPause() {
+    QUERY_USER_NOTIFICATION_STATE st;
+    if (SUCCEEDED(SHQueryUserNotificationState(&st)) &&
+        (st == QUNS_BUSY || st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_PRESENTATION_MODE)) {
+        return true;
+    }
+    return false;
+}
+
+void SetVisible(Glass& g, bool v) {
+    if (g.visible == v) return;
+    g.visible = v;
+    ShowWindow(g.hwnd, v ? SW_SHOWNOACTIVATE : SW_HIDE);
+    g_live = v;
+}
+
+void SetExpandExclude(HWND expand, bool on) {
+    if (!expand || !IsWindow(expand)) return;
+    if (on) {
+        if (g_expandAffinitySet) return;
+        DWORD prev = WDA_NONE;
+        GetWindowDisplayAffinity(expand, &prev);
+        if (SetWindowDisplayAffinity(expand, WDA_EXCLUDEFROMCAPTURE)) {
+            g_expandPrevAffinity = prev;
+            g_expandAffinitySet = true;
+        }
+    } else if (g_expandAffinitySet) {
+        SetWindowDisplayAffinity(expand, g_expandPrevAffinity);
+        g_expandAffinitySet = false;
+    }
+}
+
+LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    if (m == WM_NCHITTEST) return HTTRANSPARENT;
+    if (m == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
+    return DefWindowProcW(h, m, w, l);
+}
+
+DWORD WINAPI Worker(LPVOID) {
+    RoInitialize(RO_INIT_MULTITHREADED);
+    WNDCLASSW wc = {};
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = GetModuleHandleW(nullptr);
+    wc.lpszClassName = L"ZenExpandLiquidGlass";
+    RegisterClassW(&wc);
+
+    Glass g;
+    g.hwnd = CreateWindowExW(
+        WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_TOPMOST |
+            WS_EX_NOREDIRECTIONBITMAP,
+        wc.lpszClassName, L"", WS_POPUP, 0, 0, 1, 1, nullptr, nullptr, wc.hInstance, nullptr);
+    if (!g.hwnd || !SetWindowDisplayAffinity(g.hwnd, WDA_EXCLUDEFROMCAPTURE) || !CreateDevice(g)) {
+        Wh_Log(L"[xlg] init failed — keeping acrylic / translucent fallback");
+        if (g.hwnd) DestroyWindow(g.hwnd);
+        UnregisterClassW(wc.lpszClassName, wc.hInstance);
+        g_live = false;
+        RoUninitialize();
+        return 0;
+    }
+
+    ULONGLONG lastPauseCheck = 0;
+    bool paused = false;
+    while (!g_stop.load()) {
+        const DWORD frameMs = 1000 / kMaxFps;
+        MsgWaitForMultipleObjects(1, &g_wake, FALSE, frameMs, QS_ALLINPUT);
+        MSG msg;
+        while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+        if (g_stop.load()) break;
+        if (!g_want.load()) {
+            SetVisible(g, false);
+            if (g.session) StopCapture(g);
+            continue;
+        }
+
+        RECT rc;
+        HMONITOR mon;
+        float radius;
+        HWND expand;
+        {
+            std::lock_guard<std::mutex> lk(g_geomLock);
+            rc = g_geomRect;
+            mon = g_geomMon;
+            radius = g_geomRadius;
+            expand = g_expandHwnd;
+        }
+        int w = rc.right - rc.left, h = rc.bottom - rc.top;
+        if (w <= 0 || h <= 0 || !mon || !expand || !IsWindow(expand)) {
+            SetVisible(g, false);
+            continue;
+        }
+        g.expand = expand;
+        g.cornerRadius = radius;
+        SetExpandExclude(expand, true);
+
+        ULONGLONG now = GetTickCount64();
+        if (now - lastPauseCheck > 1000) {
+            lastPauseCheck = now;
+            paused = ShouldPause();
+        }
+        if (paused) {
+            SetVisible(g, false);
+            if (g.session) StopCapture(g);
+            continue;
+        }
+
+        bool moved = !EqualRect(&rc, &g.target);
+        g.target = rc;
+        if ((mon != g.monitor || !g.session) && !StartCapture(g, mon)) {
+            SetVisible(g, false);
+            continue;
+        }
+        // Place glass directly below the expand popup in z-order.
+        SetWindowPos(g.hwnd, expand, rc.left, rc.top, w, h, SWP_NOACTIVATE);
+        if (!EnsureSwapChain(g, w, h)) {
+            Wh_Log(L"[xlg] swap chain failed, disabling for this session");
+            g_deviceLost = true;
+            break;
+        }
+        if (!PullFrame(g) && !moved) continue;
+        if (!g.hasContent) continue;
+
+        HRESULT hr = Render(g);
+        if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+            Wh_Log(L"[xlg] device removed (%08X), disabling for this session",
+                   g.dev->GetDeviceRemovedReason());
+            g_deviceLost = true;
+            break;
+        }
+        SetVisible(g, true);
+    }
+
+    StopCapture(g);
+    SetExpandExclude(g.expand, false);
+    SetVisible(g, false);
+    if (g.dcompTarget) g.dcompTarget->SetRoot(nullptr);
+    if (g.dcomp) g.dcomp->Commit();
+    HWND doomed = g.hwnd;
+    g = Glass{};
+    if (doomed) DestroyWindow(doomed);
+    UnregisterClassW(wc.lpszClassName, GetModuleHandleW(nullptr));
+    g_live = false;
+    RoUninitialize();
+    return 0;
+}
+
+void StartWorker() {
+    if (g_thread || g_deviceLost.load()) return;
+    g_stop = false;
+    g_wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    g_thread = CreateThread(nullptr, 0, Worker, nullptr, 0, nullptr);
+    if (!g_thread) {
+        if (g_wake) { CloseHandle(g_wake); g_wake = nullptr; }
+        Wh_Log(L"[xlg] CreateThread failed");
+    }
+}
+
+void StopWorker() {
+    if (!g_thread) return;
+    g_stop = true;
+    g_want = false;
+    if (g_wake) SetEvent(g_wake);
+    WaitForSingleObject(g_thread, 5000);
+    CloseHandle(g_thread);
+    if (g_wake) CloseHandle(g_wake);
+    g_thread = nullptr;
+    g_wake = nullptr;
+    g_live = false;
+}
+
+}  // namespace xlg
+
+static bool XlgIsLive() { return xlg::g_live.load(); }
+
+static void XlgOnSettingsChanged() {
+    // Saving settings is the user's explicit retry after a device-removed disable.
+    xlg::g_deviceLost = false;
+    if (!GetSettings().expandLiquidGlass) xlg::StopWorker();
+}
+
+static void XlgStop() {
+    xlg::g_want = false;
+    xlg::StopWorker();
+    {
+        std::lock_guard<std::mutex> lk(xlg::g_geomLock);
+        xlg::g_expandHwnd = nullptr;
+        xlg::g_geomMon = nullptr;
+        xlg::g_geomRect = {};
+    }
+}
+
+static void XlgStart(HWND expandHwnd) {
+    if (!expandHwnd || !GetSettings().expandLiquidGlass || xlg::g_deviceLost.load()) return;
+    {
+        std::lock_guard<std::mutex> lk(xlg::g_geomLock);
+        xlg::g_expandHwnd = expandHwnd;
+    }
+    xlg::g_want = true;
+    xlg::StartWorker();
+    if (xlg::g_wake) SetEvent(xlg::g_wake);
+}
+
+static void XlgUpdate(const RECT& screenRc, HMONITOR mon, float cornerRadiusPx) {
+    if (!xlg::g_want.load()) return;
+    {
+        std::lock_guard<std::mutex> lk(xlg::g_geomLock);
+        xlg::g_geomRect = screenRc;
+        xlg::g_geomMon = mon;
+        xlg::g_geomRadius = cornerRadiusPx;
+    }
+    if (xlg::g_wake) SetEvent(xlg::g_wake);
+}
+
+
 // Try DWM system backdrop / accent acrylic behind the top-level expand popup.
 // Works with UpdateLayeredWindow: DWM blurs whatever is behind, and our per-pixel
 // alpha decides how much shows through. Failures leave the translucent LookFor fill.
@@ -3381,6 +3998,7 @@ static void ExpandRender() {
     bi.bmiHeader = {sizeof(BITMAPINFOHEADER), W, -H, 1, 32, BI_RGB};
     void* bits = nullptr;
     HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    const Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
     if (bmp && bits) {
         HGDIOBJ old = SelectObject(mem, bmp);
         {
@@ -3392,12 +4010,16 @@ static void ExpandRender() {
             // The panel grows upward from the bar: the bottom edge is fixed.
             const Gdiplus::REAL top = (Gdiplus::REAL)(H - shownH);
             Gdiplus::RectF card(0, top, (Gdiplus::REAL)W, (Gdiplus::REAL)shownH);
-            Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
             // Same look as the mini panel. panelBackground=none still gets a subtle
             // tint so text stays readable on a fully transparent taskbar.
             PanelLook look = LookFor(s.panelBg, s.panelGlass, light);
             Gdiplus::ARGB fill = look.fill;
             if (!fill) fill = light ? 0x66F7F7F7 : 0x66141414;
+            // When liquid glass is presenting behind us, keep the tint light so it shows through.
+            if (s.expandLiquidGlass && XlgIsLive()) {
+                BYTE a = (BYTE)((fill >> 24) & 255);
+                if (a > 0x48) fill = WithAlpha(fill, 0x48);
+            }
             FillRound(g, fill, card, rad);
             if (look.edge) {
                 Gdiplus::GraphicsPath edge;
@@ -3422,6 +4044,11 @@ static void ExpandRender() {
         // Hit rects are in content coordinates; shift them to window coordinates.
         LONG dy = (LONG)((H - shownH) + (shownH - g_x.h) * 0.5);
         for (auto& h : g_x.hits) OffsetRect(&h.rc, 0, dy);
+        if (s.expandLiquidGlass) {
+            RECT glassRc{dst.x, dst.y + (H - shownH), dst.x + W, dst.y + H};
+            HMONITOR mon = MonitorFromRect(&glassRc, MONITOR_DEFAULTTONEAREST);
+            XlgUpdate(glassRc, mon, (float)rad);
+        }
     }
     if (bmp) DeleteObject(bmp);
     DeleteDC(mem);
@@ -3430,6 +4057,7 @@ static void ExpandRender() {
 
 static void ExpandClose(bool immediate) {
     if (!g_x.hwnd) return;
+    XlgStop();  // tear down liquid glass as soon as collapse begins
     g_x.target = 0;
     if (immediate) {
         KillTimer(g_x.hwnd, TIMER_ANIM);
@@ -3482,7 +4110,7 @@ static void ExpandOpen(HWND bar) {
     g_x.lastInteract = GetTickCount64();
     g_x.lbuttonWasDown = true;  // the click that opened us must not count as "outside"
     g_expandedAny = true;
-    (void)s;
+    if (s.expandLiquidGlass) XlgStart(g_x.hwnd);  // want=true before first ExpandRender geom push
     ExpandRender();
     ShowWindow(g_x.hwnd, SW_SHOWNOACTIVATE);
     SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
@@ -4096,7 +4724,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread, g_extrasThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.5.1 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.5.2 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
@@ -4116,11 +4744,13 @@ BOOL Wh_ModInit() {
 
 void Wh_ModSettingsChanged() {
     LoadSettings();
+    XlgOnSettingsChanged();
     if (DWORD tid = g_uiThreadId.load()) PostThreadMessageW(tid, WM_ZEN_SETTINGS, 0, 0);
 }
 
 void Wh_ModUninit() {
     Wh_Log(L"Uninit");
+    XlgStop();
     g_stop = true;
     if (g_stopEvent) SetEvent(g_stopEvent);
     {
