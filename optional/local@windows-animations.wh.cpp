@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.4
+// @version         1.6.5
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -65,6 +65,30 @@
 // @exclude         TenSafe*.exe
 // @exclude         UnityCrashHandler*.exe
 // @exclude         UnityPlayer.exe
+// Wuthering Waves (鸣潮) / Kuro Games — launchers & helpers are NOT matched by
+// *-Win64-Shipping.exe. Windhawk matches no-backslash patterns against the
+// file name only; path patterns (with '\') against the full executable path.
+// @exclude         Wuthering Waves.exe
+// @exclude         Client-Win64-Shipping.exe
+// @exclude         launcher_main.exe
+// @exclude         launcher_updater.exe
+// @exclude         KRSDKExternal.exe
+// @exclude         KRWebView.exe
+// @exclude         KRInstallExternal.exe
+// @exclude         ClearThirdParty.exe
+// @exclude         DummyWindow.exe
+// @exclude         KuroLauncher.exe
+// @exclude         krlauncher.exe
+// @exclude         KRLauncher.exe
+// @exclude         ACE-Service64.exe
+// @exclude         ACE-Setup64.exe
+// @exclude         SGuardSvc64.exe
+// @exclude         SGuardSvc32.exe
+// @exclude         *\Wuthering Waves\*
+// @exclude         *\Wuthering Waves Game\*
+// @exclude         *\鸣潮\*
+// @exclude         *\AntiCheatExpert\*
+// @exclude         *\Client\Binaries\Win64\*
 // @license         MIT
 // @compilerOptions -ladvapi32 -ld2d1 -ld3d11 -ldcomp -ldwmapi -ldxgi -lgdi32 -lole32 -loleaut32 -lshell32 -luuid -luser32
 // ==/WindhawkMod==
@@ -106,7 +130,7 @@
 
 ## 兼容性与已知问题
 
-- 本 mod 全局注入（`@include *`）。Windhawk 头里用精确进程名 + 通配符（如 `*-Win64-Shipping.exe`、`ACE-*.exe`）排除常见游戏和反作弊；**资源管理器进程里**还会按目标窗口所属进程再跳过一遍（Cloak / PrintWindow 不会打到 UE/Unity/反作弊窗口）。若你在 Windhawk「高级设置」里自定义了该 mod 的进程包含/排除，头文件里的 `@exclude` 不会生效，请自己补上或保持默认。
+- 本 mod 全局注入（`@include *`）。Windhawk 头里用精确进程名 + 通配符（如 `*-Win64-Shipping.exe`、`ACE-*.exe`）以及鸣潮安装路径（`*\Wuthering Waves\*` 等）排除常见游戏和反作弊；**注入后**还会在 `Wh_ModInit` 里按进程名/安装目录/旁路 DLL 拒绝加载钩子；**资源管理器进程里**还会按目标窗口所属进程再跳过一遍（Cloak / PrintWindow 不会打到 UE/Unity/反作弊窗口）。若你在 Windhawk「高级设置」里自定义了该 mod 的进程包含/排除（或勾选了「忽略 mod 的包含/排除列表」），头文件里的 `@exclude` 不会生效，请自己补上或恢复默认。
 - 默认开启「跳过游戏与反作弊窗口」。内核级 ACE 仍可能扫描 `explorer.exe` 本身（任务栏等核心 mod 也在那里），排除游戏窗口挡不住蓝屏；若装了 ACE 仍不稳定，打游戏前请先关掉 ZenDesktop / Windhawk。
 - 部分受保护或由系统承载的窗口（设置的部分页面、Microsoft Store、Windows 外壳界面）使用系统原生过渡，不会播放动画。
 - Chrome、Edge、Discord、Windhawk 等点关闭只隐藏窗口的应用，需要开启「隐藏到托盘时也播放」才有关闭动画（默认已开启）。
@@ -116,6 +140,7 @@
 
 ## 更新日志
 
+- **1.6.5**：鸣潮（Wuthering Waves）仍崩溃时的加固：补全启动器/Kuro SDK/ACE 路径的 `@exclude`；`Wh_ModInit` 按安装目录与旁路 DLL（Unity/UE/ACE）拒绝加载钩子；资源管理器侧按完整路径识别游戏树；切换动画在 Cloak 前先走排除检查。说明：Windhawk 无反斜杠的通配符只匹配文件名，`*-Win64-Shipping.exe` 本身能匹配 `Client-Win64-Shipping.exe`，但匹配不到 `Wuthering Waves.exe` / `launcher.exe`。
 - **1.6.4**：跳过游戏/反作弊窗口（默认开）：通配符 `@exclude`；资源管理器侧按目标进程/模块/无屏边框跳过，避免对外进程游戏窗口 Cloak/PrintWindow 导致 UE4 崩溃；可在设置里关「跳过游戏与反作弊窗口」或用「排除的程序」追加进程名。
 - **1.6.3**：按用户要求移除「零雾开窗」（设置项、覆盖层实现与相关钩子一并删除）；资源管理器 / 设置开窗仍可用本组「启用启动动画」。
 - **1.6.2**：曾修复零雾开窗编译（`IsOurWindow` 前移；功能已在 1.6.3 移除）。
@@ -5358,6 +5383,15 @@ void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD event, HWND hWnd,
     bool swsSelection = false;
     if (!ConsumeAltTabIntentForForeground(hWnd, dwmsEventTime,
                                           &swsSelection)) return;
+    // Must run before any DWMWA_CLOAK. The worker used to check exclusion only
+    // after cloaking — unsafe if this mod somehow loaded into a game process.
+    if (IsUserExcludedWindow(hWnd)) {
+        if (IsDiagnosticLoggingEnabled()) {
+            Wh_Log(L"Switch animation skipped hwnd=%p reason=excluded trigger=%s",
+                   hWnd, swsSelection ? L"sws-selection" : L"alt-tab");
+        }
+        return;
+    }
     {
         std::lock_guard<std::mutex> lock(g_StateMutex);
         if (!g_AnimActive.insert(hWnd).second) {
@@ -11945,6 +11979,13 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
         !IsLaunchAnimationCurrent(hWnd, suppliedSnapshotToken)) {
         return false;
     }
+    // Defense in depth: every cloak / PrintWindow animation path funnels here.
+    // Callers already check IsUserExcludedWindow; keep the gate at the center
+    // so a missed explorer-side entry cannot touch UE4 / ACE windows.
+    if (IsUserExcludedWindow(hWnd)) {
+        FailAnimationStart(hWnd, rising, originalExStyle, cloakHidden);
+        return false;
+    }
     if (suppressNativeMinimizeOnFailure) *suppressNativeMinimizeOnFailure = FALSE;
     const BOOL restoreMaximized =
         !isClosing &&
@@ -15339,9 +15380,13 @@ BOOL Wh_ModInit() {
         IsNonWindowHostingHelperProcess()) {
         return FALSE;
     }
-    // Never install hooks inside anti-cheat helper processes. Game engines are
-    // skipped when skip_games is on (default); read the raw setting here so we
-    // can bail before LoadAnimSettings / shared-state work.
+    // Never install hooks inside anti-cheat helper processes. Game engines and
+    // Kuro/WW launchers (path / sibling DLL / known host name) are skipped when
+    // skip_games is on (default). Read the raw setting here so we can bail
+    // before LoadAnimSettings / shared-state / any Wh_SetFunctionHook work.
+    // This is the safety net when Windhawk @exclude was overridden in Advanced
+    // settings, or when the crashing host is launcher.exe under a game tree
+    // (not matched by *-Win64-Shipping.exe).
     if (ZenGameGuard::ShouldHardRefuseInjection()) {
         Wh_Log(L"[zen-game-guard] refuse init: anti-cheat process/module");
         return FALSE;
@@ -15356,7 +15401,11 @@ BOOL Wh_ModInit() {
             unseeded ? true : (Wh_GetIntSetting(L"skip_games") != 0);
         g_skipGames.store(skipGames, std::memory_order_relaxed);
         if (skipGames && ZenGameGuard::ShouldSkipAsGameProcess()) {
-            Wh_Log(L"[zen-game-guard] refuse init: game process (skip_games)");
+            WCHAR exe[MAX_PATH]{};
+            ZenGameGuard::GetCurrentExeName(exe, ARRAYSIZE(exe));
+            Wh_Log(L"[zen-game-guard] refuse init: game/host process "
+                   L"(skip_games) exe=%s",
+                   exe[0] ? exe : L"?");
             return FALSE;
         }
     }

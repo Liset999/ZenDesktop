@@ -4,6 +4,11 @@
 //
 // Layers:
 //   1) Windhawk @exclude / Engine Exclude — exact names + wildcards, pre-inject
+//      Windhawk matches patterns with no '\' against the *file name only*
+//      (case-insensitive); patterns with '\' against the full path. So
+//      "*-Win64-Shipping.exe" does match Client-Win64-Shipping.exe. Launchers
+//      like "Wuthering Waves.exe" / "launcher.exe" are NOT covered by that
+//      wildcard and need explicit names or path patterns / runtime refuse.
 //   2) Wh_ModInit refuse — do not load hooks into game / AC processes
 //   3) Per-HWND skip — explorer must NOT cloak / PrintWindow / DWM-mutate a
 //      foreign game window; process @exclude alone cannot stop that
@@ -36,6 +41,22 @@ inline void GetCurrentExeName(WCHAR* out, size_t outCount) {
 
 inline bool EqualsIgnoreCase(const WCHAR* a, const WCHAR* b) {
     return a && b && _wcsicmp(a, b) == 0;
+}
+
+// Case-insensitive substring search (needle must be non-empty).
+inline bool PathContainsI(const WCHAR* haystack, const WCHAR* needle) {
+    if (!haystack || !needle || !*needle) return false;
+    const size_t nlen = wcslen(needle);
+    for (const WCHAR* p = haystack; *p; ++p) {
+        size_t i = 0;
+        while (i < nlen && p[i] &&
+               towlower(p[i]) == towlower(needle[i])) {
+            ++i;
+        }
+        if (i == nlen) return true;
+        if (!p[i] && i < nlen) break;
+    }
+    return false;
 }
 
 // Wildcard match: '*' matches any sequence. Case-insensitive.
@@ -105,12 +126,49 @@ inline bool NormalizedStemLooksLikeUnrealShipping(const WCHAR* stem) {
     return false;
 }
 
+// Kuro Games / Wuthering Waves (鸣潮) and related host helpers. Exact names
+// that are NOT covered by *-Win64-Shipping.exe (launchers, SDK, webview).
+// Do NOT put bare "launcher.exe" here — too common; path heuristics catch it.
+inline bool ExeNameLooksLikeKnownGameHost(const WCHAR* exeName) {
+    if (!exeName || !*exeName) return false;
+    static const WCHAR* kExact[] = {
+        L"Wuthering Waves.exe",
+        L"Client-Win64-Shipping.exe",
+        L"launcher_main.exe",
+        L"launcher_updater.exe",
+        L"KRSDKExternal.exe",
+        L"KRWebView.exe",
+        L"KRInstallExternal.exe",
+        L"ClearThirdParty.exe",
+        L"DummyWindow.exe",
+        // Other Kuro / common CN-launcher hosts seen beside ACE trees.
+        L"KuroLauncher.exe",
+        L"krlauncher.exe",
+        L"KRLauncher.exe",
+    };
+    for (const WCHAR* name : kExact) {
+        if (EqualsIgnoreCase(exeName, name)) return true;
+    }
+    static const WCHAR* kPatterns[] = {
+        L"Wuthering*.exe",
+        L"KRSDK*.exe",
+        L"KRWeb*.exe",
+        L"KRInstall*.exe",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(exeName, pat)) return true;
+    }
+    return false;
+}
+
 inline bool ExeNameLooksLikeAntiCheat(const WCHAR* exeName) {
     if (!exeName || !*exeName) return false;
     static const WCHAR* kPatterns[] = {
         L"ACE-*.exe",
         L"ace-*.exe",
+        L"Ace-*.exe",
         L"SGuard*.exe",
+        L"SGuardSvc*.exe",
         L"TenSafe*.exe",
         L"EasyAntiCheat*.exe",
         L"BEService*.exe",
@@ -122,7 +180,7 @@ inline bool ExeNameLooksLikeAntiCheat(const WCHAR* exeName) {
         L"TPSvc*.exe",
         L"TenProxy*.exe",
         L"GameLoader.exe",
-        L"Ace-*.exe",
+        L"CrossProxy.exe",
     };
     for (const WCHAR* pat : kPatterns) {
         if (WildcardMatchI(exeName, pat)) return true;
@@ -156,11 +214,89 @@ inline bool ModuleNameIsGameEngine(const WCHAR* modFileName) {
         L"UE4Editor-Core.dll",
         L"UnrealEditor-Core.dll",
         L"EOSSDK-Win64-Shipping.dll",
+        // UE shipping companion DLL used by Kuro / WW (and similar trees).
+        L"*-Win64-ShippingBase.dll",
+        L"*-Win64-Shipping.dll",
+        L"Client-Win64-ShippingBase.dll",
     };
     for (const WCHAR* pat : kPatterns) {
         if (WildcardMatchI(modFileName, pat)) return true;
     }
     return false;
+}
+
+// Install-tree / sibling markers: cheap GetFileAttributes / path substring,
+// no module snapshot. Catches launcher.exe sitting next to the game payload
+// before ACE DLLs are loaded.
+inline bool PathLooksLikeGameTree(const WCHAR* fullPath) {
+    if (!fullPath || !*fullPath) return false;
+    if (PathContainsI(fullPath, L"\\Wuthering Waves\\")) return true;
+    if (PathContainsI(fullPath, L"\\Wuthering Waves Game\\")) return true;
+    if (PathContainsI(fullPath, L"\\鸣潮\\")) return true;
+    if (PathContainsI(fullPath, L"\\AntiCheatExpert\\")) return true;
+    if (PathContainsI(fullPath, L"\\Client\\Binaries\\Win64\\")) return true;
+    if (PathContainsI(fullPath, L"\\Engine\\Binaries\\")) return true;
+    if (PathContainsI(fullPath, L"\\Binaries\\Win64\\") &&
+        PathContainsI(fullPath, L"-Win64-Shipping.exe")) {
+        return true;
+    }
+    return false;
+}
+
+inline bool SiblingMarkerExists(const WCHAR* exeDir, const WCHAR* fileName) {
+    if (!exeDir || !*exeDir || !fileName || !*fileName) return false;
+    WCHAR probe[MAX_PATH + 64]{};
+    if (wcslen(exeDir) + 1 + wcslen(fileName) >= ARRAYSIZE(probe)) return false;
+    wcsncpy_s(probe, ARRAYSIZE(probe), exeDir, _TRUNCATE);
+    const size_t len = wcslen(probe);
+    if (len && probe[len - 1] != L'\\') {
+        wcsncat_s(probe, ARRAYSIZE(probe), L"\\", _TRUNCATE);
+    }
+    wcsncat_s(probe, ARRAYSIZE(probe), fileName, _TRUNCATE);
+    const DWORD attrs = GetFileAttributesW(probe);
+    return attrs != INVALID_FILE_ATTRIBUTES &&
+           !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+inline bool DirLooksLikeGameInstall(const WCHAR* exeDir) {
+    if (!exeDir || !*exeDir) return false;
+    // Unity / IL2CPP payload next to the host exe.
+    if (SiblingMarkerExists(exeDir, L"UnityPlayer.dll")) return true;
+    if (SiblingMarkerExists(exeDir, L"GameAssembly.dll")) return true;
+    // UE / Kuro shipping + ACE payload beside launchers.
+    if (SiblingMarkerExists(exeDir, L"Client-Win64-Shipping.exe")) return true;
+    if (SiblingMarkerExists(exeDir, L"Client-Win64-ShippingBase.dll")) {
+        return true;
+    }
+    if (SiblingMarkerExists(exeDir, L"ACE-Base64.dll")) return true;
+    if (SiblingMarkerExists(exeDir, L"ACE-Base.dll")) return true;
+    // AntiCheatExpert\ as a sibling folder.
+    WCHAR aceDir[MAX_PATH + 32]{};
+    if (wcslen(exeDir) + 18 < ARRAYSIZE(aceDir)) {
+        wcsncpy_s(aceDir, ARRAYSIZE(aceDir), exeDir, _TRUNCATE);
+        const size_t len = wcslen(aceDir);
+        if (len && aceDir[len - 1] != L'\\') {
+            wcsncat_s(aceDir, ARRAYSIZE(aceDir), L"\\", _TRUNCATE);
+        }
+        wcsncat_s(aceDir, ARRAYSIZE(aceDir), L"AntiCheatExpert", _TRUNCATE);
+        const DWORD attrs = GetFileAttributesW(aceDir);
+        if (attrs != INVALID_FILE_ATTRIBUTES &&
+            (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool CurrentExePathLooksLikeGameTree() {
+    WCHAR path[MAX_PATH]{};
+    if (!GetModuleFileNameW(nullptr, path, ARRAYSIZE(path))) return false;
+    if (PathLooksLikeGameTree(path)) return true;
+    WCHAR dir[MAX_PATH]{};
+    wcsncpy_s(dir, ARRAYSIZE(dir), path, _TRUNCATE);
+    WCHAR* slash = wcsrchr(dir, L'\\');
+    if (slash) *slash = L'\0';
+    return DirLooksLikeGameInstall(dir);
 }
 
 inline bool CurrentProcessHasMatchingModule(
@@ -175,6 +311,7 @@ inline bool CurrentProcessHasMatchingModule(
         L"vgkbootstatus.dll", L"xhunter1.dll", L"TenioDL.dll", L"TGuard.dll",
         L"UnityPlayer.dll", L"GameAssembly.dll",
         L"UE4Editor-Core.dll", L"UnrealEditor-Core.dll",
+        L"Client-Win64-ShippingBase.dll",
     };
     for (const WCHAR* mod : kCandidates) {
         if (GetModuleHandleW(mod) && pred(mod)) return true;
@@ -252,7 +389,7 @@ inline bool IsMonitorCoveringBorderlessWindow(HWND hWnd) {
     return false;
 }
 
-inline bool QueryProcessExeName(DWORD pid, WCHAR* out, size_t outCount,
+inline bool QueryProcessExePath(DWORD pid, WCHAR* out, size_t outCount,
                                 bool* accessDenied) {
     if (accessDenied) *accessDenied = false;
     if (!out || outCount == 0) return false;
@@ -265,21 +402,39 @@ inline bool QueryProcessExeName(DWORD pid, WCHAR* out, size_t outCount,
         }
         return false;
     }
-    WCHAR path[MAX_PATH]{};
-    DWORD len = ARRAYSIZE(path);
-    bool ok = QueryFullProcessImageNameW(hProc, 0, path, &len) != FALSE;
+    DWORD len = static_cast<DWORD>(outCount);
+    const bool ok = QueryFullProcessImageNameW(hProc, 0, out, &len) != FALSE;
     CloseHandle(hProc);
-    if (!ok) return false;
+    return ok;
+}
+
+inline bool QueryProcessExeName(DWORD pid, WCHAR* out, size_t outCount,
+                                bool* accessDenied) {
+    if (accessDenied) *accessDenied = false;
+    if (!out || outCount == 0) return false;
+    out[0] = L'\0';
+    WCHAR path[MAX_PATH]{};
+    if (!QueryProcessExePath(pid, path, ARRAYSIZE(path), accessDenied)) {
+        return false;
+    }
     const WCHAR* name = wcsrchr(path, L'\\');
     wcsncpy_s(out, outCount, name ? name + 1 : path, _TRUNCATE);
     return true;
 }
 
 // Hard refuse for Wh_ModInit when this process itself is AC / helper.
+// Always on (independent of skip_games): never install hooks inside ACE /
+// EAC / BattlEye / SGuard helper processes.
 inline bool ShouldHardRefuseInjection() {
     WCHAR exe[MAX_PATH]{};
     GetCurrentExeName(exe, ARRAYSIZE(exe));
     if (ExeNameLooksLikeAntiCheat(exe)) return true;
+    // ACE payload living under AntiCheatExpert\ even if the exe name is odd.
+    WCHAR path[MAX_PATH]{};
+    if (GetModuleFileNameW(nullptr, path, ARRAYSIZE(path)) &&
+        PathContainsI(path, L"\AntiCheatExpert\")) {
+        return true;
+    }
     return CurrentProcessHasMatchingModule(ModuleNameIsAntiCheat);
 }
 
@@ -287,6 +442,8 @@ inline bool ShouldSkipAsGameProcess() {
     WCHAR exe[MAX_PATH]{};
     GetCurrentExeName(exe, ARRAYSIZE(exe));
     if (ExeNameLooksLikeUnrealShipping(exe)) return true;
+    if (ExeNameLooksLikeKnownGameHost(exe)) return true;
+    if (CurrentExePathLooksLikeGameTree()) return true;
     return CurrentProcessHasMatchingModule(ModuleNameIsGameEngine);
 }
 
@@ -300,14 +457,34 @@ inline bool ShouldSkipTargetWindow(HWND hWnd, bool skipGames) {
     GetWindowThreadProcessId(hWnd, &pid);
     if (!pid) return false;
 
-    WCHAR exeName[MAX_PATH]{};
+    WCHAR path[MAX_PATH]{};
     bool accessDenied = false;
-    const bool gotName = QueryProcessExeName(pid, exeName, ARRAYSIZE(exeName),
-                                             &accessDenied);
-
-    if (gotName) {
+    const bool gotPath =
+        QueryProcessExePath(pid, path, ARRAYSIZE(path), &accessDenied);
+    const WCHAR* exeName = nullptr;
+    WCHAR exeNameBuf[MAX_PATH]{};
+    if (gotPath) {
+        const WCHAR* slash = wcsrchr(path, L'\\');
+        exeName = slash ? slash + 1 : path;
         if (ExeNameLooksLikeAntiCheat(exeName)) return true;
-        if (skipGames && ExeNameLooksLikeUnrealShipping(exeName)) return true;
+        if (skipGames) {
+            if (ExeNameLooksLikeUnrealShipping(exeName)) return true;
+            if (ExeNameLooksLikeKnownGameHost(exeName)) return true;
+            if (PathLooksLikeGameTree(path)) return true;
+        }
+    } else if (!accessDenied) {
+        // Fall back to name-only query for completeness (rare).
+        if (QueryProcessExeName(pid, exeNameBuf, ARRAYSIZE(exeNameBuf),
+                                &accessDenied)) {
+            exeName = exeNameBuf;
+            if (ExeNameLooksLikeAntiCheat(exeName)) return true;
+            if (skipGames && ExeNameLooksLikeUnrealShipping(exeName)) {
+                return true;
+            }
+            if (skipGames && ExeNameLooksLikeKnownGameHost(exeName)) {
+                return true;
+            }
+        }
     }
 
     if (pid == GetCurrentProcessId()) {
