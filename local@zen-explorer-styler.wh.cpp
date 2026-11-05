@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.8
+// @version         1.7.9
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.9**：修复重启电脑后文件列表文字又变白、要重新应用才好的问题。深浅色状态以前在窗口第一次加特效时读一次，之后只信资源管理器开机早期发的深色属性，1.7.8 起同一窗口再加特效还会提前返回，不再重读，于是开机时读错的值一直留着。现在深浅色以注册表为准，开机重试、窗口再次显示、系统深浅色/主题变化时都会重读，变了就只重绘资源管理器窗口，不重启资源管理器、不重载 mod。
 - **1.7.8**：#18 显卡驱动重置加固。以前每次显示窗口、每轮补挂、资源管理器每次设置深浅色时，都会把背景材质、模糊和强调色重新发给 DWM，即使没变也会让 DWM 重建效果。现在每个窗口记住已设的背景，没变就不再发，也不再强制刷新合成；全进程 2 秒内最多改 12 次背景；10 秒内连续失败 3 次就降一级（模糊→亚克力→云母→无），保存设置后重新尝试原选项。
 - **1.7.7**：修复 #18「文字颜色更改无效，固定为白色」：文字颜色改为直接使用设置里的颜色，不再从绘图上下文读回；文件列表在离屏缓冲里画的文字也会套用设置的颜色（只改黑白灰的字，菜单打开时不改）；修正半透明文字的预乘计算，去掉发白发雾的边。
 - **1.7.6**：「文字颜色」新增「自定义」，配合「自定义文字颜色」填色值（如 #FF8800）；控制面板地址栏下方那条白色标题带改为透明。
@@ -11256,6 +11257,9 @@ void SetAccentBlurBehind(HWND hWnd,
 // so that the paint hooks don't read the registry.
 std::atomic<bool> g_zenDarkContent{false};
 
+bool IsAppsDarkTheme();
+void ZenRefreshDarkContent(PCWSTR reason);
+
 using DwmSetWindowAttribute_t = decltype(&DwmSetWindowAttribute);
 DwmSetWindowAttribute_t DwmSetWindowAttribute_Original;
 HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
@@ -11276,7 +11280,11 @@ HRESULT WINAPI DwmSetWindowAttribute_Hook(HWND hWnd,
             SUCCEEDED(result) && pvAttribute && cbAttribute == sizeof(BOOL) &&
             GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer;
         if (fileExplorer) {
-            g_zenDarkContent = *(const BOOL*)pvAttribute != FALSE;
+            // ZenDesktop 1.7.9: Explorer sets this attribute very early at
+            // boot, before its own theme state is settled, and that value used
+            // to stick in the process-wide flag. The apps theme in the
+            // registry is the source of truth; re-read it here.
+            ZenRefreshDarkContent(L"dwm-dark-attr");
         }
         if (fileExplorer && g_settings.tintFollowSystem &&
             GetEffectiveBackgroundTranslucentEffect() ==
@@ -12854,6 +12862,83 @@ bool IsAppsDarkTheme() {
     return value == 0;
 }
 
+// ZenDesktop 1.7.9: recompute the dark content state from the registry and,
+// if it changed, quietly repaint the File Explorer windows. Never restarts
+// explorer or reloads the mod.
+std::vector<HWND> GetTargetWnds();
+void ZenRefreshDarkContent(PCWSTR reason) {
+    bool dark = IsAppsDarkTheme();
+    bool prev = g_zenDarkContent.exchange(dark);
+    static std::atomic<bool> logged{false};
+    bool changed = prev != dark;
+    if (changed || !logged.exchange(true)) {
+        const TextColorMode* mode = GetTextColorMode();
+        Wh_Log(L"[zen-text] dark state (%s): dark=%d prev=%d textColorMode=%s",
+               reason, dark, prev, mode ? mode->id : L"default");
+    }
+    if (changed) {
+        for (HWND hWnd : GetTargetWnds()) {
+            if (GetTargetWindowType(hWnd) == TargetWindowType::FileExplorer) {
+                RedrawWindow(hWnd, nullptr, nullptr,
+                             RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN |
+                                 RDW_FRAME);
+            }
+        }
+    }
+}
+
+// ZenDesktop 1.7.9: watch the Personalize key, so a theme value that is only
+// written after explorer starts at boot (or a later light/dark switch) is
+// picked up without a mod reload.
+HKEY g_zenThemeKey;
+HANDLE g_zenThemeEvent;
+HANDLE g_zenThemeWait;
+
+void CALLBACK ZenThemeKeyChanged(PVOID, BOOLEAN) {
+    if (g_zenThemeKey) {
+        RegNotifyChangeKeyValue(g_zenThemeKey, FALSE,
+                                REG_NOTIFY_CHANGE_LAST_SET, g_zenThemeEvent,
+                                TRUE);
+    }
+    ZenRefreshDarkContent(L"registry");
+}
+
+void ZenStartThemeWatch() {
+    if (RegOpenKeyEx(
+            HKEY_CURRENT_USER,
+            L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+            0, KEY_NOTIFY | KEY_QUERY_VALUE, &g_zenThemeKey) != ERROR_SUCCESS) {
+        g_zenThemeKey = nullptr;
+        Wh_Log(L"[zen-text] theme key not available yet");
+        return;
+    }
+    g_zenThemeEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    if (!g_zenThemeEvent ||
+        RegNotifyChangeKeyValue(g_zenThemeKey, FALSE,
+                                REG_NOTIFY_CHANGE_LAST_SET, g_zenThemeEvent,
+                                TRUE) != ERROR_SUCCESS ||
+        !RegisterWaitForSingleObject(&g_zenThemeWait, g_zenThemeEvent,
+                                     ZenThemeKeyChanged, nullptr, INFINITE,
+                                     WT_EXECUTEDEFAULT)) {
+        Wh_Log(L"[zen-text] theme watch failed");
+    }
+}
+
+void ZenStopThemeWatch() {
+    if (g_zenThemeWait) {
+        UnregisterWaitEx(g_zenThemeWait, INVALID_HANDLE_VALUE);
+        g_zenThemeWait = nullptr;
+    }
+    if (g_zenThemeKey) {
+        RegCloseKey(g_zenThemeKey);
+        g_zenThemeKey = nullptr;
+    }
+    if (g_zenThemeEvent) {
+        CloseHandle(g_zenThemeEvent);
+        g_zenThemeEvent = nullptr;
+    }
+}
+
 // ZenDesktop: the "followSystem" tint colors, as 0x00BBGGRR. Dark matches the
 // upstream #232323, light is the Windows 11 light mica base color #F3F3F3.
 constexpr DWORD kFollowSystemDarkTintBgr = 0x00232323;
@@ -13023,6 +13108,16 @@ bool ApplyBackgroundTranslucentEffect(
     auto effect =
         effectToApply.value_or(GetEffectiveBackgroundTranslucentEffect());
 
+    // ZenDesktop 1.7.9: refresh the per-thread text target and the dark
+    // state before the "unchanged" early return below. Since 1.7.8 that
+    // return skipped them, so a value read at early boot was never redone.
+    if (effect != BackgroundTranslucentEffect::kDefault &&
+        g_settings.backgroundTranslucentEffectRegion ==
+            BackgroundTranslucentEffectRegion::kEntireWindow) {
+        g_entireWindowEffectWndForThread = hWnd;
+        ZenRefreshDarkContent(L"apply");
+    }
+
     ULONG_PTR wantedState =
         1 + (ULONG_PTR)effect +
         ((ULONG_PTR)g_settings.backgroundTranslucentEffectRegion << 8);
@@ -13040,9 +13135,6 @@ bool ApplyBackgroundTranslucentEffect(
         g_settings.backgroundTranslucentEffectRegion ==
             BackgroundTranslucentEffectRegion::kEntireWindow;
     g_entireWindowEffectWndForThread = entireWindowEffect ? hWnd : nullptr;
-    if (entireWindowEffect) {
-        g_zenDarkContent = IsAppsDarkTheme();
-    }
 
     if (effect == BackgroundTranslucentEffect::kDefault) {
         if (!RemoveProp(hWnd, kBackgroundTranslucentEffectAppliedKey)) {
@@ -13931,6 +14023,10 @@ void ZenRunExplorerStyleRetryFromWindowThread(PVOID) {
 void ZenExplorerStyleRetryTick() {
     int attempt = g_zenExplorerStyleRetryAttempt.fetch_add(1) + 1;
     Wh_Log(L"[boot-retry] attempt %d", attempt);
+    ZenRefreshDarkContent(L"boot-retry");
+    if (!g_zenThemeKey) {
+        ZenStartThemeWatch();
+    }
 
     auto hTargetWnds = GetTargetWnds();
     if (hTargetWnds.empty()) {
@@ -14133,6 +14229,9 @@ BOOL Wh_ModInit() {
 
     StartStatsTimer();
 
+    ZenRefreshDarkContent(L"init");
+    ZenStartThemeWatch();
+
     return TRUE;
 }
 
@@ -14174,6 +14273,8 @@ void Wh_ModUninit() {
     Wh_Log(L">");
 
     ZenStopExplorerStyleRetry();
+
+    ZenStopThemeWatch();
 
     StopStatsTimer();
 
