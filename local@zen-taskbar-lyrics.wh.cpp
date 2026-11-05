@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.5.0
+// @version         0.5.1
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -33,8 +33,8 @@
 - **歌词展开面板**（0.5.0）：单击封面或文字，在歌词条上方弹出展开面板（带弹性动画）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关：
   - 播放控制：封面、歌名歌手、进度条、上一首／播放暂停／下一首、「打开播放器」按钮。
   - AI 状态：和歌词条同一份数据（状态文件、钩子、MCP、进程名），逐个列出助手、状态、项目和说明。
-  - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。
-  - 天气：当前气温和天气（open-meteo.com，不需要密钥），可设城市和刷新间隔；后台线程获取并缓存，不卡任务栏。默认关闭。
+  - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。可设保留天数（默认 3 天），过期或源文件已删的条目会自动移出列表（不删源文件）。列表只在内存里，重载 explorer／mod 会清空。
+  - 天气：当前气温和天气（open-meteo.com，不需要密钥）。默认关闭。开启后可自动定位（本机定位 → 可选按 IP 估计 → 手动城市后备），也可改成只用手动城市；后台线程获取并缓存，不卡任务栏。
   - 资源占用：CPU、内存、GPU、网络上下行，只在面板展开时采样。
 - 想要旧行为（点击切到播放器）可在「点封面或文字」里选「打开播放器」，或选「不响应」。
 - 没在放歌时默认显示「未在播放」，也可改成隐藏。全屏游戏、视频、PPT 时默认不隐藏，可在设置里开启。
@@ -158,6 +158,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.5.1**：天气支持自动定位（本机定位 → 可选 IP 估计 → 手动城市）；文件中转可按保留天数自动清理（默认 3 天，不删源文件；列表仍不持久化）。展开面板底色与迷你面板一致（跟随面板底色／玻璃设置，半透明；尝试 DWM 亚克力／圆角，失败则保留半透明衬底），文字颜色与阴影也跟迷你面板走。
 - **0.5.0**：新增「歌词展开面板」：单击歌词条展开（弹性动画、点外面或闲置自动收起、不抢焦点），含播放控制、AI 状态详情、文件中转（拖到歌词条暂存，可再拖出）、天气（open-meteo）、资源占用（仅展开时采样）五个可单独开关的板块。「点封面或文字」新增「展开面板」并设为默认。
 - **0.4.8**：性能：PID→进程名缓存、任务栏 HWND 短缓存、设置快照按代际复用。
 - **0.4.7**：说明里写明支持 Spotify、网易云音乐、QQ 音乐等播放器。
@@ -395,16 +396,38 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
     $name:zh-CN: 板块：文件中转
     $description: Drop files on the collapsed bar to park them here (only the paths are kept, nothing is copied), then drag them out to any app.
     $description:zh-CN: 把文件拖到收起状态的歌词条上暂存（只记路径，不复制文件），之后可从面板里拖到任意软件。
+  - filesRetentionDays: 3
+    $name: File relay retention (days)
+    $name:zh-CN: 文件中转保留天数
+    $description: Entries older than this are removed from the list (source files are never deleted). 0 = never expire by age. Missing files are always dropped. The list lives in memory only.
+    $description:zh-CN: 超过这个天数的条目会自动移出列表（不会删除源文件）。填 0 表示不按天清理。源文件已经不存在的条目也会去掉。列表只保存在内存，重载 explorer／mod 会清空。
   - weather: false
     $name: Section - Weather
     $name:zh-CN: 板块：天气
-    $description: Current temperature and condition from open-meteo.com (no key). Needs a city below.
-    $description:zh-CN: 当前气温和天气，来自 open-meteo.com（不需要密钥）。需要在下面填城市。
+    $description: Current temperature and condition from open-meteo.com (no key). With auto location you do not need a city.
+    $description:zh-CN: 当前气温和天气，来自 open-meteo.com（不需要密钥）。选自动定位时不必填城市。
+  - weatherLocationMode: auto
+    $name: Weather location
+    $name:zh-CN: 天气定位方式
+    $description: Auto tries Windows location, then optional IP estimate, then the city below. Manual uses only the city.
+    $description:zh-CN: 「自动定位」依次尝试本机定位、可选的 IP 估计，最后才用下面的城市。「只用手动城市」则始终用城市名。
+    $options:
+    - auto
+      $name: Auto
+      $name:zh-CN: 自动定位
+    - manual
+      $name: Manual city only
+      $name:zh-CN: 只用手动城市
+  - weatherAllowIp: true
+    $name: Weather - allow IP estimate
+    $name:zh-CN: 天气：允许按 IP 估计位置
+    $description: When auto location cannot use Windows location, send your public IP to a third party (ipwho.is over HTTPS, no key) to estimate the city. Turn off to use only Windows location or the manual city.
+    $description:zh-CN: 自动定位且本机定位不可用时，把公网 IP 发给第三方（ipwho.is，HTTPS、无需密钥）估计城市。关闭后只用本机定位或手动城市。
   - weatherCity: ""
     $name: Weather city
     $name:zh-CN: 天气城市
-    $description: For example 上海 or Beijing.
-    $description:zh-CN: 例如「上海」或 Beijing。
+    $description: Fallback when auto location fails; required for Manual city only. For example 上海 or Beijing.
+    $description:zh-CN: 自动定位失败时的后备；「只用手动城市」时必填。例如「上海」或 Beijing。
   - weatherRefreshMinutes: 30
     $name: Weather refresh (minutes)
     $name:zh-CN: 天气刷新间隔（分钟）
@@ -447,6 +470,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Media.Control.h>
 #include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.Devices.Geolocation.h>
 
 #include <algorithm>
 #include <atomic>
@@ -489,8 +513,11 @@ struct Settings {
     int expandWidth = 360;
     int expandAutoCollapseSec = 8;
     bool xMedia = true, xAi = true, xFiles = true, xWeather = false, xRes = true;
+    bool weatherLocAuto = true;       // false = manual city only
+    bool weatherAllowIp = true;       // IP estimate behind its own switch
     std::wstring weatherCity;
     int weatherRefreshMin = 30;
+    int filesRetentionDays = 3;       // 0 = never expire by age
     std::wstring textColorMode = L"default";
     PanelBg panelBg = PanelBg::None;
     std::wstring font = L"Microsoft YaHei UI";
@@ -558,9 +585,14 @@ static void LoadSettings() {
             s.xFiles = Wh_GetIntSetting(L"expandPanel.files") != 0;
             s.xWeather = Wh_GetIntSetting(L"expandPanel.weather") != 0;
             s.xRes = Wh_GetIntSetting(L"expandPanel.resources") != 0;
+            s.weatherLocAuto = GetStr(L"expandPanel.weatherLocationMode") != L"manual";
+            s.weatherAllowIp = Wh_GetIntSetting(L"expandPanel.weatherAllowIp") != 0;
             s.weatherCity = GetStr(L"expandPanel.weatherCity");
             int rm = Wh_GetIntSetting(L"expandPanel.weatherRefreshMinutes");
             s.weatherRefreshMin = rm > 0 ? std::clamp(rm, 5, 1440) : 30;
+            int fd = Wh_GetIntSetting(L"expandPanel.filesRetentionDays");
+            // 0 = never by age; negative / missing → default 3
+            s.filesRetentionDays = fd < 0 ? 3 : std::clamp(fd, 0, 3650);
         }
         s.textColorMode = GetStr(L"textColorMode");
         if (s.textColorMode.empty()) s.textColorMode = L"default";
@@ -2699,20 +2731,61 @@ static constexpr UINT_PTR TIMER_ANIM = 11;
 static constexpr UINT_PTR TIMER_WATCH = 12;
 static std::atomic<bool> g_expandedAny{false};  // read by the extras thread (sampling gate)
 
-// ── 文件中转: paths only, never copies ──────────────────────────────────────
+// ── 文件中转: paths only, never copies; in-memory only (lost on explorer/mod reload)
+struct RelayEntry {
+    std::wstring path;
+    long long addedUnix = 0;  // wall-clock seconds since 1970 (UnixNow)
+};
 static std::mutex g_filesLock;
-static std::vector<std::wstring> g_files;
+static std::vector<RelayEntry> g_files;
+
+static void PruneRelayFilesUnlocked(int retentionDays, long long nowUnix) {
+    g_files.erase(std::remove_if(g_files.begin(), g_files.end(),
+                                 [&](const RelayEntry& e) {
+                                     if (GetFileAttributesW(e.path.c_str()) == INVALID_FILE_ATTRIBUTES)
+                                         return true;  // source gone — drop entry only
+                                     if (retentionDays > 0 && e.addedUnix && nowUnix >= e.addedUnix &&
+                                         (nowUnix - e.addedUnix) >= (long long)retentionDays * 86400LL)
+                                         return true;
+                                     return false;
+                                 }),
+                  g_files.end());
+}
+
+static void PruneRelayFiles() {
+    const int days = GetSettings().filesRetentionDays;
+    const ULONGLONG now = UnixNow();
+    std::lock_guard<std::mutex> lk(g_filesLock);
+    PruneRelayFilesUnlocked(days, now);
+}
+
 static void AddRelayFiles(const std::vector<std::wstring>& add) {
+    const long long now = UnixNow();
+    const int days = GetSettings().filesRetentionDays;
     std::lock_guard<std::mutex> lk(g_filesLock);
     for (auto& p : add) {
-        if (std::find(g_files.begin(), g_files.end(), p) != g_files.end()) continue;
-        g_files.insert(g_files.begin(), p);
+        if (p.empty()) continue;
+        auto it = std::find_if(g_files.begin(), g_files.end(),
+                               [&](const RelayEntry& e) { return e.path == p; });
+        if (it != g_files.end()) continue;  // keep original add time
+        g_files.insert(g_files.begin(), RelayEntry{p, now});
     }
+    PruneRelayFilesUnlocked(days, now);
     if (g_files.size() > 30) g_files.resize(30);
 }
+
 static std::vector<std::wstring> GetRelayFiles() {
+    PruneRelayFiles();
     std::lock_guard<std::mutex> lk(g_filesLock);
-    return g_files;
+    std::vector<std::wstring> out;
+    out.reserve(g_files.size());
+    for (auto& e : g_files) out.push_back(e.path);
+    return out;
+}
+
+static void ClearRelayFiles() {
+    std::lock_guard<std::mutex> lk(g_filesLock);
+    g_files.clear();
 }
 
 // ── 天气 (open-meteo, no key) and 资源占用 ──────────────────────────────────
@@ -2740,29 +2813,121 @@ static const wchar_t* WmoText(int c) {
     return L"";
 }
 
-static std::wstring FetchWeather(const std::wstring& city, std::wstring& cacheCity, std::string& lat, std::string& lon) {
-    if (cacheCity != city || lat.empty()) {
-        JValue g;
-        if (!HttpGetJson(L"geocoding-api.open-meteo.com",
-                         L"/v1/search?count=1&language=zh&format=json&name=" + UrlEncode(city), g))
-            return {};
-        const JValue& r = g["results"].at(0);
-        lat = r["latitude"].str();
-        lon = r["longitude"].str();
-        if (lat.empty() || lon.empty()) return {};
-        cacheCity = city;
+struct ResolvedLoc {
+    std::string lat, lon;
+    std::wstring name;
+    const wchar_t* source = L"";  // winrt / ip / city
+};
+
+static std::wstring FmtCoord(double v) {
+    wchar_t b[32];
+    swprintf_s(b, L"%.4f", v);
+    return b;
+}
+
+static std::wstring ReverseGeocodeName(const std::string& lat, const std::string& lon) {
+    // Nominatim over HTTPS; User-Agent is required (kZenUA).
+    JValue j;
+    std::wstring path = L"/reverse?format=json&zoom=10&accept-language=zh&lat=" + FromUtf8(lat) +
+                        L"&lon=" + FromUtf8(lon);
+    if (!HttpGetJson(L"nominatim.openstreetmap.org", path, j)) return {};
+    const JValue& addr = j["address"];
+    for (const char* key : {"city", "town", "village", "municipality", "county", "state"}) {
+        std::string s = addr[key].str();
+        if (!s.empty()) return FromUtf8(s);
     }
+    std::string dn = j["name"].str();
+    return dn.empty() ? std::wstring{} : FromUtf8(dn);
+}
+
+// Never calls RequestAccessAsync (would prompt). GetGeopositionAsync fails quietly
+// when location is off / denied. Runs on the extras worker thread only.
+static bool TryWinrtLocation(ResolvedLoc& out) {
+    try {
+        using namespace winrt::Windows::Devices::Geolocation;
+        Geolocator geo;
+        geo.DesiredAccuracy(PositionAccuracy::Default);
+        auto op = geo.GetGeopositionAsync();
+        const ULONGLONG deadline = GetTickCount64() + 10000;
+        while (op.Status() == winrt::Windows::Foundation::AsyncStatus::Started) {
+            if (g_stop.load() || GetTickCount64() >= deadline) {
+                op.Cancel();
+                return false;
+            }
+            if (SleepOrStop(100)) {
+                op.Cancel();
+                return false;
+            }
+        }
+        if (op.Status() != winrt::Windows::Foundation::AsyncStatus::Completed) return false;
+        auto pos = op.GetResults();
+        auto coord = pos.Coordinate();
+        double lat = coord.Latitude();
+        double lon = coord.Longitude();
+        if (!std::isfinite(lat) || !std::isfinite(lon)) return false;
+        out.lat = ToUtf8(FmtCoord(lat));
+        out.lon = ToUtf8(FmtCoord(lon));
+        out.name = ReverseGeocodeName(out.lat, out.lon);
+        if (out.name.empty()) out.name = L"当前位置";
+        out.source = L"winrt";
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+static bool TryIpLocation(ResolvedLoc& out) {
+    // ipwho.is: HTTPS, no API key. Sends the public IP to a third party.
+    JValue j;
+    if (!HttpGetJson(L"ipwho.is", L"/", j)) return false;
+    if (j["success"].type == JValue::Bool && !j["success"].b) return false;
+    out.lat = j["latitude"].str();
+    out.lon = j["longitude"].str();
+    if (out.lat.empty() || out.lon.empty()) return false;
+    out.name = FromUtf8(j["city"].str());
+    if (out.name.empty()) out.name = FromUtf8(j["region"].str());
+    if (out.name.empty()) out.name = L"当前位置";
+    out.source = L"ip";
+    return true;
+}
+
+static bool GeocodeCity(const std::wstring& city, ResolvedLoc& out) {
+    if (city.empty()) return false;
+    JValue g;
+    if (!HttpGetJson(L"geocoding-api.open-meteo.com",
+                     L"/v1/search?count=1&language=zh&format=json&name=" + UrlEncode(city), g))
+        return false;
+    const JValue& r = g["results"].at(0);
+    out.lat = r["latitude"].str();
+    out.lon = r["longitude"].str();
+    if (out.lat.empty() || out.lon.empty()) return false;
+    std::string n = r["name"].str();
+    out.name = n.empty() ? city : FromUtf8(n);
+    out.source = L"city";
+    return true;
+}
+
+static bool ResolveWeatherLocation(const Settings& s, ResolvedLoc& out) {
+    if (!s.weatherLocAuto) return GeocodeCity(s.weatherCity, out);
+    if (TryWinrtLocation(out)) return true;
+    if (s.weatherAllowIp && TryIpLocation(out)) return true;
+    if (!s.weatherCity.empty() && GeocodeCity(s.weatherCity, out)) return true;
+    return false;
+}
+
+static std::wstring FetchWeatherAt(const ResolvedLoc& loc) {
     JValue w;
     if (!HttpGetJson(L"api.open-meteo.com",
-                     L"/v1/forecast?current=temperature_2m,weather_code&latitude=" + FromUtf8(lat) +
-                         L"&longitude=" + FromUtf8(lon), w))
+                     L"/v1/forecast?current=temperature_2m,weather_code&latitude=" + FromUtf8(loc.lat) +
+                         L"&longitude=" + FromUtf8(loc.lon),
+                     w))
         return {};
     const JValue& cur = w["current"];
     std::string t = cur["temperature_2m"].str();
     if (t.empty()) return {};
     double tv = strtod(t.c_str(), nullptr);
-    wchar_t buf[96];
-    swprintf_s(buf, L"%s  %.0f°C  %s", city.c_str(), tv, WmoText((int)cur["weather_code"].num()));
+    wchar_t buf[128];
+    swprintf_s(buf, L"%s  %.0f°C  %s", loc.name.c_str(), tv, WmoText((int)cur["weather_code"].num()));
     return buf;
 }
 
@@ -2852,10 +3017,12 @@ struct ResSampler {
 
 static void ExtrasThread() {
     ResSampler res;
-    std::wstring cacheCity;
-    std::string lat, lon;
+    ResolvedLoc locCache;
+    ULONGLONG lastLocAt = 0;       // tick when location was last resolved
     ULONGLONG lastWeather = 0;
-    std::wstring lastCityWanted;
+    std::wstring lastWantedKey;
+    ULONGLONG lastPrune = 0;
+    constexpr ULONGLONG kLocRefreshMs = 6ULL * 3600ULL * 1000ULL;  // 6h
     while (!g_stop) {
         Settings s = GetSettings();
         const bool expanded = g_expandedAny.load();
@@ -2870,18 +3037,46 @@ static void ExtrasThread() {
         } else if (!expanded) {
             res.Close();  // PDH query released while collapsed
         }
-        // 天气: background, cached, refresh interval from settings (or city change).
         ULONGLONG now = GetTickCount64();
-        if (s.xWeather && !s.weatherCity.empty() &&
-            (lastWeather == 0 || s.weatherCity != lastCityWanted ||
-             now - lastWeather >= (ULONGLONG)s.weatherRefreshMin * 60000ULL)) {
+        // 文件中转: periodic prune (also on panel open / get).
+        if (s.xFiles && (lastPrune == 0 || now - lastPrune >= 60000ULL)) {
+            lastPrune = now;
+            PruneRelayFiles();
+        }
+        // 天气: resolve location (cached 6h) then forecast; no city required in auto mode.
+        std::wstring wantedKey = std::wstring(s.weatherLocAuto ? L"auto|" : L"manual|") +
+                                 (s.weatherAllowIp ? L"ip1|" : L"ip0|") + s.weatherCity;
+        const bool needWeather = s.xWeather &&
+            (lastWeather == 0 || wantedKey != lastWantedKey ||
+             now - lastWeather >= (ULONGLONG)s.weatherRefreshMin * 60000ULL);
+        if (needWeather) {
             lastWeather = now;
-            lastCityWanted = s.weatherCity;
-            std::wstring w = FetchWeather(s.weatherCity, cacheCity, lat, lon);
+            static std::wstring lastLocKey;
+            if (wantedKey != lastLocKey || lastLocAt == 0 || now - lastLocAt >= kLocRefreshMs ||
+                locCache.lat.empty()) {
+                ResolvedLoc loc;
+                if (ResolveWeatherLocation(s, loc)) {
+                    locCache = loc;
+                    Wh_Log(L"[weather] loc %s (%s) %S,%S", loc.name.c_str(), loc.source, loc.lat.c_str(),
+                           loc.lon.c_str());
+                } else {
+                    locCache = {};
+                    Wh_Log(L"[weather] location failed");
+                }
+                lastLocAt = now;
+                lastLocKey = wantedKey;
+            }
+            lastWantedKey = wantedKey;
+            std::wstring w;
+            if (!locCache.lat.empty()) w = FetchWeatherAt(locCache);
             std::lock_guard<std::mutex> lk(g_extrasLock);
-            if (!w.empty()) { g_extras.weather = w; g_extras.weatherErr = false; }
-            else g_extras.weatherErr = true;
-            Wh_Log(L"[weather] %s -> %s", s.weatherCity.c_str(), w.empty() ? L"(failed)" : w.c_str());
+            if (!w.empty()) {
+                g_extras.weather = w;
+                g_extras.weatherErr = false;
+            } else {
+                g_extras.weatherErr = true;
+            }
+            Wh_Log(L"[weather] forecast -> %s", w.empty() ? L"(failed)" : w.c_str());
         }
         if (SleepOrStop(1000)) break;
     }
@@ -2928,10 +3123,13 @@ static std::wstring FmtTime(long long ms) {
 }
 
 // Builds the content and computes g_x.w / g_x.h; paints when g != nullptr.
+// Text colors / shadow follow the mini panel (textColorMode + light/dark).
 static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     const Settings& s = GetSettings();
     auto D = [&](double v) { return (Gdiplus::REAL)(v * dpi / 96.0); };
-    const Gdiplus::ARGB text = light ? 0xFF1A1A1A : 0xFFFFFFFF;
+    const Gdiplus::ARGB text = ResolveTextColor(s.textColorMode, light);
+    Gdiplus::ARGB shadow = 0;
+    if (IsLightColor(text) == light) shadow = IsLightColor(text) ? 0x80000000 : 0x70FFFFFF;
     const Gdiplus::ARGB dim = WithAlpha(text, 0xA0);
     const Gdiplus::ARGB hoverFill = light ? 0x18000000 : 0x24FFFFFF;
     const Gdiplus::REAL W = D(s.expandWidth), pad = D(14);
@@ -2944,8 +3142,14 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     Gdiplus::StringFormat sf(Gdiplus::StringFormatFlagsNoWrap);
     sf.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
     sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+    const Gdiplus::REAL shadowOff = D(1);
     auto Text = [&](const std::wstring& t, const Gdiplus::Font& f, Gdiplus::ARGB c, Gdiplus::RectF r) {
         if (!g || t.empty()) return;
+        if (shadow) {
+            Gdiplus::SolidBrush sh{Gdiplus::Color(WithAlpha(shadow, (BYTE)(((shadow >> 24) & 255) * ((c >> 24) & 255) / 255)))};
+            Gdiplus::RectF ds(r.X, r.Y + shadowOff, r.Width, r.Height);
+            g->DrawString(t.c_str(), (INT)t.size(), &f, ds, &sf, &sh);
+        }
         Gdiplus::SolidBrush b{Gdiplus::Color(c)};
         g->DrawString(t.c_str(), (INT)t.size(), &f, r, &sf, &b);
     };
@@ -3083,8 +3287,11 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     if (s.xWeather) {
         Sep();
         Header(L"天气");
-        std::wstring w = !ex.weather.empty() ? ex.weather
-                         : s.weatherCity.empty() ? L"在设置里填写城市" : ex.weatherErr ? L"获取失败，稍后重试" : L"获取中…";
+        std::wstring w;
+        if (!ex.weather.empty()) w = ex.weather;
+        else if (ex.weatherErr) w = L"获取失败，稍后重试";
+        else if (!s.weatherLocAuto && s.weatherCity.empty()) w = L"在设置里填写城市";
+        else w = L"获取中…";
         Text(w, fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
         y += D(22);
     }
@@ -3111,8 +3318,56 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     g_x.h = (int)y;
 }
 
+// Try DWM system backdrop / accent acrylic behind the top-level expand popup.
+// Works with UpdateLayeredWindow: DWM blurs whatever is behind, and our per-pixel
+// alpha decides how much shows through. Failures leave the translucent LookFor fill.
+#ifndef DWMWA_WINDOW_CORNER_PREFERENCE
+#define DWMWA_WINDOW_CORNER_PREFERENCE 33
+#endif
+#ifndef DWMWCP_ROUND
+#define DWMWCP_ROUND 2
+#endif
+#ifndef DWMWA_SYSTEMBACKDROP_TYPE
+#define DWMWA_SYSTEMBACKDROP_TYPE 38
+#endif
+#ifndef DWMSBT_TRANSIENTWINDOW
+#define DWMSBT_TRANSIENTWINDOW 3
+#endif
+
+static bool ApplyExpandBackdrop(HWND hwnd, bool light) {
+    if (!hwnd) return false;
+    bool any = false;
+    int corner = DWMWCP_ROUND;
+    if (SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner))))
+        any = true;
+    int backdrop = DWMSBT_TRANSIENTWINDOW;  // acrylic-like flyout material on Win11
+    if (SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop, sizeof(backdrop))))
+        any = true;
+
+    // Accent acrylic (same entry point shell surfaces use). Composes with ULW alpha.
+    using SetWCA = BOOL(WINAPI*)(HWND, void*);
+    static SetWCA setWca = []() -> SetWCA {
+        HMODULE u = GetModuleHandleW(L"user32.dll");
+        return u ? reinterpret_cast<SetWCA>(GetProcAddress(u, "SetWindowCompositionAttribute")) : nullptr;
+    }();
+    if (setWca) {
+        struct AccentPolicy { int state; DWORD flags; DWORD gradientColor; DWORD anim; };
+        struct WcaData { int attr; void* data; SIZE_T size; };
+        AccentPolicy policy{};
+        policy.state = 4;  // ACCENT_ENABLE_ACRYLICBLURBEHIND
+        // ABGR tint: light = soft white, dark = soft black; alpha = tint strength.
+        BYTE ta = 0x66;
+        DWORD rgb = light ? 0x00F7F7F7u : 0x00202024u;
+        policy.gradientColor = ((DWORD)ta << 24) | rgb;
+        WcaData data{19 /* WCA_ACCENT_POLICY */, &policy, sizeof(policy)};
+        if (setWca(hwnd, &data)) any = true;
+    }
+    return any;
+}
+
 static void ExpandRender() {
     if (!g_x.hwnd) return;
+    const Settings& s = GetSettings();
     const int dpi = (int)GetDpiForWindow(g_x.bar ? g_x.bar : g_x.hwnd);
     RefreshEnv(false);
     const bool light = g_env.lightTaskbar;
@@ -3138,7 +3393,18 @@ static void ExpandRender() {
             const Gdiplus::REAL top = (Gdiplus::REAL)(H - shownH);
             Gdiplus::RectF card(0, top, (Gdiplus::REAL)W, (Gdiplus::REAL)shownH);
             Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
-            FillRound(g, light ? 0xF2F7F7F7 : 0xF0202024, card, rad);
+            // Same look as the mini panel. panelBackground=none still gets a subtle
+            // tint so text stays readable on a fully transparent taskbar.
+            PanelLook look = LookFor(s.panelBg, s.panelGlass, light);
+            Gdiplus::ARGB fill = look.fill;
+            if (!fill) fill = light ? 0x66F7F7F7 : 0x66141414;
+            FillRound(g, fill, card, rad);
+            if (look.edge) {
+                Gdiplus::GraphicsPath edge;
+                RoundRectPath(edge, card.X, card.Y, card.Width, card.Height, rad);
+                Gdiplus::Pen pen(Gdiplus::Color(look.edge), 1.0f);
+                g.DrawPath(&pen, &edge);
+            }
             Gdiplus::GraphicsPath clip;
             RoundRectPath(clip, card.X, card.Y, card.Width, card.Height, rad);
             g.SetClip(&clip);
@@ -3178,6 +3444,7 @@ static void ExpandClose(bool immediate) {
 
 static void ExpandOpen(HWND bar) {
     const Settings& s = GetSettings();
+    PruneRelayFiles();
     if (g_x.hwnd && g_x.bar == bar && g_x.target > 0.5) {  // click again collapses
         ExpandClose(false);
         return;
@@ -3205,6 +3472,7 @@ static void ExpandOpen(HWND bar) {
             Wh_Log(L"[expand] CreateWindowEx failed %u", GetLastError());
             return;
         }
+        ApplyExpandBackdrop(g_x.hwnd, g_env.lightTaskbar);
         g_x.p = g_x.v = 0;
     }
     g_x.bar = bar;
@@ -3356,7 +3624,7 @@ static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 else if (hit == XPlay) PostMediaCmd(MediaCmd::PlayPause);
                 else if (hit == XNext) PostMediaCmd(MediaCmd::Next);
                 else if (hit == XOpen) { PostMediaCmd(MediaCmd::OpenPlayer); ExpandClose(false); return 0; }
-                else if (hit == XClear) { std::lock_guard<std::mutex> lk(g_filesLock); g_files.clear(); }
+                else if (hit == XClear) { ClearRelayFiles(); }
                 else if (hit == XFile) {
                     auto files = GetRelayFiles();  // click opens the file's folder with it selected
                     if (idx >= 0 && idx < (int)files.size()) {
@@ -3828,7 +4096,7 @@ static void UiThread() {
 static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread, g_extrasThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.5.0 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.5.1 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
