@@ -217,7 +217,11 @@ $globalExcludeList = @(
     "vgc.exe", "vgtray.exe", "VALORANT.exe", "VALORANT-Win64-Shipping.exe",
     "EasyAntiCheat.exe", "EasyAntiCheat_EOS.exe", "BEService.exe", "BEService_x64.exe",
     "YuanShen.exe", "GenshinImpact.exe", "StarRail.exe", "ZenlessZoneZero.exe", "HYP.exe",
-    "HoYoPlay.exe", "steam.exe", "steamwebhelper.exe", "EpicGamesLauncher.exe"
+    "HoYoPlay.exe", "steam.exe", "steamwebhelper.exe", "EpicGamesLauncher.exe",
+    # Wildcards (Windhawk Engine Exclude supports *): cover arbitrary UE/ACE processes
+    "*-Win64-Shipping.exe", "*-Win32-Shipping.exe", "*-WinGDK-Shipping.exe",
+    "ACE-*.exe", "EasyAntiCheat*.exe", "BEClient*.exe", "BEService*.exe",
+    "SGuard*.exe", "TenSafe*.exe", "UnityCrashHandler*.exe", "UnityPlayer.exe"
 )
 
 # Engine process lists (HKLM\SOFTWARE\Windhawk\Engine\Settings, the same values
@@ -575,6 +579,7 @@ foreach ($file in $files) {
             "window_switch.switch_animation"        = 0
             "window_switch.duration_ms"             = 200
             "diagnostics.performance_telemetry"     = 0
+            "skip_games"                            = 1
         }
         foreach ($key in $waDefaults.Keys) {
             Set-RegValueIfMissing $settingsPath $key $waDefaults[$key] DWord $label

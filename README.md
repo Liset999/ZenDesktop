@@ -135,7 +135,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 11 种关闭动画：方块碎裂、灭霸响指、柏林溶解、赛博故障、复古电视等。
 - 12 种最小化／还原／启动动画：macOS 神奇效果、Windows 10、墨水飞溅、弹性弹出等。
 - 每组可单独开关、选样式和时长，也可以每次随机。
-- 可按进程名排除指定程序，常见游戏和反作弊程序已默认排除。
+- 可按进程名排除指定程序；默认开启「跳过游戏与反作弊窗口」（1.6.4）：通配符排除 `*-Win64-Shipping.exe` / `ACE-*.exe` 等，并且**在资源管理器里**也不会对游戏窗口做 Cloak / PrintWindow（只排除游戏进程注入挡不住 UE4 崩溃）。
 - **可选 mod**，默认关闭。原作者 ReDrag（Windows Animations，MIT），macOS 神奇效果来自 Abdullah Masood 的 macOS Minimize Animation。以前装过独立的「macOS 神奇效果最小化动画」请关掉，否则会播两次。
 
 ### ZenDesktop: 桌面小组件
@@ -277,6 +277,8 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **快捷设置（Win+A）没变透明**：24H2 起它在 `ShellHost.exe` 里，确认 Windhawk 高级设置的包含列表里有它，或重新运行一次 `deploy.bat`。
 - **果冻窗口没效果**：打开后需要重启电脑；确认 Windhawk 进程包含列表里有 `dwm.exe`。
 - **最小化动画播了两次**：关掉独立的「macOS 神奇效果最小化动画」，只留「窗口动画」。
+- **装了 ACE / WeGame 反作弊蓝屏或资源管理器崩溃**：ZenDesktop 的核心美化跑在 `explorer.exe` 里，内核级 ACE 会扫描注入；窗口动画 1.6.4 起默认不再对游戏窗口 Cloak/PrintWindow，也排除游戏/ACE 进程，但**挡不住 ACE 扫 explorer 本身**。打带 ACE 的游戏前请先在 Windhawk 里关掉 ZenDesktop（或退出 Windhawk）；若你改过某个 mod 的进程包含/排除，头文件默认排除不会生效，需自己补上。
+- **开/关窗口时 UE4 游戏崩溃**：多半是窗口动画在资源管理器侧对游戏窗口做了 Cloak/截图。升级到窗口动画 1.6.4+ 并保持「跳过游戏与反作弊窗口」开启；仍崩就把该游戏 exe 加进「排除的程序」，或暂时关掉窗口动画。
 
 - **窗口动画在哪**：可选 Mod **「ZenDesktop: 窗口动画」**（`local@windows-animations`），deploy 已拷贝且**默认关**；在 Windhawk「已安装的 Mod」里打开并编译即可（含关闭/最小化/Alt+Tab 与 macOS 神奇效果）。
 

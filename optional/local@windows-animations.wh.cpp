@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.3
+// @version         1.6.4
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -54,6 +54,17 @@
 // @exclude         steam.exe
 // @exclude         steamwebhelper.exe
 // @exclude         EpicGamesLauncher.exe
+// @exclude         *-Win64-Shipping.exe
+// @exclude         *-Win32-Shipping.exe
+// @exclude         *-WinGDK-Shipping.exe
+// @exclude         ACE-*.exe
+// @exclude         EasyAntiCheat*.exe
+// @exclude         BEClient*.exe
+// @exclude         BEService*.exe
+// @exclude         SGuard*.exe
+// @exclude         TenSafe*.exe
+// @exclude         UnityCrashHandler*.exe
+// @exclude         UnityPlayer.exe
 // @license         MIT
 // @compilerOptions -ladvapi32 -ld2d1 -ld3d11 -ldcomp -ldwmapi -ldxgi -lgdi32 -lole32 -loleaut32 -lshell32 -luuid -luser32
 // ==/WindhawkMod==
@@ -95,7 +106,8 @@
 
 ## 兼容性与已知问题
 
-- 本 mod 全局注入（`@include *`），已排除常见游戏、反作弊程序和系统外壳进程。
+- 本 mod 全局注入（`@include *`）。Windhawk 头里用精确进程名 + 通配符（如 `*-Win64-Shipping.exe`、`ACE-*.exe`）排除常见游戏和反作弊；**资源管理器进程里**还会按目标窗口所属进程再跳过一遍（Cloak / PrintWindow 不会打到 UE/Unity/反作弊窗口）。若你在 Windhawk「高级设置」里自定义了该 mod 的进程包含/排除，头文件里的 `@exclude` 不会生效，请自己补上或保持默认。
+- 默认开启「跳过游戏与反作弊窗口」。内核级 ACE 仍可能扫描 `explorer.exe` 本身（任务栏等核心 mod 也在那里），排除游戏窗口挡不住蓝屏；若装了 ACE 仍不稳定，打游戏前请先关掉 ZenDesktop / Windhawk。
 - 部分受保护或由系统承载的窗口（设置的部分页面、Microsoft Store、Windows 外壳界面）使用系统原生过渡，不会播放动画。
 - Chrome、Edge、Discord、Windhawk 等点关闭只隐藏窗口的应用，需要开启「隐藏到托盘时也播放」才有关闭动画（默认已开启）。
 - 服务、任务计划程序、事件查看器等 `mmc.exe` 管理单元已排除。
@@ -104,6 +116,7 @@
 
 ## 更新日志
 
+- **1.6.4**：跳过游戏/反作弊窗口（默认开）：通配符 `@exclude`；资源管理器侧按目标进程/模块/无屏边框跳过，避免对外进程游戏窗口 Cloak/PrintWindow 导致 UE4 崩溃；可在设置里关「跳过游戏与反作弊窗口」或用「排除的程序」追加进程名。
 - **1.6.3**：按用户要求移除「零雾开窗」（设置项、覆盖层实现与相关钩子一并删除）；资源管理器 / 设置开窗仍可用本组「启用启动动画」。
 - **1.6.2**：曾修复零雾开窗编译（`IsOurWindow` 前移；功能已在 1.6.3 移除）。
 - **1.6.1**：性能：进程名按 PID 二级缓存，减少重复 OpenProcess。
@@ -380,11 +393,17 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
   $description:zh-CN: "使用 Alt+Tab 切换窗口时播放的动画。"
 
 
+- skip_games: true
+  $name: "Skip games and anti-cheat windows"
+  $name:zh-CN: "跳过游戏与反作弊窗口"
+  $description: "Do not animate (or cloak / PrintWindow) Unreal/Unity games, borderless fullscreen game windows, or windows owned by anti-cheat-protected processes — including when this mod runs inside Explorer and the game itself is not injected. Default: on."
+  $description:zh-CN: "不对 Unreal/Unity 游戏、无屏无边框游戏窗口、以及受反作弊保护的进程窗口播放动画（也不对它们 Cloak / PrintWindow）。本 mod 跑在资源管理器里、游戏进程并未注入时同样生效。默认开启。"
+
 - excluded_programs: [""]
   $name: "Excluded programs"
   $name:zh-CN: "排除的程序"
-  $description: "Windows of these processes get no animations at all. One process name per line, for example WindowsTerminal.exe; the .exe suffix is optional. Matched by the window owner, so it also works when Explorer triggers the animation."
-  $description:zh-CN: "这些程序的窗口不播放任何动画。每行一个进程名，例如 WindowsTerminal.exe，可省略 .exe。按窗口所属进程匹配，因此由任务栏触发的动画也会被排除。"
+  $description: "Windows of these processes get no animations at all. One process name per line, for example WindowsTerminal.exe; the .exe suffix is optional. Matched by the window owner, so it also works when Explorer triggers the animation. Game/anti-cheat skips above are separate."
+  $description:zh-CN: "这些程序的窗口不播放任何动画。每行一个进程名，例如 WindowsTerminal.exe，可省略 .exe。按窗口所属进程匹配，因此由任务栏触发的动画也会被排除。与上方的游戏/反作弊跳过相互独立。"
 - diagnostics:
   - performance_telemetry: false
     $name: "Log performance telemetry"
@@ -403,6 +422,7 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
 #endif
 #include <windows.h>
 #include <tlhelp32.h>
+#include "zen-game-guard.h"
 #include <d2d1.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -895,6 +915,7 @@ std::atomic<int> g_genieTileCount{35};
 std::mutex g_ExcludedProgramsMutex;
 std::vector<std::wstring> g_ExcludedPrograms;  // normalized, see below
 std::atomic<bool> g_hasExcludedPrograms{false};
+std::atomic<bool> g_skipGames{true};
 
 // ZenDesktop: effect registry. The numeric indices are stable: shuffle bags,
 // the GPU pipeline map (RequiredGpuPipelines), the minimize/restore pair token
@@ -2819,6 +2840,10 @@ void LoadAnimSettings() {
         getBool(L"diagnostics.performance_telemetry", false),
         std::memory_order_relaxed);
     LoadExcludedPrograms();
+    // Default ON. Missing key reads as 0 in Windhawk; deploy seeds skip_games=1
+    // on upgrade. Unseeded installs (no effect_style written) also keep ON.
+    g_skipGames.store(unseeded ? true : (Wh_GetIntSetting(L"skip_games") != 0),
+                      std::memory_order_relaxed);
     // Keep the existing key so users retain their preference across this
     // change from a single custom leader to an entirely native batch.
     const bool nativeShowDesktopAnimations =
@@ -3490,15 +3515,30 @@ std::wstring GetProcessNameCached(HWND hWnd) {
     }
     return procNameLower;
 }
-// ZenDesktop: true if the process that owns hWnd is on the "Excluded
-// programs" list. Checked at each animation entry point (not inside the
-// generic window filters, which also drive GPU and lifetime bookkeeping).
+// ZenDesktop: true if this window must not be animated / cloaked /
+// PrintWindow'd. Covers the user "Excluded programs" list and (by default)
+// game / anti-cheat targets — including foreign HWNDs observed from Explorer.
+// Checked at each animation entry point (not inside the generic window
+// filters, which also drive GPU and lifetime bookkeeping).
 static bool IsUserExcludedWindow(HWND hWnd) {
-    if (!hWnd || !g_hasExcludedPrograms.load(std::memory_order_relaxed)) {
+    if (!hWnd) return false;
+    // Game / AC / borderless-fullscreen / OpenProcess-denied: must run even
+    // when the excluded_programs list is empty. This is the explorer-side fix
+    // for UE4 crashes when the game process itself is not injected.
+    if (ZenGameGuard::ShouldSkipTargetWindow(
+            hWnd, g_skipGames.load(std::memory_order_relaxed))) {
+        return true;
+    }
+    if (!g_hasExcludedPrograms.load(std::memory_order_relaxed)) {
         return false;
     }
     const std::wstring name = GetProcessNameCached(hWnd);
     if (name.empty()) return false;
+    // Stem-based Unreal match as a cheap extra (name already normalized).
+    if (g_skipGames.load(std::memory_order_relaxed) &&
+        ZenGameGuard::NormalizedStemLooksLikeUnrealShipping(name.c_str())) {
+        return true;
+    }
     std::lock_guard<std::mutex> lock(g_ExcludedProgramsMutex);
     return std::find(g_ExcludedPrograms.begin(), g_ExcludedPrograms.end(),
                      name) != g_ExcludedPrograms.end();
@@ -15298,6 +15338,27 @@ BOOL Wh_ModInit() {
     if (IsNonInteractiveSessionProcess() ||
         IsNonWindowHostingHelperProcess()) {
         return FALSE;
+    }
+    // Never install hooks inside anti-cheat helper processes. Game engines are
+    // skipped when skip_games is on (default); read the raw setting here so we
+    // can bail before LoadAnimSettings / shared-state work.
+    if (ZenGameGuard::ShouldHardRefuseInjection()) {
+        Wh_Log(L"[zen-game-guard] refuse init: anti-cheat process/module");
+        return FALSE;
+    }
+    {
+        // Mirror LoadAnimSettings default: unseeded → skip games ON.
+        const auto style =
+            WindhawkUtils::StringSetting::make(L"close.effect_style");
+        const PCWSTR styleValue = style;
+        const bool unseeded = !styleValue || !*styleValue;
+        const bool skipGames =
+            unseeded ? true : (Wh_GetIntSetting(L"skip_games") != 0);
+        g_skipGames.store(skipGames, std::memory_order_relaxed);
+        if (skipGames && ZenGameGuard::ShouldSkipAsGameProcess()) {
+            Wh_Log(L"[zen-game-guard] refuse init: game process (skip_games)");
+            return FALSE;
+        }
     }
     LoadAnimSettings();
     if (!g_minimizeAnimation.load(std::memory_order_relaxed) &&
