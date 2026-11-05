@@ -4,13 +4,13 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.4.8
+// @version         0.5.0
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @include         explorer.exe
 // @architecture    x86-64
-// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32 -luuid
+// @compilerOptions -lwinhttp -lruntimeobject -lgdiplus -lole32 -loleaut32 -lshell32 -lshlwapi -luser32 -lgdi32 -ladvapi32 -ldwmapi -lcomctl32 -luuid -lpdh -liphlpapi
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -30,7 +30,13 @@
 - 专辑封面：来自系统媒体会话，播放器提供才有。
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
-- 点封面或文字可以把播放器切到前台（可在设置里关掉）。
+- **歌词展开面板**（0.5.0）：单击封面或文字，在歌词条上方弹出展开面板（带弹性动画）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关：
+  - 播放控制：封面、歌名歌手、进度条、上一首／播放暂停／下一首、「打开播放器」按钮。
+  - AI 状态：和歌词条同一份数据（状态文件、钩子、MCP、进程名），逐个列出助手、状态、项目和说明。
+  - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。
+  - 天气：当前气温和天气（open-meteo.com，不需要密钥），可设城市和刷新间隔；后台线程获取并缓存，不卡任务栏。默认关闭。
+  - 资源占用：CPU、内存、GPU、网络上下行，只在面板展开时采样。
+- 想要旧行为（点击切到播放器）可在「点封面或文字」里选「打开播放器」，或选「不响应」。
 - 没在放歌时默认显示「未在播放」，也可改成隐藏。全屏游戏、视频、PPT 时默认不隐藏，可在设置里开启。
 - 文字颜色默认跟随系统深浅色（浅色模式用深色字），可选的颜色和其他 ZenDesktop mod 一样。
 - 位置：任务栏图标居中时放在最左边；图标靠左时自动挪到托盘左边（和系统小组件按钮的规则一样），不会压住开始按钮。
@@ -152,6 +158,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.5.0**：新增「歌词展开面板」：单击歌词条展开（弹性动画、点外面或闲置自动收起、不抢焦点），含播放控制、AI 状态详情、文件中转（拖到歌词条暂存，可再拖出）、天气（open-meteo）、资源占用（仅展开时采样）五个可单独开关的板块。「点封面或文字」新增「展开面板」并设为默认。
 - **0.4.8**：性能：PID→进程名缓存、任务栏 HWND 短缓存、设置快照按代际复用。
 - **0.4.7**：说明里写明支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **0.4.6**：微信赞赏链接改为指向 `main` 分支。
@@ -233,12 +240,13 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
   - translation: 只显示翻译
   - info: 歌名和歌手
   - none: 不显示，只要一行
-- clickAction: open
+- clickAction: expand
   $name: Click on art or text
   $name:zh-CN: 点封面或文字
-  $description: Bring the playing app to the front, or let clicks pass through.
-  $description:zh-CN: 把正在播放的软件切到前台，或者不响应（点击穿透）。
+  $description: Expand opens the lyrics expand panel above the bar (playback, AI status, file relay, weather, resources). Open brings the playing app to the front. None lets clicks pass through.
+  $description:zh-CN: 「展开面板」在歌词条上方弹出歌词展开面板（播放控制、AI 状态、文件中转、天气、资源占用）；「打开播放器」把正在播放的软件切到前台（旧行为）；「不响应」为点击穿透。
   $options:
+  - expand: 展开面板
   - open: 打开播放器
   - none: 不响应
 - textColorMode: default
@@ -359,9 +367,60 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
   $name:zh-CN: 按进程名显示
   $description: For tools without hooks. Comma separated process names, for example Antigravity.exe, gemini.exe, aider.exe. Shows Running while the process exists. Skipped when that agent already writes a status file (hooks / MCP). Clear it to turn off.
   $description:zh-CN: 给没有钩子的工具用。填进程名，用逗号分隔，例如 Antigravity.exe, gemini.exe, aider.exe。进程在运行时显示「运行中」。这个助手已经用钩子或 MCP 汇报状态时不会重复显示。清空即可关闭。
+- expandPanel:
+  - width: normal
+    $name: Panel width
+    $name:zh-CN: 面板宽度
+    $options:
+    - narrow: 窄（300）
+    - normal: 标准（360）
+    - wide: 宽（440）
+  - autoCollapseSeconds: 8
+    $name: Auto collapse after (seconds)
+    $name:zh-CN: 闲置几秒后自动收起
+    $description: The panel collapses when the mouse has been away this long. 0 = only on click.
+    $description:zh-CN: 鼠标离开面板超过这个秒数就自动收起。填 0 表示只在点击时收起。
+  - media: true
+    $name: Section - Playback
+    $name:zh-CN: 板块：播放控制
+    $description: Cover, title/artist, progress, previous/play/next and an Open player button.
+    $description:zh-CN: 封面、歌名歌手、进度、上一首／播放暂停／下一首，以及「打开播放器」按钮。
+  - ai: true
+    $name: Section - AI status
+    $name:zh-CN: 板块：AI 状态
+    $description: Same data as the bar (status files, hooks, MCP, process names), listed with details.
+    $description:zh-CN: 和歌词条用同一份数据（状态文件、钩子、MCP、进程名），在这里逐个列出详情。
+  - files: true
+    $name: Section - File relay
+    $name:zh-CN: 板块：文件中转
+    $description: Drop files on the collapsed bar to park them here (only the paths are kept, nothing is copied), then drag them out to any app.
+    $description:zh-CN: 把文件拖到收起状态的歌词条上暂存（只记路径，不复制文件），之后可从面板里拖到任意软件。
+  - weather: false
+    $name: Section - Weather
+    $name:zh-CN: 板块：天气
+    $description: Current temperature and condition from open-meteo.com (no key). Needs a city below.
+    $description:zh-CN: 当前气温和天气，来自 open-meteo.com（不需要密钥）。需要在下面填城市。
+  - weatherCity: ""
+    $name: Weather city
+    $name:zh-CN: 天气城市
+    $description: For example 上海 or Beijing.
+    $description:zh-CN: 例如「上海」或 Beijing。
+  - weatherRefreshMinutes: 30
+    $name: Weather refresh (minutes)
+    $name:zh-CN: 天气刷新间隔（分钟）
+  - resources: true
+    $name: Section - Resources
+    $name:zh-CN: 板块：资源占用
+    $description: CPU, memory, GPU and network up/down. Sampled only while the panel is open.
+    $description:zh-CN: CPU、内存、GPU、网络上下行。只在面板展开时采样，收起后不占资源。
+  $name: Lyrics expand panel
+  $name:zh-CN: 歌词展开面板
+  $description: Used when Click on art or text is Expand.
+  $description:zh-CN: 「点封面或文字」选「展开面板」时使用。
 */
 // ==/WindhawkModSettings==
 
+#include <winsock2.h>  // before windows.h: netioapi (GetIfTable2) needs the v2 socket types
 #include <windows.h>
 #include <initguid.h>
 #include <knownfolders.h>
@@ -374,6 +433,11 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 #include <dwmapi.h>
 #include <tlhelp32.h>
 #include <commctrl.h>
+#include <ole2.h>
+#include <pdh.h>
+#include <pdhmsg.h>
+#include <netioapi.h>
+#include <iphlpapi.h>
 
 #include <windhawk_utils.h>
 
@@ -388,6 +452,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 #include <atomic>
 #include <chrono>
 #include <climits>
+#include <cmath>
 #include <condition_variable>
 #include <cstring>
 #include <cwctype>
@@ -420,6 +485,12 @@ struct Settings {
     SecondLine secondLine = SecondLine::Auto;
     bool showIdle = true;
     bool clickOpens = true;
+    bool clickExpands = true;      // 歌词展开面板
+    int expandWidth = 360;
+    int expandAutoCollapseSec = 8;
+    bool xMedia = true, xAi = true, xFiles = true, xWeather = false, xRes = true;
+    std::wstring weatherCity;
+    int weatherRefreshMin = 30;
     std::wstring textColorMode = L"default";
     PanelBg panelBg = PanelBg::None;
     std::wstring font = L"Microsoft YaHei UI";
@@ -473,7 +544,24 @@ static void LoadSettings() {
             std::wstring wi = GetStr(L"whenIdle");
             s.showIdle = wi != L"hide";  // default show; empty/unknown => show
         }
-        s.clickOpens = GetStr(L"clickAction") != L"none";
+        {
+            std::wstring ca = GetStr(L"clickAction");
+            s.clickExpands = ca.empty() || ca == L"expand";
+            s.clickOpens = ca != L"none";  // body is clickable for open and expand
+        }
+        {
+            std::wstring w = GetStr(L"expandPanel.width");
+            s.expandWidth = w == L"narrow" ? 300 : w == L"wide" ? 440 : 360;
+            s.expandAutoCollapseSec = std::clamp(Wh_GetIntSetting(L"expandPanel.autoCollapseSeconds"), 0, 600);
+            s.xMedia = Wh_GetIntSetting(L"expandPanel.media") != 0;
+            s.xAi = Wh_GetIntSetting(L"expandPanel.ai") != 0;
+            s.xFiles = Wh_GetIntSetting(L"expandPanel.files") != 0;
+            s.xWeather = Wh_GetIntSetting(L"expandPanel.weather") != 0;
+            s.xRes = Wh_GetIntSetting(L"expandPanel.resources") != 0;
+            s.weatherCity = GetStr(L"expandPanel.weatherCity");
+            int rm = Wh_GetIntSetting(L"expandPanel.weatherRefreshMinutes");
+            s.weatherRefreshMin = rm > 0 ? std::clamp(rm, 5, 1440) : 30;
+        }
         s.textColorMode = GetStr(L"textColorMode");
         if (s.textColorMode.empty()) s.textColorMode = L"default";
         std::wstring bg = GetStr(L"panelBackground");
@@ -1200,6 +1288,7 @@ struct PlaybackState {
     std::shared_ptr<const Lyrics> lyrics;  // null = none/pending
     std::shared_ptr<const std::vector<BYTE>> thumb;  // encoded image bytes (PNG/JPEG), null = none
     unsigned thumbVersion = 0;     // bumped whenever thumb changes
+    long long durationMs = 0;      // EndTime - StartTime, 0 = unknown
 };
 static std::mutex g_stateLock;
 static PlaybackState g_state;
@@ -1514,6 +1603,7 @@ static void MediaThread() {
                     g_state.title = title;
                     g_state.artist = artist;
                     g_state.sourceApp = app;
+                    g_state.durationMs = durMs > 0 ? durMs : 0;
                     g_state.canPrev = ctl.IsPreviousEnabled();
                     g_state.canNext = ctl.IsNextEnabled();
                     g_state.canPlayPause = ctl.IsPlayPauseToggleEnabled() || ctl.IsPlayEnabled() || ctl.IsPauseEnabled();
@@ -2154,6 +2244,7 @@ struct UiState {
     int posX = INT_MIN, posY = INT_MIN;  // last position, client coordinates of the taskbar
     ULONGLONG hideSince = 0;             // first tick a soft hide reason was seen (debounce)
     unsigned zFixes = 0;                 // times a taskbar child was found above the panel
+    bool dropHover = false;              // 文件中转: a file drag is over the bar
 };
 
 struct Panel {
@@ -2161,6 +2252,7 @@ struct Panel {
     HWND tray = nullptr;
     bool secondary = false;
     bool subclassed = false;
+    bool oleInit = false, dropRegistered = false;
     UiState ui;
     std::wstring lastWhy;  // last hide reason / "shown" key, so the log only records changes
 };
@@ -2389,6 +2481,13 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     for (int i = 0; i < 3; ++i)
         if (panel.ui.hitEnabled[i]) FillRound(g, 0x01000000, ToRectF(L.btnRc[i]), (Gdiplus::REAL)D(6));
 
+    if (panel.ui.dropHover) {
+        FillRound(g, WithAlpha(L.text, 0x30), panelRc, rad);
+        Gdiplus::GraphicsPath dp;
+        RoundRectPath(dp, panelRc.X + 1, panelRc.Y + 1, panelRc.Width - 2, panelRc.Height - 2, rad);
+        Gdiplus::Pen pen(Gdiplus::Color(WithAlpha(L.text, 0xC0)), (Gdiplus::REAL)D(1.5));
+        g.DrawPath(&pen, &dp);
+    }
     if (panel.ui.hover != HitNone) {
         bool bare = s.panelBg == PanelBg::None;  // only a faint highlight while hovered
         bool down = panel.ui.pressed == panel.ui.hover;
@@ -2458,7 +2557,7 @@ static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
            (L.content.canPlayPause ? L"1" : L"0") + std::to_wstring(L.content.thumbVersion) +
            (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") + (L.bodyClickable ? L"C" : L"c") +
            std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
-           (s.bold ? L"B" : L"b") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
+           (s.bold ? L"B" : L"b") + (panel.ui.dropHover ? L"H" : L"h") + L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
 }
 
 // Keep the panel the top child of the taskbar (above the XAML island). Only acts when
@@ -2587,6 +2686,755 @@ static void RenderPanel(Panel& panel, bool force = false) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 歌词展开面板 (0.5.0). Single click on the collapsed bar opens a popup above it with
+// sections: playback, AI status (same data as the bar, listed in detail), 文件中转
+// (paths dropped on the collapsed bar), 天气, 资源占用. It never takes focus
+// (WS_EX_NOACTIVATE + MA_NOACTIVATE), has no text input, and runs on the taskbar
+// thread like the bar. Network and counters run on g_extrasThread, never here.
+// The section list is data-driven so later sections can be added the same way.
+// ─────────────────────────────────────────────────────────────────────────────
+static const wchar_t kExpandClass[] = L"ZenTaskbarLyricsExpand";
+static constexpr UINT_PTR TIMER_ANIM = 11;
+static constexpr UINT_PTR TIMER_WATCH = 12;
+static std::atomic<bool> g_expandedAny{false};  // read by the extras thread (sampling gate)
+
+// ── 文件中转: paths only, never copies ──────────────────────────────────────
+static std::mutex g_filesLock;
+static std::vector<std::wstring> g_files;
+static void AddRelayFiles(const std::vector<std::wstring>& add) {
+    std::lock_guard<std::mutex> lk(g_filesLock);
+    for (auto& p : add) {
+        if (std::find(g_files.begin(), g_files.end(), p) != g_files.end()) continue;
+        g_files.insert(g_files.begin(), p);
+    }
+    if (g_files.size() > 30) g_files.resize(30);
+}
+static std::vector<std::wstring> GetRelayFiles() {
+    std::lock_guard<std::mutex> lk(g_filesLock);
+    return g_files;
+}
+
+// ── 天气 (open-meteo, no key) and 资源占用 ──────────────────────────────────
+struct Extras {
+    std::wstring weather;  // "上海 23°C 多云", empty = none yet
+    bool weatherErr = false;
+    float cpu = 0, mem = 0, gpu = 0;
+    bool gpuKnown = false, resKnown = false;
+    double down = 0, up = 0;
+};
+static std::mutex g_extrasLock;
+static Extras g_extras;
+
+static const wchar_t* WmoText(int c) {
+    if (c == 0) return L"晴";
+    if (c <= 2) return L"多云";
+    if (c == 3) return L"阴";
+    if (c == 45 || c == 48) return L"雾";
+    if (c >= 51 && c <= 57) return L"毛毛雨";
+    if (c >= 61 && c <= 67) return L"雨";
+    if (c >= 71 && c <= 77) return L"雪";
+    if (c >= 80 && c <= 82) return L"阵雨";
+    if (c >= 85 && c <= 86) return L"阵雪";
+    if (c >= 95) return L"雷雨";
+    return L"";
+}
+
+static std::wstring FetchWeather(const std::wstring& city, std::wstring& cacheCity, std::string& lat, std::string& lon) {
+    if (cacheCity != city || lat.empty()) {
+        JValue g;
+        if (!HttpGetJson(L"geocoding-api.open-meteo.com",
+                         L"/v1/search?count=1&language=zh&format=json&name=" + UrlEncode(city), g))
+            return {};
+        const JValue& r = g["results"].at(0);
+        lat = r["latitude"].str();
+        lon = r["longitude"].str();
+        if (lat.empty() || lon.empty()) return {};
+        cacheCity = city;
+    }
+    JValue w;
+    if (!HttpGetJson(L"api.open-meteo.com",
+                     L"/v1/forecast?current=temperature_2m,weather_code&latitude=" + FromUtf8(lat) +
+                         L"&longitude=" + FromUtf8(lon), w))
+        return {};
+    const JValue& cur = w["current"];
+    std::string t = cur["temperature_2m"].str();
+    if (t.empty()) return {};
+    double tv = strtod(t.c_str(), nullptr);
+    wchar_t buf[96];
+    swprintf_s(buf, L"%s  %.0f°C  %s", city.c_str(), tv, WmoText((int)cur["weather_code"].num()));
+    return buf;
+}
+
+// Resource sampling, same approach as the desktop widgets mod (GetSystemTimes,
+// GlobalMemoryStatusEx, PDH "GPU Engine" 3D utilization, GetIfTable2 deltas).
+struct ResSampler {
+    ULONGLONG prevIdle = 0, prevTotal = 0;
+    PDH_HQUERY q = nullptr;
+    PDH_HCOUNTER c = nullptr;
+    bool gpuTried = false;
+    ULONGLONG netIn = 0, netOut = 0, netTick = 0;
+    bool netHave = false;
+    static ULONGLONG Ft(const FILETIME& f) { return ((ULONGLONG)f.dwHighDateTime << 32) | f.dwLowDateTime; }
+    void Close() {
+        if (q) PdhCloseQuery(q);
+        q = nullptr;
+        c = nullptr;
+        gpuTried = false;
+        netHave = false;
+        prevTotal = 0;
+    }
+    void Sample(Extras& e) {
+        FILETIME idle, kernel, user;
+        if (GetSystemTimes(&idle, &kernel, &user)) {
+            ULONGLONG i = Ft(idle), total = Ft(kernel) + Ft(user);
+            if (prevTotal && total > prevTotal) {
+                double busy = 1.0 - (double)(i - prevIdle) / (double)(total - prevTotal);
+                e.cpu = (float)std::clamp(busy * 100.0, 0.0, 100.0);
+                e.resKnown = true;
+            }
+            prevIdle = i;
+            prevTotal = total;
+        }
+        MEMORYSTATUSEX ms{};
+        ms.dwLength = sizeof(ms);
+        if (GlobalMemoryStatusEx(&ms)) e.mem = (float)ms.dwMemoryLoad;
+        if (!gpuTried) {
+            gpuTried = true;
+            if (PdhOpenQuery(nullptr, 0, &q) != ERROR_SUCCESS) q = nullptr;
+            else if (PdhAddEnglishCounterW(q, L"\\GPU Engine(*)\\Utilization Percentage", 0, &c) != ERROR_SUCCESS) {
+                PdhCloseQuery(q);
+                q = nullptr;
+            }
+        }
+        if (q && PdhCollectQueryData(q) == ERROR_SUCCESS) {
+            DWORD bytes = 0, count = 0;
+            if (PdhGetFormattedCounterArrayW(c, PDH_FMT_DOUBLE, &bytes, &count, nullptr) == (PDH_STATUS)PDH_MORE_DATA && bytes) {
+                std::vector<unsigned char> buf(bytes);
+                auto* items = (PDH_FMT_COUNTERVALUE_ITEM_W*)buf.data();
+                if (PdhGetFormattedCounterArrayW(c, PDH_FMT_DOUBLE, &bytes, &count, items) == ERROR_SUCCESS) {
+                    double best3d = -1, bestAny = -1;
+                    for (DWORD k = 0; k < count; k++) {
+                        if (items[k].FmtValue.CStatus != ERROR_SUCCESS) continue;
+                        double v = items[k].FmtValue.doubleValue;
+                        if (v > bestAny) bestAny = v;
+                        if (items[k].szName && wcsstr(items[k].szName, L"engtype_3D") && v > best3d) best3d = v;
+                    }
+                    double pick = best3d >= 0 ? best3d : bestAny;
+                    if (pick >= 0) { e.gpu = (float)std::min(pick, 100.0); e.gpuKnown = true; }
+                }
+            }
+        }
+        PMIB_IF_TABLE2 table = nullptr;
+        if (GetIfTable2(&table) == NO_ERROR && table) {
+            ULONGLONG inB = 0, outB = 0;
+            for (ULONG k = 0; k < table->NumEntries; k++) {
+                const MIB_IF_ROW2& row = table->Table[k];
+                if (row.Type == IF_TYPE_SOFTWARE_LOOPBACK || row.Type == IF_TYPE_TUNNEL) continue;
+                if (!row.InterfaceAndOperStatusFlags.HardwareInterface || row.OperStatus != IfOperStatusUp) continue;
+                inB += row.InOctets;
+                outB += row.OutOctets;
+            }
+            ULONGLONG now = GetTickCount64();
+            if (netHave && now > netTick) {
+                double dt = (double)(now - netTick) / 1000.0;
+                if (inB >= netIn) e.down = (double)(inB - netIn) / dt;
+                if (outB >= netOut) e.up = (double)(outB - netOut) / dt;
+            }
+            netIn = inB;
+            netOut = outB;
+            netTick = now;
+            netHave = true;
+        }
+        if (table) FreeMibTable(table);
+    }
+};
+
+static void ExtrasThread() {
+    ResSampler res;
+    std::wstring cacheCity;
+    std::string lat, lon;
+    ULONGLONG lastWeather = 0;
+    std::wstring lastCityWanted;
+    while (!g_stop) {
+        Settings s = GetSettings();
+        const bool expanded = g_expandedAny.load();
+        // 资源占用: only while a panel is open, so a collapsed bar costs nothing.
+        if (s.xRes && expanded) {
+            Extras e;
+            { std::lock_guard<std::mutex> lk(g_extrasLock); e = g_extras; }
+            res.Sample(e);
+            std::lock_guard<std::mutex> lk(g_extrasLock);
+            g_extras.cpu = e.cpu; g_extras.mem = e.mem; g_extras.gpu = e.gpu; g_extras.gpuKnown = e.gpuKnown;
+            g_extras.down = e.down; g_extras.up = e.up; g_extras.resKnown = e.resKnown;
+        } else if (!expanded) {
+            res.Close();  // PDH query released while collapsed
+        }
+        // 天气: background, cached, refresh interval from settings (or city change).
+        ULONGLONG now = GetTickCount64();
+        if (s.xWeather && !s.weatherCity.empty() &&
+            (lastWeather == 0 || s.weatherCity != lastCityWanted ||
+             now - lastWeather >= (ULONGLONG)s.weatherRefreshMin * 60000ULL)) {
+            lastWeather = now;
+            lastCityWanted = s.weatherCity;
+            std::wstring w = FetchWeather(s.weatherCity, cacheCity, lat, lon);
+            std::lock_guard<std::mutex> lk(g_extrasLock);
+            if (!w.empty()) { g_extras.weather = w; g_extras.weatherErr = false; }
+            else g_extras.weatherErr = true;
+            Wh_Log(L"[weather] %s -> %s", s.weatherCity.c_str(), w.empty() ? L"(failed)" : w.c_str());
+        }
+        if (SleepOrStop(1000)) break;
+    }
+    res.Close();
+}
+
+static Extras GetExtras() {
+    std::lock_guard<std::mutex> lk(g_extrasLock);
+    return g_extras;
+}
+
+// ── Popup window state (taskbar thread only) ────────────────────────────────
+enum ExpandHit { XNone = -1, XPrev, XPlay, XNext, XOpen, XClear, XFile };
+struct XHit { RECT rc; int id; int index; };
+
+struct ExpandState {
+    HWND hwnd = nullptr;
+    HWND bar = nullptr;         // collapsed bar it belongs to
+    double p = 0, v = 0;        // spring position (0 closed .. 1 open) and velocity
+    double target = 0;
+    int w = 0, h = 0;           // full size in px
+    int anchorX = 0, anchorBottom = 0;
+    ULONGLONG lastInteract = 0;
+    bool lbuttonWasDown = false;
+    int hover = XNone, pressed = XNone, pressedIndex = -1;
+    POINT pressPt{};
+    std::vector<XHit> hits;
+    std::unique_ptr<Gdiplus::Bitmap> art;
+    unsigned artVersion = ~0u;
+};
+static ExpandState g_x;  // one popup at a time (the bar that was clicked)
+
+static std::wstring FmtRate(double bps) {
+    wchar_t b[32];
+    if (bps >= 1024.0 * 1024.0) swprintf_s(b, L"%.1f MB/s", bps / 1048576.0);
+    else swprintf_s(b, L"%.0f KB/s", bps / 1024.0);
+    return b;
+}
+static std::wstring FmtTime(long long ms) {
+    if (ms < 0) ms = 0;
+    wchar_t b[16];
+    swprintf_s(b, L"%lld:%02lld", ms / 60000, (ms / 1000) % 60);
+    return b;
+}
+
+// Builds the content and computes g_x.w / g_x.h; paints when g != nullptr.
+static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
+    const Settings& s = GetSettings();
+    auto D = [&](double v) { return (Gdiplus::REAL)(v * dpi / 96.0); };
+    const Gdiplus::ARGB text = light ? 0xFF1A1A1A : 0xFFFFFFFF;
+    const Gdiplus::ARGB dim = WithAlpha(text, 0xA0);
+    const Gdiplus::ARGB hoverFill = light ? 0x18000000 : 0x24FFFFFF;
+    const Gdiplus::REAL W = D(s.expandWidth), pad = D(14);
+    Gdiplus::REAL y = pad;
+    g_x.hits.clear();
+    Gdiplus::FontFamily fam(s.font.c_str());
+    Gdiplus::Font fTitle(&fam, D(14), Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
+    Gdiplus::Font fBody(&fam, D(12.5), Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::Font fSmall(&fam, D(11), Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+    Gdiplus::StringFormat sf(Gdiplus::StringFormatFlagsNoWrap);
+    sf.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
+    sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+    auto Text = [&](const std::wstring& t, const Gdiplus::Font& f, Gdiplus::ARGB c, Gdiplus::RectF r) {
+        if (!g || t.empty()) return;
+        Gdiplus::SolidBrush b{Gdiplus::Color(c)};
+        g->DrawString(t.c_str(), (INT)t.size(), &f, r, &sf, &b);
+    };
+    auto Header = [&](const wchar_t* t) {
+        Text(t, fSmall, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(18)));
+        y += D(20);
+    };
+    auto AddHit = [&](Gdiplus::RectF r, int id, int index) {
+        g_x.hits.push_back({RECT{(LONG)r.X, (LONG)r.Y, (LONG)(r.X + r.Width), (LONG)(r.Y + r.Height)}, id, index});
+        if (g && g_x.hover == id) FillRound(*g, hoverFill, r, D(6));
+    };
+    bool first = true;
+    auto Sep = [&] {
+        if (!first) {
+            if (g) FillRound(*g, WithAlpha(text, 0x20), Gdiplus::RectF(pad, y + D(4), W - 2 * pad, D(1)), 0);
+            y += D(10);
+        }
+        first = false;
+    };
+
+    // (a) playback
+    if (s.xMedia) {
+        PlaybackState st;
+        { std::lock_guard<std::mutex> lk(g_stateLock); st = g_state; st.lyrics = nullptr; }
+        Sep();
+        const Gdiplus::REAL art = D(72);
+        if (st.thumb && g && g_x.artVersion != st.thumbVersion) {
+            g_x.art = DecodeArt(*st.thumb, (int)art, D(10));
+            g_x.artVersion = st.thumbVersion;
+        }
+        if (g) {
+            if (g_x.art) g->DrawImage(g_x.art.get(), pad, y, art, art);
+            else FillRound(*g, WithAlpha(text, 0x18), Gdiplus::RectF(pad, y, art, art), D(10));
+        }
+        Gdiplus::REAL tx = pad + art + D(12), tw = W - tx - pad;
+        Text(st.hasSession ? st.title : std::wstring(L"未在播放"), fTitle, text, Gdiplus::RectF(tx, y, tw, D(22)));
+        Text(st.artist, fBody, dim, Gdiplus::RectF(tx, y + D(22), tw, D(18)));
+        // progress
+        long long pos = st.positionMs;
+        if (st.playing && st.sampledAtTick)
+            pos += (long long)((double)(GetTickCount64() - st.sampledAtTick) * st.rate);
+        if (st.durationMs > 0) {
+            pos = std::min(pos, st.durationMs);
+            Gdiplus::REAL by = y + D(46), bw = tw;
+            if (g) {
+                FillRound(*g, WithAlpha(text, 0x30), Gdiplus::RectF(tx, by, bw, D(4)), D(2));
+                FillRound(*g, text, Gdiplus::RectF(tx, by, bw * (Gdiplus::REAL)pos / (Gdiplus::REAL)st.durationMs, D(4)), D(2));
+            }
+            Text(FmtTime(pos) + L" / " + FmtTime(st.durationMs), fSmall, dim, Gdiplus::RectF(tx, by + D(6), tw, D(16)));
+        }
+        y += art + D(8);
+        // buttons
+        const Gdiplus::REAL bs = D(34);
+        Gdiplus::REAL bx = pad;
+        int ids[3] = {XPrev, XPlay, XNext};
+        bool en[3] = {st.canPrev, st.canPlayPause, st.canNext};
+        for (int i = 0; i < 3; ++i) {
+            Gdiplus::RectF r(bx, y, bs, bs);
+            if (st.hasSession && en[i]) AddHit(r, ids[i], 0);
+            if (g) DrawIcon(*g, i, st.playing, bx + bs / 2, y + bs / 2, D(14), st.hasSession && en[i] ? text : WithAlpha(text, 0x50));
+            bx += bs + D(6);
+        }
+        if (st.hasSession) {
+            Gdiplus::RectF r(W - pad - D(110), y + D(3), D(110), bs - D(6));
+            if (g) FillRound(*g, WithAlpha(text, 0x18), r, D(8));
+            AddHit(r, XOpen, 0);
+            Gdiplus::StringFormat c(Gdiplus::StringFormatFlagsNoWrap);
+            c.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+            c.SetAlignment(Gdiplus::StringAlignmentCenter);
+            if (g) {
+                Gdiplus::SolidBrush b{Gdiplus::Color(text)};
+                g->DrawString(L"打开播放器", -1, &fBody, r, &c, &b);
+            }
+        }
+        y += bs + D(4);
+    }
+
+    // (b) AI状态: the same list the bar shows, in detail.
+    if (s.xAi && s.aiMode != AiMode::Off) {
+        auto ai = GetAi();
+        if (ai && !ai->empty()) {
+            Sep();
+            Header(L"AI 状态");
+            size_t n = std::min<size_t>(ai->size(), 6);
+            for (size_t i = 0; i < n; ++i) {
+                const AiEntry& e = (*ai)[i];
+                if (g) {
+                    Gdiplus::SolidBrush dot{Gdiplus::Color(AiStateColor(e.state))};
+                    g->FillEllipse(&dot, pad, y + D(6), D(8), D(8));
+                }
+                std::wstring head = e.name + L"  " + AiStateLabel(e.state);
+                if (!e.project.empty()) head += L"  · " + e.project;
+                Text(head, fBody, text, Gdiplus::RectF(pad + D(14), y, W - 2 * pad - D(14), D(20)));
+                y += D(20);
+                std::wstring msg = e.message.empty() ? e.detail : e.message;
+                if (!msg.empty()) {
+                    Text(msg, fSmall, dim, Gdiplus::RectF(pad + D(14), y, W - 2 * pad - D(14), D(16)));
+                    y += D(18);
+                }
+            }
+        }
+    }
+
+    // (c) 文件中转
+    if (s.xFiles) {
+        auto files = GetRelayFiles();
+        Sep();
+        Header(L"文件中转");
+        if (!files.empty()) {
+            Gdiplus::RectF clr(W - pad - D(44), y - D(20), D(44), D(18));
+            AddHit(clr, XClear, 0);
+            Text(L"清空", fSmall, dim, clr);
+        }
+        if (files.empty()) {
+            Text(L"把文件拖到任务栏的歌词条上，可再从这里拖出去", fSmall, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(18)));
+            y += D(20);
+        }
+        for (size_t i = 0; i < std::min<size_t>(files.size(), 6); ++i) {
+            const std::wstring& f = files[i];
+            const wchar_t* name = wcsrchr(f.c_str(), L'\\');
+            Gdiplus::RectF r(pad - D(4), y, W - 2 * pad + D(8), D(22));
+            g_x.hits.push_back({RECT{(LONG)r.X, (LONG)r.Y, (LONG)(r.X + r.Width), (LONG)(r.Y + r.Height)}, XFile, (int)i});
+            if (g && g_x.hover == XFile && g_x.pressedIndex == (int)i) FillRound(*g, hoverFill, r, D(6));
+            Text(name ? name + 1 : f.c_str(), fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(22)));
+            y += D(22);
+        }
+        if (files.size() > 6) {
+            Text(L"…另有 " + std::to_wstring(files.size() - 6) + L" 个", fSmall, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(16)));
+            y += D(18);
+        }
+    }
+
+    // (d) 天气 and (e) 资源占用
+    Extras ex = GetExtras();
+    if (s.xWeather) {
+        Sep();
+        Header(L"天气");
+        std::wstring w = !ex.weather.empty() ? ex.weather
+                         : s.weatherCity.empty() ? L"在设置里填写城市" : ex.weatherErr ? L"获取失败，稍后重试" : L"获取中…";
+        Text(w, fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+        y += D(22);
+    }
+    if (s.xRes) {
+        Sep();
+        Header(L"资源占用");
+        wchar_t line[160];
+        if (ex.resKnown) {
+            wchar_t gpu[16] = L"—";
+            if (ex.gpuKnown) swprintf_s(gpu, L"%.0f%%", ex.gpu);
+            swprintf_s(line, L"CPU %.0f%%   内存 %.0f%%   GPU %s", ex.cpu, ex.mem, gpu);
+        } else {
+            wcscpy_s(line, L"采样中…");
+        }
+        Text(line, fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+        y += D(20);
+        if (ex.resKnown) {
+            Text(L"↓ " + FmtRate(ex.down) + L"    ↑ " + FmtRate(ex.up), fBody, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+            y += D(20);
+        }
+    }
+    y += pad - D(4);
+    g_x.w = (int)W;
+    g_x.h = (int)y;
+}
+
+static void ExpandRender() {
+    if (!g_x.hwnd) return;
+    const int dpi = (int)GetDpiForWindow(g_x.bar ? g_x.bar : g_x.hwnd);
+    RefreshEnv(false);
+    const bool light = g_env.lightTaskbar;
+    ExpandLayoutPaint(nullptr, dpi, light);  // measure
+    const double vis = std::clamp(g_x.p, 0.0, 1.08);
+    const int W = g_x.w, H = std::max(1, (int)(g_x.h * 1.08));
+    const int shownH = std::max(1, (int)(g_x.h * vis));
+    HDC screen = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(screen);
+    BITMAPINFO bi{};
+    bi.bmiHeader = {sizeof(BITMAPINFOHEADER), W, -H, 1, 32, BI_RGB};
+    void* bits = nullptr;
+    HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    if (bmp && bits) {
+        HGDIOBJ old = SelectObject(mem, bmp);
+        {
+            Gdiplus::Bitmap canvas(W, H, W * 4, PixelFormat32bppPARGB, (BYTE*)bits);
+            Gdiplus::Graphics g(&canvas);
+            g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+            g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+            g.Clear(Gdiplus::Color(0, 0, 0, 0));
+            // The panel grows upward from the bar: the bottom edge is fixed.
+            const Gdiplus::REAL top = (Gdiplus::REAL)(H - shownH);
+            Gdiplus::RectF card(0, top, (Gdiplus::REAL)W, (Gdiplus::REAL)shownH);
+            Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
+            FillRound(g, light ? 0xF2F7F7F7 : 0xF0202024, card, rad);
+            Gdiplus::GraphicsPath clip;
+            RoundRectPath(clip, card.X, card.Y, card.Width, card.Height, rad);
+            g.SetClip(&clip);
+            // Content slides with the card, slightly scaled for the spring feel.
+            g.TranslateTransform(0, top + (Gdiplus::REAL)(shownH - g_x.h) * 0.5f);
+            ExpandLayoutPaint(&g, dpi, light);
+        }
+        POINT src{0, 0};
+        SIZE sz{W, H};
+        POINT dst{g_x.anchorX, g_x.anchorBottom - H};
+        BYTE alpha = (BYTE)(std::clamp(g_x.p * 1.4, 0.0, 1.0) * 255);
+        BLENDFUNCTION bf{AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA};
+        UpdateLayeredWindow(g_x.hwnd, screen, &dst, &sz, mem, &src, 0, &bf, ULW_ALPHA);
+        SelectObject(mem, old);
+        // Hit rects are in content coordinates; shift them to window coordinates.
+        LONG dy = (LONG)((H - shownH) + (shownH - g_x.h) * 0.5);
+        for (auto& h : g_x.hits) OffsetRect(&h.rc, 0, dy);
+    }
+    if (bmp) DeleteObject(bmp);
+    DeleteDC(mem);
+    ReleaseDC(nullptr, screen);
+}
+
+static void ExpandClose(bool immediate) {
+    if (!g_x.hwnd) return;
+    g_x.target = 0;
+    if (immediate) {
+        KillTimer(g_x.hwnd, TIMER_ANIM);
+        KillTimer(g_x.hwnd, TIMER_WATCH);
+        DestroyWindow(g_x.hwnd);
+        g_x = ExpandState{};
+        g_expandedAny = false;
+        return;
+    }
+    SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
+}
+
+static void ExpandOpen(HWND bar) {
+    const Settings& s = GetSettings();
+    if (g_x.hwnd && g_x.bar == bar && g_x.target > 0.5) {  // click again collapses
+        ExpandClose(false);
+        return;
+    }
+    if (g_x.hwnd && g_x.bar != bar) ExpandClose(true);
+    RECT br{};
+    GetWindowRect(bar, &br);
+    HWND tray = GetAncestor(bar, GA_PARENT);
+    RECT tr{};
+    GetWindowRect(tray, &tr);
+    const int dpi = (int)GetDpiForWindow(bar);
+    ExpandLayoutPaint(nullptr, dpi, g_env.lightTaskbar);
+    HMONITOR mon = MonitorFromWindow(bar, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi{sizeof(mi)};
+    GetMonitorInfoW(mon, &mi);
+    const int gap = MulDiv(8, dpi, 96);
+    int x = std::clamp((int)br.left, (int)mi.rcWork.left + gap, (int)mi.rcWork.right - g_x.w - gap);
+    // Bottom taskbar: above it. Top taskbar: not supported by Win11, keep above.
+    int bottom = (tr.top > mi.rcMonitor.top ? tr.top : br.bottom + g_x.h) - gap;
+    if (!g_x.hwnd) {
+        g_x.hwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST, kExpandClass,
+                                   L"ZenDesktop 歌词展开面板", WS_POPUP, x, bottom - 1, 1, 1, tray, nullptr, g_uiInst,
+                                   nullptr);
+        if (!g_x.hwnd) {
+            Wh_Log(L"[expand] CreateWindowEx failed %u", GetLastError());
+            return;
+        }
+        g_x.p = g_x.v = 0;
+    }
+    g_x.bar = bar;
+    g_x.anchorX = x;
+    g_x.anchorBottom = bottom;
+    g_x.target = 1;
+    g_x.lastInteract = GetTickCount64();
+    g_x.lbuttonWasDown = true;  // the click that opened us must not count as "outside"
+    g_expandedAny = true;
+    (void)s;
+    ExpandRender();
+    ShowWindow(g_x.hwnd, SW_SHOWNOACTIVATE);
+    SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
+    SetTimer(g_x.hwnd, TIMER_WATCH, 50, nullptr);
+}
+
+// Starts a shell drag of one relayed file (CF_HDROP and shell formats via the
+// item's own data object). DoDragDrop runs a modal loop on this thread, as any
+// drag from the taskbar does.
+struct ZenDropSource final : IDropSource {
+    LONG ref = 1;
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** pv) override {
+        if (iid == IID_IUnknown || iid == IID_IDropSource) { *pv = this; AddRef(); return S_OK; }
+        *pv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&ref); }
+    ULONG STDMETHODCALLTYPE Release() override { LONG r = InterlockedDecrement(&ref); if (!r) delete this; return r; }
+    HRESULT STDMETHODCALLTYPE QueryContinueDrag(BOOL esc, DWORD keys) override {
+        if (esc) return DRAGDROP_S_CANCEL;
+        return (keys & MK_LBUTTON) ? S_OK : DRAGDROP_S_DROP;
+    }
+    HRESULT STDMETHODCALLTYPE GiveFeedback(DWORD) override { return DRAGDROP_S_USEDEFAULTCURSORS; }
+};
+
+static void DragFileOut(HWND hwnd, const std::wstring& path) {
+    PIDLIST_ABSOLUTE pidl = nullptr;
+    if (FAILED(SHParseDisplayName(path.c_str(), nullptr, &pidl, 0, nullptr)) || !pidl) {
+        Wh_Log(L"[relay] %s is gone", path.c_str());
+        return;
+    }
+    IShellFolder* parent = nullptr;
+    PCUITEMID_CHILD child = nullptr;
+    IDataObject* data = nullptr;
+    if (SUCCEEDED(SHBindToParent(pidl, IID_PPV_ARGS(&parent), &child)) &&
+        SUCCEEDED(parent->GetUIObjectOf(hwnd, 1, &child, IID_IDataObject, nullptr, (void**)&data))) {
+        auto* src = new ZenDropSource();
+        DWORD effect = 0;
+        g_x.lastInteract = GetTickCount64();
+        DoDragDrop(data, src, DROPEFFECT_COPY | DROPEFFECT_LINK | DROPEFFECT_MOVE, &effect);
+        src->Release();
+        data->Release();
+    }
+    if (parent) parent->Release();
+    CoTaskMemFree(pidl);
+}
+
+static int ExpandHitTest(POINT pt, int* index) {
+    for (auto& h : g_x.hits)
+        if (PtInRect(&h.rc, pt)) { if (index) *index = h.index; return h.id; }
+    if (index) *index = -1;
+    return XNone;
+}
+
+static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    switch (msg) {
+        case WM_MOUSEACTIVATE: return MA_NOACTIVATE;
+        case WM_TIMER: {
+            if (wp == TIMER_ANIM) {
+                // Under-damped spring (zeta ~0.55): a little overshoot, settles in ~0.4 s.
+                const double k = 210.0, c = 16.0, dt = 0.015;
+                double a = -k * (g_x.p - g_x.target) - c * g_x.v;
+                g_x.v += a * dt;
+                g_x.p += g_x.v * dt;
+                bool settled = fabs(g_x.p - g_x.target) < 0.002 && fabs(g_x.v) < 0.01;
+                if (settled) { g_x.p = g_x.target; KillTimer(hwnd, TIMER_ANIM); }
+                if (g_x.target == 0 && (settled || g_x.p < 0.02)) { ExpandClose(true); return 0; }
+                ExpandRender();
+                return 0;
+            }
+            if (wp == TIMER_WATCH) {
+                const Settings& s = GetSettings();
+                POINT pt;
+                GetCursorPos(&pt);
+                RECT wr{}, br{};
+                GetWindowRect(hwnd, &wr);
+                if (g_x.bar) GetWindowRect(g_x.bar, &br);
+                bool over = PtInRect(&wr, pt) || PtInRect(&br, pt);
+                bool down = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+                if (over) g_x.lastInteract = GetTickCount64();
+                if (down && !g_x.lbuttonWasDown && !over) { ExpandClose(false); return 0; }  // click outside
+                g_x.lbuttonWasDown = down;
+                if (s.expandAutoCollapseSec > 0 && g_x.target > 0.5 &&
+                    GetTickCount64() - g_x.lastInteract > (ULONGLONG)s.expandAutoCollapseSec * 1000ULL) {
+                    ExpandClose(false);
+                    return 0;
+                }
+                static ULONGLONG lastRefresh = 0;  // progress / AI / resources refresh
+                if (GetTickCount64() - lastRefresh >= 500) { lastRefresh = GetTickCount64(); ExpandRender(); }
+                return 0;
+            }
+            return 0;
+        }
+        case WM_MOUSEMOVE: {
+            POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
+            g_x.lastInteract = GetTickCount64();
+            if ((wp & MK_LBUTTON) && g_x.pressed == XFile && g_x.pressedIndex >= 0 &&
+                (abs(pt.x - g_x.pressPt.x) > GetSystemMetrics(SM_CXDRAG) ||
+                 abs(pt.y - g_x.pressPt.y) > GetSystemMetrics(SM_CYDRAG))) {
+                auto files = GetRelayFiles();
+                int idx = g_x.pressedIndex;
+                g_x.pressed = XNone;
+                if (GetCapture() == hwnd) ReleaseCapture();
+                if (idx < (int)files.size()) DragFileOut(hwnd, files[idx]);
+                return 0;
+            }
+            int idx = -1;
+            int hit = ExpandHitTest(pt, &idx);
+            if (hit != g_x.hover || (hit == XFile && idx != g_x.pressedIndex && !(wp & MK_LBUTTON))) {
+                g_x.hover = hit;
+                if (!(wp & MK_LBUTTON)) g_x.pressedIndex = idx;
+                TRACKMOUSEEVENT tme{sizeof(tme), TME_LEAVE, hwnd, 0};
+                TrackMouseEvent(&tme);
+                ExpandRender();
+            }
+            return 0;
+        }
+        case WM_MOUSELEAVE:
+            if (g_x.hover != XNone) { g_x.hover = XNone; ExpandRender(); }
+            return 0;
+        case WM_SETCURSOR:
+            if (LOWORD(lp) == HTCLIENT && g_x.hover != XNone) { SetCursor(LoadCursorW(nullptr, IDC_HAND)); return TRUE; }
+            break;
+        case WM_LBUTTONDOWN: {
+            POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
+            g_x.pressed = ExpandHitTest(pt, &g_x.pressedIndex);
+            g_x.pressPt = pt;
+            if (g_x.pressed != XNone) SetCapture(hwnd);
+            return 0;
+        }
+        case WM_LBUTTONUP: {
+            POINT pt{(short)LOWORD(lp), (short)HIWORD(lp)};
+            int idx = -1;
+            int hit = ExpandHitTest(pt, &idx), was = g_x.pressed;
+            g_x.pressed = XNone;
+            if (GetCapture() == hwnd) ReleaseCapture();
+            if (hit != XNone && hit == was) {
+                if (hit == XPrev) PostMediaCmd(MediaCmd::Prev);
+                else if (hit == XPlay) PostMediaCmd(MediaCmd::PlayPause);
+                else if (hit == XNext) PostMediaCmd(MediaCmd::Next);
+                else if (hit == XOpen) { PostMediaCmd(MediaCmd::OpenPlayer); ExpandClose(false); return 0; }
+                else if (hit == XClear) { std::lock_guard<std::mutex> lk(g_filesLock); g_files.clear(); }
+                else if (hit == XFile) {
+                    auto files = GetRelayFiles();  // click opens the file's folder with it selected
+                    if (idx >= 0 && idx < (int)files.size()) {
+                        std::wstring args = L"/select,\"" + files[idx] + L"\"";
+                        ShellExecuteW(nullptr, L"open", L"explorer.exe", args.c_str(), nullptr, SW_SHOWNORMAL);
+                    }
+                }
+            }
+            ExpandRender();
+            return 0;
+        }
+        case WM_RBUTTONUP: return 0;
+        case WM_DESTROY:
+            KillTimer(hwnd, TIMER_ANIM);
+            KillTimer(hwnd, TIMER_WATCH);
+            return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wp, lp);
+}
+
+// ── OLE drop target on the collapsed bar (files dropped without expanding) ──
+struct ZenDropTarget final : IDropTarget {
+    LONG ref = 1;
+    HWND bar;
+    bool accept = false;
+    explicit ZenDropTarget(HWND h) : bar(h) {}
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** pv) override {
+        if (iid == IID_IUnknown || iid == IID_IDropTarget) { *pv = this; AddRef(); return S_OK; }
+        *pv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&ref); }
+    ULONG STDMETHODCALLTYPE Release() override { LONG r = InterlockedDecrement(&ref); if (!r) delete this; return r; }
+    void SetHighlight(bool on) {
+        std::lock_guard<std::recursive_mutex> lk(g_panelsLock);
+        if (Panel* p = PanelOf(bar)) {
+            if (p->ui.dropHover != on) { p->ui.dropHover = on; RenderPanel(*p, true); }
+        }
+    }
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* d, DWORD, POINTL, DWORD* eff) override {
+        FORMATETC fe{CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+        accept = GetSettings().xFiles && d && d->QueryGetData(&fe) == S_OK;
+        *eff = accept ? DROPEFFECT_LINK : DROPEFFECT_NONE;  // we keep a path, not a copy
+        if (accept) SetHighlight(true);
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD, POINTL, DWORD* eff) override {
+        *eff = accept ? DROPEFFECT_LINK : DROPEFFECT_NONE;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE DragLeave() override { SetHighlight(false); return S_OK; }
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject* d, DWORD, POINTL, DWORD* eff) override {
+        SetHighlight(false);
+        *eff = DROPEFFECT_NONE;
+        if (!accept || !d) return S_OK;
+        FORMATETC fe{CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+        STGMEDIUM sm{};
+        if (d->GetData(&fe, &sm) != S_OK) return S_OK;
+        std::vector<std::wstring> add;
+        if (HDROP h = (HDROP)GlobalLock(sm.hGlobal)) {
+            UINT n = DragQueryFileW(h, 0xFFFFFFFF, nullptr, 0);
+            for (UINT i = 0; i < n && i < 30; ++i) {
+                UINT len = DragQueryFileW(h, i, nullptr, 0);
+                std::wstring p(len, L'\0');
+                DragQueryFileW(h, i, p.data(), len + 1);
+                add.push_back(std::move(p));
+            }
+            GlobalUnlock(sm.hGlobal);
+        }
+        ReleaseStgMedium(&sm);
+        AddRelayFiles(add);
+        Wh_Log(L"[relay] %u path(s) added", (unsigned)add.size());
+        *eff = DROPEFFECT_LINK;
+        if (g_x.hwnd) ExpandRender();
+        return S_OK;
+    }
+};
+
 static int HitTestClient(Panel& panel, POINT pt) {
     for (int i = 0; i < 4; ++i)
         if (panel.ui.hitEnabled[i] && PtInRect(&panel.ui.hitRects[i], pt)) return i;
@@ -2695,7 +3543,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 if (hit == HitPrev) PostMediaCmd(MediaCmd::Prev);
                 else if (hit == HitPlay) PostMediaCmd(MediaCmd::PlayPause);
                 else if (hit == HitNext) PostMediaCmd(MediaCmd::Next);
-                else if (hit == HitBody) PostMediaCmd(MediaCmd::OpenPlayer);
+                else if (hit == HitBody) {
+                    if (GetSettings().clickExpands) ExpandOpen(hwnd);
+                    else PostMediaCmd(MediaCmd::OpenPlayer);
+                }
             }
             RenderPanel(*panel);
             return 0;
@@ -2755,6 +3606,18 @@ static void WINAPI CreatePanelOnTrayThread(void* pv) {
     Wh_Log(L"[ui] panel %p attached as child of %s %p (taskbar thread %u, client %dx%d, dpi %u, top child before: %s)",
            hwnd, p.secondary ? L"Shell_SecondaryTrayWnd" : L"Shell_TrayWnd", cp->tray, GetCurrentThreadId(),
            cr.right - cr.left, cr.bottom - cr.top, GetDpiForWindow(cp->tray), topBefore ? topCls : L"none");
+    // 文件中转: OLE drop target on the collapsed bar itself.
+    HRESULT oh = OleInitialize(nullptr);  // taskbar thread is normally STA already (S_FALSE)
+    p.oleInit = SUCCEEDED(oh);
+    if (p.oleInit) {
+        auto* dt = new ZenDropTarget(hwnd);
+        HRESULT dr = RegisterDragDrop(hwnd, dt);
+        dt->Release();  // OLE keeps its own reference while registered
+        p.dropRegistered = SUCCEEDED(dr);
+        if (!p.dropRegistered) Wh_Log(L"[relay] RegisterDragDrop failed 0x%08X", (unsigned)dr);
+    } else {
+        Wh_Log(L"[relay] OleInitialize failed 0x%08X", (unsigned)oh);
+    }
     RenderPanel(p, true);
     cp->ok = true;
 }
@@ -2768,6 +3631,11 @@ static void WINAPI DestroyPanelOnTrayThread(void* pv) {
         if (p.tray != tray) continue;
         if (p.subclassed && IsWindow(tray)) WindhawkUtils::RemoveWindowSubclassFromAnyThread(tray, TraySubclassProc);
         p.subclassed = false;
+        if (g_x.hwnd && g_x.bar == p.hwnd) ExpandClose(true);
+        if (p.dropRegistered && p.hwnd) RevokeDragDrop(p.hwnd);
+        p.dropRegistered = false;
+        if (p.oleInit) OleUninitialize();
+        p.oleInit = false;
         if (p.hwnd && IsWindow(p.hwnd)) {
             HWND h = p.hwnd;
             KillTimer(h, TIMER_TICK);
@@ -2905,6 +3773,13 @@ static void UiThread() {
     wc.lpszClassName = kWndClass;
     if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
         Wh_Log(L"[ui] RegisterClass failed %u", GetLastError());
+    WNDCLASSW xc{};
+    xc.lpfnWndProc = ExpandProc;
+    xc.hInstance = g_uiInst;
+    xc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    xc.lpszClassName = kExpandClass;
+    if (!RegisterClassW(&xc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+        Wh_Log(L"[ui] RegisterClass(expand) failed %u", GetLastError());
     WNDCLASSW hc{};
     hc.lpfnWndProc = HelperProc;
     hc.hInstance = g_uiInst;
@@ -2942,6 +3817,7 @@ static void UiThread() {
     DestroyAllPanels();  // on each taskbar's own thread; removes the taskbar subclass too
     UnregisterClassW(kWndClass, g_uiInst);
     UnregisterClassW(kHelperClass, g_uiInst);
+    UnregisterClassW(kExpandClass, g_uiInst);
     Gdiplus::GdiplusShutdown(gdipToken);
     g_uiInst = nullptr;
 }
@@ -2949,10 +3825,10 @@ static void UiThread() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Windhawk entry points
 // ─────────────────────────────────────────────────────────────────────────────
-static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread;
+static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread, g_extrasThread;
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.4.5 (pid %u)", GetCurrentProcessId());
+    Wh_Log(L"Init 0.5.0 (pid %u)", GetCurrentProcessId());
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
@@ -2965,6 +3841,7 @@ BOOL Wh_ModInit() {
     g_lyricsThread = std::thread(LyricsThread);
     g_mediaThread = std::thread(MediaThread);
     g_aiThread = std::thread(AiThread);
+    g_extrasThread = std::thread(ExtrasThread);
     g_uiThread = std::thread(UiThread);
     return TRUE;
 }
@@ -2987,6 +3864,7 @@ void Wh_ModUninit() {
     // Joins can take up to ~3s per in-flight HTTP call / one GSMTC call.
     if (g_uiThread.joinable()) g_uiThread.join();
     if (g_aiThread.joinable()) g_aiThread.join();
+    if (g_extrasThread.joinable()) g_extrasThread.join();
     if (g_mediaThread.joinable()) g_mediaThread.join();
     if (g_lyricsThread.joinable()) g_lyricsThread.join();
     if (g_stopEvent) { CloseHandle(g_stopEvent); g_stopEvent = nullptr; }
