@@ -28,6 +28,7 @@ common_files = [
     'optional/local@wobbly-windows.wh.cpp',
     'optional/local@windows-animations.wh.cpp',
     'optional/local@zen-liquid-glass.wh.cpp',
+    'optional/local@zen-startmenu-liquid-glass.wh.cpp',
     'optional/local@zen-desktop-clock.wh.cpp',
     'optional/THIRD_PARTY_NOTICES.md',
 ]
