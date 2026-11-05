@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.3.0
+// @version         4.4.0
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -65,6 +65,7 @@
 
 ## 更新日志
 
+- **4.4.0**：开机/重启资源管理器后改为「元素一出现就上样式」：不再靠 2.5/8/20 秒的定时重刷当主力，定时器只在关键元素（任务栏框架、托盘）一直没出现时才兜底；按系统版本（22H2/23H2 与 24H2/25H2）识别关键元素并记住其路径；系统把样式改回去时会自动再套上，但同一属性 2 秒内被反复改回超过 30 次就暂停对抗，避免卡顿；样式回写加了防重入保护。
 - **4.3.0**：新增「任务栏尺寸」：可调任务栏高度与图标大小（0 = 系统默认，不改动）；移植自 m417z「Taskbar height and icon size」(GPL-3.0)，主题自带的任务栏高度会跟随该设置。
 - **4.2.9**：性能：缓存 Shell_TrayWnd / Taskbar UI HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
 - **4.2.8**：开机或资源管理器自重启后，任务栏 / 托盘溢出 / 音量浮窗若回退成系统原样，会像文件管理器顶部一样自动补挂几次（监听 TaskbarCreated，并在约 2.5s / 8s / 20s 重试）；开了「统一设置」时不必再手动重置。
@@ -12207,6 +12208,12 @@ bool VisualTreeWatcher::ReleaseDiagnosticsReference(InstanceHandle handle)
     return weakElement && !weakElement.get();
 }
 
+// ZenDesktop 4.4.0: event-driven readiness, defined further below.
+void ZenEvtOnElementAdded(InstanceHandle handle,
+                          winrt::Windows::UI::Xaml::FrameworkElement const& element,
+                          PCWSTR type);
+void ZenEvtOnElementRemoved(InstanceHandle handle);
+
 HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, VisualElement element, VisualMutationType mutationType) try
 {
     Wh_Log(L"========================================");
@@ -12255,6 +12262,7 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
                 {
                     ApplyCustomizations(elementId, frameworkElement, element.Type);
                 }
+                ZenEvtOnElementAdded(element.Handle, frameworkElement, element.Type);
             }
             else
             {
@@ -12264,6 +12272,7 @@ HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, Visu
         }
         else if (mutationType == Remove)
         {
+            ZenEvtOnElementRemoved(element.Handle);
             CleanupCustomizations(FindElementId(element.Handle));
         }
     }
@@ -12587,6 +12596,212 @@ struct {
 // ZenDesktop: the maximizedTaskbarLayer setting, read by the UI threads.
 std::atomic<bool> g_zenMaxLayerEnabled;
 
+// ZenDesktop 4.4.0: event-driven readiness.
+//
+// Styles are already applied from OnVisualTreeChange the moment an element is
+// added, so the staged boot timer was mostly re-doing work, and its later full
+// reapply (uninit + init of every XAML thread) is what made a slow logon feel
+// like "the hook is slow". Here we track a few anchor elements per Windows
+// build. Once every anchor kind is alive the boot timer stops; it only falls
+// back to the old reapply when an anchor never showed up.
+//
+// Anchors are matched by type and x:Name; the per-build table picks the
+// primary pattern and the other build's pattern is accepted as a fallback (and
+// logged) so an unexpected build still works. The parent chain of the first
+// match is cached and logged, which is what makes a mismatch on a new build
+// quick to diagnose.
+namespace zen_evt {
+
+enum AnchorKind : int { kTaskbarFrame = 0, kTrayFrame = 1, kAnchorKindCount };
+
+struct AnchorPattern {
+    AnchorKind kind;
+    PCWSTR type;  // XAML type name as reported by the diagnostics.
+    PCWSTR name;  // x:Name, or nullptr for any.
+};
+
+// 22H2/23H2 (build < 26100).
+constexpr AnchorPattern kAnchors22H2[] = {
+    {kTaskbarFrame, L"Taskbar.TaskbarFrame", nullptr},
+    {kTrayFrame, L"Windows.UI.Xaml.Controls.Grid", L"SystemTrayFrameGrid"},
+};
+// 24H2/25H2 (build >= 26100; 25H2 is an enablement package on 24H2).
+constexpr AnchorPattern kAnchors24H2[] = {
+    {kTaskbarFrame, L"Taskbar.TaskbarFrame", nullptr},
+    {kTrayFrame, L"Windows.UI.Xaml.Controls.StackPanel", L"SystemTrayFrameGrid"},
+};
+
+DWORD GetBuild() {
+    static DWORD build = [] {
+        using RtlGetVersion_t = LONG(WINAPI*)(PRTL_OSVERSIONINFOW);
+        auto fn = (RtlGetVersion_t)GetProcAddress(GetModuleHandleW(L"ntdll.dll"),
+                                                  "RtlGetVersion");
+        RTL_OSVERSIONINFOW vi = {sizeof(vi)};
+        return (fn && fn(&vi) == 0) ? vi.dwBuildNumber : 0UL;
+    }();
+    return build;
+}
+
+struct LiveAnchor {
+    InstanceHandle handle;
+    AnchorKind kind;
+};
+
+std::mutex g_mutex;
+std::vector<LiveAnchor> g_live;
+std::wstring g_cachedPath[kAnchorKindCount];
+// Set when an anchor matched only the other build's pattern.
+std::atomic<bool> g_usedFallbackPattern{false};
+std::atomic<ULONGLONG> g_lastAnchorTick{0};
+// Reentrancy: applying styles can synchronously add elements, which re-enters
+// OnVisualTreeChange on the same thread. Bookkeeping is cheap, but path
+// building walks the tree, so it is skipped when nested.
+thread_local int g_depth = 0;
+
+bool Matches(const AnchorPattern& p, PCWSTR type, const std::wstring& name) {
+    if (!type || _wcsicmp(type, p.type) != 0) {
+        return false;
+    }
+    return !p.name || name == p.name;
+}
+
+std::wstring BuildPath(winrt::Windows::UI::Xaml::FrameworkElement element) {
+    using winrt::Windows::UI::Xaml::FrameworkElement;
+    using winrt::Windows::UI::Xaml::Media::VisualTreeHelper;
+    std::wstring path;
+    winrt::Windows::UI::Xaml::DependencyObject cur = element;
+    for (int i = 0; cur && i < 16; i++) {
+        std::wstring part(winrt::get_class_name(cur));
+        if (auto fe = cur.try_as<FrameworkElement>()) {
+            auto n = fe.Name();
+            if (!n.empty()) {
+                part += L"#";
+                part += n;
+            }
+        }
+        path = path.empty() ? part : part + L" < " + path;
+        cur = VisualTreeHelper::GetParent(cur);
+    }
+    return path;
+}
+
+}  // namespace zen_evt
+
+void ZenEvtOnElementAdded(InstanceHandle handle,
+                          winrt::Windows::UI::Xaml::FrameworkElement const& element,
+                          PCWSTR type) {
+    using namespace zen_evt;
+    if (!type) {
+        return;
+    }
+    // Cheap pre-filter: every anchor type is one of these three.
+    if (!wcsstr(type, L"TaskbarFrame") && !wcsstr(type, L"Grid") &&
+        !wcsstr(type, L"StackPanel")) {
+        return;
+    }
+    std::wstring name(element.Name());
+    const bool modern = GetBuild() >= 26100;
+    const auto& primary = modern ? kAnchors24H2 : kAnchors22H2;
+    const auto& other = modern ? kAnchors22H2 : kAnchors24H2;
+
+    const AnchorPattern* hit = nullptr;
+    bool fallback = false;
+    for (const auto& p : primary) {
+        if (Matches(p, type, name)) {
+            hit = &p;
+            break;
+        }
+    }
+    if (!hit) {
+        for (const auto& p : other) {
+            if (Matches(p, type, name)) {
+                hit = &p;
+                fallback = true;
+                break;
+            }
+        }
+    }
+    if (!hit) {
+        return;
+    }
+
+    bool firstOfKind = false;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        for (const auto& a : g_live) {
+            if (a.handle == handle) {
+                return;
+            }
+        }
+        firstOfKind = g_cachedPath[hit->kind].empty();
+        g_live.push_back({handle, hit->kind});
+    }
+    g_lastAnchorTick = GetTickCount64();
+    if (fallback && !g_usedFallbackPattern.exchange(true)) {
+        Wh_Log(L"[zen-evt] build %u: anchor %s#%s matched the other build's "
+               L"pattern", GetBuild(), type, name.c_str());
+    }
+    if (firstOfKind && g_depth == 0) {
+        g_depth++;
+        std::wstring path;
+        try {
+            path = BuildPath(element);
+        } catch (...) {
+        }
+        g_depth--;
+        {
+            std::lock_guard<std::mutex> lock(g_mutex);
+            if (g_cachedPath[hit->kind].empty()) {
+                g_cachedPath[hit->kind] = path.empty() ? std::wstring(type) : path;
+            }
+        }
+        Wh_Log(L"[zen-evt] build %u anchor %d ready: %s", GetBuild(),
+               (int)hit->kind, path.c_str());
+    }
+}
+
+void ZenEvtOnElementRemoved(InstanceHandle handle) {
+    using namespace zen_evt;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    for (auto it = g_live.begin(); it != g_live.end(); ++it) {
+        if (it->handle == handle) {
+            g_live.erase(it);
+            return;
+        }
+    }
+}
+
+// True when at least one anchor of every kind is alive right now.
+bool ZenEvtAnchorsHealthy() {
+    using namespace zen_evt;
+    bool have[kAnchorKindCount] = {};
+    std::lock_guard<std::mutex> lock(g_mutex);
+    for (const auto& a : g_live) {
+        have[a.kind] = true;
+    }
+    for (bool h : have) {
+        if (!h) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Called when every XAML thread is torn down (uninit / full reapply): the
+// handles become meaningless, the cached paths stay valid.
+void ZenEvtResetLive() {
+    std::lock_guard<std::mutex> lock(zen_evt::g_mutex);
+    zen_evt::g_live.clear();
+}
+
+// ZenDesktop 4.4.0: anti-revert storm limiter. The per-DP callback re-pushes
+// our value when the system writes its own; if both sides keep fighting (a
+// storyboard every frame, a theme flip loop) that becomes a busy loop on the
+// taskbar UI thread. Past this budget we let the system win until the window
+// expires, and log it once per window.
+constexpr ULONGLONG kZenRevertWindowMs = 2000;
+constexpr uint32_t kZenMaxRevertsPerWindow = 30;
+
 // https://stackoverflow.com/a/51274008
 template <auto fn>
 struct deleter_from_fn {
@@ -12892,6 +13107,9 @@ struct ElementPropertyCustomizationState {
     // by something else is told apart from.
     winrt::Windows::Foundation::IInspectable lastAppliedValue{nullptr};
     int64_t propertyChangedToken = 0;
+    // ZenDesktop 4.4.0: anti-revert storm limiter state.
+    ULONGLONG revertWindowStartTick = 0;
+    uint32_t revertCount = 0;
     // Source template for dynamic styles whose value contains `{{...}}`
     // substitutions; re-evaluated whenever a referenced variable changes, with
     // the resolved result written back into `customValue`. Empty for static
@@ -13227,6 +13445,19 @@ StyleVariableState* GetStyleVariableState(FrameworkElement const& element) {
 }
 
 thread_local bool g_elementPropertyModifying;
+
+// ZenDesktop 4.4.0: restores g_elementPropertyModifying even when the write
+// throws. The old manual true/false left it stuck at true after an exception,
+// which silently disabled every anti-revert callback on that thread.
+struct ZenPropertyModifyScope {
+    bool previous;
+    ZenPropertyModifyScope() : previous(g_elementPropertyModifying) {
+        g_elementPropertyModifying = true;
+    }
+    ~ZenPropertyModifyScope() { g_elementPropertyModifying = previous; }
+    ZenPropertyModifyScope(const ZenPropertyModifyScope&) = delete;
+    ZenPropertyModifyScope& operator=(const ZenPropertyModifyScope&) = delete;
+};
 
 thread_local std::list<
     std::pair<winrt::weak_ref<DependencyObject>,
@@ -18688,15 +18919,29 @@ void ApplyCustomizationsForVisualStateGroup(
                     AdoptExternalValueAsOriginal(element, property,
                                                  &propertyCustomizationState);
 
+                    ULONGLONG now = GetTickCount64();
+                    auto& st = propertyCustomizationState;
+                    if (now - st.revertWindowStartTick > kZenRevertWindowMs) {
+                        st.revertWindowStartTick = now;
+                        st.revertCount = 0;
+                    }
+                    if (++st.revertCount > kZenMaxRevertsPerWindow) {
+                        if (st.revertCount == kZenMaxRevertsPerWindow + 1) {
+                            Wh_Log(L"[zen-evt] revert storm on %s, pausing "
+                                   L"re-apply for this window",
+                                   winrt::get_class_name(element).c_str());
+                        }
+                        return;
+                    }
+
                     Wh_Log(L"Re-applying style for %s",
                            winrt::get_class_name(element).c_str());
 
-                    g_elementPropertyModifying = true;
+                    ZenPropertyModifyScope modifying;
                     propertyCustomizationState.lastAppliedValue =
                         SetOrClearValue(
                             element, property,
                             *propertyCustomizationState.customValue);
-                    g_elementPropertyModifying = false;
                 });
     }
 
@@ -22021,6 +22266,9 @@ void UninitializeSettingsAndTap() {
         g_visualTreeWatcher->UnadviseVisualTreeChange();
         g_visualTreeWatcher = nullptr;
     }
+    // No removals are reported once unadvised; drop the anchor handles so the
+    // boot fallback does not mistake a dead tree for a healthy one.
+    ZenEvtResetLive();
 
     g_initialized = false;
 }
@@ -22772,6 +23020,7 @@ void ReapplyTaskbarStyles(bool reloadSettings) {
 PTP_TIMER g_bootReinitTimer = nullptr;
 // Tray XAML islands can appear well after the first AfterInit pass on a slow
 // logon. Staged retries mirror the explorer chrome auto-rehook FAQ.
+// ZenDesktop 4.4.0: fallback only, see ZenEvtAnchorsHealthy.
 constexpr ULONGLONG kBootRetryDelaysMs[] = {2500, 8000, 20000};
 int g_bootRetryIndex = 0;
 std::atomic<bool> g_bootRetryStopping{false};
@@ -22827,6 +23076,15 @@ void ScheduleBootStyleReinit() {
             // thread that missed AfterInit). Later ticks: full reapply, same
             // as saving settings — that is what users already know fixes
             // stock tray / volume chrome after explorer restarts.
+            // ZenDesktop 4.4.0: the timer is only a fallback now. Styles go on
+            // from OnVisualTreeChange as elements appear; if every anchor is
+            // alive the tree was styled and there is nothing to retry.
+            if (g_initialized.load() && ZenEvtAnchorsHealthy()) {
+                Wh_Log(L"[boot-retry] anchors alive, no retry needed "
+                       L"(attempt %d)", g_bootRetryIndex + 1);
+                return;
+            }
+
             if (g_bootRetryIndex == 0 && g_initialized.load()) {
                 Wh_Log(L"[boot-retry] TAP already up, ensure threads (attempt 1)");
                 HWND hTaskbarUiWnd = GetTaskbarUiWnd();
