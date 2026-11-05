@@ -309,7 +309,8 @@ if (Test-Path $upstreamExplorerStyler) {
 # 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
 
 $optionalDir = Join-Path $PSScriptRoot "optional"
-$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-clock")
+$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-widgets")
+# zen-desktop-clock 和 zen-audio-bars 已并入 zen-desktop-widgets 2.0.0（不再单独发布）。
 $preselected = @()
 if ($Optional) {
     $preselected = $Optional.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -ne "none" } | ForEach-Object {
@@ -321,6 +322,12 @@ if (Test-Path -LiteralPath $optionalDir) {
     $optFiles = @(Get-ChildItem -LiteralPath $optionalDir -Filter "local@*.wh.cpp")
     foreach ($optFile in $optFiles) {
         $files += $optFile
+    }
+    # Shared headers included by optional mods (e.g. zen-desktop-host.h).
+    foreach ($hdr in @(Get-ChildItem -LiteralPath $optionalDir -Filter "zen-*.h" -ErrorAction SilentlyContinue)) {
+        $destHdr = Join-Path $modsSource $hdr.Name
+        $copyHdr = Copy-FileIfChanged -Source $hdr.FullName -Destination $destHdr
+        Write-Status ("         [Header] {0}: {1}" -f $hdr.Name, $copyHdr) "DarkGray"
     }
 }
 
