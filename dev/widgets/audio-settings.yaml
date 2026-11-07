@@ -1,0 +1,104 @@
+- audio:
+  - enabled: false
+    $name: 启用音频可视化
+    $name:zh-CN: 启用音频可视化
+    $description:zh-CN: 采用 Tourne’Table 社区引擎，随本 Mod 运行，无需另外安装。
+  - placement: taskbar
+    $name: 显示位置
+    $name:zh-CN: 显示位置
+    $options:
+    - taskbar: 任务栏
+    - panel: 桌面小组件（透明）
+    - desktop: 桌面图标后方
+    $description:zh-CN: 桌面小组件无底色、无边框。开启页面顶部「拖动摆放」才能移动和拖角缩放，关闭后鼠标穿透；动态壁纸下推荐此项。
+  - taskbarOffset: '0'
+    $name: 任务栏左右位置（像素）
+    $name:zh-CN: 任务栏左右位置（像素）
+    $description:zh-CN: 只在「显示位置」选任务栏时生效。默认为 0，留空也按 0 处理，此时位置和旧版完全一致；负数向左、正数向右，按像素在「高级设置 → 水平位置（%）」的基础上平移，用来避开挤在一起的任务栏图标、搜索框或状态文字。
+  - shape: stereo
+    $name: 音柱形状
+    $name:zh-CN: 音柱形状
+    $options:
+    - stereo: 频谱音柱
+    - mountain: 山峰
+    - mirror: 镜像
+    - wave: 波浪
+    - dots: 点阵
+    - oscilloscope: 示波器
+  - barHeight: '22'
+    $name: 最大高度
+    $name:zh-CN: 最大高度
+    $description:zh-CN: 任务栏建议 22；桌面建议 100–140。更多选项在下面的「颜色与外观」「高级设置」。
+  - appearance:
+    - bars: 24
+      $name: 音柱数量
+      $name:zh-CN: 音柱数量
+    - barWidth: '3'
+      $name: 音柱宽度
+      $name:zh-CN: 音柱宽度
+    - barGap: '3'
+      $name: 音柱间距
+      $name:zh-CN: 音柱间距
+    - primaryColor: '#FF1ED760'
+      $name: 渐变起始颜色
+      $name:zh-CN: 渐变起始颜色
+      $options:
+      - '#FF1ED760': 绿色
+      - '#FF00B4FF': 天蓝
+      - '#FF00D4AA': 青色
+      - '#FF3B82F6': 蓝色
+      - '#FF8B5CF6': 紫色
+      - '#FFEC4899': 粉色
+      - '#FFEF4444': 红色
+      - '#FFF97316': 橙色
+      - '#FFFACC15': 金黄
+      - '#FFFFFFFF': 白色
+      - '#FF9CA3AF': 灰色
+      $description:zh-CN: 直接选择颜色；起始与结束选择相同颜色时显示纯色。
+    - secondaryColor: '#FF00B4FF'
+      $name: 渐变结束颜色
+      $name:zh-CN: 渐变结束颜色
+      $options:
+      - '#FF1ED760': 绿色
+      - '#FF00B4FF': 天蓝
+      - '#FF00D4AA': 青色
+      - '#FF3B82F6': 蓝色
+      - '#FF8B5CF6': 紫色
+      - '#FFEC4899': 粉色
+      - '#FFEF4444': 红色
+      - '#FFF97316': 橙色
+      - '#FFFACC15': 金黄
+      - '#FFFFFFFF': 白色
+      - '#FF9CA3AF': 灰色
+    $name: 颜色与外观
+    $name:zh-CN: 颜色与外观
+  - advanced:
+    - monitor: 1
+      $name: 显示器
+      $name:zh-CN: 显示器
+      $description:zh-CN: 从 1 开始编号，仅影响音频可视化。
+    - horizontal: '25'
+      $name: 水平位置（%）
+      $name:zh-CN: 水平位置（%）
+      $description:zh-CN: 拖动保存的位置优先；打开页面顶部「重置位置」清除拖拽记录。
+    - vertical: '50'
+      $name: 垂直位置（%）
+      $name:zh-CN: 垂直位置（%）
+    - inputSensitivity: '150'
+      $name: 灵敏度
+      $name:zh-CN: 灵敏度
+    - autoGain: false
+      $name: 自动增益
+      $name:zh-CN: 自动增益
+    - smoothing: '0'
+      $name: 额外平滑
+      $name:zh-CN: 额外平滑
+    - fps: 60
+      $name: 目标帧率
+      $name:zh-CN: 目标帧率
+      $description:zh-CN: 0 表示跟随显示器刷新率；高帧率会增加资源占用。
+    $name: 高级设置
+    $name:zh-CN: 高级设置
+  $name: 🎵 音频可视化
+  $name:zh-CN: 🎵 音频可视化
+  $description:zh-CN: 常用选项在前，外观与细节分组在后。桌面音频与时钟、日历共用「拖动摆放」「重置位置」。采用 Tourne’Table 2.1.1 社区引擎。

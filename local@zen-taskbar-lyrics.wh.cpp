@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.5.3
+// @version         0.5.21
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -30,12 +30,12 @@
 - 专辑封面：来自系统媒体会话，播放器提供才有。
 - 歌词：显示当前这一句（网易云、QQ 音乐、LRCLIB），第二行可显示翻译或「歌名 - 歌手」。查不到歌词时显示歌名和歌手。
 - 播放控制：上一首、播放／暂停、下一首，鼠标移上去会高亮；播放器不支持的按钮会变灰。
-- **歌词展开面板**（0.5.0）：单击封面或文字，从任务栏所在边弹出展开面板（带弹性动画；0.5.3 起自动适配顶／左／右任务栏）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。分几个板块，每个都能在设置「歌词展开面板」里单独开关。0.5.2 起可选「液态玻璃」背景（默认关，仅展开时运行）：
-  - 播放控制：封面、歌名歌手、进度条、上一首／播放暂停／下一首、「打开播放器」按钮。
+- **歌词展开面板**（0.5.0）：单击封面或文字，从任务栏所在边弹出展开面板（带弹性动画；0.5.3 起自动适配顶／左／右任务栏）；再点一次、点面板外面，或鼠标离开几秒后自动收起。面板不抢焦点、没有输入框。各板块可在「常用开关」中单独开关。「颜色与外观 → 卡片材质」可选液态玻璃（默认磨砂玻璃，液态玻璃仅展开时运行）：
+  - 播放控制：封面、歌名歌手、可点击跳转的进度条（播放器需支持）、上一首／播放暂停／下一首、「打开播放器」按钮。
   - AI 状态：和歌词条同一份数据（状态文件、钩子、MCP、进程名），逐个列出助手、状态、项目和说明。
-  - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记路径不复制；在面板里可把文件拖到别的软件，单击在资源管理器里定位，「清空」一键清除。可设保留天数（默认 3 天），过期或源文件已删的条目会自动移出列表（不删源文件）。列表只在内存里，重载 explorer／mod 会清空。
-  - 天气：当前气温和天气（open-meteo.com，不需要密钥）。默认关闭。开启后可自动定位（本机定位 → 可选按 IP 估计 → 手动城市后备），也可改成只用手动城市；后台线程获取并缓存，不卡任务栏。
-  - 资源占用：CPU、内存、GPU、网络上下行，只在面板展开时采样。
+  - 文件中转：把文件拖到收起的歌词条上（会高亮）即可暂存，只记录源路径；拖出到别的软件或文件夹时只允许复制，不剪切、不移动源文件，单击在资源管理器里定位，「清空」一键清除。可设保留天数（默认 3 天），过期或源文件已删的条目会自动移出列表（不删源文件）。列表只在内存里，重载 explorer／mod 会清空。
+  - 天气：当前气温和天气（open-meteo.com，不需要密钥）。默认开启，自动定位（本机定位 → 可选按 IP 估计 → 手动城市后备），也可改成只用手动城市；后台线程获取并缓存，不卡任务栏。
+  - 资源占用：CPU、内存、GPU、网络上下行。展开资源板块或空闲栏显示资源占用时采样。
 - 想要旧行为（点击切到播放器）可在「点封面或文字」里选「打开播放器」，或选「不响应」。
 - 没在放歌时默认显示「未在播放」，也可改成隐藏。全屏游戏、视频、PPT 时默认不隐藏，可在设置里开启。
 - 文字颜色默认跟随系统深浅色（浅色模式用深色字），可选的颜色和其他 ZenDesktop mod 一样。
@@ -134,11 +134,12 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 其他没有钩子的工具：在设置「按进程名显示」里填进程名（默认已填 `Antigravity.exe, Antigravity IDE.exe, DeepSeek Harness.exe`），进程在运行时显示「运行中」；这个助手已经用钩子或 MCP 汇报时不会重复显示。
 
 ## 设置说明
+设置分为「常用开关」「颜色与外观」「高级设置」。日常显示开关和配色在前；自定义布局、字体、天气定位、AI 接入和歌词源在高级子组中。玻璃颜色与浓度同时控制展开卡片和有底色的任务栏条；任务栏选「无底色」时保持透明。「透明（自定义玻璃）」和液态玻璃都可独立调整模糊。自定义玻璃只模糊背景，不带折射；普通磨砂仍使用系统亚克力。两种可调玻璃在打开卡片时取一帧背景，取景后恢复截图和录屏。再次打开会更新背景。
 - 位置：小组件位置（推荐）、固定在最左边、固定在托盘左边。
-- 水平偏移：按 100% 缩放的像素，高 DPI 自动放大，范围 -500–2000。
-- 没在放歌时：默认显示「未在播放」，可选隐藏面板。有 AI 助手在工作时仍会显示。
+- 位置偏移：横向任务栏左右移动，侧边任务栏上下移动。按 100% 缩放的像素，高 DPI 自动放大，范围 -500–2000。起始位置模式下正数向右／下，托盘模式下正数远离托盘。
+- 空闲时显示：可选「未在播放」「显示天气」「显示资源占用」或隐藏面板。有 AI 状态时优先显示 AI。展开卡片的板块开关单独设置。
 - 面板宽度：紧凑 260、标准 340、宽 440、超宽 560，或自定义 120–2000。
-- 面板玻璃：默认开启。只对「淡淡一层」「卡片」有用：开启时是叠在任务栏玻璃上的一层半透明色，关闭时是几乎不透明的底色。选「无底色」时这个开关没有作用。
+- 面板玻璃：默认开启，为展开卡片启用系统亚克力模糊，关闭后只保留半透明底色。任务栏条沿用任务栏本身的模糊。「液态玻璃背景」是独立的 GPU 材质开关。
 - 多显示器：默认关闭（只主屏）。开启后每个任务栏各显示一个面板，媒体与 AI 状态共用。
 - 第一行、第二行：歌词、翻译、歌名歌手的组合。
 - 文字颜色、面板底色、字体、字号（10–16 磅）、粗体。面板底色默认「无底色」：完全透明，没有底色、边框和阴影，文字、封面和按钮直接画在任务栏上，看起来就是任务栏的一部分，只有鼠标移上去时有很淡的高亮。
@@ -158,8 +159,23 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+- **0.5.21**：修复精简设置布局下「单击操作」等常用项不生效：以前仅当旧键 positionMode 非空才加载整段设置，导致界面已选「打开播放器」仍按默认展开；现以 common／general 布局探测为准加载。
+- **0.5.20**：多应用同时 Playing 时优先音乐播放器（Spotify／网易云／QQ 音乐等），B站／浏览器等低优先级源即使在播也不会长期抢走歌词；文件夹窗口 explorer 不再启动任何工作线程，设置变更不再刷屏。
+- **0.5.19**：媒体会话改为粘滞选择（优先正在播放、短时不跟系统 current 抖动），避免 Spotify 与 B站／浏览器抢会话时歌词乱切；仅任务栏宿主 explorer 进程跑媒体／歌词／AI／天气线程，文件夹窗口进程不再重复搜词。
+- **0.5.18**：天气定位或预报获取失败后，每隔 1 分钟自动重试，成功后恢复设置的刷新间隔；重试期间保留上次成功的天气。
+- **0.5.17**：侧边任务栏避让开始按钮时排除整条高度的 Start／LaunchBand 宿主，避免位置偏移被推到底部；整条高度的托盘容器改用后备定位。补充侧边栏偏移方向说明。
+- **0.5.13**：「透明」改为真正的自定义玻璃，可独立调整模糊度、颜色、浓度与颜色亮度。模糊为 0 时不做背景采集；有模糊时使用无折射的 GPU 背景。液态玻璃另加折射效果。保留颜色预设、设置布局和 120fps 动画。
+- **0.5.12**：卡片材质「半透明」改名为「透明」；液态玻璃模糊度前置，可直接选强度；玻璃颜色补齐红／绿／蓝等直观预设，不用手写色码。自选颜色移至高级，支持新版 Windhawk 原生色盘；保留旧颜色和模糊值。
+- **0.5.11**：展开／收起动画改用高精度等待计时器，以 120fps 为调度目标；使用高精度时间戳，并合并积压帧。动画结束立即停止计时。液态玻璃保留 20fps 刷新目标，优先保障卡片动画；实际画面帧率取决于显示器与系统负载。设置布局不变。
+- **0.5.10**：展开／收起动画复用绘图表面和内容快照，避免逐帧排版和检查中转文件；弹簧按实际时间推进。液态玻璃收起改为后台停止捕获并休眠，界面线程不等待 GPU 清理。设置布局保持不变。
+- **0.5.9**：展开卡片的进度条支持点击跳转，位置按点击比例计算；播放器不支持进度调整时保持只读。跳转在媒体线程执行，并检查曲目和播放器没有切换。
+- **0.5.8**：设置精简为「常用开关」「颜色与外观」「高级设置」。常用显示开关集中在顶部；合并重复的玻璃开关为一个材质选择；字体、布局、定位与歌词源收进高级子组，缩短标签和说明。保留旧设置。
+- **0.5.7**：文件中转拖入／拖出统一为复制语义，拖出不再允许移动或创建快捷方式；源文件保留。资源占用开关移至「常用：点击与布局」前部，保留旧开关值。
+- **0.5.6**：修复歌词条与任务栏音频频谱反复争夺顶层导致的闪烁。层级维护跳过频谱、隐藏窗口和不相交窗口，仍在被任务栏内容实际遮挡时抬高。展开液态玻璃的折射限于圆角边缘，避免宽折射带穿过距离场法线切换线产生三角折痕。天气板块默认开启，使用自动定位。
+- **0.5.5**：没有媒体会话时隐藏整个播放板块，释放缓存封面；不再显示上次歌曲的封面、歌手、进度和灰色按钮。有会话但暂停时仍可继续播放。
+- **0.5.4**：AI 状态和空闲时也能点击展开；移除动画窗口的透明预留带，避免顶部双层玻璃；设置按位置、外观、歌词、AI、展开面板、玻璃材质分组；玻璃支持开始菜单同款配色、自定义 #RRGGBB、0–100 浓度、0–150 颜色亮度及液态玻璃 0–60 模糊。任务栏选无底色仍完全透明。
 - **0.5.3**：自动检测任务栏所在边（底／顶／左／右）：主任务栏用 `SHAppBarMessage(ABM_GETTASKBARPOS)`，副屏或未更新 ABM 的美化 mod 用任务栏矩形相对显示器比较，竖向以高大于宽为准。竖向任务栏收起态改为贴合宽度的方块／竖条（封面＋播放状态；设置「竖向任务栏歌词」可选竖排滚动歌词，默认只显示封面），不超出任务栏宽度。迷你面板与歌词展开面板从对应边弹出（底向上、顶向下、左向右、右向左），弹性动画沿该轴，并夹在显示器工作区内；拖放命中与液态玻璃捕获矩形跟随新几何。底部横向行为与 0.5.2 一致。
-- **0.5.2**：展开面板可选「液态玻璃」背景（默认关闭）：WGC 捕获面板后方区域 + D3D11 模糊／折射／色散／高光边；仅展开时运行，收起即拆除；失败回退到亚克力／半透明。截图／录屏时面板与玻璃层不参与捕获。
+- **0.5.2**：展开面板可选「液态玻璃」背景（默认关闭）：WGC 捕获面板后方区域 + D3D11 模糊／折射／色散／高光边；仅展开时采集和渲染，收起后停止捕获并休眠；失败回退到亚克力／半透明。截图／录屏时面板与玻璃层不参与捕获。
 - **0.5.1**：天气支持自动定位（本机定位 → 可选 IP 估计 → 手动城市）；文件中转可按保留天数自动清理（默认 3 天，不删源文件；列表仍不持久化）。展开面板底色与迷你面板一致（跟随面板底色／玻璃设置，半透明；尝试 DWM 亚克力／圆角，失败则保留半透明衬底），文字颜色与阴影也跟迷你面板走。
 - **0.5.0**：新增「歌词展开面板」：单击歌词条展开（弹性动画、点外面或闲置自动收起、不抢焦点），含播放控制、AI 状态详情、文件中转（拖到歌词条暂存，可再拖出）、天气（open-meteo）、资源占用（仅展开时采样）五个可单独开关的板块。「点封面或文字」新增「展开面板」并设为默认。
 - **0.4.8**：性能：PID→进程名缓存、任务栏 HWND 短缓存、设置快照按代际复用。
@@ -177,284 +193,307 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 
 // ==WindhawkModSettings==
 /*
-- positionMode: widgets
-  $name: Position
-  $name:zh-CN: 位置
-  $description: Widgets slot = left edge when icons are centered, left of the tray when icons are left-aligned.
-  $description:zh-CN: 「小组件位置」：任务栏图标居中时放在最左边，图标靠左时自动挪到托盘左边，不压开始按钮。
-  $options:
-  - widgets: 小组件位置（推荐）
-  - left: 固定在任务栏最左边
-  - auto_tray: 固定在托盘左边
-- xOffset: 12
-  $name: Horizontal offset (px)
-  $name:zh-CN: 水平偏移（像素）
-  $description: Distance from the taskbar edge or tray, in 100% scale pixels. Range -500–2000. Default 12.
-  $description:zh-CN: 离任务栏左边或托盘的距离，按 100% 缩放的像素算，高 DPI 自动放大。范围 -500–2000。默认 12。
-- whenIdle: show
-  $name: When nothing is playing
-  $name:zh-CN: 没在放歌时
-  $description: Default shows "Not playing". AI status still shows when an agent is active.
-  $description:zh-CN: 默认为显示「未在播放」。有 AI 助手在工作时仍会显示。
-  $options:
-  - hide: 隐藏面板
-  - show: 显示「未在播放」
-- sizePreset: standard
-  $name: Panel width
-  $name:zh-CN: 面板宽度
-  $description: Width in 100% scale pixels.
-  $description:zh-CN: 按 100% 缩放的像素算。
-  $options:
-  - compact: 紧凑（260）
-  - standard: 标准（340）
-  - wide: 宽（440）
-  - extra: 超宽（560）
-  - custom: 自定义（用下面的宽度）
-- width: 340
-  $name: Custom width (px)
-  $name:zh-CN: 自定义宽度（像素）
-  $description: Only used when the panel width is Custom. Range 120–2000.
-  $description:zh-CN: 只有「面板宽度」选「自定义」时才用。范围 120–2000。
-- showArt: true
-  $name: Show album art
-  $name:zh-CN: 显示专辑封面
-  $description: Album art comes from the system media session, only if the player provides it.
-  $description:zh-CN: 封面来自系统媒体会话，播放器提供才有，没有时显示音符。
-- showButtons: true
-  $name: Show playback buttons
-  $name:zh-CN: 显示播放控制按钮
-  $description: Previous, play/pause and next.
-  $description:zh-CN: 上一首、播放／暂停、下一首。
-- textMode: lyrics
-  $name: First line
-  $name:zh-CN: 第一行显示
-  $description: What the main line shows.
-  $description:zh-CN: 主行显示的内容。
-  $options:
-  - lyrics: 当前歌词（没有就显示歌名）
-  - title: 只显示歌名
-- secondLine: auto
-  $name: Second line
-  $name:zh-CN: 第二行显示
-  $description: Translation comes from NetEase or QQ Music when available. AI status replaces this line while an agent is active.
-  $description:zh-CN: 翻译来自网易云或 QQ 音乐。有 AI 助手在工作时，这一行改为显示 AI 状态。
-  $options:
-  - auto: 有翻译显示翻译，没有显示歌名和歌手
-  - translation: 只显示翻译
-  - info: 歌名和歌手
-  - none: 不显示，只要一行
-- clickAction: expand
-  $name: Click on art or text
-  $name:zh-CN: 点封面或文字
-  $description: Expand opens the lyrics expand panel from the taskbar edge (playback, AI status, file relay, weather, resources). Open brings the playing app to the front. None lets clicks pass through.
-  $description:zh-CN: 「展开面板」从任务栏所在边弹出歌词展开面板（播放控制、AI 状态、文件中转、天气、资源占用）；「打开播放器」把正在播放的软件切到前台（旧行为）；「不响应」为点击穿透。
-  $options:
-  - expand: 展开面板
-  - open: 打开播放器
-  - none: 不响应
-- textColorMode: default
-  $name: Text color
-  $name:zh-CN: 文字颜色
-  $description: Text and button color. Theme default and System-aware both follow light/dark mode.
-  $description:zh-CN: 文字和按钮的颜色。「主题默认」和「跟随系统」都跟着系统深浅色走：浅色模式深色字，深色模式白字。
-  $options:
-  - default: 主题默认
-  - white: 白色
-  - dark: 深色
-  - system: 跟随系统
-  - red: 红色
-  - green: 绿色
-  - blue: 蓝色
-  - yellow: 黄色
-  - orange: 橙色
-  - purple: 紫色
-  - pink: 粉色
-  - cyan: 青色
-- panelBackground: none
-  $name: Panel background
-  $name:zh-CN: 面板底色
-  $description: None = fully transparent, drawn straight on the taskbar's own material. Subtle and card follow light/dark mode.
-  $description:zh-CN: 「无底色」完全透明，没有底色和边框，直接画在任务栏上。「淡淡一层」「卡片」跟随系统深浅色。
-  $options:
-  - none: 无底色（最通透）
-  - subtle: 淡淡一层
-  - card: 卡片（最浓）
-- fontPreset: msyh
-  $name: Font
-  $name:zh-CN: 字体
-  $description: Font for lyrics and titles.
-  $description:zh-CN: 歌词和歌名用的字体。
-  $options:
-  - msyh: 微软雅黑 UI
-  - segoe: Segoe UI
-  - dengxian: 等线
-  - custom: 自定义（下面填写）
-- customFont: ""
-  $name: Custom font name
-  $name:zh-CN: 自定义字体名
-  $description: Only used when the font is Custom, for example "HarmonyOS Sans SC".
-  $description:zh-CN: 只有「字体」选「自定义」时才用，例如「HarmonyOS Sans SC」。
-- fontSize: 12
-  $name: Font size
-  $name:zh-CN: 字号
-  $description: Size of the first line in points; the second line is a little smaller.
-  $description:zh-CN: 第一行的字号（磅），第二行会小一点。
-  $options:
-  - 10: 10 磅
-  - 11: 11 磅
-  - 12: 12 磅（推荐）
-  - 13: 13 磅
-  - 14: 14 磅
-  - 16: 16 磅
-- bold: false
-  $name: Bold
-  $name:zh-CN: 粗体
-  $description: Bold first line.
-  $description:zh-CN: 第一行用粗体。
-- offsetMs: 200
-  $name: Lyrics offset (ms)
-  $name:zh-CN: 歌词偏移（毫秒）
-  $description: Positive shows lyrics earlier, negative later. Default 200 makes up for the delay of the player's progress report and the panel redraw. Range -60000–60000.
-  $description:zh-CN: 正数让歌词提前显示，负数推后。默认 200，用来抵消播放器报进度和面板刷新的延迟。范围 -60000–60000。
-- hideInFullscreen: false
-  $name: Hide in fullscreen and games
-  $name:zh-CN: 全屏和游戏时隐藏
-  $description: Default off. Hides during fullscreen games, videos and presentations. With multi-monitor, only the panel on the fullscreen monitor hides.
-  $description:zh-CN: 默认关闭。开启后全屏游戏、视频、PPT 放映时隐藏。开启多显示器时，只隐藏全屏所在那块屏幕上的面板。
-- panelGlass: true
-  $name: Panel glass
-  $name:zh-CN: 面板玻璃
-  $description: "Only for Subtle and Card. On: a translucent layer over the taskbar glass. Off: a nearly solid background. No effect with None. Default: on."
-  $description:zh-CN: 只对「淡淡一层」「卡片」有用：开启时是叠在任务栏玻璃上的半透明色，关闭时是几乎不透明的底色。「无底色」时不起作用。默认开启。
-- multiMonitor: false
-  $name: Multi-monitor
-  $name:zh-CN: 多显示器
-  $description: Off = primary taskbar only. On = one panel per taskbar including secondary monitors. Default off.
-  $description:zh-CN: 关闭时只在主任务栏显示；开启后每个任务栏（含副屏）各有一个面板。默认关闭。
-- enableNetease: true
-  $name: NetEase lyrics
-  $name:zh-CN: 使用网易云歌词源
-  $description: Unofficial API, may stop working.
-  $description:zh-CN: 非官方接口，可能随时失效。
-- enableQQ: true
-  $name: QQ Music lyrics
-  $name:zh-CN: 使用 QQ 音乐歌词源
-  $description: Unofficial API, may stop working.
-  $description:zh-CN: 非官方接口，可能随时失效。
-- enableLrclib: true
-  $name: LRCLIB lyrics
-  $name:zh-CN: 使用 LRCLIB 歌词源
-  $description: Public lyrics database, good for English songs.
-  $description:zh-CN: 公开歌词库，英文歌比较全。
-- aiStatus: compact
-  $name: AI agent status
-  $name:zh-CN: AI 助手状态
-  $description: Reads %LOCALAPPDATA%\ZenDesktop\ai-status\*.json written by the adapters in tools/ai-status.
-  $description:zh-CN: 读取 %LOCALAPPDATA%\ZenDesktop\ai-status\ 里的状态文件（由 tools/ai-status 里的脚本写入）。
-  $options:
-  - compact: 一行列出所有助手
-  - rotate: 轮流显示（每 4 秒换一个，带说明）
-  - off: 关闭
-- aiDoneSeconds: "120"
-  $name: Keep showing Done for
-  $name:zh-CN: 「已完成」保留多久
-  $description: After this the finished agent disappears from the panel.
-  $description:zh-CN: 超过这个时间，完成的助手就不再显示。
-  $options:
-  - "30": 30 秒
-  - "120": 2 分钟
-  - "600": 10 分钟
-  - "0": 一直显示
-- aiProcesses: "Antigravity.exe, Antigravity IDE.exe, DeepSeek Harness.exe"
-  $name: Show by process name
-  $name:zh-CN: 按进程名显示
-  $description: For tools without hooks. Comma separated process names, for example Antigravity.exe, gemini.exe, aider.exe. Shows Running while the process exists. Skipped when that agent already writes a status file (hooks / MCP). Clear it to turn off.
-  $description:zh-CN: 给没有钩子的工具用。填进程名，用逗号分隔，例如 Antigravity.exe, gemini.exe, aider.exe。进程在运行时显示「运行中」。这个助手已经用钩子或 MCP 汇报状态时不会重复显示。清空即可关闭。
-- verticalLyric: cover
-  $name: Vertical taskbar lyrics
-  $name:zh-CN: 竖向任务栏歌词
-  $description: Used when the taskbar is on the left or right (auto-detected). Cover only = a square tile with album art and play state. Scroll = also show the current lyric in vertical writing.
-  $description:zh-CN: 任务栏在左边或右边时使用（自动检测，不用另开开关）。「只显示封面」为正方形封面加播放状态；「竖排滚动歌词」另外用竖排显示当前歌词。
-  $options:
-  - cover: 只显示封面
-  - scroll: 竖排滚动歌词
-- expandPanel:
-  - width: normal
-    $name: Panel width
-    $name:zh-CN: 面板宽度
+- common:
+  - clickAction: expand
+    $name: 单击操作
+    $name:zh-CN: 单击操作
     $options:
-    - narrow: 窄（300）
-    - normal: 标准（360）
-    - wide: 宽（440）
-  - autoCollapseSeconds: 8
-    $name: Auto collapse after (seconds)
-    $name:zh-CN: 闲置几秒后自动收起
-    $description: The panel collapses when the mouse has been away this long. 0 = only on click.
-    $description:zh-CN: 鼠标离开面板超过这个秒数就自动收起。填 0 表示只在点击时收起。
-  - media: true
-    $name: Section - Playback
-    $name:zh-CN: 板块：播放控制
-    $description: Cover, title/artist, progress, previous/play/next and an Open player button.
-    $description:zh-CN: 封面、歌名歌手、进度、上一首／播放暂停／下一首，以及「打开播放器」按钮。
-  - ai: true
-    $name: Section - AI status
-    $name:zh-CN: 板块：AI 状态
-    $description: Same data as the bar (status files, hooks, MCP, process names), listed with details.
-    $description:zh-CN: 和歌词条用同一份数据（状态文件、钩子、MCP、进程名），在这里逐个列出详情。
-  - files: true
-    $name: Section - File relay
-    $name:zh-CN: 板块：文件中转
-    $description: Drop files on the collapsed bar to park them here (only the paths are kept, nothing is copied), then drag them out to any app.
-    $description:zh-CN: 把文件拖到收起状态的歌词条上暂存（只记路径，不复制文件），之后可从面板里拖到任意软件。
-  - filesRetentionDays: 3
-    $name: File relay retention (days)
-    $name:zh-CN: 文件中转保留天数
-    $description: Entries older than this are removed from the list (source files are never deleted). 0 = never expire by age. Missing files are always dropped. The list lives in memory only.
-    $description:zh-CN: 超过这个天数的条目会自动移出列表（不会删除源文件）。填 0 表示不按天清理。源文件已经不存在的条目也会去掉。列表只保存在内存，重载 explorer／mod 会清空。
-  - weather: false
-    $name: Section - Weather
-    $name:zh-CN: 板块：天气
-    $description: Current temperature and condition from open-meteo.com (no key). With auto location you do not need a city.
-    $description:zh-CN: 当前气温和天气，来自 open-meteo.com（不需要密钥）。选自动定位时不必填城市。
-  - weatherLocationMode: auto
-    $name: Weather location
-    $name:zh-CN: 天气定位方式
-    $description: Auto tries Windows location, then optional IP estimate, then the city below. Manual uses only the city.
-    $description:zh-CN: 「自动定位」依次尝试本机定位、可选的 IP 估计，最后才用下面的城市。「只用手动城市」则始终用城市名。
-    $options:
-    - auto
-      $name: Auto
-      $name:zh-CN: 自动定位
-    - manual
-      $name: Manual city only
-      $name:zh-CN: 只用手动城市
-  - weatherAllowIp: true
-    $name: Weather - allow IP estimate
-    $name:zh-CN: 天气：允许按 IP 估计位置
-    $description: When auto location cannot use Windows location, send your public IP to a third party (ipwho.is over HTTPS, no key) to estimate the city. Turn off to use only Windows location or the manual city.
-    $description:zh-CN: 自动定位且本机定位不可用时，把公网 IP 发给第三方（ipwho.is，HTTPS、无需密钥）估计城市。关闭后只用本机定位或手动城市。
-  - weatherCity: ""
-    $name: Weather city
-    $name:zh-CN: 天气城市
-    $description: Fallback when auto location fails; required for Manual city only. For example 上海 or Beijing.
-    $description:zh-CN: 自动定位失败时的后备；「只用手动城市」时必填。例如「上海」或 Beijing。
-  - weatherRefreshMinutes: 30
-    $name: Weather refresh (minutes)
-    $name:zh-CN: 天气刷新间隔（分钟）
+    - expand: 展开面板
+    - open: 打开播放器
+    - none: 不响应
   - resources: true
-    $name: Section - Resources
-    $name:zh-CN: 板块：资源占用
-    $description: CPU, memory, GPU and network up/down. Sampled only while the panel is open.
-    $description:zh-CN: CPU、内存、GPU、网络上下行。只在面板展开时采样，收起后不占资源。
-  - liquidGlass: false
-    $name: Liquid glass background
-    $name:zh-CN: 液态玻璃背景
-    $description: Experimental. Captures what is behind the expand panel and draws a blurred / refracting glass layer (GPU). Off by default. Only runs while the panel is expanded; falls back to acrylic / translucent if anything fails. Screenshot and screen-share will omit the panel and glass layer while it is on.
-    $description:zh-CN: 实验功能。捕获展开面板后方的画面，用 GPU 画一层带模糊／折射的液态玻璃。默认关闭。只在面板展开时运行；失败则回退到亚克力／半透明。开启时截图／录屏看不到面板和玻璃层。
-  $name: Lyrics expand panel
-  $name:zh-CN: 歌词展开面板
-  $description: Used when Click on art or text is Expand.
-  $description:zh-CN: 「点封面或文字」选「展开面板」时使用。
+    $name: 资源占用
+    $name:zh-CN: 资源占用
+  - weather: true
+    $name: 天气
+    $name:zh-CN: 天气
+  - files: true
+    $name: 文件中转
+    $name:zh-CN: 文件中转
+  - media: true
+    $name: 音乐播放
+    $name:zh-CN: 音乐播放
+  - ai: true
+    $name: AI 状态
+    $name:zh-CN: AI 状态
+  - sizePreset: standard
+    $name: 任务栏宽度
+    $name:zh-CN: 任务栏宽度
+    $options:
+    - compact: 紧凑（260）
+    - standard: 标准（340）
+    - wide: 宽（440）
+    - extra: 超宽（560）
+    - custom: 自定义（用下面的宽度）
+  - whenIdle: show
+    $name: 空闲时显示
+    $name:zh-CN: 空闲时显示
+    $options:
+    - show: 未在播放（默认）
+    - weather: 显示天气
+    - resources: 显示资源占用
+    - hide: 隐藏面板
+  - hideInFullscreen: false
+    $name: 全屏时隐藏
+    $name:zh-CN: 全屏时隐藏
+  $name: 常用开关
+  $name:zh-CN: 常用开关
+- appearance:
+  - effect: acrylic
+    $name: 卡片材质
+    $name:zh-CN: 卡片材质
+    $options:
+    - plain: 透明（自定义玻璃）
+    - acrylic: 磨砂玻璃
+    - liquid: 液态玻璃
+  - blur: 12
+    $name: 模糊度
+    $name:zh-CN: 模糊度
+    $description: 自定义玻璃和液态玻璃可调；0 不模糊，数值越大越模糊。
+    $description:zh-CN: 自定义玻璃和液态玻璃可调；0 不模糊，数值越大越模糊。
+    $options:
+    - 0: 清晰（0）
+    - 3: 很轻（3）
+    - 6: 轻微（6）
+    - 12: 标准（12）
+    - 20: 柔和（20）
+    - 30: 较强（30）
+    - 45: 强（45）
+    - 60: 最强（60）
+  - color: Default
+    $name: 玻璃颜色
+    $name:zh-CN: 玻璃颜色
+    $options:
+    - Default: 跟随系统深浅色
+    - Accent: 系统强调色
+    - GlassWhite: 透白
+    - MistGrey: 雾灰
+    - DeepBlack: 深黑
+    - Red: 红色
+    - Green: 绿色
+    - Blue: 蓝色
+    - Yellow: 黄色
+    - Orange: 橙色
+    - Purple: 紫色
+    - Pink: 粉色
+    - Cyan: 青色
+    - OceanBlue: 海蓝
+    - AuroraCyan: 极光青
+    - RosePink: 玫瑰粉
+    - BordeauxRed: 酒红
+    - ForestGreen: 森林绿
+    - RoyalPurple: 皇家紫
+    - SunsetOrange: 落日橙
+    - ChampagneGold: 香槟金
+    - MorandiSage: 莫兰迪绿
+    - Custom: 自选颜色（高级）
+  - opacity: 40
+    $name: 颜色浓度（%）
+    $name:zh-CN: 颜色浓度（%）
+    $description: 0 完全透明，100 完全不透明。任务栏无底色时仍透明。
+    $description:zh-CN: 0 完全透明，100 完全不透明。任务栏无底色时仍透明。
+  - luminosity: 100
+    $name: 颜色亮度
+    $name:zh-CN: 颜色亮度
+    $description: 100 为原色，范围 0–150。
+    $description:zh-CN: 100 为原色，范围 0–150。
+  - textColorMode: default
+    $name: 文字颜色
+    $name:zh-CN: 文字颜色
+    $options:
+    - default: 主题默认
+    - white: 白色
+    - dark: 深色
+    - system: 跟随系统
+    - red: 红色
+    - green: 绿色
+    - blue: 蓝色
+    - yellow: 黄色
+    - orange: 橙色
+    - purple: 紫色
+    - pink: 粉色
+    - cyan: 青色
+  - fontSize: 12
+    $name: 字号
+    $name:zh-CN: 字号
+    $options:
+    - 10: 10 磅
+    - 11: 11 磅
+    - 12: 12 磅（推荐）
+    - 13: 13 磅
+    - 14: 14 磅
+    - 16: 16 磅
+  $name: 颜色与外观
+  $name:zh-CN: 颜色与外观
+- advanced:
+  - layout:
+    - positionMode: widgets
+      $name: 任务栏位置
+      $name:zh-CN: 任务栏位置
+      $options:
+      - widgets: 小组件位置（推荐）
+      - left: 固定在任务栏最左边
+      - auto_tray: 固定在托盘左边
+    - xOffset: 12
+      $name: 位置偏移（像素）
+      $name:zh-CN: 位置偏移（像素）
+      $description: 横向任务栏左右移动，侧边任务栏上下移动。起始位置模式下正数向右／下，托盘模式下正数远离托盘。高 DPI 自动缩放，范围 -500–2000。
+      $description:zh-CN: 横向任务栏左右移动，侧边任务栏上下移动。起始位置模式下正数向右／下，托盘模式下正数远离托盘。高 DPI 自动缩放，范围 -500–2000。
+    - width: 340
+      $name: 自定义任务栏宽度
+      $name:zh-CN: 自定义任务栏宽度
+      $description: 任务栏宽度选「自定义」时生效，120–2000 像素。
+      $description:zh-CN: 任务栏宽度选「自定义」时生效，120–2000 像素。
+    - expandWidth: normal
+      $name: 展开卡片宽度
+      $name:zh-CN: 展开卡片宽度
+      $options:
+      - narrow: 窄（300）
+      - normal: 标准（360）
+      - wide: 宽（440）
+    - autoCollapseSeconds: 8
+      $name: 自动收起（秒）
+      $name:zh-CN: 自动收起（秒）
+    - multiMonitor: false
+      $name: 所有显示器显示
+      $name:zh-CN: 所有显示器显示
+    - verticalLyric: cover
+      $name: 竖向任务栏布局
+      $name:zh-CN: 竖向任务栏布局
+      $options:
+      - cover: 只显示封面
+      - scroll: 竖排滚动歌词
+    $name: 布局
+    $name:zh-CN: 布局
+  - text:
+    - fontPreset: msyh
+      $name: 字体
+      $name:zh-CN: 字体
+      $options:
+      - msyh: 微软雅黑 UI
+      - segoe: Segoe UI
+      - dengxian: 等线
+      - custom: 自定义（下面填写）
+    - customFont: ''
+      $name: 自定义字体名
+      $name:zh-CN: 自定义字体名
+      $description: 字体选「自定义」时填写。
+      $description:zh-CN: 字体选「自定义」时填写。
+    - bold: false
+      $name: 标题加粗
+      $name:zh-CN: 标题加粗
+    - showArt: true
+      $name: 任务栏封面
+      $name:zh-CN: 任务栏封面
+    - showButtons: true
+      $name: 任务栏播放按钮
+      $name:zh-CN: 任务栏播放按钮
+    - textMode: lyrics
+      $name: 第一行
+      $name:zh-CN: 第一行
+      $options:
+      - lyrics: 当前歌词（没有就显示歌名）
+      - title: 只显示歌名
+    - secondLine: auto
+      $name: 第二行
+      $name:zh-CN: 第二行
+      $options:
+      - auto: 有翻译显示翻译，没有显示歌名和歌手
+      - translation: 只显示翻译
+      - info: 歌名和歌手
+      - none: 不显示，只要一行
+    $name: 字体与内容
+    $name:zh-CN: 字体与内容
+  - glass:
+    - panelBackground: none
+      $name: 任务栏底色
+      $name:zh-CN: 任务栏底色
+      $options:
+      - none: 无底色（最通透）
+      - subtle: 淡淡一层
+      - card: 卡片（最浓）
+    - customColor: '#1A365D'
+      #! $format: colorRgb
+      $name: 自选颜色
+      $name:zh-CN: 自选颜色
+      $description: 颜色选「自选颜色」时使用；支持色盘的设置页可直接点选。
+      $description:zh-CN: 颜色选「自选颜色」时使用；支持色盘的设置页可直接点选。
+    $name: 玻璃细节
+    $name:zh-CN: 玻璃细节
+  - weather:
+    - locationMode: auto
+      $name: 定位方式
+      $name:zh-CN: 定位方式
+      $options:
+      - auto: 自动定位
+      - manual: 只用手动城市
+    - city: ''
+      $name: 手动城市
+      $name:zh-CN: 手动城市
+      $description: 手动定位时必填；自动定位失败时作为后备。
+      $description:zh-CN: 手动定位时必填；自动定位失败时作为后备。
+    - allowIp: true
+      $name: 允许 IP 定位
+      $name:zh-CN: 允许 IP 定位
+      $description: 本机定位不可用时，使用 ipwho.is 估计城市。
+      $description:zh-CN: 本机定位不可用时，使用 ipwho.is 估计城市。
+    - refreshMinutes: 30
+      $name: 刷新间隔（分钟）
+      $name:zh-CN: 刷新间隔（分钟）
+    $name: 天气定位
+    $name:zh-CN: 天气定位
+  - relay:
+    - retentionDays: 3
+      $name: 保留天数
+      $name:zh-CN: 保留天数
+      $description: 只清除列表记录，不删源文件；0 为不按天过期。
+      $description:zh-CN: 只清除列表记录，不删源文件；0 为不按天过期。
+    $name: 文件中转
+    $name:zh-CN: 文件中转
+  - ai:
+    - mode: compact
+      $name: 状态显示方式
+      $name:zh-CN: 状态显示方式
+      $options:
+      - compact: 一行列出所有助手
+      - rotate: 轮流显示（每 4 秒换一个，带说明）
+      - false: 关闭
+    - doneSeconds: '120'
+      $name: 完成状态保留
+      $name:zh-CN: 完成状态保留
+      $options:
+      - '30': 30 秒
+      - '120': 2 分钟
+      - '600': 10 分钟
+      - '0': 一直显示
+    - processes: Antigravity.exe, Antigravity IDE.exe, DeepSeek Harness.exe
+      $name: 按进程名识别
+      $name:zh-CN: 按进程名识别
+      $description: 逗号分隔进程名；留空关闭。
+      $description:zh-CN: 逗号分隔进程名；留空关闭。
+    $name: AI 接入
+    $name:zh-CN: AI 接入
+  - lyrics:
+    - offsetMs: 200
+      $name: 同步偏移（毫秒）
+      $name:zh-CN: 同步偏移（毫秒）
+      $description: 正数提前，负数推后。
+      $description:zh-CN: 正数提前，负数推后。
+    - netease: true
+      $name: 网易云
+      $name:zh-CN: 网易云
+    - qq: true
+      $name: QQ 音乐
+      $name:zh-CN: QQ 音乐
+    - lrclib: true
+      $name: LRCLIB
+      $name:zh-CN: LRCLIB
+    $name: 歌词来源
+    $name:zh-CN: 歌词来源
+  $name: 高级设置
+  $name:zh-CN: 高级设置
+  $description: 仅在需要精细调整时修改。
+  $description:zh-CN: 仅在需要精细调整时修改。
 */
 // ==/WindhawkModSettings==
 
@@ -513,14 +552,17 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 using namespace winrt::Windows::Media::Control;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Settings. Defaults below mirror the settings block; they are used for every
-// value when the mod's settings were never written (e.g. installed by deploy.ps1
-// without opening the settings page), detected by an empty positionMode string.
+// Settings. Defaults below mirror the settings block; they are used when the
+// mod's settings were never written (e.g. installed by deploy.ps1 without
+// opening the settings page). Compact layout is detected via common.* keys;
+// do not require advanced.layout.positionMode — that key can stay unread while
+// common.clickAction is already set, and gating on it skipped clickAction.
 // ─────────────────────────────────────────────────────────────────────────────
 enum class PosMode { Widgets, Left, Tray };
 enum class SecondLine { Auto, Translation, Info, None };
 enum class PanelBg { None, Subtle, Card };
 enum class AiMode { Off, Compact, Rotate };
+enum class IdleMode { Message, Weather, Resources, Hide };
 
 struct Settings {
     PosMode posMode = PosMode::Widgets;
@@ -530,17 +572,18 @@ struct Settings {
     bool showButtons = true;
     bool titleOnly = false;
     SecondLine secondLine = SecondLine::Auto;
-    bool showIdle = true;
+    IdleMode idleMode = IdleMode::Message;
     bool clickOpens = true;
     bool clickExpands = true;      // 歌词展开面板
     int expandWidth = 360;
     int expandAutoCollapseSec = 8;
-    bool xMedia = true, xAi = true, xFiles = true, xWeather = false, xRes = true;
+    bool xMedia = true, xAi = true, xFiles = true, xWeather = true, xRes = true;
     bool weatherLocAuto = true;       // false = manual city only
     bool weatherAllowIp = true;       // IP estimate behind its own switch
     std::wstring weatherCity;
     int weatherRefreshMin = 30;
     int filesRetentionDays = 3;       // 0 = never expire by age
+    bool expandCustomGlass = false;  // configurable blur without refraction
     bool expandLiquidGlass = false;   // optional WGC+D3D11 glass behind expand panel
     bool verticalScrollLyric = false; // vertical taskbar: cover-only (false) or 竖排滚动歌词
     std::wstring textColorMode = L"default";
@@ -551,6 +594,8 @@ struct Settings {
     int offsetMs = 200;  // compensates player progress-report + redraw latency (tested by Lanbo)
     bool hideInFullscreen = false;
     bool panelGlass = true;
+    std::wstring glassColor, glassCustomColor;
+    int glassOpacity = 40, glassLuminosity = 100, glassBlur = 12;
     bool multiMonitor = false;
     bool enableNetease = true;
     bool enableQQ = true;
@@ -565,36 +610,141 @@ static std::atomic<uint64_t> g_settingsGen{1};
 static thread_local uint64_t tls_settingsGen = 0;
 static thread_local Settings tls_settings;
 
+static int g_settingsLayout = 0;  // 0: flat, 1: 0.5.4 groups, 2: compact settings
+static std::wstring SettingKey(PCWSTR name) {
+    if (g_settingsLayout == 2) {
+        if (wcscmp(name, L"clickAction") == 0) return L"common.clickAction";
+        if (wcscmp(name, L"expandPanel.resources") == 0) return L"common.resources";
+        if (wcscmp(name, L"expandPanel.weather") == 0) return L"common.weather";
+        if (wcscmp(name, L"expandPanel.files") == 0) return L"common.files";
+        if (wcscmp(name, L"expandPanel.media") == 0) return L"common.media";
+        if (wcscmp(name, L"expandPanel.ai") == 0) return L"common.ai";
+        if (wcscmp(name, L"sizePreset") == 0) return L"common.sizePreset";
+        if (wcscmp(name, L"whenIdle") == 0) return L"common.whenIdle";
+        if (wcscmp(name, L"hideInFullscreen") == 0) return L"common.hideInFullscreen";
+        if (wcscmp(name, L"material.color") == 0) return L"appearance.color";
+        if (wcscmp(name, L"material.customColor") == 0) return L"advanced.glass.customColor";
+        if (wcscmp(name, L"material.opacity") == 0) return L"appearance.opacity";
+        if (wcscmp(name, L"material.luminosity") == 0) return L"appearance.luminosity";
+        if (wcscmp(name, L"textColorMode") == 0) return L"appearance.textColorMode";
+        if (wcscmp(name, L"fontSize") == 0) return L"appearance.fontSize";
+        if (wcscmp(name, L"positionMode") == 0) return L"advanced.layout.positionMode";
+        if (wcscmp(name, L"xOffset") == 0) return L"advanced.layout.xOffset";
+        if (wcscmp(name, L"width") == 0) return L"advanced.layout.width";
+        if (wcscmp(name, L"expandPanel.width") == 0) return L"advanced.layout.expandWidth";
+        if (wcscmp(name, L"expandPanel.autoCollapseSeconds") == 0) return L"advanced.layout.autoCollapseSeconds";
+        if (wcscmp(name, L"multiMonitor") == 0) return L"advanced.layout.multiMonitor";
+        if (wcscmp(name, L"verticalLyric") == 0) return L"advanced.layout.verticalLyric";
+        if (wcscmp(name, L"fontPreset") == 0) return L"advanced.text.fontPreset";
+        if (wcscmp(name, L"customFont") == 0) return L"advanced.text.customFont";
+        if (wcscmp(name, L"bold") == 0) return L"advanced.text.bold";
+        if (wcscmp(name, L"showArt") == 0) return L"advanced.text.showArt";
+        if (wcscmp(name, L"showButtons") == 0) return L"advanced.text.showButtons";
+        if (wcscmp(name, L"textMode") == 0) return L"advanced.text.textMode";
+        if (wcscmp(name, L"secondLine") == 0) return L"advanced.text.secondLine";
+        if (wcscmp(name, L"panelBackground") == 0) return L"advanced.glass.panelBackground";
+        if (wcscmp(name, L"material.blur") == 0) return L"appearance.blur";
+        if (wcscmp(name, L"expandPanel.weatherLocationMode") == 0) return L"advanced.weather.locationMode";
+        if (wcscmp(name, L"expandPanel.weatherCity") == 0) return L"advanced.weather.city";
+        if (wcscmp(name, L"expandPanel.weatherAllowIp") == 0) return L"advanced.weather.allowIp";
+        if (wcscmp(name, L"expandPanel.weatherRefreshMinutes") == 0) return L"advanced.weather.refreshMinutes";
+        if (wcscmp(name, L"expandPanel.filesRetentionDays") == 0) return L"advanced.relay.retentionDays";
+        if (wcscmp(name, L"aiStatus") == 0) return L"advanced.ai.mode";
+        if (wcscmp(name, L"aiDoneSeconds") == 0) return L"advanced.ai.doneSeconds";
+        if (wcscmp(name, L"aiProcesses") == 0) return L"advanced.ai.processes";
+        if (wcscmp(name, L"offsetMs") == 0) return L"advanced.lyrics.offsetMs";
+        if (wcscmp(name, L"enableNetease") == 0) return L"advanced.lyrics.netease";
+        if (wcscmp(name, L"enableQQ") == 0) return L"advanced.lyrics.qq";
+        if (wcscmp(name, L"enableLrclib") == 0) return L"advanced.lyrics.lrclib";
+    }
+    if (g_settingsLayout == 1) {
+        if (wcscmp(name, L"expandPanel.resources") == 0) return L"general.resources";
+        if (wcscmp(name, L"positionMode") == 0) return L"general.positionMode";
+        if (wcscmp(name, L"xOffset") == 0) return L"general.xOffset";
+        if (wcscmp(name, L"sizePreset") == 0) return L"general.sizePreset";
+        if (wcscmp(name, L"width") == 0) return L"general.width";
+        if (wcscmp(name, L"whenIdle") == 0) return L"general.whenIdle";
+        if (wcscmp(name, L"clickAction") == 0) return L"general.clickAction";
+        if (wcscmp(name, L"multiMonitor") == 0) return L"general.multiMonitor";
+        if (wcscmp(name, L"hideInFullscreen") == 0) return L"general.hideInFullscreen";
+        if (wcscmp(name, L"verticalLyric") == 0) return L"general.verticalLyric";
+        if (wcscmp(name, L"showArt") == 0) return L"appearance.showArt";
+        if (wcscmp(name, L"showButtons") == 0) return L"appearance.showButtons";
+        if (wcscmp(name, L"textColorMode") == 0) return L"appearance.textColorMode";
+        if (wcscmp(name, L"fontPreset") == 0) return L"appearance.fontPreset";
+        if (wcscmp(name, L"customFont") == 0) return L"appearance.customFont";
+        if (wcscmp(name, L"fontSize") == 0) return L"appearance.fontSize";
+        if (wcscmp(name, L"bold") == 0) return L"appearance.bold";
+        if (wcscmp(name, L"panelBackground") == 0) return L"appearance.panelBackground";
+        if (wcscmp(name, L"panelGlass") == 0) return L"appearance.panelGlass";
+        if (wcscmp(name, L"textMode") == 0) return L"lyrics.textMode";
+        if (wcscmp(name, L"secondLine") == 0) return L"lyrics.secondLine";
+        if (wcscmp(name, L"offsetMs") == 0) return L"lyrics.offsetMs";
+        if (wcscmp(name, L"enableNetease") == 0) return L"lyrics.enableNetease";
+        if (wcscmp(name, L"enableQQ") == 0) return L"lyrics.enableQQ";
+        if (wcscmp(name, L"enableLrclib") == 0) return L"lyrics.enableLrclib";
+        if (wcscmp(name, L"aiStatus") == 0) return L"ai.aiStatus";
+        if (wcscmp(name, L"aiDoneSeconds") == 0) return L"ai.aiDoneSeconds";
+        if (wcscmp(name, L"aiProcesses") == 0) return L"ai.aiProcesses";
+    }
+    return name;
+}
+static int GetInt(PCWSTR name) { return Wh_GetIntSetting(SettingKey(name).c_str()); }
+
 static std::wstring GetStr(PCWSTR name) {
-    PCWSTR v = Wh_GetStringSetting(name);
+    PCWSTR v = Wh_GetStringSetting(SettingKey(name).c_str());
     std::wstring s = v ? v : L"";
     Wh_FreeStringSetting(v);
     return s;
 }
 
+// True when Windhawk has a writable settings layout (grouped/compact) or the
+// legacy flat positionMode key. Compact users often have common.clickAction set
+// while advanced.layout.positionMode is still empty — that must still load.
+static bool SettingsBodyWritten(int layout, const std::wstring& positionMode) {
+    return layout > 0 || !positionMode.empty();
+}
+
 static void LoadSettings() {
+    PCWSTR grouped = Wh_GetStringSetting(L"general.positionMode");
+    g_settingsLayout = grouped && *grouped ? 1 : 0;
+    Wh_FreeStringSetting(grouped);
+    PCWSTR compact = Wh_GetStringSetting(L"common.clickAction");
+    if (compact && *compact) g_settingsLayout = 2;
+    Wh_FreeStringSetting(compact);
     Settings s;  // defaults
+    s.glassColor = GetStr(L"material.color");
+    s.glassCustomColor = GetStr(L"material.customColor");
+    if (!s.glassColor.empty()) {
+        s.glassOpacity = std::clamp(GetInt(L"material.opacity"), 0, 100);
+        s.glassLuminosity = std::clamp(GetInt(L"material.luminosity"), 0, 150);
+        s.glassBlur = std::clamp(GetInt(L"material.blur"), 0, 60);
+    }
     std::wstring mode = GetStr(L"positionMode");
-    if (mode.empty()) {
+    if (!SettingsBodyWritten(g_settingsLayout, mode)) {
         Wh_Log(L"settings not written yet, using defaults");
     } else {
-        s.posMode = mode == L"left" ? PosMode::Left : mode == L"auto_tray" ? PosMode::Tray : PosMode::Widgets;
-        s.xOffset = std::clamp(Wh_GetIntSetting(L"xOffset"), -500, 2000);
+        if (!mode.empty()) {
+            s.posMode = mode == L"left" ? PosMode::Left : mode == L"auto_tray" ? PosMode::Tray : PosMode::Widgets;
+        }
+        s.xOffset = std::clamp(GetInt(L"xOffset"), -500, 2000);
         std::wstring size = GetStr(L"sizePreset");
         if (size == L"compact") s.width = 260;
         else if (size == L"wide") s.width = 440;
         else if (size == L"extra") s.width = 560;
-        else if (size == L"custom") { int w = Wh_GetIntSetting(L"width"); s.width = w > 0 ? std::clamp(w, 120, 2000) : 340; }
+        else if (size == L"custom") { int w = GetInt(L"width"); s.width = w > 0 ? std::clamp(w, 120, 2000) : 340; }
         else s.width = 340;
-        s.showArt = Wh_GetIntSetting(L"showArt") != 0;
-        s.showButtons = Wh_GetIntSetting(L"showButtons") != 0;
+        s.showArt = GetInt(L"showArt") != 0;
+        s.showButtons = GetInt(L"showButtons") != 0;
         s.titleOnly = GetStr(L"textMode") == L"title";
         std::wstring sl = GetStr(L"secondLine");
         s.secondLine = sl == L"translation" ? SecondLine::Translation : sl == L"info" ? SecondLine::Info
                      : sl == L"none" ? SecondLine::None : SecondLine::Auto;
         {
             std::wstring wi = GetStr(L"whenIdle");
-            s.showIdle = wi != L"hide";  // default show; empty/unknown => show
+            if (wi == L"hide") s.idleMode = IdleMode::Hide;
+            else if (wi == L"weather") s.idleMode = IdleMode::Weather;
+            else if (wi == L"resources") s.idleMode = IdleMode::Resources;
         }
         {
             std::wstring ca = GetStr(L"clickAction");
@@ -604,21 +754,21 @@ static void LoadSettings() {
         {
             std::wstring w = GetStr(L"expandPanel.width");
             s.expandWidth = w == L"narrow" ? 300 : w == L"wide" ? 440 : 360;
-            s.expandAutoCollapseSec = std::clamp(Wh_GetIntSetting(L"expandPanel.autoCollapseSeconds"), 0, 600);
-            s.xMedia = Wh_GetIntSetting(L"expandPanel.media") != 0;
-            s.xAi = Wh_GetIntSetting(L"expandPanel.ai") != 0;
-            s.xFiles = Wh_GetIntSetting(L"expandPanel.files") != 0;
-            s.xWeather = Wh_GetIntSetting(L"expandPanel.weather") != 0;
-            s.xRes = Wh_GetIntSetting(L"expandPanel.resources") != 0;
+            s.expandAutoCollapseSec = std::clamp(GetInt(L"expandPanel.autoCollapseSeconds"), 0, 600);
+            s.xMedia = GetInt(L"expandPanel.media") != 0;
+            s.xAi = GetInt(L"expandPanel.ai") != 0;
+            s.xFiles = GetInt(L"expandPanel.files") != 0;
+            s.xWeather = GetInt(L"expandPanel.weather") != 0;
+            s.xRes = GetInt(L"expandPanel.resources") != 0;
             s.weatherLocAuto = GetStr(L"expandPanel.weatherLocationMode") != L"manual";
-            s.weatherAllowIp = Wh_GetIntSetting(L"expandPanel.weatherAllowIp") != 0;
+            s.weatherAllowIp = GetInt(L"expandPanel.weatherAllowIp") != 0;
             s.weatherCity = GetStr(L"expandPanel.weatherCity");
-            int rm = Wh_GetIntSetting(L"expandPanel.weatherRefreshMinutes");
+            int rm = GetInt(L"expandPanel.weatherRefreshMinutes");
             s.weatherRefreshMin = rm > 0 ? std::clamp(rm, 5, 1440) : 30;
-            int fd = Wh_GetIntSetting(L"expandPanel.filesRetentionDays");
+            int fd = GetInt(L"expandPanel.filesRetentionDays");
             // 0 = never by age; negative / missing → default 3
             s.filesRetentionDays = fd < 0 ? 3 : std::clamp(fd, 0, 3650);
-            s.expandLiquidGlass = Wh_GetIntSetting(L"expandPanel.liquidGlass") != 0;
+            s.expandLiquidGlass = GetInt(L"expandPanel.liquidGlass") != 0;
         }
         s.verticalScrollLyric = GetStr(L"verticalLyric") == L"scroll";
         s.textColorMode = GetStr(L"textColorMode");
@@ -629,27 +779,40 @@ static void LoadSettings() {
         if (preset == L"segoe") s.font = L"Segoe UI";
         else if (preset == L"dengxian") s.font = L"DengXian";
         else if (preset == L"custom" && !custom.empty()) s.font = custom;
-        int fs = Wh_GetIntSetting(L"fontSize");
+        int fs = GetInt(L"fontSize");
         s.fontSize = fs > 0 ? std::clamp(fs, 6, 48) : 12;
-        s.bold = Wh_GetIntSetting(L"bold") != 0;
-        s.offsetMs = std::clamp(Wh_GetIntSetting(L"offsetMs"), -60000, 60000);
-        s.hideInFullscreen = Wh_GetIntSetting(L"hideInFullscreen") != 0;
-        s.panelGlass = Wh_GetIntSetting(L"panelGlass") != 0;
-        s.multiMonitor = Wh_GetIntSetting(L"multiMonitor") != 0;
-        s.enableNetease = Wh_GetIntSetting(L"enableNetease") != 0;
-        s.enableQQ = Wh_GetIntSetting(L"enableQQ") != 0;
-        s.enableLrclib = Wh_GetIntSetting(L"enableLrclib") != 0;
+        s.bold = GetInt(L"bold") != 0;
+        s.offsetMs = std::clamp(GetInt(L"offsetMs"), -60000, 60000);
+        s.hideInFullscreen = GetInt(L"hideInFullscreen") != 0;
+        s.panelGlass = GetInt(L"panelGlass") != 0;
+        s.multiMonitor = GetInt(L"multiMonitor") != 0;
+        s.enableNetease = GetInt(L"enableNetease") != 0;
+        s.enableQQ = GetInt(L"enableQQ") != 0;
+        s.enableLrclib = GetInt(L"enableLrclib") != 0;
         std::wstring ai = GetStr(L"aiStatus");
         s.aiMode = ai == L"off" ? AiMode::Off : ai == L"rotate" ? AiMode::Rotate : AiMode::Compact;
         std::wstring done = GetStr(L"aiDoneSeconds");
         s.aiDoneSeconds = done.empty() ? 120 : std::clamp(_wtoi(done.c_str()), 0, 86400);
         s.aiProcesses = GetStr(L"aiProcesses");
     }
+    std::wstring effect = GetStr(L"appearance.effect");
+    if (!effect.empty()) {
+        s.panelGlass = effect != L"plain";
+        s.expandCustomGlass = effect == L"plain";
+        s.expandLiquidGlass = effect == L"liquid";
+    }
     {
         std::lock_guard<std::mutex> lk(g_settingsLock);
         g_settings = std::move(s);
     }
     g_settingsGen.fetch_add(1, std::memory_order_release);
+}
+
+// Custom glass shares the start menu's independent blur/tint controls. A GDI
+// popup cannot host its XAML WindhawkBlur brush, so use the existing captured
+// backdrop renderer with refraction/highlights disabled. At blur=0 no capture is needed.
+static bool WantsCapturedBackdrop(const Settings& s) {
+    return s.expandLiquidGlass || (s.expandCustomGlass && s.glassBlur > 0);
 }
 
 static const Settings& GetSettings() {
@@ -668,6 +831,68 @@ static HANDLE g_cmdEvent = nullptr;   // auto-reset; UI thread -> media thread "
 
 static bool SleepOrStop(DWORD ms) {
     return WaitForSingleObject(g_stopEvent, ms) == WAIT_OBJECT_0;
+}
+
+// Windhawk injects into every explorer.exe (including separate folder windows).
+// Only the process that owns Shell_TrayWnd should poll media / fetch lyrics.
+static bool OwnedByThisProcess(HWND h) {
+    DWORD pid = 0;
+    return h && GetWindowThreadProcessId(h, &pid) && pid == GetCurrentProcessId();
+}
+
+// Probe primary taskbar ownership once. -1 = foreign folder-window explorer,
+// 0 = tray not up yet, 1 = this process owns Shell_TrayWnd.
+static int ProbeTaskbarHostRole() {
+    struct Ctx {
+        HWND ours = nullptr;
+        HWND any = nullptr;
+    } ctx;
+    EnumWindows(
+        [](HWND h, LPARAM lp) -> BOOL {
+            auto* c = reinterpret_cast<Ctx*>(lp);
+            wchar_t cls[64]{};
+            if (!GetClassNameW(h, cls, 64) || _wcsicmp(cls, L"Shell_TrayWnd") != 0) return TRUE;
+            if (!c->any) c->any = h;
+            if (OwnedByThisProcess(h)) {
+                c->ours = h;
+                return FALSE;
+            }
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&ctx));
+    if (ctx.ours) return 1;
+    if (ctx.any) return -1;
+    return 0;
+}
+
+// Returns true when this process owns the primary taskbar. Returns false (and
+// the caller should exit its worker) when another explorer already owns it.
+// If the tray is not up yet (shell still starting), waits until it appears or stop.
+static bool WaitForTaskbarHostRole() {
+    bool loggedForeign = false, loggedWaiting = false;
+    while (!g_stop) {
+        int role = ProbeTaskbarHostRole();
+        if (role > 0) {
+            if (loggedForeign || loggedWaiting) {
+                Wh_Log(L"[host] pid %u owns Shell_TrayWnd; workers active", GetCurrentProcessId());
+            }
+            return true;
+        }
+        if (role < 0) {
+            if (!loggedForeign) {
+                loggedForeign = true;
+                Wh_Log(L"[host] Shell_TrayWnd is foreign; pid %u skips media/lyrics/AI/weather workers",
+                       GetCurrentProcessId());
+            }
+            return false;
+        }
+        if (!loggedWaiting) {
+            loggedWaiting = true;
+            Wh_Log(L"[host] Shell_TrayWnd not ready (pid %u); waiting", GetCurrentProcessId());
+        }
+        if (SleepOrStop(2000)) return false;
+    }
+    return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1343,6 +1568,7 @@ struct PlaybackState {
     ULONGLONG sampledAtTick = 0;   // GetTickCount64 at which positionMs was valid
     double rate = 1.0;
     bool canPrev = true, canNext = true, canPlayPause = true;
+    bool canSeek = false;
     std::wstring trackKey;         // title \x1F artist
     std::shared_ptr<const Lyrics> lyrics;  // null = none/pending
     std::shared_ptr<const std::vector<BYTE>> thumb;  // encoded image bytes (PNG/JPEG), null = none
@@ -1368,6 +1594,7 @@ static void RequestLyrics(const LyricsQuery& q) {
 }
 
 static void LyricsThread() {
+    if (!WaitForTaskbarHostRole()) return;
     std::unordered_map<std::wstring, std::shared_ptr<const Lyrics>> mem;
     std::vector<std::unique_ptr<ILyricsProvider>> providers;
     providers.push_back(std::make_unique<NeteaseProvider>());
@@ -1422,12 +1649,38 @@ static void LyricsThread() {
 // Playback commands: the UI thread only queues them; the media thread runs the
 // WinRT calls (they can block), so neither Explorer's UI thread nor ours waits.
 // ─────────────────────────────────────────────────────────────────────────────
-enum class MediaCmd : int { None = 0, Prev, PlayPause, Next, OpenPlayer };
-static std::atomic<int> g_pendingCmd{0};
+enum class MediaCmd : int { None = 0, Prev, PlayPause, Next, OpenPlayer, Seek };
+struct PendingMediaCommand {
+    MediaCmd kind = MediaCmd::None;
+    double fraction = 0;
+    std::wstring trackKey, sourceApp;
+};
+static std::mutex g_mediaCmdLock;
+static PendingMediaCommand g_pendingCmd;
+
+static void QueueMediaCommand(PendingMediaCommand command) {
+    {
+        std::lock_guard<std::mutex> lk(g_mediaCmdLock);
+        g_pendingCmd = std::move(command);  // kind and payload travel together; latest wins
+    }
+    if (g_cmdEvent) SetEvent(g_cmdEvent);
+}
+static PendingMediaCommand TakeMediaCommand() {
+    std::lock_guard<std::mutex> lk(g_mediaCmdLock);
+    PendingMediaCommand command = std::move(g_pendingCmd);
+    g_pendingCmd = {};
+    return command;
+}
+static long long SeekPositionTicks(double fraction, long long start, long long end) {
+    if (end <= start || !std::isfinite(fraction)) return start;
+    return start + (long long)((long double)(end - start) * std::clamp(fraction, 0.0, 1.0));
+}
+static void PostMediaSeek(double fraction, const std::wstring& track, const std::wstring& app) {
+    QueueMediaCommand({MediaCmd::Seek, std::clamp(fraction, 0.0, 1.0), track, app});
+}
 
 static void PostMediaCmd(MediaCmd c) {
-    g_pendingCmd = (int)c;  // latest wins; double clicks within one poll collapse into one
-    if (g_cmdEvent) SetEvent(g_cmdEvent);
+    QueueMediaCommand({c});
     if (c == MediaCmd::PlayPause) {
         std::lock_guard<std::mutex> lk(g_stateLock);  // optimistic icon flip; next poll corrects it
         if (g_state.hasSession) {
@@ -1519,9 +1772,139 @@ static void OpenPlayer(const std::wstring& aumid) {
     SetForegroundWindow(ctx.best);  // allowed: Explorer received the click that triggered this
 }
 
-static void RunMediaCmd(GlobalSystemMediaTransportControlsSessionManager const& mgr, MediaCmd c) {
+// Pure sticky-session policy (no WinRT). Kept extractable for regression tests.
+// Prefer dedicated music apps over video/browser SMTC stealers when several are
+// Playing. Stick through rapid GetCurrentSession flips; only yield after holdMs
+// when sticky stops Playing, or when a higher-priority Playing app appears.
+struct MediaSessionCandidate {
+    std::wstring app;
+    bool playing = false;
+    bool hasTitle = false;
+};
+struct StickySessionState {
+    std::wstring stickyApp;
+    std::wstring challengerApp;
+    ULONGLONG challengerSince = 0;
+};
+static constexpr ULONGLONG kSessionStickHoldMs = 1500;
+
+static int MediaAppPriority(const std::wstring& app) {
+    std::wstring lower = app;
+    for (auto& ch : lower) {
+        if (ch >= L'A' && ch <= L'Z') ch = (wchar_t)(ch - L'A' + L'a');
+    }
+    auto hasL = [&](const wchar_t* token) { return lower.find(token) != std::wstring::npos; };
+    if (hasL(L"spotify") || hasL(L"qqmusic") || hasL(L"cloudmusic") || hasL(L"netease") ||
+        hasL(L"music.ui") || hasL(L"applemusic") || hasL(L"itunes") || hasL(L"foobar") ||
+        hasL(L"dopamine") || hasL(L"aimp") || hasL(L"musicbee") || hasL(L"yesplaymusic") ||
+        hasL(L"listen1") || hasL(L"lyricease") || hasL(L"groove") || hasL(L"mediaplayer"))
+        return 100;
+    if (hasL(L"bilibili")) return 10;
+    if (hasL(L"chrome") || hasL(L"msedge") || hasL(L"firefox") || hasL(L"opera") ||
+        hasL(L"brave") || hasL(L"vivaldi") || hasL(L"movies") || hasL(L"video.ui") ||
+        hasL(L"wmplayer") || hasL(L"potplayer") || hasL(L"vlc") || hasL(L"mpv"))
+        return 20;
+    return 50;
+}
+
+static std::wstring PickStickyMediaApp(const std::vector<MediaSessionCandidate>& cands,
+                                       const std::wstring& systemCurrentApp,
+                                       StickySessionState& st,
+                                       ULONGLONG now,
+                                       ULONGLONG holdMs = kSessionStickHoldMs) {
+    auto findApp = [&](const std::wstring& app) -> const MediaSessionCandidate* {
+        if (app.empty()) return nullptr;
+        for (const auto& c : cands) {
+            if (c.app == app && c.hasTitle) return &c;
+        }
+        return nullptr;
+    };
+    auto scoreOf = [&](const MediaSessionCandidate& c) {
+        int score = MediaAppPriority(c.app);
+        if (c.playing) score += 1000;
+        if (c.app == systemCurrentApp) score += 1;  // tie-break only
+        return score;
+    };
+    const MediaSessionCandidate* best = nullptr;
+    int bestScore = -1;
+    for (const auto& c : cands) {
+        if (!c.hasTitle) continue;
+        int score = scoreOf(c);
+        if (score > bestScore) {
+            bestScore = score;
+            best = &c;
+        }
+    }
+
+    const MediaSessionCandidate* sticky = findApp(st.stickyApp);
+    auto acceptChallenger = [&](const MediaSessionCandidate* challenger) -> std::wstring {
+        if (!challenger) {
+            st.challengerApp.clear();
+            st.challengerSince = 0;
+            return sticky ? sticky->app : std::wstring{};
+        }
+        if (st.challengerApp != challenger->app) {
+            st.challengerApp = challenger->app;
+            st.challengerSince = now;
+        }
+        if (now - st.challengerSince >= holdMs) {
+            st.stickyApp = challenger->app;
+            st.challengerApp.clear();
+            st.challengerSince = 0;
+            return challenger->app;
+        }
+        return sticky->app;
+    };
+
+    if (sticky && sticky->playing) {
+        // Same/lower priority Playing apps (typical SMTC thrash) never displace us.
+        // Higher-priority music can take over after holdMs even while sticky still plays.
+        if (best && best->app != sticky->app && best->playing &&
+            MediaAppPriority(best->app) > MediaAppPriority(sticky->app)) {
+            return acceptChallenger(best);
+        }
+        st.challengerApp.clear();
+        st.challengerSince = 0;
+        return sticky->app;
+    }
+    if (sticky) {
+        if (best && best->app != sticky->app && best->playing) return acceptChallenger(best);
+        st.challengerApp.clear();
+        st.challengerSince = 0;
+        return sticky->app;
+    }
+    st.challengerApp.clear();
+    st.challengerSince = 0;
+    if (best) {
+        st.stickyApp = best->app;
+        return best->app;
+    }
+    st.stickyApp.clear();
+    return {};
+}
+
+static GlobalSystemMediaTransportControlsSession FindSessionByApp(
+    GlobalSystemMediaTransportControlsSessionManager const& mgr, const std::wstring& app) {
+    if (!mgr || app.empty()) return nullptr;
+    try {
+        for (auto&& s : mgr.GetSessions()) {
+            if (std::wstring{s.SourceAppUserModelId()} == app) return s;
+        }
+    } catch (...) {
+    }
+    return nullptr;
+}
+
+static void RunMediaCmd(GlobalSystemMediaTransportControlsSessionManager const& mgr, const PendingMediaCommand& command) {
+    MediaCmd c = command.kind;
     if (!mgr) return;
-    auto session = mgr.GetCurrentSession();
+    std::wstring prefer = command.sourceApp;
+    if (prefer.empty()) {
+        std::lock_guard<std::mutex> lk(g_stateLock);
+        prefer = g_state.sourceApp;
+    }
+    auto session = FindSessionByApp(mgr, prefer);
+    if (!session) session = mgr.GetCurrentSession();
     if (!session) return;
     switch (c) {
         case MediaCmd::Prev: session.TrySkipPreviousAsync().get(); break;
@@ -1533,6 +1916,21 @@ static void RunMediaCmd(GlobalSystemMediaTransportControlsSessionManager const& 
             if (ctl.IsPlayPauseToggleEnabled()) session.TryTogglePlayPauseAsync().get();
             else if (playing) session.TryPauseAsync().get();
             else session.TryPlayAsync().get();
+            break;
+        }
+        case MediaCmd::Seek: {
+            // The UI can outlive a track/session change. Never seek a different player
+            // or song using geometry from the card that the user actually clicked.
+            if (std::wstring{session.SourceAppUserModelId()} != command.sourceApp) break;
+            auto props = session.TryGetMediaPropertiesAsync().get();
+            std::wstring key = std::wstring{props.Title()} + L"\x1F" + std::wstring{props.Artist()};
+            if (key != command.trackKey || !session.GetPlaybackInfo().Controls().IsPlaybackPositionEnabled()) break;
+            auto timeline = session.GetTimelineProperties();
+            long long start = timeline.StartTime().count(), end = timeline.EndTime().count();
+            if (end <= start) break;
+            // GSMTC takes 100 ns ticks, including nonzero timeline origins.
+            bool accepted = session.TryChangePlaybackPositionAsync(SeekPositionTicks(command.fraction, start, end)).get();
+            if (!accepted) Wh_Log(L"[media] player rejected seek");
             break;
         }
         case MediaCmd::OpenPlayer: OpenPlayer(std::wstring{session.SourceAppUserModelId()}); break;
@@ -1563,6 +1961,7 @@ static std::shared_ptr<const std::vector<BYTE>> ReadThumbnail(
 // (no WinRT event handlers: simpler lifetime on unload).
 // ─────────────────────────────────────────────────────────────────────────────
 static void MediaThread() {
+    if (!WaitForTaskbarHostRole()) return;
     try {
         winrt::init_apartment(winrt::apartment_type::multi_threaded);
     } catch (...) {
@@ -1574,6 +1973,7 @@ static void MediaThread() {
     ULONGLONG trackSince = 0, lastThumbTry = 0;
     int thumbTries = 0;
     bool thumbLoaded = false, thumbRefreshed = false;
+    StickySessionState sticky;
     // When a new app starts (browser, game launcher, video player) Windows may briefly make
     // its empty session "current", or the player republishes its session with an empty
     // title. 0.3.2 cleared hasSession on the first such poll, so the panel flashed to
@@ -1593,31 +1993,60 @@ static void MediaThread() {
                 mgr = GlobalSystemMediaTransportControlsSessionManager::RequestAsync().get();
                 Wh_Log(L"[media] GSMTC manager %s", mgr ? L"ready" : L"null");
             }
-            if (MediaCmd c = (MediaCmd)g_pendingCmd.exchange(0); c != MediaCmd::None) {
-                try { RunMediaCmd(mgr, c); } catch (winrt::hresult_error const& e) {
-                    Wh_Log(L"command %d failed 0x%08X", (int)c, (unsigned)e.code());
+            if (PendingMediaCommand command = TakeMediaCommand(); command.kind != MediaCmd::None) {
+                try { RunMediaCmd(mgr, command); } catch (winrt::hresult_error const& e) {
+                    Wh_Log(L"command %d failed 0x%08X", (int)command.kind, (unsigned)e.code());
                 }
+                if (command.kind == MediaCmd::Seek) lastReportedPos = -1;
                 // Give the player a moment to apply it, so the next poll doesn't undo the optimistic icon.
                 if (SleepOrStop(300)) break;
             }
             GlobalSystemMediaTransportControlsSession session{nullptr};
-            if (mgr) session = mgr.GetCurrentSession();
+            std::wstring app, title, artist, album;
+            if (mgr) {
+                std::vector<MediaSessionCandidate> cands;
+                std::wstring currentApp;
+                try {
+                    if (auto cur = mgr.GetCurrentSession()) currentApp = std::wstring{cur.SourceAppUserModelId()};
+                    for (auto&& s : mgr.GetSessions()) {
+                        MediaSessionCandidate c;
+                        c.app = std::wstring{s.SourceAppUserModelId()};
+                        try {
+                            auto props = s.TryGetMediaPropertiesAsync().get();
+                            c.hasTitle = !std::wstring{props.Title()}.empty();
+                            auto st = s.GetPlaybackInfo().PlaybackStatus();
+                            c.playing = st == GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing;
+                        } catch (...) {
+                        }
+                        cands.push_back(std::move(c));
+                    }
+                } catch (...) {
+                }
+                ULONGLONG nowPick = GetTickCount64();
+                std::wstring chosenApp = PickStickyMediaApp(cands, currentApp, sticky, nowPick);
+                if (!chosenApp.empty()) session = FindSessionByApp(mgr, chosenApp);
+            }
             if (!session) {
                 if (!lastLoggedApp.empty() || !loggedNoSession) {
                     Wh_Log(L"[media] no media session (player not running or no system media controls)");
                     lastLoggedApp.clear();
                     loggedNoSession = true;
                 }
+                sticky.stickyApp.clear();
+                sticky.challengerApp.clear();
+                sticky.challengerSince = 0;
                 markNoMedia();
             } else {
                 auto props = session.TryGetMediaPropertiesAsync().get();
                 auto tl = session.GetTimelineProperties();
                 auto pb = session.GetPlaybackInfo();
                 auto ctl = pb.Controls();
-                std::wstring title{props.Title()}, artist{props.Artist()}, album{props.AlbumTitle()};
-                std::wstring app{session.SourceAppUserModelId()};
+                title = std::wstring{props.Title()};
+                artist = std::wstring{props.Artist()};
+                album = std::wstring{props.AlbumTitle()};
+                app = std::wstring{session.SourceAppUserModelId()};
                 if (app != lastLoggedApp) {
-                    Wh_Log(L"[media] session: %s, title empty=%d", app.c_str(), title.empty() ? 1 : 0);
+                    Wh_Log(L"[media] session: %s, title empty=%d sticky=1", app.c_str(), title.empty() ? 1 : 0);
                     lastLoggedApp = app;
                     loggedNoSession = false;
                 }
@@ -1665,6 +2094,7 @@ static void MediaThread() {
                     g_state.durationMs = durMs > 0 ? durMs : 0;
                     g_state.canPrev = ctl.IsPreviousEnabled();
                     g_state.canNext = ctl.IsNextEnabled();
+                    g_state.canSeek = ctl.IsPlaybackPositionEnabled() && durMs > 0;
                     g_state.canPlayPause = ctl.IsPlayPauseToggleEnabled() || ctl.IsPlayEnabled() || ctl.IsPauseEnabled();
                     if (newTrack) {
                         g_state.trackKey = key;
@@ -1814,6 +2244,7 @@ static bool ReadSmallFileShared(const std::wstring& path, std::string& out) {
 }
 
 static void AiThread() {
+    if (!WaitForTaskbarHostRole()) return;
     std::wstring dir = AiStatusDir();
     std::vector<std::wstring> procs;
     ULONGLONG lastProcScan = 0;
@@ -2044,14 +2475,9 @@ static bool ShouldHideForFullscreen(HMONITOR mon, bool hideSetting, const wchar_
     return false;
 }
 
-// Windhawk injects into every explorer.exe, including "separate process" folder windows.
-// Only the process that owns the taskbar shows the panel, otherwise there would be two.
+// Taskbar ownership check lives near SleepOrStop (also gates media/lyrics workers).
 // Enumerate instead of FindWindow: status-bar tools (YASB etc.) also register Shell_TrayWnd
-// (windhawk-mods issue #1704).
-static bool OwnedByThisProcess(HWND h) {
-    DWORD pid = 0;
-    return h && GetWindowThreadProcessId(h, &pid) && pid == GetCurrentProcessId();
-}
+// (windhawk-mods issue #1704). Only the process that owns the taskbar shows the panel.
 
 static bool IsSecondaryTaskbar(HWND h) {
     wchar_t cls[64]{};
@@ -2185,6 +2611,8 @@ static Line AiLine(const std::vector<AiEntry>& ai, const Settings& s, bool forFi
     return l;
 }
 
+static void SetIdleContent(Content& c, const Settings& s);
+
 static Content BuildContent(const Settings& s) {
     Content c;
     auto aiPtr = s.aiMode != AiMode::Off ? GetAi() : nullptr;
@@ -2242,9 +2670,8 @@ static Content BuildContent(const Settings& s) {
     } else if (!ai.empty()) {
         c.aiOnly = true;
         c.line1 = AiLine(ai, s, true, &c.line2);
-    } else if (s.showIdle) {
-        c.idle = true;
-        c.line1 = TextLine(L"\x266A \x672A\x5728\x64AD\x653E");
+    } else if (s.idleMode != IdleMode::Hide) {
+        SetIdleContent(c, s);
     }
     return c;
 }
@@ -2481,6 +2908,51 @@ struct Layout {
     Content content;
 };
 
+static Gdiplus::ARGB MaterialColor(const Settings& s, bool light) {
+    DWORD rgb = light ? 0xF7F7F7 : 0x141414;
+    const std::wstring& mode = s.glassColor;
+    if (mode == L"Red") rgb = 0xEF4444;
+    if (mode == L"Green") rgb = 0x22C55E;
+    if (mode == L"Blue") rgb = 0x3B82F6;
+    if (mode == L"Yellow") rgb = 0xFACC15;
+    if (mode == L"Orange") rgb = 0xF97316;
+    if (mode == L"Purple") rgb = 0xA855F7;
+    if (mode == L"Pink") rgb = 0xEC4899;
+    if (mode == L"Cyan") rgb = 0x06B6D4;
+    if (mode == L"GlassWhite") rgb = 0xFFFFFF;
+    if (mode == L"MistGrey") rgb = 0x2E2E2E;
+    if (mode == L"DeepBlack") rgb = 0x0A0A0A;
+    if (mode == L"OceanBlue") rgb = 0x1A365D;
+    if (mode == L"AuroraCyan") rgb = 0x005C53;
+    if (mode == L"RosePink") rgb = 0x5B2C30;
+    if (mode == L"BordeauxRed") rgb = 0x4A0E17;
+    if (mode == L"ForestGreen") rgb = 0x1A3A2A;
+    if (mode == L"RoyalPurple") rgb = 0x3B1354;
+    if (mode == L"SunsetOrange") rgb = 0x8C3D00;
+    if (mode == L"ChampagneGold") rgb = 0x7A653F;
+    if (mode == L"MorandiSage") rgb = 0x4E5E50;
+    if (mode == L"Accent") {
+        DWORD color = 0; BOOL opaque = FALSE;
+        if (SUCCEEDED(DwmGetColorizationColor(&color, &opaque))) rgb = color & 0xFFFFFF;
+    }
+    if (mode == L"Custom" && s.glassCustomColor.size() == 7 && s.glassCustomColor[0] == L'#') {
+        DWORD parsed = 0; bool valid = true;
+        for (size_t i = 1; i < 7; ++i) {
+            wchar_t c = s.glassCustomColor[i];
+            int digit = c >= L'0' && c <= L'9' ? c - L'0' :
+                        c >= L'a' && c <= L'f' ? c - L'a' + 10 :
+                        c >= L'A' && c <= L'F' ? c - L'A' + 10 : -1;
+            if (digit < 0) { valid = false; break; }
+            parsed = (parsed << 4) | digit;
+        }
+        if (valid) rgb = parsed;
+    }
+    auto channel = [&](int shift) -> DWORD {
+        return (DWORD)std::clamp((int)((rgb >> shift) & 255) * s.glassLuminosity / 100, 0, 255);
+    };
+    return ((DWORD)(s.glassOpacity * 255 / 100) << 24) | (channel(16) << 16) | (channel(8) << 8) | channel(0);
+}
+
 static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool forceEnv, const wchar_t** why) {
     RefreshEnv(forceEnv);
     HWND tray = panel.tray;
@@ -2508,7 +2980,8 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
     int ch = cr.bottom - cr.top;
     L.edge = DetectTaskbarEdge(tray);
     L.vertical = IsVerticalEdge(L.edge);
-    L.vertScrollLyric = L.vertical && s.verticalScrollLyric;
+    const bool idleInfo = L.content.idle && s.idleMode != IdleMode::Message;
+    L.vertScrollLyric = L.vertical && (s.verticalScrollLyric || idleInfo);
 
     L.light = g_env.lightTaskbar;
     L.text = ResolveTextColor(s.textColorMode, L.light);
@@ -2559,7 +3032,7 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
             }
             L.textRight = L.btnRc[0].left - D(4);
         }
-        L.bodyClickable = L.content.media && s.clickOpens;
+        L.bodyClickable = s.clickExpands || (L.content.media && s.clickOpens);
         for (int i = 0; i < 3; ++i) panel.ui.hitRects[i] = L.btnRc[i];
         panel.ui.hitEnabled[HitPrev] = L.showButtons && L.content.canPrev;
         panel.ui.hitEnabled[HitPlay] = L.showButtons && L.content.canPlayPause;
@@ -2588,7 +3061,7 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
         if (trayMode) {
             HWND notify = FindWindowExW(tray, nullptr, L"TrayNotifyWnd", nullptr);
             RECT nr{};
-            if (notify && GetWindowRect(notify, &nr) && nr.bottom - nr.top > D(16) && nr.top >= tr.top - 2 &&
+            if (notify && GetWindowRect(notify, &nr) && nr.bottom - nr.top > D(16) && nr.top > tr.top &&
                 nr.bottom <= tr.bottom + 2)
                 y = (nr.top - origin.y) - L.h - gap;
             else
@@ -2599,7 +3072,10 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
             HWND start = FindWindowExW(tray, nullptr, L"Start", nullptr);
             if (!start) start = FindWindowExW(tray, nullptr, L"LaunchBand", nullptr);
             RECT sr{};
-            if (start && GetWindowRect(start, &sr) && sr.bottom > tr.top) {
+            // Only reserve a compact top cluster. A full-height sidebar host can
+            // use these class names too; its bottom would pin every offset to ch.
+            if (start && GetWindowRect(start, &sr) && sr.top >= tr.top - 2 && sr.bottom > sr.top &&
+                sr.bottom - origin.y <= ch / 2) {
                 int below = (sr.bottom - origin.y) + gap;
                 if (below > y) y = below;
             }
@@ -2613,7 +3089,7 @@ static bool ComputeLayout(Panel& panel, const Settings& s, Layout& L, bool force
         L.textRight = L.w - L.pad;
         L.btn = 0;
         for (int i = 0; i < 3; ++i) L.btnRc[i] = {};
-        L.bodyClickable = (L.content.media || L.content.aiOnly) && s.clickOpens;
+        L.bodyClickable = s.clickExpands || (L.content.media && s.clickOpens);
         for (int i = 0; i < 3; ++i) {
             panel.ui.hitRects[i] = {};
             panel.ui.hitEnabled[i] = false;
@@ -2654,6 +3130,7 @@ static void PaintContent(Gdiplus::Graphics& g, Panel& panel, const Settings& s, 
     Gdiplus::REAL rad = (Gdiplus::REAL)D(L.vertical ? 6 : 8);
 
     PanelLook look = LookFor(s.panelBg, s.panelGlass, L.light);
+    if (!s.glassColor.empty() && s.panelBg != PanelBg::None) look.fill = MaterialColor(s, L.light);
     if (look.fill) FillRound(g, look.fill, panelRc, rad);
     if (look.edge) {
         Gdiplus::GraphicsPath p;
@@ -2790,24 +3267,41 @@ static std::wstring MakeSig(const Layout& L, Panel& panel, const Settings& s) {
            (L.content.canPrev ? L"1" : L"0") + (L.content.canNext ? L"1" : L"0") +
            (L.content.canPlayPause ? L"1" : L"0") + std::to_wstring(L.content.thumbVersion) +
            (panel.ui.art ? L"A" : L"a") + (L.content.aiOnly ? L"I" : L"i") + (L.bodyClickable ? L"C" : L"c") +
-           std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
+           std::to_wstring(g_settingsGen.load(std::memory_order_relaxed)) + L":" + std::to_wstring((int)s.panelBg) + (s.panelGlass ? L"G" : L"g") + std::to_wstring(s.fontSize) + s.font +
            (s.bold ? L"B" : L"b") + (panel.ui.dropHover ? L"H" : L"h") +
            (L.vertical ? L"V" : L"H") + std::to_wstring((int)L.edge) + (L.vertScrollLyric ? L"S" : L"s") +
            L"\x1D" + LineKey(L.content.line1) + L"\x1D" + LineKey(L.content.line2);
 }
 
-// Keep the panel the top child of the taskbar (above the XAML island). Only acts when
-// another child is above it; no hide / show, so nothing blinks.
+// Repair actual occlusion by taskbar content, rather than fighting every sibling
+// for HWND_TOP. In particular the click-through audio visualizer raises itself on
+// each render; moving above it every 100 ms creates a continuous z-order loop.
 static void EnsureTopChild(Panel& panel) {
     if (!panel.hwnd || !panel.tray) return;
-    HWND top = GetWindow(panel.tray, GW_CHILD);
-    if (!top || top == panel.hwnd) return;
+    RECT panelRc{};
+    if (!GetWindowRect(panel.hwnd, &panelRc)) return;
+    HWND covering = nullptr;
+    for (HWND sibling = GetWindow(panel.tray, GW_CHILD);
+         sibling && sibling != panel.hwnd; sibling = GetWindow(sibling, GW_HWNDNEXT)) {
+        if (!IsWindowVisible(sibling)) continue;
+        wchar_t cls[96]{};
+        GetClassNameW(sibling, cls, 96);
+        // Peer decoration, not the taskbar's opaque XAML surface. Its transparent
+        // pixels must not cause us to reorder both layered windows indefinitely.
+        if (wcsncmp(cls, L"ZenAudioBars_", 13) == 0) continue;
+        RECT siblingRc{}, overlap{};
+        if (GetWindowRect(sibling, &siblingRc) && IntersectRect(&overlap, &panelRc, &siblingRc)) {
+            covering = sibling;
+            break;
+        }
+    }
+    if (!covering) return;
     SetWindowPos(panel.hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
     ++panel.ui.zFixes;
     if (panel.ui.zFixes <= 3 || panel.ui.zFixes % 100 == 0) {
         wchar_t cls[96]{};
-        GetClassNameW(top, cls, 96);
-        Wh_Log(L"[ui] panel %p raised back above taskbar child %p (%s), count %u", panel.hwnd, top, cls,
+        GetClassNameW(covering, cls, 96);
+        Wh_Log(L"[ui] panel %p raised above overlapping taskbar child %p (%s), count %u", panel.hwnd, covering, cls,
                panel.ui.zFixes);
     }
 }
@@ -2931,7 +3425,9 @@ static void RenderPanel(Panel& panel, bool force = false) {
 // The section list is data-driven so later sections can be added the same way.
 // ─────────────────────────────────────────────────────────────────────────────
 static const wchar_t kExpandClass[] = L"ZenTaskbarLyricsExpand";
-static constexpr UINT_PTR TIMER_ANIM = 11;
+static constexpr UINT_PTR TIMER_ANIM = 11;  // fallback only
+static constexpr UINT WM_ZEN_ANIMFRAME = WM_APP + 4;
+static constexpr int kExpandAnimationFps = 120;
 static constexpr UINT_PTR TIMER_WATCH = 12;
 static std::atomic<bool> g_expandedAny{false};  // read by the extras thread (sampling gate)
 
@@ -2946,8 +3442,6 @@ static std::vector<RelayEntry> g_files;
 static void PruneRelayFilesUnlocked(int retentionDays, long long nowUnix) {
     g_files.erase(std::remove_if(g_files.begin(), g_files.end(),
                                  [&](const RelayEntry& e) {
-                                     if (GetFileAttributesW(e.path.c_str()) == INVALID_FILE_ATTRIBUTES)
-                                         return true;  // source gone — drop entry only
                                      if (retentionDays > 0 && e.addedUnix && nowUnix >= e.addedUnix &&
                                          (nowUnix - e.addedUnix) >= (long long)retentionDays * 86400LL)
                                          return true;
@@ -2957,10 +3451,23 @@ static void PruneRelayFilesUnlocked(int retentionDays, long long nowUnix) {
 }
 
 static void PruneRelayFiles() {
+    // Slow/disconnected network paths must never hold the UI's list lock.
     const int days = GetSettings().filesRetentionDays;
     const ULONGLONG now = UnixNow();
+    std::vector<RelayEntry> snapshot, missing;
+    {
+        std::lock_guard<std::mutex> lk(g_filesLock);
+        snapshot = g_files;
+    }
+    for (const RelayEntry& e : snapshot)
+        if (GetFileAttributesW(e.path.c_str()) == INVALID_FILE_ATTRIBUTES) missing.push_back(e);
     std::lock_guard<std::mutex> lk(g_filesLock);
     PruneRelayFilesUnlocked(days, now);
+    g_files.erase(std::remove_if(g_files.begin(), g_files.end(), [&](const RelayEntry& e) {
+        return std::any_of(missing.begin(), missing.end(), [&](const RelayEntry& gone) {
+            return gone.path == e.path && gone.addedUnix == e.addedUnix;
+        });
+    }), g_files.end());
 }
 
 static void AddRelayFiles(const std::vector<std::wstring>& add) {
@@ -2979,7 +3486,7 @@ static void AddRelayFiles(const std::vector<std::wstring>& add) {
 }
 
 static std::vector<std::wstring> GetRelayFiles() {
-    PruneRelayFiles();
+    // UI reads a memory snapshot; the extras worker validates source paths.
     std::lock_guard<std::mutex> lk(g_filesLock);
     std::vector<std::wstring> out;
     out.reserve(g_files.size());
@@ -3220,41 +3727,52 @@ struct ResSampler {
 };
 
 static void ExtrasThread() {
+    if (!WaitForTaskbarHostRole()) return;
     ResSampler res;
     ResolvedLoc locCache;
     ULONGLONG lastLocAt = 0;       // tick when location was last resolved
     ULONGLONG lastWeather = 0;
+    bool weatherFailed = false;
     std::wstring lastWantedKey;
     ULONGLONG lastPrune = 0;
     constexpr ULONGLONG kLocRefreshMs = 6ULL * 3600ULL * 1000ULL;  // 6h
     while (!g_stop) {
         Settings s = GetSettings();
         const bool expanded = g_expandedAny.load();
-        // 资源占用: only while a panel is open, so a collapsed bar costs nothing.
-        if (s.xRes && expanded) {
+        bool idleResources = false;
+        if (s.idleMode == IdleMode::Resources) {
+            {
+                std::lock_guard<std::mutex> lk(g_stateLock);
+                idleResources = !g_state.hasSession;
+            }
+            auto ai = s.aiMode != AiMode::Off ? GetAi() : nullptr;
+            idleResources = idleResources && (!ai || ai->empty());
+        }
+        if ((s.xRes && expanded) || idleResources) {
             Extras e;
             { std::lock_guard<std::mutex> lk(g_extrasLock); e = g_extras; }
             res.Sample(e);
             std::lock_guard<std::mutex> lk(g_extrasLock);
             g_extras.cpu = e.cpu; g_extras.mem = e.mem; g_extras.gpu = e.gpu; g_extras.gpuKnown = e.gpuKnown;
             g_extras.down = e.down; g_extras.up = e.up; g_extras.resKnown = e.resKnown;
-        } else if (!expanded) {
-            res.Close();  // PDH query released while collapsed
+        } else {
+            res.Close();
+            std::lock_guard<std::mutex> lk(g_extrasLock);
+            g_extras.resKnown = false;
         }
         ULONGLONG now = GetTickCount64();
-        // 文件中转: periodic prune (also on panel open / get).
-        if (s.xFiles && (lastPrune == 0 || now - lastPrune >= 60000ULL)) {
+        // 文件中转: only the background worker checks filesystem paths.
+        if (s.xFiles && (lastPrune == 0 || now - lastPrune >= (expanded ? 5000ULL : 60000ULL))) {
             lastPrune = now;
             PruneRelayFiles();
         }
         // 天气: resolve location (cached 6h) then forecast; no city required in auto mode.
         std::wstring wantedKey = std::wstring(s.weatherLocAuto ? L"auto|" : L"manual|") +
                                  (s.weatherAllowIp ? L"ip1|" : L"ip0|") + s.weatherCity;
-        const bool needWeather = s.xWeather &&
+        const bool needWeather = (s.xWeather || s.idleMode == IdleMode::Weather) &&
             (lastWeather == 0 || wantedKey != lastWantedKey ||
-             now - lastWeather >= (ULONGLONG)s.weatherRefreshMin * 60000ULL);
+             now - lastWeather >= (weatherFailed ? 60000ULL : (ULONGLONG)s.weatherRefreshMin * 60000ULL));
         if (needWeather) {
-            lastWeather = now;
             static std::wstring lastLocKey;
             if (wantedKey != lastLocKey || lastLocAt == 0 || now - lastLocAt >= kLocRefreshMs ||
                 locCache.lat.empty()) {
@@ -3273,6 +3791,9 @@ static void ExtrasThread() {
             lastWantedKey = wantedKey;
             std::wstring w;
             if (!locCache.lat.empty()) w = FetchWeatherAt(locCache);
+            // Count from completion so a slow failure still waits a full minute.
+            lastWeather = GetTickCount64();
+            weatherFailed = w.empty();
             std::lock_guard<std::mutex> lk(g_extrasLock);
             if (!w.empty()) {
                 g_extras.weather = w;
@@ -3293,8 +3814,106 @@ static Extras GetExtras() {
 }
 
 // ── Popup window state (taskbar thread only) ────────────────────────────────
-enum ExpandHit { XNone = -1, XPrev, XPlay, XNext, XOpen, XClear, XFile };
+enum ExpandHit { XNone = -1, XPrev, XPlay, XNext, XOpen, XClear, XFile, XSeek };
 struct XHit { RECT rc; int id; int index; };
+
+// Own one grow-only GDI surface for the lifetime of a popup. The backing bitmap
+// reserves spring overshoot space; the native window still fits the visible card.
+struct ExpandSurface {
+    HDC dc = nullptr;
+    HBITMAP bitmap = nullptr;
+    HGDIOBJ original = nullptr;
+    void* bits = nullptr;
+    int width = 0, height = 0;
+    ~ExpandSurface() {
+        if (dc && original) SelectObject(dc, original);
+        if (bitmap) DeleteObject(bitmap);
+        if (dc) DeleteDC(dc);
+    }
+    bool Ensure(HDC screen, int w, int h) {
+        if (bitmap && w <= width && h <= height) return true;
+        w = std::max(w, width); h = std::max(h, height);
+        BITMAPINFO info{};
+        info.bmiHeader = {sizeof(BITMAPINFOHEADER), w, -h, 1, 32, BI_RGB};
+        void* newBits = nullptr;
+        HBITMAP next = CreateDIBSection(screen, &info, DIB_RGB_COLORS, &newBits, nullptr, 0);
+        if (!next || !newBits) { if (next) DeleteObject(next); return false; }
+        if (!dc) dc = CreateCompatibleDC(screen);
+        if (!dc) { DeleteObject(next); return false; }
+        HGDIOBJ prev = SelectObject(dc, next);
+        if (!original) original = prev;
+        if (bitmap) DeleteObject(bitmap);
+        bitmap = next; bits = newBits; width = w; height = h;
+        return true;
+    }
+};
+
+// Closed-form damped spring: equal wall-clock time yields the same position,
+// even when WM_TIMER delivery is delayed or a frame is skipped.
+static void StepExpandSpring(double& position, double& velocity, double target, double elapsed) {
+    if (elapsed <= 0 || !std::isfinite(elapsed)) return;
+    const double damping = 8.0, frequency = std::sqrt(210.0 - damping * damping);
+    double t = std::min(elapsed, 1.0), x = position - target;
+    double wave = (velocity + damping * x) / frequency;
+    double cs = std::cos(frequency * t), sn = std::sin(frequency * t), decay = std::exp(-damping * t);
+    position = target + decay * (x * cs + wave * sn);
+    velocity = decay * (-damping * (x * cs + wave * sn) + frequency * (-x * sn + wave * cs));
+}
+
+static double AnimationTimeSeconds() {
+    static const double frequency = [] { LARGE_INTEGER f{}; QueryPerformanceFrequency(&f); return (double)f.QuadPart; }();
+    LARGE_INTEGER now{}; QueryPerformanceCounter(&now);
+    return (double)now.QuadPart / frequency;
+}
+
+// The worker only schedules frames; all painting stays on Explorer's window thread.
+// A high-resolution waitable timer avoids USER_TIMER_MINIMUM and global timer changes.
+struct ExpandAnimationClock {
+    HANDLE stopEvent = nullptr, timer = nullptr;
+    std::thread worker;
+    std::atomic<bool> queued{false};
+    HWND hwnd = nullptr;
+    uintptr_t generation = 0;
+    bool running = false;  // window-thread only
+    ~ExpandAnimationClock() { Stop(); }
+    void Stop() {
+        running = false;
+        if (stopEvent) SetEvent(stopEvent);
+        if (worker.joinable()) worker.join();  // worker never waits on the UI thread
+        if (timer) { CancelWaitableTimer(timer); CloseHandle(timer); timer = nullptr; }
+        if (stopEvent) { CloseHandle(stopEvent); stopEvent = nullptr; }
+        queued = false;
+    }
+    bool Start(HWND window) {
+        Stop();
+        static std::atomic<uintptr_t> serial{0};
+        generation = ++serial; hwnd = window;
+        stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+        timer = CreateWaitableTimerExW(nullptr, nullptr, 0x00000002 /* HIGH_RESOLUTION */, TIMER_ALL_ACCESS);
+        if (!timer) timer = CreateWaitableTimerExW(nullptr, nullptr, 0, TIMER_ALL_ACCESS);
+        if (!timer || !stopEvent) { Stop(); return false; }
+        running = true;
+        try {
+            worker = std::thread([this] {
+                using Clock = std::chrono::steady_clock;
+                const auto period = std::chrono::nanoseconds(1000000000LL / kExpandAnimationFps);
+                auto deadline = Clock::now() + period;
+                HANDLE waits[2] = {stopEvent, timer};
+                for (;;) {
+                    auto remaining = std::chrono::duration_cast<std::chrono::nanoseconds>(deadline - Clock::now()).count();
+                    LARGE_INTEGER due{}; due.QuadPart = -std::max(1LL, (remaining + 99) / 100);
+                    if (!SetWaitableTimer(timer, &due, 0, nullptr, nullptr, FALSE)) break;
+                    if (WaitForMultipleObjects(2, waits, FALSE, INFINITE) != WAIT_OBJECT_0 + 1) break;
+                    if (!queued.exchange(true) && !PostMessageW(hwnd, WM_ZEN_ANIMFRAME, generation, 0)) queued = false;
+                    deadline += period;
+                    auto now = Clock::now();
+                    if (deadline <= now) deadline = now + period;  // skip missed frames, never catch up in a burst
+                }
+            });
+        } catch (...) { Stop(); return false; }
+        return true;
+    }
+};
 
 struct ExpandState {
     HWND hwnd = nullptr;
@@ -3305,10 +3924,19 @@ struct ExpandState {
     TaskbarEdge edge = TaskbarEdge::Bottom;
     int anchorX = 0, anchorY = 0;  // fixed edge of the popup against the bar (screen)
     ULONGLONG lastInteract = 0;
+    double lastAnimationTime = 0;
+    std::unique_ptr<ExpandAnimationClock> animationClock;
     bool lbuttonWasDown = false;
     int hover = XNone, pressed = XNone, pressedIndex = -1;
     POINT pressPt{};
     std::vector<XHit> hits;
+    std::vector<XHit> contentHits;
+    std::unique_ptr<ExpandSurface> surface;
+    std::unique_ptr<Gdiplus::Bitmap> content;
+    int contentDpi = 0;
+    bool contentLight = false;
+    uint64_t contentSettingsGen = 0;
+    std::wstring seekTrack, seekApp;
     std::unique_ptr<Gdiplus::Bitmap> art;
     unsigned artVersion = ~0u;
 };
@@ -3319,6 +3947,39 @@ static std::wstring FmtRate(double bps) {
     if (bps >= 1024.0 * 1024.0) swprintf_s(b, L"%.1f MB/s", bps / 1048576.0);
     else swprintf_s(b, L"%.0f KB/s", bps / 1024.0);
     return b;
+}
+
+static std::wstring WeatherText(const Extras& ex, const Settings& s) {
+    if (!ex.weather.empty()) return ex.weather;
+    if (!s.weatherLocAuto && s.weatherCity.empty()) return L"在设置里填写城市";
+    return ex.weatherErr ? L"天气获取失败，1 分钟后重试" : L"正在获取天气…";
+}
+
+static std::wstring ResourceText(const Extras& ex) {
+    if (!ex.resKnown) return L"正在采样资源占用…";
+    wchar_t line[160], gpu[16] = L"—";
+    if (ex.gpuKnown) swprintf_s(gpu, L"%.0f%%", ex.gpu);
+    swprintf_s(line, L"CPU %.0f%%   内存 %.0f%%   GPU %s", ex.cpu, ex.mem, gpu);
+    return line;
+}
+
+static std::wstring NetworkText(const Extras& ex) {
+    return L"↓ " + FmtRate(ex.down) + L"    ↑ " + FmtRate(ex.up);
+}
+
+static void SetIdleContent(Content& c, const Settings& s) {
+    c.idle = true;
+    if (s.idleMode == IdleMode::Message) {
+        c.line1 = TextLine(L"♪ 未在播放");
+        return;
+    }
+    Extras ex = GetExtras();
+    if (s.idleMode == IdleMode::Weather) {
+        c.line1 = TextLine(WeatherText(ex, s));
+    } else {
+        c.line1 = TextLine(ResourceText(ex));
+        if (ex.resKnown) c.line2 = TextLine(NetworkText(ex));
+    }
 }
 static std::wstring FmtTime(long long ms) {
     if (ms < 0) ms = 0;
@@ -3340,6 +4001,8 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     const Gdiplus::REAL W = D(s.expandWidth), pad = D(14);
     Gdiplus::REAL y = pad;
     g_x.hits.clear();
+    g_x.seekTrack.clear();
+    g_x.seekApp.clear();
     Gdiplus::FontFamily fam(s.font.c_str());
     Gdiplus::Font fTitle(&fam, D(14), Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
     Gdiplus::Font fBody(&fam, D(12.5), Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
@@ -3375,10 +4038,19 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
         first = false;
     };
 
-    // (a) playback
+    // (a) Playback exists only while there is a media session. Use the same
+    // snapshot for visibility, layout and painting; no stale metadata in idle mode.
+    PlaybackState st;
     if (s.xMedia) {
-        PlaybackState st;
-        { std::lock_guard<std::mutex> lk(g_stateLock); st = g_state; st.lyrics = nullptr; }
+        std::lock_guard<std::mutex> lk(g_stateLock);
+        st = g_state;
+        st.lyrics = nullptr;
+    }
+    if (!st.hasSession || !st.thumb) {
+        g_x.art.reset();
+        g_x.artVersion = 0;
+    }
+    if (s.xMedia && st.hasSession) {
         Sep();
         const Gdiplus::REAL art = D(72);
         if (st.thumb && g && g_x.artVersion != st.thumbVersion) {
@@ -3397,8 +4069,13 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
         if (st.playing && st.sampledAtTick)
             pos += (long long)((double)(GetTickCount64() - st.sampledAtTick) * st.rate);
         if (st.durationMs > 0) {
-            pos = std::min(pos, st.durationMs);
+            pos = std::clamp(pos, 0LL, st.durationMs);
             Gdiplus::REAL by = y + D(46), bw = tw;
+            if (st.canSeek) {
+                AddHit(Gdiplus::RectF(tx, by - D(6), bw, D(16)), XSeek, 0);
+                g_x.seekTrack = st.trackKey;
+                g_x.seekApp = st.sourceApp;
+            }
             if (g) {
                 FillRound(*g, WithAlpha(text, 0x30), Gdiplus::RectF(tx, by, bw, D(4)), D(2));
                 FillRound(*g, text, Gdiplus::RectF(tx, by, bw * (Gdiplus::REAL)pos / (Gdiplus::REAL)st.durationMs, D(4)), D(2));
@@ -3469,7 +4146,7 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
             Text(L"清空", fSmall, dim, clr);
         }
         if (files.empty()) {
-            Text(L"把文件拖到任务栏的歌词条上，可再从这里拖出去", fSmall, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(18)));
+            Text(L"把文件拖到任务栏的歌词条上，再从这里复制拖出", fSmall, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(18)));
             y += D(20);
         }
         for (size_t i = 0; i < std::min<size_t>(files.size(), 6); ++i) {
@@ -3492,29 +4169,16 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
     if (s.xWeather) {
         Sep();
         Header(L"天气");
-        std::wstring w;
-        if (!ex.weather.empty()) w = ex.weather;
-        else if (ex.weatherErr) w = L"获取失败，稍后重试";
-        else if (!s.weatherLocAuto && s.weatherCity.empty()) w = L"在设置里填写城市";
-        else w = L"获取中…";
-        Text(w, fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+        Text(WeatherText(ex, s), fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
         y += D(22);
     }
     if (s.xRes) {
         Sep();
         Header(L"资源占用");
-        wchar_t line[160];
-        if (ex.resKnown) {
-            wchar_t gpu[16] = L"—";
-            if (ex.gpuKnown) swprintf_s(gpu, L"%.0f%%", ex.gpu);
-            swprintf_s(line, L"CPU %.0f%%   内存 %.0f%%   GPU %s", ex.cpu, ex.mem, gpu);
-        } else {
-            wcscpy_s(line, L"采样中…");
-        }
-        Text(line, fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+        Text(ResourceText(ex), fBody, text, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
         y += D(20);
         if (ex.resKnown) {
-            Text(L"↓ " + FmtRate(ex.down) + L"    ↑ " + FmtRate(ex.up), fBody, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
+            Text(NetworkText(ex), fBody, dim, Gdiplus::RectF(pad, y, W - 2 * pad, D(20)));
             y += D(20);
         }
     }
@@ -3526,9 +4190,8 @@ static void ExpandLayoutPaint(Gdiplus::Graphics* g, int dpi, bool light) {
 // ---------------------------------------------------------------------------
 // Expand-panel liquid glass (0.5.2). Own code; approach matches
 // optional/local@zen-liquid-glass.wh.cpp (WGC + D3D11 blur/refraction/chroma/rim,
-// WDA_EXCLUDEFROMCAPTURE, FPS cap, pause on fullscreen, disable on device removed).
-// Runs only while the expand panel is open; torn down on collapse. Failures leave
-// the acrylic / translucent LookFor fill in place.
+// Briefly exclude the popup while taking a clean backdrop snapshot. Release
+// capture and restore screenshot visibility before presenting the glass.
 namespace xlg {
 
 struct SizeInt32 { INT32 Width; INT32 Height; };
@@ -3584,8 +4247,27 @@ IClosable : public IInspectable {
     virtual HRESULT STDMETHODCALLTYPE Close() = 0;
 };
 
+}  // namespace xlg
+
+// MinGW emulates __uuidof with template specializations. MIDL_INTERFACE alone
+// does not register UUIDs; WRL ComPtr::As also needs these global declarations.
+__CRT_UUID_DECL(xlg::ICaptureItemInterop, 0x3628E81B, 0x3CAC, 0x4C60, 0xB7, 0xF4, 0x23, 0xCE, 0x0E, 0x0C, 0x33, 0x56)
+__CRT_UUID_DECL(xlg::ICaptureItem, 0x79C3F95B, 0x31F7, 0x4EC2, 0xA4, 0x64, 0x63, 0x2E, 0xF5, 0xD3, 0x07, 0x60)
+__CRT_UUID_DECL(xlg::ICaptureSession, 0x814E42A9, 0xF70F, 0x4AD7, 0x93, 0x9B, 0xFD, 0xDC, 0xC6, 0xEB, 0x88, 0x0D)
+__CRT_UUID_DECL(xlg::ICaptureSession2, 0x2C39AE40, 0x7D2E, 0x5044, 0x80, 0x4E, 0x8B, 0x67, 0x99, 0xD4, 0xCF, 0x9E)
+__CRT_UUID_DECL(xlg::ICaptureSession3, 0xF2CDD966, 0x22AE, 0x5EA1, 0x95, 0x96, 0x3A, 0x28, 0x93, 0x44, 0xC3, 0xBE)
+__CRT_UUID_DECL(xlg::ICaptureFrame, 0xFA50C623, 0x38DA, 0x4B32, 0xAC, 0xF3, 0xFA, 0x97, 0x34, 0xAD, 0x80, 0x0E)
+__CRT_UUID_DECL(xlg::ICaptureFramePool, 0x24EB6D22, 0x1975, 0x422E, 0x82, 0xE7, 0x78, 0x0D, 0xBD, 0x8D, 0xDF, 0x24)
+__CRT_UUID_DECL(xlg::ICaptureFramePoolStatics2, 0x589B103F, 0x6BBC, 0x5DF5, 0xA9, 0x91, 0x02, 0xE2, 0x8B, 0x3B, 0x66, 0xD5)
+__CRT_UUID_DECL(xlg::IDxgiInterfaceAccess, 0xA9B3D012, 0x3DF2, 0x4EE3, 0xB8, 0xD1, 0x86, 0x95, 0xF4, 0x57, 0xD3, 0xC1)
+__CRT_UUID_DECL(xlg::IClosable, 0x30D5A829, 0x7FA4, 0x4026, 0x83, 0xBB, 0xD7, 0x5B, 0xAE, 0x4E, 0xA9, 0x9E)
+
+namespace xlg {
+
 constexpr INT32 kPixelFormatB8G8R8A8 = 87;
-constexpr int kMaxFps = 20;
+// The card spring runs on a 15 ms tick; a lower glass cap made the backdrop lag
+// behind the card and read as a flicker on 120 Hz displays.
+constexpr int kMaxFps = 120;
 constexpr float kBlur = 12.f, kRefract = 18.f, kChroma = 0.15f, kRim = 0.60f, kTint = 0.08f;
 
 const char kShader[] = R"(
@@ -3593,6 +4275,7 @@ cbuffer P : register(b0) {
     float2 size; float2 srcOrigin;
     float2 srcSize; float radius; float blur;
     float refract; float chroma; float rim; float tint;
+    float2 cardMin; float2 cardSize;
 };
 Texture2D tex : register(t0);
 SamplerState smp : register(s0);
@@ -3618,17 +4301,23 @@ float3 blurAt(float2 px) {
 }
 float4 ps(V i) : SV_Target {
     float2 px = i.uv * size;
-    float2 c = size * 0.5;
+    // The card occupies a sub-rect of a window that never moves while the
+    // expand animation runs, so the backdrop stays pinned to the screen.
+    float2 c = cardMin + cardSize * 0.5;
+    float2 b = cardSize * 0.5;
     float2 p = px - c;
-    float r = min(radius, min(c.x, c.y));
-    float d = sdRR(p, c, r);
+    float r = min(radius, min(b.x, b.y));
+    float d = sdRR(p, b, r);
     float a = saturate(0.5 - d);
     if (a <= 0) return 0;
     float e = 0.5;
-    float2 g = float2(sdRR(p + float2(e, 0), c, r) - sdRR(p - float2(e, 0), c, r),
-                      sdRR(p + float2(0, e), c, r) - sdRR(p - float2(0, e), c, r));
+    float2 g = float2(sdRR(p + float2(e, 0), b, r) - sdRR(p - float2(e, 0), b, r),
+                      sdRR(p + float2(0, e), b, r) - sdRR(p - float2(0, e), b, r));
     float2 n = g / max(length(g), 1e-4);
-    float band = max(min(size.x, size.y) * 0.4, 4.0);
+    // Keep bending inside the rounded bevel. The old 40%-of-card band reached
+    // the SDF medial axes, where the nearest edge switches abruptly (top/side).
+    // Refracting across that normal discontinuity produces triangular creases.
+    float band = max(r, 1.0);
     float k = saturate(1.0 + d / band);
     float2 off = -n * (k * k * refract);
     float3 col;
@@ -3647,6 +4336,7 @@ struct alignas(16) ShaderParams {
     float size[2], srcOrigin[2];
     float srcSize[2], radius, blur;
     float refract, chroma, rim, tint;
+    float cardMin[2], cardSize[2];
 };
 
 using Microsoft::WRL::ComPtr;
@@ -3654,10 +4344,11 @@ using Microsoft::WRL::ComPtr;
 struct Glass {
     HWND hwnd = nullptr;
     HWND expand = nullptr;
-    RECT target = {};
+    RECT target = {};          // whole window in screen space; fixed while open
     RECT monRect = {};
     HMONITOR monitor = nullptr;
     float cornerRadius = 14.f;
+    float cardL = 0, cardT = 0, cardW = 0, cardH = 0;  // visible card inside the window
     ComPtr<ID3D11Device> dev;
     ComPtr<ID3D11DeviceContext> ctx;
     ComPtr<IDXGISwapChain1> swap;
@@ -3685,14 +4376,17 @@ struct Glass {
 std::atomic<bool> g_stop{false};
 std::atomic<bool> g_deviceLost{false};
 std::atomic<bool> g_live{false};       // glass currently presenting
+std::atomic<bool> g_hasFrame{false};   // a backdrop frame is cached for this monitor
 std::atomic<bool> g_want{false};       // expand open + setting on
 HANDLE g_thread = nullptr;
 HANDLE g_wake = nullptr;
 std::mutex g_geomLock;
 RECT g_geomRect{};
+RECT g_geomCard{};   // visible card, relative to the window
 HMONITOR g_geomMon = nullptr;
 float g_geomRadius = 14.f;
 HWND g_expandHwnd = nullptr;
+uint64_t g_openGeneration = 0;
 DWORD g_expandPrevAffinity = WDA_NONE;
 bool g_expandAffinitySet = false;
 
@@ -3843,13 +4537,9 @@ bool PullFrame(Glass& g) {
         FAILED(access->GetInterface(IID_PPV_ARGS(&tex)))) {
         return false;
     }
-    const int margin = (int)(kBlur + kRefract) + 4;
-    LONG l = std::max<LONG>(0, g.target.left - g.monRect.left - margin);
-    LONG t = std::max<LONG>(0, g.target.top - g.monRect.top - margin);
-    LONG r = std::min<LONG>(cs.Width, g.target.right - g.monRect.left + margin);
-    LONG b = std::min<LONG>(cs.Height, g.target.bottom - g.monRect.top + margin);
-    if (r <= l || b <= t) return false;
-    UINT w = (UINT)(r - l), h = (UINT)(b - t);
+    // Cache the monitor frame once so the popup can grow or move over it.
+    if (cs.Width <= 0 || cs.Height <= 0) return false;
+    UINT w = (UINT)cs.Width, h = (UINT)cs.Height;
     D3D11_TEXTURE2D_DESC have = {};
     if (g.src) g.src->GetDesc(&have);
     if (!g.src || have.Width != w || have.Height != h) {
@@ -3867,9 +4557,10 @@ bool PullFrame(Glass& g) {
             return false;
         }
     }
-    g.srcBox = {(UINT)l, (UINT)t, 0, (UINT)r, (UINT)b, 1};
+    g.srcBox = {0, 0, 0, w, h, 1};
     g.ctx->CopySubresourceRegion(g.src.Get(), 0, 0, 0, 0, tex.Get(), 0, &g.srcBox);
     g.hasContent = true;
+    g_hasFrame = true;
     return true;
 }
 
@@ -3881,12 +4572,17 @@ HRESULT Render(Glass& g) {
     p.srcOrigin[1] = (float)(g.target.top - g.monRect.top - (LONG)g.srcBox.top);
     p.srcSize[0] = (float)(g.srcBox.right - g.srcBox.left);
     p.srcSize[1] = (float)(g.srcBox.bottom - g.srcBox.top);
+    p.cardMin[0] = g.cardL;
+    p.cardMin[1] = g.cardT;
+    p.cardSize[0] = g.cardW > 0 ? g.cardW : (float)g.width;
+    p.cardSize[1] = g.cardH > 0 ? g.cardH : (float)g.height;
     p.radius = g.cornerRadius;
-    p.blur = kBlur;
-    p.refract = kRefract;
-    p.chroma = kChroma;
-    p.rim = kRim;
-    p.tint = kTint;
+    const Settings& settings = GetSettings();
+    p.blur = (float)settings.glassBlur;
+    p.refract = settings.expandLiquidGlass ? kRefract : 0.f;
+    p.chroma = settings.expandLiquidGlass ? kChroma : 0.f;
+    p.rim = settings.expandLiquidGlass ? kRim : 0.f;
+    p.tint = 0;  // color and brightness are applied once by the popup material
     g.ctx->UpdateSubresource(g.cb.Get(), 0, nullptr, &p, 0, 0);
     D3D11_VIEWPORT vp = {0, 0, (float)g.width, (float)g.height, 0, 1};
     float clear[4] = {0, 0, 0, 0};
@@ -3911,7 +4607,7 @@ HRESULT Render(Glass& g) {
 bool ShouldPause() {
     QUERY_USER_NOTIFICATION_STATE st;
     if (SUCCEEDED(SHQueryUserNotificationState(&st)) &&
-        (st == QUNS_BUSY || st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_PRESENTATION_MODE)) {
+        (st == QUNS_RUNNING_D3D_FULL_SCREEN || st == QUNS_PRESENTATION_MODE)) {
         return true;
     }
     return false;
@@ -3925,9 +4621,8 @@ void SetVisible(Glass& g, bool v) {
 }
 
 void SetExpandExclude(HWND expand, bool on) {
-    if (!expand || !IsWindow(expand)) return;
     if (on) {
-        if (g_expandAffinitySet) return;
+        if (!expand || !IsWindow(expand) || g_expandAffinitySet) return;
         DWORD prev = WDA_NONE;
         GetWindowDisplayAffinity(expand, &prev);
         if (SetWindowDisplayAffinity(expand, WDA_EXCLUDEFROMCAPTURE)) {
@@ -3935,9 +4630,16 @@ void SetExpandExclude(HWND expand, bool on) {
             g_expandAffinitySet = true;
         }
     } else if (g_expandAffinitySet) {
-        SetWindowDisplayAffinity(expand, g_expandPrevAffinity);
+        if (expand && IsWindow(expand)) SetWindowDisplayAffinity(expand, g_expandPrevAffinity);
         g_expandAffinitySet = false;
     }
+}
+
+void FinishSnapshotCapture(Glass& g) {
+    StopCapture(g);
+    SetExpandExclude(g.expand, false);
+    // The glass overlay must not feed its own output back into the capture.
+    if (g.hwnd && IsWindow(g.hwnd)) SetWindowDisplayAffinity(g.hwnd, WDA_NONE);
 }
 
 LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
@@ -3959,8 +4661,10 @@ DWORD WINAPI Worker(LPVOID) {
         WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_TOPMOST |
             WS_EX_NOREDIRECTIONBITMAP,
         wc.lpszClassName, L"", WS_POPUP, 0, 0, 1, 1, nullptr, nullptr, wc.hInstance, nullptr);
-    if (!g.hwnd || !SetWindowDisplayAffinity(g.hwnd, WDA_EXCLUDEFROMCAPTURE) || !CreateDevice(g)) {
+    if (!g.hwnd || !CreateDevice(g)) {
         Wh_Log(L"[xlg] init failed — keeping acrylic / translucent fallback");
+        g_deviceLost = true;
+        g_want = false;
         if (g.hwnd) DestroyWindow(g.hwnd);
         UnregisterClassW(wc.lpszClassName, wc.hInstance);
         g_live = false;
@@ -3970,8 +4674,15 @@ DWORD WINAPI Worker(LPVOID) {
 
     ULONGLONG lastPauseCheck = 0;
     bool paused = false;
+    HMONITOR snapshotMonitor = nullptr;
+    uint64_t lastSettingsGen = 0;
+    ULONGLONG captureStarted = 0;
+    ULONGLONG lastMoveAt = 0;
+    bool captureFailed = false;
+    auto nextFrame = std::chrono::steady_clock::now();
     while (!g_stop.load()) {
-        const DWORD frameMs = 1000 / kMaxFps;
+        auto waitNs = std::chrono::duration_cast<std::chrono::nanoseconds>(nextFrame - std::chrono::steady_clock::now()).count();
+        const DWORD frameMs = g_want.load() ? (DWORD)std::max(0LL, (waitNs + 999999) / 1000000) : INFINITE;
         MsgWaitForMultipleObjects(1, &g_wake, FALSE, frameMs, QS_ALLINPUT);
         MSG msg;
         while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -3981,29 +4692,48 @@ DWORD WINAPI Worker(LPVOID) {
         if (g_stop.load()) break;
         if (!g_want.load()) {
             SetVisible(g, false);
-            if (g.session) StopCapture(g);
-            continue;
+            FinishSnapshotCapture(g);
+            // Keep the cached monitor frame. Dropping it here forced a fresh
+            // capture on every open, so the glass stayed hidden for the first
+            // frames of the expand animation (a visible flash). The frame is
+            // only thrown away when the monitor or the popup window changes.
+            nextFrame = std::chrono::steady_clock::now();
+            continue;  // sleep until reopen/unload; no capture, rendering or idle polling
         }
 
+        auto frameNow = std::chrono::steady_clock::now();
+        if (frameNow < nextFrame) continue;  // geometry wake-ups do not exceed the capture budget
+        nextFrame = frameNow + std::chrono::nanoseconds(1000000000LL / kMaxFps);
         RECT rc;
+        RECT card;
         HMONITOR mon;
         float radius;
         HWND expand;
+        uint64_t generation;
         {
             std::lock_guard<std::mutex> lk(g_geomLock);
             rc = g_geomRect;
+            card = g_geomCard;
             mon = g_geomMon;
             radius = g_geomRadius;
             expand = g_expandHwnd;
+            generation = g_openGeneration;
         }
         int w = rc.right - rc.left, h = rc.bottom - rc.top;
         if (w <= 0 || h <= 0 || !mon || !expand || !IsWindow(expand)) {
             SetVisible(g, false);
+            FinishSnapshotCapture(g);
             continue;
         }
-        g.expand = expand;
-        g.cornerRadius = radius;
-        SetExpandExclude(expand, true);
+        if (snapshotMonitor != mon || g.expand != expand) {
+            SetVisible(g, false);
+            FinishSnapshotCapture(g);
+            g.src.Reset(); g.srv.Reset(); g.hasContent = false;
+            g_hasFrame = false;
+            captureFailed = false;
+            g.expand = expand;
+            snapshotMonitor = mon;
+        }
 
         ULONGLONG now = GetTickCount64();
         if (now - lastPauseCheck > 1000) {
@@ -4012,38 +4742,95 @@ DWORD WINAPI Worker(LPVOID) {
         }
         if (paused) {
             SetVisible(g, false);
-            if (g.session) StopCapture(g);
+            FinishSnapshotCapture(g);
             continue;
         }
 
-        bool moved = !EqualRect(&rc, &g.target);
-        g.target = rc;
-        if ((mon != g.monitor || !g.session) && !StartCapture(g, mon)) {
-            SetVisible(g, false);
-            continue;
+        uint64_t settingsGen = g_settingsGen.load(std::memory_order_acquire);
+        if (settingsGen != lastSettingsGen) captureFailed = false;
+
+        // The backdrop has to follow the card while the expand animation runs.
+        // A frame grabbed once and reused made the background slide together
+        // with the glass, so keep pulling frames for as long as geometry moves.
+        const bool moved = !EqualRect(&rc, &g.target);
+        if (moved) lastMoveAt = now;
+
+        if (!g.hasContent || (moved && !g.session && !captureFailed)) {
+            if (captureFailed) continue;
+            if (!g.session) {
+                SetExpandExclude(expand, true);
+                // Exclude the overlay itself: capturing while it is visible fed
+                // the previous glass frame back in and smeared the backdrop.
+                if (g.hwnd && IsWindow(g.hwnd))
+                    SetWindowDisplayAffinity(g.hwnd, WDA_EXCLUDEFROMCAPTURE);
+                if (!g_expandAffinitySet || !StartCapture(g, mon)) {
+                    Wh_Log(L"[xlg] could not start a clean backdrop snapshot");
+                    FinishSnapshotCapture(g);
+                    captureFailed = true;
+                    lastSettingsGen = settingsGen;
+                    continue;
+                }
+                captureStarted = now;
+            }
+            if (!PullFrame(g)) {
+                if (now - captureStarted >= 1000) {
+                    Wh_Log(L"[xlg] backdrop snapshot timed out");
+                    FinishSnapshotCapture(g);
+                    captureFailed = true;
+                    lastSettingsGen = settingsGen;
+                }
+                continue;
+            }
+            lastMoveAt = now;
+        } else if (moved && g.session) {
+            // Refresh in place; a missed frame simply keeps the previous one.
+            PullFrame(g);
+            lastMoveAt = now;
         }
-        // Place glass directly below the expand popup in z-order.
-        SetWindowPos(g.hwnd, expand, rc.left, rc.top, w, h, SWP_NOACTIVATE);
+        // Settled: release the capture so screenshots and recording see the card.
+        if (g.hasContent && g.session && now - lastMoveAt > 300) {
+            FinishSnapshotCapture(g);
+            Wh_Log(L"[xlg] backdrop settled; screenshots enabled");
+        }
+
+        const bool rectChanged = !EqualRect(&rc, &g.target);
+        const bool cardChanged = card.left != (LONG)g.cardL || card.top != (LONG)g.cardT ||
+                                 (card.right - card.left) != (LONG)g.cardW ||
+                                 (card.bottom - card.top) != (LONG)g.cardH;
+        if (g.visible && !rectChanged && !cardChanged && radius == g.cornerRadius &&
+            settingsGen == lastSettingsGen)
+            continue;
+        g.target = rc;
+        g.cardL = (float)card.left;
+        g.cardT = (float)card.top;
+        g.cardW = (float)(card.right - card.left);
+        g.cardH = (float)(card.bottom - card.top);
+        g.cornerRadius = radius;
+        lastSettingsGen = settingsGen;
+        // The window only moves when the full card rect changes. While the
+        // expand animation runs it stays put and the visible sub-rect grows, so
+        // DWM never slides the previous frame along with the window.
+        if (rectChanged) SetWindowPos(g.hwnd, expand, rc.left, rc.top, w, h, SWP_NOACTIVATE);
         if (!EnsureSwapChain(g, w, h)) {
             Wh_Log(L"[xlg] swap chain failed, disabling for this session");
             g_deviceLost = true;
             break;
         }
-        if (!PullFrame(g) && !moved) continue;
-        if (!g.hasContent) continue;
-
         HRESULT hr = Render(g);
-        if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
-            Wh_Log(L"[xlg] device removed (%08X), disabling for this session",
-                   g.dev->GetDeviceRemovedReason());
+        if (FAILED(hr)) {
+            Wh_Log(L"[xlg] present failed (%08X), disabling for this session", (unsigned)hr);
             g_deviceLost = true;
             break;
         }
-        SetVisible(g, true);
+        bool stillCurrent = false;
+        {
+            std::lock_guard<std::mutex> lk(g_geomLock);
+            stillCurrent = g_expandHwnd == expand && g_openGeneration == generation;
+        }
+        SetVisible(g, g_want.load() && stillCurrent && IsWindow(expand));
     }
 
-    StopCapture(g);
-    SetExpandExclude(g.expand, false);
+    FinishSnapshotCapture(g);
     SetVisible(g, false);
     if (g.dcompTarget) g.dcompTarget->SetRoot(nullptr);
     if (g.dcomp) g.dcomp->Commit();
@@ -4052,11 +4839,18 @@ DWORD WINAPI Worker(LPVOID) {
     if (doomed) DestroyWindow(doomed);
     UnregisterClassW(wc.lpszClassName, GetModuleHandleW(nullptr));
     g_live = false;
+    g_want = false;
     RoUninitialize();
     return 0;
 }
 
 void StartWorker() {
+    if (g_thread && WaitForSingleObject(g_thread, 0) == WAIT_OBJECT_0) {
+        CloseHandle(g_thread);
+        if (g_wake) CloseHandle(g_wake);
+        g_thread = nullptr;
+        g_wake = nullptr;
+    }
     if (g_thread || g_deviceLost.load()) return;
     g_stop = false;
     g_wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -4082,12 +4876,24 @@ void StopWorker() {
 
 }  // namespace xlg
 
-static bool XlgIsLive() { return xlg::g_live.load(); }
+static bool XlgIsLive() {
+    // A cached frame means the glass will be on screen from the first animation
+    // frame, so the popup must not paint its acrylic fallback first and switch
+    // it off again a frame later (that switch is visible as a flash).
+    return xlg::g_live.load() || (xlg::g_want.load() && xlg::g_hasFrame.load());
+}
 
 static void XlgOnSettingsChanged() {
     // Saving settings is the user's explicit retry after a device-removed disable.
     xlg::g_deviceLost = false;
-    if (!GetSettings().expandLiquidGlass) xlg::StopWorker();
+    if (!WantsCapturedBackdrop(GetSettings())) { xlg::g_want = false; xlg::StopWorker(); }
+}
+
+// Collapsing must not join a capture/GPU worker on Explorer's UI thread.
+// Keep its device warm; the worker hides, releases capture frames, then sleeps.
+static void XlgSuspend() {
+    xlg::g_want = false;
+    if (xlg::g_wake) SetEvent(xlg::g_wake);
 }
 
 static void XlgStop() {
@@ -4102,21 +4908,23 @@ static void XlgStop() {
 }
 
 static void XlgStart(HWND expandHwnd) {
-    if (!expandHwnd || !GetSettings().expandLiquidGlass || xlg::g_deviceLost.load()) return;
+    if (!expandHwnd || !WantsCapturedBackdrop(GetSettings()) || xlg::g_deviceLost.load()) return;
     {
         std::lock_guard<std::mutex> lk(xlg::g_geomLock);
         xlg::g_expandHwnd = expandHwnd;
+        ++xlg::g_openGeneration;
     }
     xlg::g_want = true;
     xlg::StartWorker();
     if (xlg::g_wake) SetEvent(xlg::g_wake);
 }
 
-static void XlgUpdate(const RECT& screenRc, HMONITOR mon, float cornerRadiusPx) {
+static void XlgUpdate(const RECT& screenRc, const RECT& cardRc, HMONITOR mon, float cornerRadiusPx) {
     if (!xlg::g_want.load()) return;
     {
         std::lock_guard<std::mutex> lk(xlg::g_geomLock);
         xlg::g_geomRect = screenRc;
+        xlg::g_geomCard = cardRc;
         xlg::g_geomMon = mon;
         xlg::g_geomRadius = cornerRadiusPx;
     }
@@ -4142,11 +4950,24 @@ static void XlgUpdate(const RECT& screenRc, HMONITOR mon, float cornerRadiusPx) 
 
 static bool ApplyExpandBackdrop(HWND hwnd, bool light) {
     if (!hwnd) return false;
+    // Settings / GPU readiness can change while open. Avoid resetting native materials
+    // on every 15 ms animation tick when neither has changed.
+    static HWND lastHwnd = nullptr;
+    static uint64_t lastGen = 0;
+    static bool lastLiquid = false, lastLight = false;
+    uint64_t gen = g_settingsGen.load(std::memory_order_acquire);
+    bool liquid = WantsCapturedBackdrop(GetSettings()) && XlgIsLive();
+    if (hwnd == lastHwnd && gen == lastGen && liquid == lastLiquid && light == lastLight) return true;
+    lastHwnd = hwnd; lastGen = gen; lastLiquid = liquid; lastLight = light;
     bool any = false;
     int corner = DWMWCP_ROUND;
     if (SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner))))
         any = true;
-    int backdrop = DWMSBT_TRANSIENTWINDOW;  // acrylic-like flyout material on Win11
+    // 磨砂 has no captured backdrop of its own, so the system must draw the
+    // acrylic; the glass modes keep DWMSBT_NONE and supply the material
+    // themselves, so the two never stack.
+    const bool wantsGlass = WantsCapturedBackdrop(GetSettings());
+    int backdrop = wantsGlass ? 1 /* DWMSBT_NONE */ : DWMSBT_TRANSIENTWINDOW;
     if (SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop, sizeof(backdrop))))
         any = true;
 
@@ -4160,11 +4981,13 @@ static bool ApplyExpandBackdrop(HWND hwnd, bool light) {
         struct AccentPolicy { int state; DWORD flags; DWORD gradientColor; DWORD anim; };
         struct WcaData { int attr; void* data; SIZE_T size; };
         AccentPolicy policy{};
-        policy.state = 4;  // ACCENT_ENABLE_ACRYLICBLURBEHIND
+        const Settings& s = GetSettings();
+        // Glass modes draw the whole backdrop themselves; the popup must not add
+        // a second material of its own, which would move with the window.
+        policy.state = (WantsCapturedBackdrop(s) || !s.panelGlass) ? 0 : 4;
         // ABGR tint: light = soft white, dark = soft black; alpha = tint strength.
-        BYTE ta = 0x66;
-        DWORD rgb = light ? 0x00F7F7F7u : 0x00202024u;
-        policy.gradientColor = ((DWORD)ta << 24) | rgb;
+        // Tint is drawn once by GDI+ below; the native layer supplies blur only.
+        policy.gradientColor = 0x01000000;
         WcaData data{19 /* WCA_ACCENT_POLICY */, &policy, sizeof(policy)};
         if (setWca(hwnd, &data)) any = true;
     }
@@ -4212,32 +5035,48 @@ static void ComputeExpandAnchor(HWND bar, int panelW, int panelH, TaskbarEdge& e
     }
 }
 
-static void ExpandRender() {
+static void ExpandRender(bool refreshContent = true) {
     if (!g_x.hwnd) return;
     const Settings& s = GetSettings();
     const int dpi = (int)GetDpiForWindow(g_x.bar ? g_x.bar : g_x.hwnd);
     RefreshEnv(false);
     const bool light = g_env.lightTaskbar;
-    ExpandLayoutPaint(nullptr, dpi, light);  // measure
+    if (g_x.target > 0.5 && WantsCapturedBackdrop(s) && !xlg::g_want.load()) XlgStart(g_x.hwnd);
+    ApplyExpandBackdrop(g_x.hwnd, light);
+    uint64_t settingsGen = g_settingsGen.load(std::memory_order_acquire);
+    if (refreshContent || !g_x.content || g_x.contentDpi != dpi || g_x.contentLight != light ||
+        g_x.contentSettingsGen != settingsGen) {
+        ExpandLayoutPaint(nullptr, dpi, light);
+        auto content = std::make_unique<Gdiplus::Bitmap>(g_x.w, g_x.h, PixelFormat32bppPARGB);
+        if (content->GetLastStatus() != Gdiplus::Ok) return;
+        Gdiplus::Graphics cg(content.get());
+        cg.Clear(Gdiplus::Color(0, 0, 0, 0));
+        cg.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+        cg.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+        ExpandLayoutPaint(&cg, dpi, light);
+        g_x.content = std::move(content);
+        g_x.contentHits = g_x.hits;  // untransformed, never accumulate animation offsets
+        g_x.contentDpi = dpi; g_x.contentLight = light; g_x.contentSettingsGen = settingsGen;
+    }
     if (g_x.bar) ComputeExpandAnchor(g_x.bar, g_x.w, g_x.h, g_x.edge, g_x.anchorX, g_x.anchorY);
     const double vis = std::clamp(g_x.p, 0.0, 1.08);
     const bool axisX = IsVerticalEdge(g_x.edge);  // left/right: spring along X
-    const int fullW = axisX ? std::max(1, (int)(g_x.w * 1.08)) : g_x.w;
-    const int fullH = axisX ? g_x.h : std::max(1, (int)(g_x.h * 1.08));
+    const int fullW = axisX ? std::max(1, (int)(g_x.w * vis)) : g_x.w;
+    const int fullH = axisX ? g_x.h : std::max(1, (int)(g_x.h * vis));
     const int shownW = axisX ? std::max(1, (int)(g_x.w * vis)) : g_x.w;
     const int shownH = axisX ? g_x.h : std::max(1, (int)(g_x.h * vis));
     HDC screen = GetDC(nullptr);
-    HDC mem = CreateCompatibleDC(screen);
-    BITMAPINFO bi{};
-    bi.bmiHeader = {sizeof(BITMAPINFOHEADER), fullW, -fullH, 1, 32, BI_RGB};
-    void* bits = nullptr;
-    HBITMAP bmp = CreateDIBSection(screen, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    if (!g_x.surface) g_x.surface = std::make_unique<ExpandSurface>();
+    const int capacityW = std::max(fullW, (int)(g_x.w * 1.08));
+    const int capacityH = std::max(fullH, (int)(g_x.h * 1.08));
+    if (!g_x.surface->Ensure(screen, capacityW, capacityH)) { ReleaseDC(nullptr, screen); return; }
+    HDC mem = g_x.surface->dc;
+    void* bits = g_x.surface->bits;
     const Gdiplus::REAL rad = (Gdiplus::REAL)(14 * dpi / 96.0);
-    if (bmp && bits) {
-        HGDIOBJ old = SelectObject(mem, bmp);
+    {
         Gdiplus::REAL cardX = 0, cardY = 0;
         {
-            Gdiplus::Bitmap canvas(fullW, fullH, fullW * 4, PixelFormat32bppPARGB, (BYTE*)bits);
+            Gdiplus::Bitmap canvas(fullW, fullH, g_x.surface->width * 4, PixelFormat32bppPARGB, (BYTE*)bits);
             Gdiplus::Graphics g(&canvas);
             g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
             g.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
@@ -4257,12 +5096,10 @@ static void ExpandRender() {
             // tint so text stays readable on a fully transparent taskbar.
             PanelLook look = LookFor(s.panelBg, s.panelGlass, light);
             Gdiplus::ARGB fill = look.fill;
-            if (!fill) fill = light ? 0x66F7F7F7 : 0x66141414;
-            // When liquid glass is presenting behind us, keep the tint light so it shows through.
-            if (s.expandLiquidGlass && XlgIsLive()) {
-                BYTE a = (BYTE)((fill >> 24) & 255);
-                if (a > 0x48) fill = WithAlpha(fill, 0x48);
-            }
+            if (!s.glassColor.empty()) fill = MaterialColor(s, light);
+            else if (!fill) fill = light ? 0x66F7F7F7 : 0x66141414;
+            // Alpha 1 keeps a zero-opacity card interactive in layered-window hit testing.
+            if ((fill >> 24) == 0) fill = 0x01000000;
             FillRound(g, fill, card, rad);
             if (look.edge) {
                 Gdiplus::GraphicsPath edge;
@@ -4276,8 +5113,8 @@ static void ExpandRender() {
             // Content slides with the card, slightly offset for the spring feel.
             Gdiplus::REAL ox = cardX + (Gdiplus::REAL)(shownW - g_x.w) * 0.5f;
             Gdiplus::REAL oy = cardY + (Gdiplus::REAL)(shownH - g_x.h) * 0.5f;
-            g.TranslateTransform(ox, oy);
-            ExpandLayoutPaint(&g, dpi, light);
+            g.DrawImage(g_x.content.get(), ox, oy, (Gdiplus::REAL)g_x.content->GetWidth(),
+                        (Gdiplus::REAL)g_x.content->GetHeight());
         }
         POINT srcPt{0, 0};
         SIZE sz{fullW, fullH};
@@ -4293,41 +5130,66 @@ static void ExpandRender() {
         BYTE alpha = (BYTE)(std::clamp(g_x.p * 1.4, 0.0, 1.0) * 255);
         BLENDFUNCTION bf{AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA};
         UpdateLayeredWindow(g_x.hwnd, screen, &dst, &sz, mem, &srcPt, 0, &bf, ULW_ALPHA);
-        SelectObject(mem, old);
+        g_x.hits = g_x.contentHits;
         // Hit rects are in content coordinates; shift them to window coordinates.
         LONG dx = (LONG)(cardX + (shownW - g_x.w) * 0.5);
         LONG dy = (LONG)(cardY + (shownH - g_x.h) * 0.5);
         for (auto& h : g_x.hits) OffsetRect(&h.rc, dx, dy);
-        if (s.expandLiquidGlass) {
-            RECT glassRc{(LONG)(dst.x + cardX), (LONG)(dst.y + cardY),
-                         (LONG)(dst.x + cardX + shownW), (LONG)(dst.y + cardY + shownH)};
-            HMONITOR mon = MonitorFromRect(&glassRc, MONITOR_DEFAULTTONEAREST);
-            XlgUpdate(glassRc, mon, (float)rad);
+        if (WantsCapturedBackdrop(s)) {
+            // fullW/fullH above track the animation and grow every frame, so the
+            // window used to expand and crawl upwards with the card. Give the
+            // glass window the final card rect instead: it stays put while the
+            // visible sub-rect grows inside it.
+            const int winW = std::max(1, g_x.w), winH = std::max(1, g_x.h);
+            LONG wx = dst.x, wy = dst.y;
+            if (axisX) {
+                if (g_x.edge == TaskbarEdge::Right) wx = dst.x + fullW - winW;
+            } else if (g_x.edge == TaskbarEdge::Bottom) {
+                wy = dst.y + fullH - winH;
+            }
+            RECT fullRc{wx, wy, wx + winW, wy + winH};
+            // cardX/cardY are relative to dst; convert to window-local coordinates.
+            const LONG cardDx = cardX + (dst.x - wx);
+            const LONG cardDy = cardY + (dst.y - wy);
+            RECT cardRc{cardDx, cardDy, cardDx + shownW, cardDy + shownH};
+            HMONITOR mon = MonitorFromRect(&fullRc, MONITOR_DEFAULTTONEAREST);
+            XlgUpdate(fullRc, cardRc, mon, (float)rad);
         }
     }
-    if (bmp) DeleteObject(bmp);
-    DeleteDC(mem);
     ReleaseDC(nullptr, screen);
+}
+
+static void StopExpandAnimation() {
+    if (g_x.hwnd) KillTimer(g_x.hwnd, TIMER_ANIM);
+    if (g_x.animationClock) g_x.animationClock->Stop();
+}
+static void StartExpandAnimation() {
+    g_x.lastAnimationTime = AnimationTimeSeconds();
+    if (!g_x.animationClock) g_x.animationClock = std::make_unique<ExpandAnimationClock>();
+    if (!g_x.animationClock->Start(g_x.hwnd)) {
+        Wh_Log(L"[expand] high-resolution clock unavailable, using legacy timer");
+        SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
+    }
 }
 
 static void ExpandClose(bool immediate) {
     if (!g_x.hwnd) return;
-    XlgStop();  // tear down liquid glass as soon as collapse begins
+    XlgSuspend();  // stop capture asynchronously; the spring never waits for GPU teardown
     g_x.target = 0;
+    g_x.lastAnimationTime = AnimationTimeSeconds();
     if (immediate) {
-        KillTimer(g_x.hwnd, TIMER_ANIM);
+        StopExpandAnimation();
         KillTimer(g_x.hwnd, TIMER_WATCH);
         DestroyWindow(g_x.hwnd);
         g_x = ExpandState{};
         g_expandedAny = false;
         return;
     }
-    SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
+    StartExpandAnimation();
 }
 
 static void ExpandOpen(HWND bar) {
     const Settings& s = GetSettings();
-    PruneRelayFiles();
     if (g_x.hwnd && g_x.bar == bar && g_x.target > 0.5) {  // click again collapses
         ExpandClose(false);
         return;
@@ -4359,13 +5221,14 @@ static void ExpandOpen(HWND bar) {
     g_x.anchorX = ax;
     g_x.anchorY = ay;
     g_x.target = 1;
+    g_x.lastAnimationTime = AnimationTimeSeconds();
     g_x.lastInteract = GetTickCount64();
     g_x.lbuttonWasDown = true;  // the click that opened us must not count as "outside"
     g_expandedAny = true;
-    if (s.expandLiquidGlass) XlgStart(g_x.hwnd);  // want=true before first ExpandRender geom push
+    if (WantsCapturedBackdrop(s)) XlgStart(g_x.hwnd);  // want=true before first ExpandRender geom push
     ExpandRender();
     ShowWindow(g_x.hwnd, SW_SHOWNOACTIVATE);
-    SetTimer(g_x.hwnd, TIMER_ANIM, 15, nullptr);
+    StartExpandAnimation();
     SetTimer(g_x.hwnd, TIMER_WATCH, 50, nullptr);
 }
 
@@ -4402,7 +5265,7 @@ static void DragFileOut(HWND hwnd, const std::wstring& path) {
         auto* src = new ZenDropSource();
         DWORD effect = 0;
         g_x.lastInteract = GetTickCount64();
-        DoDragDrop(data, src, DROPEFFECT_COPY | DROPEFFECT_LINK | DROPEFFECT_MOVE, &effect);
+        DoDragDrop(data, src, DROPEFFECT_COPY, &effect);
         src->Release();
         data->Release();
     }
@@ -4417,22 +5280,28 @@ static int ExpandHitTest(POINT pt, int* index) {
     return XNone;
 }
 
+static void AdvanceExpandAnimation() {
+    double now = AnimationTimeSeconds();
+    double elapsed = g_x.lastAnimationTime ? now - g_x.lastAnimationTime : 1.0 / kExpandAnimationFps;
+    g_x.lastAnimationTime = now;
+    StepExpandSpring(g_x.p, g_x.v, g_x.target, elapsed);
+    bool settled = fabs(g_x.p - g_x.target) < 0.002 && fabs(g_x.v) < 0.01;
+    if (settled) { g_x.p = g_x.target; StopExpandAnimation(); }
+    if (g_x.target == 0 && (settled || g_x.p < 0.02)) { ExpandClose(true); return; }
+    ExpandRender(false);  // cached paint path, shared by 120 Hz clock and legacy fallback
+}
+
 static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_MOUSEACTIVATE: return MA_NOACTIVATE;
-        case WM_TIMER: {
-            if (wp == TIMER_ANIM) {
-                // Under-damped spring (zeta ~0.55): a little overshoot, settles in ~0.4 s.
-                const double k = 210.0, c = 16.0, dt = 0.015;
-                double a = -k * (g_x.p - g_x.target) - c * g_x.v;
-                g_x.v += a * dt;
-                g_x.p += g_x.v * dt;
-                bool settled = fabs(g_x.p - g_x.target) < 0.002 && fabs(g_x.v) < 0.01;
-                if (settled) { g_x.p = g_x.target; KillTimer(hwnd, TIMER_ANIM); }
-                if (g_x.target == 0 && (settled || g_x.p < 0.02)) { ExpandClose(true); return 0; }
-                ExpandRender();
-                return 0;
+        case WM_ZEN_ANIMFRAME:
+            if (g_x.animationClock && g_x.animationClock->running && wp == g_x.animationClock->generation) {
+                g_x.animationClock->queued = false;
+                AdvanceExpandAnimation();
             }
+            return 0;
+        case WM_TIMER: {
+            if (wp == TIMER_ANIM) { AdvanceExpandAnimation(); return 0; }
             if (wp == TIMER_WATCH) {
                 const Settings& s = GetSettings();
                 POINT pt;
@@ -4451,7 +5320,10 @@ static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                     return 0;
                 }
                 static ULONGLONG lastRefresh = 0;  // progress / AI / resources refresh
-                if (GetTickCount64() - lastRefresh >= 500) { lastRefresh = GetTickCount64(); ExpandRender(); }
+                bool animating = fabs(g_x.p - g_x.target) >= 0.002 || fabs(g_x.v) >= 0.01;
+                if (!animating && GetTickCount64() - lastRefresh >= 500) {
+                    lastRefresh = GetTickCount64(); ExpandRender();
+                }
                 return 0;
             }
             return 0;
@@ -4476,12 +5348,15 @@ static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 if (!(wp & MK_LBUTTON)) g_x.pressedIndex = idx;
                 TRACKMOUSEEVENT tme{sizeof(tme), TME_LEAVE, hwnd, 0};
                 TrackMouseEvent(&tme);
-                ExpandRender();
+                ExpandRender(fabs(g_x.p - g_x.target) < 0.002 && fabs(g_x.v) < 0.01);
             }
             return 0;
         }
         case WM_MOUSELEAVE:
-            if (g_x.hover != XNone) { g_x.hover = XNone; ExpandRender(); }
+            if (g_x.hover != XNone) {
+                g_x.hover = XNone;
+                ExpandRender(fabs(g_x.p - g_x.target) < 0.002 && fabs(g_x.v) < 0.01);
+            }
             return 0;
         case WM_SETCURSOR:
             if (LOWORD(lp) == HTCLIENT && g_x.hover != XNone) { SetCursor(LoadCursorW(nullptr, IDC_HAND)); return TRUE; }
@@ -4504,6 +5379,14 @@ static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
                 else if (hit == XPlay) PostMediaCmd(MediaCmd::PlayPause);
                 else if (hit == XNext) PostMediaCmd(MediaCmd::Next);
                 else if (hit == XOpen) { PostMediaCmd(MediaCmd::OpenPlayer); ExpandClose(false); return 0; }
+                else if (hit == XSeek) {
+                    for (const XHit& h : g_x.hits) {
+                        if (h.id != XSeek || h.rc.right <= h.rc.left) continue;
+                        double fraction = std::clamp((double)(pt.x - h.rc.left) / (h.rc.right - h.rc.left), 0.0, 1.0);
+                        PostMediaSeek(fraction, g_x.seekTrack, g_x.seekApp);
+                        break;
+                    }
+                }
                 else if (hit == XClear) { ClearRelayFiles(); }
                 else if (hit == XFile) {
                     auto files = GetRelayFiles();  // click opens the file's folder with it selected
@@ -4518,7 +5401,7 @@ static LRESULT CALLBACK ExpandProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
         case WM_RBUTTONUP: return 0;
         case WM_DESTROY:
-            KillTimer(hwnd, TIMER_ANIM);
+            StopExpandAnimation();
             KillTimer(hwnd, TIMER_WATCH);
             return 0;
     }
@@ -4547,19 +5430,20 @@ struct ZenDropTarget final : IDropTarget {
     HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* d, DWORD, POINTL, DWORD* eff) override {
         FORMATETC fe{CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
         accept = GetSettings().xFiles && d && d->QueryGetData(&fe) == S_OK;
-        *eff = accept ? DROPEFFECT_LINK : DROPEFFECT_NONE;  // we keep a path, not a copy
+        *eff = accept && (*eff & DROPEFFECT_COPY) ? DROPEFFECT_COPY : DROPEFFECT_NONE;  // source stays untouched
         if (accept) SetHighlight(true);
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE DragOver(DWORD, POINTL, DWORD* eff) override {
-        *eff = accept ? DROPEFFECT_LINK : DROPEFFECT_NONE;
+        *eff = accept && (*eff & DROPEFFECT_COPY) ? DROPEFFECT_COPY : DROPEFFECT_NONE;
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE DragLeave() override { SetHighlight(false); return S_OK; }
     HRESULT STDMETHODCALLTYPE Drop(IDataObject* d, DWORD, POINTL, DWORD* eff) override {
         SetHighlight(false);
+        const bool canCopy = (*eff & DROPEFFECT_COPY) != 0;
         *eff = DROPEFFECT_NONE;
-        if (!accept || !d) return S_OK;
+        if (!accept || !d || !canCopy) return S_OK;
         FORMATETC fe{CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
         STGMEDIUM sm{};
         if (d->GetData(&fe, &sm) != S_OK) return S_OK;
@@ -4577,7 +5461,7 @@ struct ZenDropTarget final : IDropTarget {
         ReleaseStgMedium(&sm);
         AddRelayFiles(add);
         Wh_Log(L"[relay] %u path(s) added", (unsigned)add.size());
-        *eff = DROPEFFECT_LINK;
+        *eff = DROPEFFECT_COPY;
         if (g_x.hwnd) ExpandRender();
         return S_OK;
     }
@@ -4900,9 +5784,9 @@ static LRESULT CALLBACK HelperProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 
 static void UiThread() {
-    g_uiThreadId = GetCurrentThreadId();
     MSG m;
     PeekMessageW(&m, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
+    g_uiThreadId = GetCurrentThreadId();
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     Gdiplus::GdiplusStartupInput gsi;
     ULONG_PTR gdipToken = 0;  // process-wide; the taskbar thread paints with it too
@@ -4973,10 +5857,43 @@ static void UiThread() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Windhawk entry points
 // ─────────────────────────────────────────────────────────────────────────────
-static std::thread g_mediaThread, g_lyricsThread, g_uiThread, g_aiThread, g_extrasThread;
+struct WorkerThreads {
+    std::thread media, lyrics, ui, ai, extras;
+};
+
+// Process shutdown may bypass Wh_ModUninit; do not destruct joinable threads then.
+static WorkerThreads* g_threads = nullptr;
+
+static void StopWorkers() {
+    g_stop = true;
+    if (g_stopEvent) SetEvent(g_stopEvent);
+    {
+        std::lock_guard<std::mutex> lk(g_reqLock);  // avoid lost wakeup
+    }
+    g_reqCv.notify_all();
+    if (DWORD tid = g_uiThreadId.load()) PostThreadMessageW(tid, WM_QUIT, 0, 0);
+    if (g_threads) {
+        if (g_threads->ui.joinable()) g_threads->ui.join();
+        if (g_threads->ai.joinable()) g_threads->ai.join();
+        if (g_threads->extras.joinable()) g_threads->extras.join();
+        if (g_threads->media.joinable()) g_threads->media.join();
+        if (g_threads->lyrics.joinable()) g_threads->lyrics.join();
+        delete g_threads;
+        g_threads = nullptr;
+    }
+    if (g_stopEvent) { CloseHandle(g_stopEvent); g_stopEvent = nullptr; }
+    if (g_cmdEvent) { CloseHandle(g_cmdEvent); g_cmdEvent = nullptr; }
+    g_uiThreadId = 0;
+}
 
 BOOL Wh_ModInit() {
-    Wh_Log(L"Init 0.5.3 (pid %u)", GetCurrentProcessId());
+    const DWORD pid = GetCurrentProcessId();
+    // Folder-window explorer.exe processes are injected too; they must stay fully idle.
+    if (ProbeTaskbarHostRole() < 0) {
+        Wh_Log(L"Init 0.5.21 (pid %u) foreign explorer; idle", pid);
+        return TRUE;
+    }
+    Wh_Log(L"Init 0.5.21 (pid %u)", pid);
     LoadSettings();
     g_stop = false;
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
@@ -4986,15 +5903,24 @@ BOOL Wh_ModInit() {
         if (g_cmdEvent) { CloseHandle(g_cmdEvent); g_cmdEvent = nullptr; }
         return FALSE;
     }
-    g_lyricsThread = std::thread(LyricsThread);
-    g_mediaThread = std::thread(MediaThread);
-    g_aiThread = std::thread(AiThread);
-    g_extrasThread = std::thread(ExtrasThread);
-    g_uiThread = std::thread(UiThread);
+    try {
+        g_threads = new WorkerThreads;
+        g_threads->lyrics = std::thread(LyricsThread);
+        g_threads->media = std::thread(MediaThread);
+        g_threads->ai = std::thread(AiThread);
+        g_threads->extras = std::thread(ExtrasThread);
+        g_threads->ui = std::thread(UiThread);
+    } catch (...) {
+        Wh_Log(L"Failed to start worker threads");
+        StopWorkers();
+        return FALSE;
+    }
     return TRUE;
 }
 
 void Wh_ModSettingsChanged() {
+    if (ProbeTaskbarHostRole() < 0) return;  // folder-window explorers: no workers, no log spam
+    if (!g_threads) return;
     LoadSettings();
     XlgOnSettingsChanged();
     if (DWORD tid = g_uiThreadId.load()) PostThreadMessageW(tid, WM_ZEN_SETTINGS, 0, 0);
@@ -5003,21 +5929,5 @@ void Wh_ModSettingsChanged() {
 void Wh_ModUninit() {
     Wh_Log(L"Uninit");
     XlgStop();
-    g_stop = true;
-    if (g_stopEvent) SetEvent(g_stopEvent);
-    {
-        std::lock_guard<std::mutex> lk(g_reqLock);  // avoid lost wakeup
-    }
-    g_reqCv.notify_all();
-    // WM_QUIT works whether or not the window currently exists; the loop then destroys it on its own thread.
-    if (DWORD tid = g_uiThreadId.load()) PostThreadMessageW(tid, WM_QUIT, 0, 0);
-    // Joins can take up to ~3s per in-flight HTTP call / one GSMTC call.
-    if (g_uiThread.joinable()) g_uiThread.join();
-    if (g_aiThread.joinable()) g_aiThread.join();
-    if (g_extrasThread.joinable()) g_extrasThread.join();
-    if (g_mediaThread.joinable()) g_mediaThread.join();
-    if (g_lyricsThread.joinable()) g_lyricsThread.join();
-    if (g_stopEvent) { CloseHandle(g_stopEvent); g_stopEvent = nullptr; }
-    if (g_cmdEvent) { CloseHandle(g_cmdEvent); g_cmdEvent = nullptr; }
-    g_uiThreadId = 0;
+    StopWorkers();
 }

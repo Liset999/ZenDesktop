@@ -1,3 +1,5 @@
 # Windows batch files must have CRLF line endings for cmd.exe (also applies to GitHub "Download ZIP").
 *.bat text eol=crlf
 *.cmd text eol=crlf
+# Keep the pinned upstream snapshot byte-for-byte stable for SHA256 validation.
+dev/widgets/vendor/tourne-table-2.1.1.wh.cpp -text

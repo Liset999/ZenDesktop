@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.4.3
+// @version         4.4.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -11961,6 +11961,7 @@ const Theme g_themeOne_UI_8_5_variant_Taskbar = {{
 
 std::atomic<bool> g_initialized;
 thread_local bool g_initializedForThread;
+void ZenHandleSubscriptionFailure(HRESULT statusCode);
 
 HANDLE g_restartExplorerPromptThread;
 std::atomic<HWND> g_restartExplorerPromptWindow;
@@ -12185,6 +12186,7 @@ public:
     bool ReleaseDiagnosticsReference(InstanceHandle handle);
 
 private:
+    std::atomic<bool> m_stopping{false};
     HRESULT STDMETHODCALLTYPE OnVisualTreeChange(ParentChildRelation relation, VisualElement element, VisualMutationType mutationType) override;
     HRESULT STDMETHODCALLTYPE OnElementStateChanged(InstanceHandle element, VisualElementState elementState, LPCWSTR context) noexcept override;
 
@@ -12218,6 +12220,7 @@ VisualTreeWatcher::VisualTreeWatcher(winrt::com_ptr<IUnknown> site) :
     // Calling AdviseVisualTreeChange from the current thread causes the app to
     // hang in Advising::RunOnUIThread sometimes. Creating a new thread and
     // calling it from there fixes it.
+    AddRef();
     HANDLE thread = CreateThread(
         nullptr, 0,
         [](LPVOID lpParam) -> DWORD {
@@ -12226,17 +12229,24 @@ VisualTreeWatcher::VisualTreeWatcher(winrt::com_ptr<IUnknown> site) :
             g_reportCompositionDiagAsDisabled = true;
             HRESULT hr = service->AdviseVisualTreeChange(watcher);
             g_reportCompositionDiagAsDisabled = false;
-            watcher->Release();
-            if (FAILED(hr)) {
+            if (watcher->m_stopping.load()) {
+                if (SUCCEEDED(hr)) {
+                    service->UnadviseVisualTreeChange(watcher);
+                }
+            } else if (FAILED(hr)) {
                 Wh_Log(L"AdviseVisualTreeChange failed with error %08X", hr);
-                PromptToRestartExplorer(hr);
+                ZenHandleSubscriptionFailure(hr);
             }
+            watcher->Release();
             return 0;
         },
         this, 0, nullptr);
     if (thread) {
-        AddRef();
         CloseHandle(thread);
+    } else {
+        HRESULT error = HRESULT_FROM_WIN32(GetLastError());
+        Release();
+        ZenHandleSubscriptionFailure(error);
     }
 }
 
@@ -12247,6 +12257,7 @@ VisualTreeWatcher::~VisualTreeWatcher()
 
 void VisualTreeWatcher::UnadviseVisualTreeChange()
 {
+    m_stopping = true;
     Wh_Log(L"UnadviseVisualTreeChange VisualTreeWatcher");
     HRESULT hr = m_XamlDiagnostics.as<IVisualTreeService3>()->UnadviseVisualTreeChange(this);
     if (FAILED(hr)) {
@@ -12299,6 +12310,9 @@ void ZenEvtOnElementRemoved(InstanceHandle handle);
 
 HRESULT VisualTreeWatcher::OnVisualTreeChange(ParentChildRelation relation, VisualElement element, VisualMutationType mutationType) try
 {
+    if (m_stopping.load()) {
+        return S_OK;
+    }
     Wh_Log(L"========================================");
 
     switch (mutationType)
@@ -22452,12 +22466,12 @@ std::mutex g_zenTapRetryMutex;
 PTP_TIMER g_zenTapRetryTimer;  // Guarded by g_zenTapRetryMutex.
 std::atomic<bool> g_zenTapRetryUsed;
 
-void ZenScheduleTapRetry() {
+bool ZenScheduleTapRetry() {
     std::lock_guard<std::mutex> lock(g_zenTapRetryMutex);
 
     if (g_zenUnloading || !g_zenTapRetryTimer ||
         g_zenTapRetryUsed.exchange(true)) {
-        return;
+        return false;
     }
 
     // Negative: relative to now, in 100-nanosecond units.
@@ -22468,6 +22482,14 @@ void ZenScheduleTapRetry() {
     dueTimeFt.dwHighDateTime = dueTime.HighPart;
     SetThreadpoolTimer(g_zenTapRetryTimer, &dueTimeFt, 0, 0);
     Wh_Log(L"Scheduled a TAP injection retry");
+    return true;
+}
+
+void ZenHandleSubscriptionFailure(HRESULT statusCode) {
+    g_initialized = false;
+    if (!ZenScheduleTapRetry() && !g_zenUnloading) {
+        PromptToRestartExplorer(statusCode);
+    }
 }
 
 void ZenStopTapRetry() {
@@ -23350,7 +23372,7 @@ static LRESULT CALLBACK TaskbarCreatedWndProc(HWND hWnd,
         s_lastTaskbarCreatedTick = now;
         g_cachedTaskbarWnd = nullptr;
         g_cachedTaskbarUiWnd = nullptr;
-        Wh_Log(L"WM_TASKBARCREATED — full reapply (explorer restarted)");
+        Wh_Log(L"WM_TASKBARCREATED — checking initialization");
         // Wait briefly for Shell_TrayWnd / XAML islands to exist.
         HWND hTaskbarUiWnd = nullptr;
         for (int attempt = 0; attempt < 10 && !hTaskbarUiWnd; ++attempt) {
@@ -23370,9 +23392,15 @@ static LRESULT CALLBACK TaskbarCreatedWndProc(HWND hWnd,
                 // this explorer instance was fully up.
                 // A brand-new taskbar always needs styling, but coalesce with
                 // a boot retry that just did the same work.
-                if (ZenReapplyAllowed() || !ZenEvtAnchorsHealthy()) {
+                // A new explorer already injects from OnWindowCreated. Its
+                // SetSite/Advise callbacks can still be pending here. Keep
+                // that subscription alive and let the boot health check
+                // repair missing anchors after the initial tree arrives.
+                if (!g_initialized && ZenReapplyAllowed()) {
                     g_zenTapRetryUsed = false;
                     ReapplyTaskbarStyles(true);
+                } else {
+                    Wh_Log(L"[taskbar-created] preserving current TAP initialization");
                 }
             }
         }
@@ -26706,7 +26734,7 @@ BOOL Wh_ModInit() {
             std::lock_guard<std::mutex> lock(g_zenLifecycleMutex);
             if (!g_zenUnloading && !g_initialized) {
                 Wh_Log(L"Retrying TAP injection");
-                InitializeSettingsAndTap();
+                ReapplyTaskbarStyles(true);
             }
         },
         nullptr, nullptr);

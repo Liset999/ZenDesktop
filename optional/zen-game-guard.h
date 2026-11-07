@@ -432,7 +432,7 @@ inline bool ShouldHardRefuseInjection() {
     // ACE payload living under AntiCheatExpert\ even if the exe name is odd.
     WCHAR path[MAX_PATH]{};
     if (GetModuleFileNameW(nullptr, path, ARRAYSIZE(path)) &&
-        PathContainsI(path, L"\AntiCheatExpert\")) {
+        PathContainsI(path, L"\\AntiCheatExpert\\")) {
         return true;
     }
     return CurrentProcessHasMatchingModule(ModuleNameIsAntiCheat);
