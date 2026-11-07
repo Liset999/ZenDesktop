@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v5.0.0 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.2.0 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -106,7 +106,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v5.0.0" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.2.0" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -261,7 +261,7 @@ if (-not (Test-Path $modsSource)) {
 }
 
 # Clean retired legacy mods from Windhawk to prevent conflicts
-$retiredMods = @("local@taskbar-background-helper", "local@start-menu-size")
+$retiredMods = @("local@taskbar-background-helper", "local@start-menu-size", "local@zen-liquid-glass", "local@zen-startmenu-liquid-glass", "local@zen-desktop-clock")
 foreach ($rMod in $retiredMods) {
     $legacyFile = Join-Path $modsSource "$rMod.wh.cpp"
     if (Test-Path $legacyFile) {
@@ -313,7 +313,7 @@ if (Test-Path $upstreamExplorerStyler) {
 # 支持在无人值守脚本中通过 -Optional 参数预选开启指定模块。
 
 $optionalDir = Join-Path $PSScriptRoot "optional"
-$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-widgets", "local@zen-liquid-glass", "local@zen-startmenu-liquid-glass")
+$optionalModIds = @("local@wobbly-windows", "local@windows-animations", "local@zen-desktop-widgets")
 # zen-desktop-clock 和 zen-audio-bars 已并入 zen-desktop-widgets 2.0.0（不再单独发布）。
 $preselected = @()
 if ($Optional) {
@@ -551,6 +551,29 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "aiDoneSeconds" "120" String $label
     }
 
+    if ($id -eq "local@zen-ime-caret-hint") {
+        $label = "Caret IME Hint"
+        $imeDefaults = [ordered]@{
+            "bubbleEnabled" = 1
+            "durationMs" = 800
+            "showOnImeToggle" = 1
+            "showOnCapsLock" = 1
+            "combineCapsWithIme" = 1
+            "glass.blurPreset" = 30
+            "glass.opacityPreset" = 50
+            "glass.luminosityPreset" = 20
+            "anchorOffsetX" = 0
+            "anchorOffsetY" = 0
+        }
+        foreach ($key in $imeDefaults.Keys) {
+            Set-RegValueIfMissing $settingsPath $key $imeDefaults[$key] DWord $label
+        }
+        Set-RegValueIfMissing $settingsPath "englishLabel" "zh" String $label
+        Set-RegValueIfMissing $settingsPath "capsLabel" "zh" String $label
+        Set-RegValueIfMissing $settingsPath "editorClasses" "ChatWnd,WeChatMainWndForPC,EXCEL6,ConsoleWindowClass,AVL_AVView" String $label
+        Set-RegValueIfMissing $settingsPath "glass.bgColorMode" "Default" String $label
+    }
+
     if ($id -eq "local@windows-animations") {
         # Matches the mod's settings block (1.4.0: macOS genie merged in, so
         # minimize/restore default on with the macos_genie style). Nested
@@ -671,7 +694,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v5.0.0 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.2.0 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："

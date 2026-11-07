@@ -58,6 +58,7 @@ foreach ($id in @(
     "local@windows-animations",
     "local@zen-liquid-glass",
     "local@zen-startmenu-liquid-glass",
+    "local@zen-ime-caret-hint",
     "local@zen-desktop-clock",
     "local@zen-desktop-widgets",
     "local@zen-dock",

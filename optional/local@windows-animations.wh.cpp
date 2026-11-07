@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 窗口动画
 // @description     Close, minimize, restore, launch and Alt+Tab animations for windows, including the macOS genie effect.
 // @description:zh-CN 为窗口的关闭、最小化、还原、启动和 Alt+Tab 切换加入动画，包含 macOS 神奇效果。
-// @version         1.6.5
+// @version         1.6.17
 // @author          ReDrag, Abdullah Masood, Potassiumuncher, Lanbo
 // @github          https://github.com/redrag2105
 // @donateUrl       https://ko-fi.com/redrag2105
@@ -65,9 +65,6 @@
 // @exclude         TenSafe*.exe
 // @exclude         UnityCrashHandler*.exe
 // @exclude         UnityPlayer.exe
-// Wuthering Waves (鸣潮) / Kuro Games — launchers & helpers are NOT matched by
-// *-Win64-Shipping.exe. Windhawk matches no-backslash patterns against the
-// file name only; path patterns (with '\') against the full executable path.
 // @exclude         Wuthering Waves.exe
 // @exclude         Client-Win64-Shipping.exe
 // @exclude         launcher_main.exe
@@ -92,6 +89,11 @@
 // @license         MIT
 // @compilerOptions -ladvapi32 -ld2d1 -ld3d11 -ldcomp -ldwmapi -ldxgi -lgdi32 -lole32 -loleaut32 -lshell32 -luuid -luser32
 // ==/WindhawkMod==
+
+// Wuthering Waves (鸣潮) / Kuro Games — launchers & helpers are NOT matched by
+// *-Win64-Shipping.exe. Windhawk matches no-backslash patterns against the
+// file name only; path patterns (with '\') against the full executable path.
+// Keep ordinary comments outside the Windhawk metadata block.
 
 // The explicit process exclusions above are pre-injection fast paths for
 // unsupported window hosts and known interactive-session helpers. The runtime
@@ -140,6 +142,16 @@
 
 ## 更新日志
 
+- **1.6.17**：合成截图被光标输入法提示气泡遮挡时，通过协作消息请求收起气泡后重试一次。需要输入法提示 Mod 0.2.5；其他遮挡仍拒绝截图。
+- **1.6.16**：音频覆盖层 region 使用窗口矩形坐标映射，修复区域端点在目标窗口外时 DPI 点转换失败、再次退回整窗遮挡判断的问题。
+- **1.6.15**：读取无 owner 音频覆盖窗口的有效 region，修复透明外框被当作整屏遮挡、导致文件管理器和设置最小化退回原生动画的问题。实际绘制区域仍参与遮挡检查。
+- **1.6.14**：文件管理器与设置使用合成截图或已有快照，截图不可用时交回原生过渡，避免窗口捕获生成纯色材质背景；保留 Chrome 等其他窗口的捕获回退。增加材质窗口截图失败日志，实际材质与动画效果待实机验证。
+- **1.6.13**：恢复合成材质窗口的窗口捕获回退，修复屏幕截图被遮挡或还原无缓存时动画被跳过的问题。实机 Chrome 的系统背景类型为 2，同样受此限制影响；材质完整性仍待实机验证。
+- **1.6.12**：截图遮挡检查读取任务栏音频覆盖层的实际窗口区域，避免把覆盖层的透明外框当作遮挡。需要桌面小组件 3.0.4 的区域支持。
+- **1.6.11**：CPU 最小化和还原由刷新定时器安排中间帧，减少重复等待桌面呈现。保留首尾帧同步和定时器不可用时的回退。
+- **1.6.10**：根据实机卡顿反馈撤回 1.6.8 的连续采样渲染重写，恢复之前的 Direct2D 神奇效果与网格设置；保留 1.6.9 的动画捕获回退。透明材质问题仍未解决，不把离屏绘制耗时当成桌面流畅度验收。
+- **1.6.9**：撤销合成材质窗口必须成功截屏才能播放动画的限制；屏幕画面不可用时恢复原有窗口捕获路径，避免资源管理器、设置及其他材质窗口丢失最小化/还原动画。设置材质完整性仍待实机验证。
+- **1.6.8**：资源管理器、设置及带合成背景的窗口使用完整屏幕快照，避免最小化/还原时背景变纯色；macOS 神奇效果改为保留原曲线的连续双线性采样，移除逐帧网格几何分配及不再使用的网格密度设置。保留首次查询不阻塞、任务栏非置顶时动画不被遮挡的修复。
 - **1.6.5**：鸣潮（Wuthering Waves）仍崩溃时的加固：补全启动器/Kuro SDK/ACE 路径的 `@exclude`；`Wh_ModInit` 按安装目录与旁路 DLL（Unity/UE/ACE）拒绝加载钩子；资源管理器侧按完整路径识别游戏树；切换动画在 Cloak 前先走排除检查。说明：Windhawk 无反斜杠的通配符只匹配文件名，`*-Win64-Shipping.exe` 本身能匹配 `Client-Win64-Shipping.exe`，但匹配不到 `Wuthering Waves.exe` / `launcher.exe`。
 - **1.6.4**：跳过游戏/反作弊窗口（默认开）：通配符 `@exclude`；资源管理器侧按目标进程/模块/无屏边框跳过，避免对外进程游戏窗口 Cloak/PrintWindow 导致 UE4 崩溃；可在设置里关「跳过游戏与反作弊窗口」或用「排除的程序」追加进程名。
 - **1.6.3**：按用户要求移除「零雾开窗」（设置项、覆盖层实现与相关钩子一并删除）；资源管理器 / 设置开窗仍可用本组「启用启动动画」。
@@ -447,7 +459,517 @@ itself is by **ReDrag** (MIT). Copyright of each part remains with its author.
 #endif
 #include <windows.h>
 #include <tlhelp32.h>
-#include "zen-game-guard.h"
+// BEGIN embedded zen-game-guard.h
+// Windhawk compiles stdin; keep this block synced with tools/sync_animation_guard.py.
+// ZenDesktop shared game / anti-cheat injection + foreign-window guard.
+// Used by mods that inject broadly (@include *) and may animate windows that
+// belong to other processes (e.g. windows-animations running inside explorer).
+//
+// Layers:
+//   1) Windhawk @exclude / Engine Exclude — exact names + wildcards, pre-inject
+//      Windhawk matches patterns with no '\' against the *file name only*
+//      (case-insensitive); patterns with '\' against the full path. So
+//      "*-Win64-Shipping.exe" does match Client-Win64-Shipping.exe. Launchers
+//      like "Wuthering Waves.exe" / "launcher.exe" are NOT covered by that
+//      wildcard and need explicit names or path patterns / runtime refuse.
+//   2) Wh_ModInit refuse — do not load hooks into game / AC processes
+//   3) Per-HWND skip — explorer must NOT cloak / PrintWindow / DWM-mutate a
+//      foreign game window; process @exclude alone cannot stop that
+//
+// Limit: kernel ACE can still scan explorer.exe itself (where taskbar / styler
+// mods live). Skipping game windows does not stop that. If ACE is installed
+// and the system BSODs, disable ZenDesktop / Windhawk before playing.
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <tlhelp32.h>
+#include <string.h>
+#include <wchar.h>
+
+namespace ZenGameGuard {
+
+inline void GetCurrentExeName(WCHAR* out, size_t outCount) {
+    if (!out || outCount == 0) return;
+    out[0] = L'\0';
+    WCHAR path[MAX_PATH]{};
+    if (!GetModuleFileNameW(nullptr, path, ARRAYSIZE(path))) return;
+    const WCHAR* name = wcsrchr(path, L'\\');
+    name = name ? name + 1 : path;
+    wcsncpy_s(out, outCount, name, _TRUNCATE);
+}
+
+inline bool EqualsIgnoreCase(const WCHAR* a, const WCHAR* b) {
+    return a && b && _wcsicmp(a, b) == 0;
+}
+
+// Case-insensitive substring search (needle must be non-empty).
+inline bool PathContainsI(const WCHAR* haystack, const WCHAR* needle) {
+    if (!haystack || !needle || !*needle) return false;
+    const size_t nlen = wcslen(needle);
+    for (const WCHAR* p = haystack; *p; ++p) {
+        size_t i = 0;
+        while (i < nlen && p[i] &&
+               towlower(p[i]) == towlower(needle[i])) {
+            ++i;
+        }
+        if (i == nlen) return true;
+        if (!p[i] && i < nlen) break;
+    }
+    return false;
+}
+
+// Wildcard match: '*' matches any sequence. Case-insensitive.
+inline bool WildcardMatchI(const WCHAR* text, const WCHAR* pattern) {
+    if (!text || !pattern) return false;
+    const WCHAR* t = text;
+    const WCHAR* p = pattern;
+    const WCHAR* star = nullptr;
+    const WCHAR* fallback = nullptr;
+    while (*t) {
+        if (*p == L'*') {
+            star = p++;
+            fallback = t;
+            continue;
+        }
+        if (*p && (towlower(*p) == towlower(*t))) {
+            ++p;
+            ++t;
+            continue;
+        }
+        if (star) {
+            p = star + 1;
+            t = ++fallback;
+            continue;
+        }
+        return false;
+    }
+    while (*p == L'*') ++p;
+    return *p == L'\0';
+}
+
+inline bool ExeNameLooksLikeUnrealShipping(const WCHAR* exeName) {
+    if (!exeName || !*exeName) return false;
+    static const WCHAR* kPatterns[] = {
+        L"*-Win64-Shipping.exe",
+        L"*-Win32-Shipping.exe",
+        L"*-WinGDK-Shipping.exe",
+        L"*-Shipping.exe",
+        L"UnrealEditor*.exe",
+        L"UE4Editor*.exe",
+        L"UE5Editor*.exe",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(exeName, pat)) return true;
+    }
+    return false;
+}
+
+// Process-name stem as stored by windows-animations GetProcessNameCached:
+// file name only, lowercased, cut at the first '.' (so no .exe).
+inline bool NormalizedStemLooksLikeUnrealShipping(const WCHAR* stem) {
+    if (!stem || !*stem) return false;
+    static const WCHAR* kSuffixes[] = {
+        L"-win64-shipping",
+        L"-win32-shipping",
+        L"-wingdk-shipping",
+        L"-shipping",
+    };
+    const size_t len = wcslen(stem);
+    for (const WCHAR* suf : kSuffixes) {
+        const size_t sl = wcslen(suf);
+        if (len >= sl && _wcsicmp(stem + (len - sl), suf) == 0) return true;
+    }
+    if (WildcardMatchI(stem, L"unrealeditor*")) return true;
+    if (WildcardMatchI(stem, L"ue4editor*")) return true;
+    if (WildcardMatchI(stem, L"ue5editor*")) return true;
+    return false;
+}
+
+// Kuro Games / Wuthering Waves (鸣潮) and related host helpers. Exact names
+// that are NOT covered by *-Win64-Shipping.exe (launchers, SDK, webview).
+// Do NOT put bare "launcher.exe" here — too common; path heuristics catch it.
+inline bool ExeNameLooksLikeKnownGameHost(const WCHAR* exeName) {
+    if (!exeName || !*exeName) return false;
+    static const WCHAR* kExact[] = {
+        L"Wuthering Waves.exe",
+        L"Client-Win64-Shipping.exe",
+        L"launcher_main.exe",
+        L"launcher_updater.exe",
+        L"KRSDKExternal.exe",
+        L"KRWebView.exe",
+        L"KRInstallExternal.exe",
+        L"ClearThirdParty.exe",
+        L"DummyWindow.exe",
+        // Other Kuro / common CN-launcher hosts seen beside ACE trees.
+        L"KuroLauncher.exe",
+        L"krlauncher.exe",
+        L"KRLauncher.exe",
+    };
+    for (const WCHAR* name : kExact) {
+        if (EqualsIgnoreCase(exeName, name)) return true;
+    }
+    static const WCHAR* kPatterns[] = {
+        L"Wuthering*.exe",
+        L"KRSDK*.exe",
+        L"KRWeb*.exe",
+        L"KRInstall*.exe",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(exeName, pat)) return true;
+    }
+    return false;
+}
+
+inline bool ExeNameLooksLikeAntiCheat(const WCHAR* exeName) {
+    if (!exeName || !*exeName) return false;
+    static const WCHAR* kPatterns[] = {
+        L"ACE-*.exe",
+        L"ace-*.exe",
+        L"Ace-*.exe",
+        L"SGuard*.exe",
+        L"SGuardSvc*.exe",
+        L"TenSafe*.exe",
+        L"EasyAntiCheat*.exe",
+        L"BEService*.exe",
+        L"BEClient*.exe",
+        L"vgc.exe",
+        L"vgtray.exe",
+        L"xhunter*.exe",
+        L"TPHelper*.exe",
+        L"TPSvc*.exe",
+        L"TenProxy*.exe",
+        L"GameLoader.exe",
+        L"CrossProxy.exe",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(exeName, pat)) return true;
+    }
+    return false;
+}
+
+inline bool ModuleNameIsAntiCheat(const WCHAR* modFileName) {
+    if (!modFileName || !*modFileName) return false;
+    static const WCHAR* kPatterns[] = {
+        L"ACE-Base*.dll", L"ACE-CTS*.dll", L"ACE-SSC*.dll", L"ACE-DFS*.dll",
+        L"ACE-*.dll",
+        L"SGuard*.dll",
+        L"EasyAntiCheat*.dll",
+        L"BEClient*.dll", L"BEService*.dll",
+        L"vgkbootstatus.dll",
+        L"xhunter*.dll",
+        L"TenioDL.dll", L"TGuard.dll",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(modFileName, pat)) return true;
+    }
+    return false;
+}
+
+inline bool ModuleNameIsGameEngine(const WCHAR* modFileName) {
+    if (!modFileName || !*modFileName) return false;
+    static const WCHAR* kPatterns[] = {
+        L"UnityPlayer.dll",
+        L"GameAssembly.dll",
+        L"UE4Editor-Core.dll",
+        L"UnrealEditor-Core.dll",
+        L"EOSSDK-Win64-Shipping.dll",
+        // UE shipping companion DLL used by Kuro / WW (and similar trees).
+        L"*-Win64-ShippingBase.dll",
+        L"*-Win64-Shipping.dll",
+        L"Client-Win64-ShippingBase.dll",
+    };
+    for (const WCHAR* pat : kPatterns) {
+        if (WildcardMatchI(modFileName, pat)) return true;
+    }
+    return false;
+}
+
+// Install-tree / sibling markers: cheap GetFileAttributes / path substring,
+// no module snapshot. Catches launcher.exe sitting next to the game payload
+// before ACE DLLs are loaded.
+inline bool PathLooksLikeGameTree(const WCHAR* fullPath) {
+    if (!fullPath || !*fullPath) return false;
+    if (PathContainsI(fullPath, L"\\Wuthering Waves\\")) return true;
+    if (PathContainsI(fullPath, L"\\Wuthering Waves Game\\")) return true;
+    if (PathContainsI(fullPath, L"\\鸣潮\\")) return true;
+    if (PathContainsI(fullPath, L"\\AntiCheatExpert\\")) return true;
+    if (PathContainsI(fullPath, L"\\Client\\Binaries\\Win64\\")) return true;
+    if (PathContainsI(fullPath, L"\\Engine\\Binaries\\")) return true;
+    if (PathContainsI(fullPath, L"\\Binaries\\Win64\\") &&
+        PathContainsI(fullPath, L"-Win64-Shipping.exe")) {
+        return true;
+    }
+    return false;
+}
+
+inline bool SiblingMarkerExists(const WCHAR* exeDir, const WCHAR* fileName) {
+    if (!exeDir || !*exeDir || !fileName || !*fileName) return false;
+    WCHAR probe[MAX_PATH + 64]{};
+    if (wcslen(exeDir) + 1 + wcslen(fileName) >= ARRAYSIZE(probe)) return false;
+    wcsncpy_s(probe, ARRAYSIZE(probe), exeDir, _TRUNCATE);
+    const size_t len = wcslen(probe);
+    if (len && probe[len - 1] != L'\\') {
+        wcsncat_s(probe, ARRAYSIZE(probe), L"\\", _TRUNCATE);
+    }
+    wcsncat_s(probe, ARRAYSIZE(probe), fileName, _TRUNCATE);
+    const DWORD attrs = GetFileAttributesW(probe);
+    return attrs != INVALID_FILE_ATTRIBUTES &&
+           !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+inline bool DirLooksLikeGameInstall(const WCHAR* exeDir) {
+    if (!exeDir || !*exeDir) return false;
+    // Unity / IL2CPP payload next to the host exe.
+    if (SiblingMarkerExists(exeDir, L"UnityPlayer.dll")) return true;
+    if (SiblingMarkerExists(exeDir, L"GameAssembly.dll")) return true;
+    // UE / Kuro shipping + ACE payload beside launchers.
+    if (SiblingMarkerExists(exeDir, L"Client-Win64-Shipping.exe")) return true;
+    if (SiblingMarkerExists(exeDir, L"Client-Win64-ShippingBase.dll")) {
+        return true;
+    }
+    if (SiblingMarkerExists(exeDir, L"ACE-Base64.dll")) return true;
+    if (SiblingMarkerExists(exeDir, L"ACE-Base.dll")) return true;
+    // AntiCheatExpert\ as a sibling folder.
+    WCHAR aceDir[MAX_PATH + 32]{};
+    if (wcslen(exeDir) + 18 < ARRAYSIZE(aceDir)) {
+        wcsncpy_s(aceDir, ARRAYSIZE(aceDir), exeDir, _TRUNCATE);
+        const size_t len = wcslen(aceDir);
+        if (len && aceDir[len - 1] != L'\\') {
+            wcsncat_s(aceDir, ARRAYSIZE(aceDir), L"\\", _TRUNCATE);
+        }
+        wcsncat_s(aceDir, ARRAYSIZE(aceDir), L"AntiCheatExpert", _TRUNCATE);
+        const DWORD attrs = GetFileAttributesW(aceDir);
+        if (attrs != INVALID_FILE_ATTRIBUTES &&
+            (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool CurrentExePathLooksLikeGameTree() {
+    WCHAR path[MAX_PATH]{};
+    if (!GetModuleFileNameW(nullptr, path, ARRAYSIZE(path))) return false;
+    if (PathLooksLikeGameTree(path)) return true;
+    WCHAR dir[MAX_PATH]{};
+    wcsncpy_s(dir, ARRAYSIZE(dir), path, _TRUNCATE);
+    WCHAR* slash = wcsrchr(dir, L'\\');
+    if (slash) *slash = L'\0';
+    return DirLooksLikeGameInstall(dir);
+}
+
+inline bool CurrentProcessHasMatchingModule(
+    bool (*pred)(const WCHAR*)) {
+    static const WCHAR* kCandidates[] = {
+        L"ACE-Base.dll", L"ACE-Base64.dll", L"ACE-CTS.dll", L"ACE-CTS64.dll",
+        L"ACE-SSC.dll", L"ACE-SSC64.dll", L"ACE-DFS64.dll",
+        L"SGuardAgent64.dll", L"SGuardAgent32.dll", L"SGuard.dll",
+        L"EasyAntiCheat_EOS.dll", L"EasyAntiCheat.dll",
+        L"EOSSDK-Win64-Shipping.dll",
+        L"BEClient_x64.dll", L"BEClient.dll", L"BEService_x64.dll",
+        L"vgkbootstatus.dll", L"xhunter1.dll", L"TenioDL.dll", L"TGuard.dll",
+        L"UnityPlayer.dll", L"GameAssembly.dll",
+        L"UE4Editor-Core.dll", L"UnrealEditor-Core.dll",
+        L"Client-Win64-ShippingBase.dll",
+    };
+    for (const WCHAR* mod : kCandidates) {
+        if (GetModuleHandleW(mod) && pred(mod)) return true;
+    }
+    return false;
+}
+
+inline bool ForeignProcessHasMatchingModule(DWORD pid, bool wantAntiCheat,
+                                            bool wantEngine) {
+    if (!pid || pid == GetCurrentProcessId()) return false;
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid);
+    if (snap == INVALID_HANDLE_VALUE) {
+        // Access denied is common under kernel AC — caller decides policy.
+        return false;
+    }
+    MODULEENTRY32W me{};
+    me.dwSize = sizeof(me);
+    bool found = false;
+    if (Module32FirstW(snap, &me)) {
+        do {
+            const WCHAR* file = me.szModule;
+            if (wantAntiCheat && ModuleNameIsAntiCheat(file)) {
+                found = true;
+                break;
+            }
+            if (wantEngine && ModuleNameIsGameEngine(file)) {
+                found = true;
+                break;
+            }
+        } while (Module32NextW(snap, &me));
+    }
+    CloseHandle(snap);
+    return found;
+}
+
+// Borderless / exclusive-style top-level window covering a monitor.
+// PrintWindow + DWMWA_CLOAK on these (typical UE4/D3D games) is unsafe even
+// when the animation code runs in explorer.
+inline bool IsMonitorCoveringBorderlessWindow(HWND hWnd) {
+    if (!hWnd || !IsWindow(hWnd)) return false;
+    const LONG_PTR style = GetWindowLongPtrW(hWnd, GWL_STYLE);
+    if (style & WS_CHILD) return false;
+    // Has a normal captioned frame → ordinary app window, allow animation.
+    if ((style & WS_CAPTION) == WS_CAPTION && (style & WS_THICKFRAME)) {
+        return false;
+    }
+    RECT wr{};
+    if (!GetWindowRect(hWnd, &wr)) return false;
+    const int ww = wr.right - wr.left;
+    const int wh = wr.bottom - wr.top;
+    if (ww < 640 || wh < 480) return false;
+
+    HMONITOR mon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi{};
+    mi.cbSize = sizeof(mi);
+    if (!GetMonitorInfoW(mon, &mi)) return false;
+    const RECT& mr = mi.rcMonitor;
+    const int mw = mr.right - mr.left;
+    const int mh = mr.bottom - mr.top;
+    if (mw <= 0 || mh <= 0) return false;
+
+    // Cover >= 95% of the monitor and sit within 8px of its edges.
+    const bool covers =
+        ww * 100 >= mw * 95 && wh * 100 >= mh * 95 &&
+        wr.left <= mr.left + 8 && wr.top <= mr.top + 8 &&
+        wr.right >= mr.right - 8 && wr.bottom >= mr.bottom - 8;
+    if (!covers) return false;
+
+    // Prefer popup / layered / topmost game surfaces; still skip huge
+    // caption-less cover windows (borderless fullscreen).
+    const LONG_PTR ex = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+    if (style & WS_POPUP) return true;
+    if (ex & (WS_EX_TOPMOST | WS_EX_LAYERED)) return true;
+    if ((style & WS_CAPTION) != WS_CAPTION) return true;
+    return false;
+}
+
+inline bool QueryProcessExePath(DWORD pid, WCHAR* out, size_t outCount,
+                                bool* accessDenied) {
+    if (accessDenied) *accessDenied = false;
+    if (!out || outCount == 0) return false;
+    out[0] = L'\0';
+    if (!pid) return false;
+    HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProc) {
+        if (accessDenied && GetLastError() == ERROR_ACCESS_DENIED) {
+            *accessDenied = true;
+        }
+        return false;
+    }
+    DWORD len = static_cast<DWORD>(outCount);
+    const bool ok = QueryFullProcessImageNameW(hProc, 0, out, &len) != FALSE;
+    CloseHandle(hProc);
+    return ok;
+}
+
+inline bool QueryProcessExeName(DWORD pid, WCHAR* out, size_t outCount,
+                                bool* accessDenied) {
+    if (accessDenied) *accessDenied = false;
+    if (!out || outCount == 0) return false;
+    out[0] = L'\0';
+    WCHAR path[MAX_PATH]{};
+    if (!QueryProcessExePath(pid, path, ARRAYSIZE(path), accessDenied)) {
+        return false;
+    }
+    const WCHAR* name = wcsrchr(path, L'\\');
+    wcsncpy_s(out, outCount, name ? name + 1 : path, _TRUNCATE);
+    return true;
+}
+
+// Hard refuse for Wh_ModInit when this process itself is AC / helper.
+// Always on (independent of skip_games): never install hooks inside ACE /
+// EAC / BattlEye / SGuard helper processes.
+inline bool ShouldHardRefuseInjection() {
+    WCHAR exe[MAX_PATH]{};
+    GetCurrentExeName(exe, ARRAYSIZE(exe));
+    if (ExeNameLooksLikeAntiCheat(exe)) return true;
+    // ACE payload living under AntiCheatExpert\ even if the exe name is odd.
+    WCHAR path[MAX_PATH]{};
+    if (GetModuleFileNameW(nullptr, path, ARRAYSIZE(path)) &&
+        PathContainsI(path, L"\\AntiCheatExpert\\")) {
+        return true;
+    }
+    return CurrentProcessHasMatchingModule(ModuleNameIsAntiCheat);
+}
+
+inline bool ShouldSkipAsGameProcess() {
+    WCHAR exe[MAX_PATH]{};
+    GetCurrentExeName(exe, ARRAYSIZE(exe));
+    if (ExeNameLooksLikeUnrealShipping(exe)) return true;
+    if (ExeNameLooksLikeKnownGameHost(exe)) return true;
+    if (CurrentExePathLooksLikeGameTree()) return true;
+    return CurrentProcessHasMatchingModule(ModuleNameIsGameEngine);
+}
+
+// Per-HWND gate for animation / cloak / PrintWindow against foreign windows.
+// skipGames: when true (default), also skip UE/Unity/borderless-fullscreen and
+// processes that deny OpenProcess (typical kernel-AC games).
+inline bool ShouldSkipTargetWindow(HWND hWnd, bool skipGames) {
+    if (!hWnd || !IsWindow(hWnd)) return false;
+
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hWnd, &pid);
+    if (!pid) return false;
+
+    WCHAR path[MAX_PATH]{};
+    bool accessDenied = false;
+    const bool gotPath =
+        QueryProcessExePath(pid, path, ARRAYSIZE(path), &accessDenied);
+    const WCHAR* exeName = nullptr;
+    WCHAR exeNameBuf[MAX_PATH]{};
+    if (gotPath) {
+        const WCHAR* slash = wcsrchr(path, L'\\');
+        exeName = slash ? slash + 1 : path;
+        if (ExeNameLooksLikeAntiCheat(exeName)) return true;
+        if (skipGames) {
+            if (ExeNameLooksLikeUnrealShipping(exeName)) return true;
+            if (ExeNameLooksLikeKnownGameHost(exeName)) return true;
+            if (PathLooksLikeGameTree(path)) return true;
+        }
+    } else if (!accessDenied) {
+        // Fall back to name-only query for completeness (rare).
+        if (QueryProcessExeName(pid, exeNameBuf, ARRAYSIZE(exeNameBuf),
+                                &accessDenied)) {
+            exeName = exeNameBuf;
+            if (ExeNameLooksLikeAntiCheat(exeName)) return true;
+            if (skipGames && ExeNameLooksLikeUnrealShipping(exeName)) {
+                return true;
+            }
+            if (skipGames && ExeNameLooksLikeKnownGameHost(exeName)) {
+                return true;
+            }
+        }
+    }
+
+    if (pid == GetCurrentProcessId()) {
+        if (ShouldHardRefuseInjection()) return true;
+        if (skipGames && ShouldSkipAsGameProcess()) return true;
+    } else {
+        if (ForeignProcessHasMatchingModule(pid, /*AC=*/true, /*engine=*/false)) {
+            return true;
+        }
+        if (skipGames &&
+            ForeignProcessHasMatchingModule(pid, /*AC=*/false, /*engine=*/true)) {
+            return true;
+        }
+        // Protected process: cannot even query image name. Cloaking it from
+        // explorer is a common UE4 / ACE crash path.
+        if (skipGames && accessDenied) return true;
+    }
+
+    if (skipGames && IsMonitorCoveringBorderlessWindow(hWnd)) return true;
+    return false;
+}
+
+}  // namespace ZenGameGuard
+// END embedded zen-game-guard.h
 #include <d2d1.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
@@ -680,12 +1202,7 @@ namespace AnimConstants {
     constexpr int AltTabPollMs = 16;
     constexpr int AltTabSessionMs = 500;
     constexpr DWORD SwsSelectionMaxAgeMs = 1500;
-    // A cold lookup follows a taskbar layout invalidation. Win11's XAML UIA
-    // tree can take longer than 150 ms while reflowing; returning earlier is
-    // what caused the first post-reflow animation to aim at a generic/stale
-    // position.
-    // Valid hot HWND cache hits return before this wait.
-    constexpr int UiaLookupWaitMs = 400;
+    // Taskbar UIA queries stay off the animation caller's thread.
     constexpr int UiaLookupInFlightMs = 3000;
     constexpr int UiaNegativeCacheMs = 10000;
     constexpr int UiaColdNegativeCacheMs = 500;
@@ -865,6 +1382,7 @@ std::unordered_map<HWND, ProcessNameCacheValue> g_ProcessNameCache;
 std::unordered_map<DWORD, std::wstring> g_ProcessNameByPid;
 std::unordered_set<HWND> g_LaunchSeen;
 std::unordered_set<HWND> g_AnimActive;
+std::unordered_map<HWND, DWORD> g_AnimActiveTick; // start tick for stuck-entry detection
 std::unordered_map<HWND, bool> g_AnimWantRising;
 std::unordered_map<HWND, HWND> g_AnimRestoreRequestForeground;
 std::unordered_map<HWND, uint64_t> g_AsyncRestoreReservations;
@@ -936,9 +1454,9 @@ std::atomic<bool> g_closeGpuAcceleration{true};
 std::atomic<bool> g_performanceTelemetry{false};
 // ZenDesktop (macOS genie merge): mesh resolution of the macOS genie and the
 // "Excluded programs" list, both from the macOS Minimize Animation mod.
-std::atomic<int> g_genieTileCount{35};
 std::mutex g_ExcludedProgramsMutex;
 std::vector<std::wstring> g_ExcludedPrograms;  // normalized, see below
+std::atomic<int> g_genieTileCount{35};
 std::atomic<bool> g_hasExcludedPrograms{false};
 std::atomic<bool> g_skipGames{true};
 
@@ -2232,6 +2750,7 @@ static bool ReserveAsyncRestore(HWND hWnd, uint64_t* generationOut) {
     uint64_t generation = ++g_NextAsyncRestoreReservation;
     if (!generation) generation = ++g_NextAsyncRestoreReservation;
     g_AnimActive.insert(hWnd);
+    g_AnimActiveTick[hWnd] = GetTickCount();
     g_AnimWantRising[hWnd] = true;
     g_AnimRestoreRequestForeground[hWnd] = hRequestForeground;
     g_AsyncRestoreReservations[hWnd] = generation;
@@ -2280,6 +2799,7 @@ static void CleanupWindowData(HWND hWnd) {
     g_AnimRestoreRequestForeground.erase(hWnd);
     if (g_AsyncRestoreReservations.erase(hWnd)) {
         g_AnimActive.erase(hWnd);
+        g_AnimActiveTick.erase(hWnd);
     }
 }
 static void SweepStaleData() {
@@ -2339,8 +2859,10 @@ static void SweepStaleData() {
         else ++it;
     }
     for (auto it = g_AnimActive.begin(); it != g_AnimActive.end();) {
-        if (!IsWindow(*it)) it = g_AnimActive.erase(it);
-        else ++it;
+        if (!IsWindow(*it)) {
+            g_AnimActiveTick.erase(*it);
+            it = g_AnimActive.erase(it);
+        } else ++it;
     }
     for (auto it = g_AnimWantRising.begin(); it != g_AnimWantRising.end();) {
         if (!IsWindow(it->first)) it = g_AnimWantRising.erase(it);
@@ -2394,6 +2916,32 @@ struct ScreenCaptureEligibility {
     HWND blockingSwitchAnimationGhost = nullptr;
     HWND blockingWindow = nullptr;
 };
+
+static bool GetTaskbarOverlayCaptureBounds(HWND overlay, HWND target, RECT* bounds) {
+    WCHAR className[80]{};
+    if (!GetClassNameW(overlay, className, ARRAYSIZE(className)) ||
+        wcscmp(className, L"DesktopAudioVisOverlay_local@zen-desktop-widgets") != 0) {
+        return false;
+    }
+    // The audio launcher can host this top-level window without an owner.
+    // Its explicit region still clips the painted surfaces in that case.
+    // Window regions are relative to the outer window. Read both values in
+    // physical coordinates, then convert them into the capture target's space.
+    auto previousDpi = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    if (!previousDpi) return false;
+    RECT region{}, window{};
+    const int kind = GetWindowRgnBox(overlay, &region);
+    const bool haveWindow = GetWindowRect(overlay, &window) != FALSE;
+    SetThreadDpiAwarenessContext(previousDpi);
+    if (!haveWindow || (kind != SIMPLEREGION && kind != COMPLEXREGION)) return false;
+    OffsetRect(&region, window.left, window.top);
+    // Point conversion can fail for corners outside the target window.
+    // Reuse the physical/context rectangle mapping used for taskbar bounds.
+    const auto transform = BuildTaskbarCoordinateTransform(target, overlay);
+    if (!MapPhysicalTaskbarRectToAnimationSpace(transform, &region)) return false;
+    *bounds = region;
+    return true;
+}
 
 static bool CanCaptureWindowFromScreen(
     HWND hWnd, const RECT& captureRect, HWND hTaskbar,
@@ -2463,11 +3011,12 @@ static bool CanCaptureWindowFromScreen(
                         eligibility.taskbarRect = candidateRect;
                     }
                 } else {
-                    if (FAILED(DwmGetWindowAttribute(
+                    if (!GetTaskbarOverlayCaptureBounds(candidate, hWnd, &candidateRect) &&
+                        (FAILED(DwmGetWindowAttribute(
                             candidate, DWMWA_EXTENDED_FRAME_BOUNDS,
                             &candidateRect, sizeof(candidateRect))) ||
                         !PhysicalRectToAnimationSpace(hWnd,
-                                                      &candidateRect)) {
+                                                      &candidateRect))) {
                         if (!GetWindowRect(candidate, &candidateRect)) {
                             candidate = next;
                             continue;
@@ -2819,7 +3368,6 @@ void LoadAnimSettings() {
     g_durationMs.store(getInt(L"minimize_restore.duration_ms", 360, 200, 1400), std::memory_order_relaxed);
     g_closeDurationMs.store(getInt(L"close.duration_ms", 630, 50, 5000), std::memory_order_relaxed);
     g_shatterBlockSize.store(getInt(L"close.shatter_block_size", 5, 1, 100), std::memory_order_relaxed);
-    g_genieTileCount.store(getInt(L"minimize_restore.genie_tile_count", 35, 8, 96), std::memory_order_relaxed);
     g_closeEffectStyle.store(
         ParseAnimEffectKey(kCloseEffectInfo, closeStyleValue, kCloseThanos),
         std::memory_order_relaxed);
@@ -2852,6 +3400,7 @@ void LoadAnimSettings() {
     g_launchAnimation.store(getBool(L"minimize_restore.launch_animation", false), std::memory_order_relaxed);
     g_switchAnimation.store(getBool(L"window_switch.switch_animation", false), std::memory_order_relaxed);
     g_switchDurationMs.store(getInt(L"window_switch.duration_ms", 200, 50, 1000), std::memory_order_relaxed);
+    g_genieTileCount.store(getInt(L"minimize_restore.genie_tile_count", 35, 8, 96), std::memory_order_relaxed);
     g_unhideEnabled.store(getBool(L"minimize_restore.unhide_taskbar", true), std::memory_order_relaxed);
     // 0 is a valid "no extra wait", so only an unseeded set uses 450 here.
     g_unhideDurationMs.store(unseeded ? 450 : Clamp(Wh_GetIntSetting(L"minimize_restore.unhide_duration_ms"), 0, 5000), std::memory_order_relaxed);
@@ -3345,6 +3894,7 @@ static void FinalizeAsyncRestoreReservation(HWND hWnd, uint64_t generation,
                 reservationIt->second == generation) {
                 g_AsyncRestoreReservations.erase(reservationIt);
                 g_AnimActive.erase(hWnd);
+                g_AnimActiveTick.erase(hWnd);
                 g_AnimWantRising.erase(hWnd);
                 g_AnimRestoreRequestForeground.erase(hWnd);
             }
@@ -3412,6 +3962,7 @@ static void FinalizeAsyncRestoreReservation(HWND hWnd, uint64_t generation,
                 if (wantRising) EraseSnapshotLocked(hWnd);
                 g_AsyncRestoreReservations.erase(reservationIt);
                 g_AnimActive.erase(hWnd);
+                g_AnimActiveTick.erase(hWnd);
                 g_AnimWantRising.erase(hWnd);
                 g_AnimRestoreRequestForeground.erase(hWnd);
                 completed = true;
@@ -3476,6 +4027,7 @@ static void AbortAsyncRestoreReservation(HWND hWnd, uint64_t generation,
     }
     std::lock_guard<std::mutex> lock(g_StateMutex);
     g_AnimActive.erase(hWnd);
+    g_AnimActiveTick.erase(hWnd);
 }
 static bool IsShowCmdForWinEvent(int cmd) {
     return cmd == SW_SHOW || cmd == SW_SHOWNORMAL || cmd == SW_SHOWMAXIMIZED || cmd == SW_RESTORE ||
@@ -3570,9 +4122,8 @@ static bool IsUserExcludedWindow(HWND hWnd) {
 }
 static bool NeedsLocalWinEventThread() {
     const bool needTaskbarObserver =
-        IsShellExplorerProcess() &&
-        (g_minimizeAnimation.load(std::memory_order_relaxed) ||
-         g_restoreAnimation.load(std::memory_order_relaxed));
+        g_minimizeAnimation.load(std::memory_order_relaxed) ||
+        g_restoreAnimation.load(std::memory_order_relaxed);
     const bool needTrayHideVisibilityObserver =
         g_closeAnimation.load(std::memory_order_relaxed) &&
         g_hideAsClose.load(std::memory_order_relaxed);
@@ -3659,6 +4210,26 @@ static bool RequiresExcelScreenOnlyCloseCapture(HWND hWnd, bool isClosing) {
     return GetClassNameW(hWnd, className, ARRAYSIZE(className)) &&
            _wcsicmp(className, L"XLMAIN") == 0 &&
            GetProcessNameCached(hWnd) == L"excel";
+}
+
+static bool RequiresShellComposedWindowSnapshot(HWND hWnd) {
+    // These shell surfaces lose their material when rendered via WM_PRINT.
+    if (IsExplorerFrameWindow(hWnd) ||
+           GetProcessNameCached(hWnd) == L"systemsettings") return true;
+    // Settings content is hosted in another process. The taskbar minimizes
+    // ApplicationFrameHost's frame, not SystemSettings' child CoreWindow.
+    if (GetClassNameStr(hWnd) == L"ApplicationFrameWindow") {
+        HWND core = FindWindowExW(hWnd, nullptr,
+                                 L"Windows.UI.Core.CoreWindow", nullptr);
+        return core && GetProcessNameCached(core) == L"systemsettings";
+    }
+    return false;
+}
+
+static bool RequiresComposedWindowSnapshot(HWND hWnd) {
+    return RequiresShellComposedWindowSnapshot(hWnd) ||
+           HasExplicitSystemBackdrop(hWnd) ||
+           IsTranslucentWindowsAccentBlurActive(hWnd);
 }
 
 static bool RequiresExcelAlphaOnlyCloseConcealment(
@@ -4955,23 +5526,42 @@ POINT GetTaskbarButtonPositionAsync(
         pending->Release();
         return softFallback;
     }
-    POINT result = softFallback;
-    // A learned HWND/process position is accurate enough for the current
-    // animation. Let this worker refresh the cache without holding the app or
-    // taskbar UI thread; only a never-located window pays the bounded lookup.
-    const DWORD effectiveWaitMs =
-        hasLearnedFallback ? 0 : AnimConstants::UiaLookupWaitMs;
-    if (effectiveWaitMs > 0) {
-        const DWORD wait =
-            WaitForHandleWithSentMessagePump(pending->done,
-                                             effectiveWaitMs);
-        if (wait == WAIT_OBJECT_0 && pending->found) {
-            result = pending->targetPosition;
-        }
-    }
+    // Display/foreground events prime this cache before the first minimize.
+    // A still-pending reflow uses the learned/geometric fallback.
     pending->Release();
-    return result;
+    return softFallback;
 }
+// Forward declaration: defined later alongside the GPU render service. Called
+// from PrefetchTaskbarDockPosition so the first minimize/restore after a
+// window gains focus doesn't pay for cold D3D11/shader compilation inline on
+// the animation thread.
+static void RequestPredictedGpuWarmup(HWND hStableWnd);
+static void PrefetchTaskbarDockPosition(HWND hWnd) {
+    if (g_unloading.load(std::memory_order_relaxed) || !hWnd ||
+        (!g_minimizeAnimation.load(std::memory_order_relaxed) &&
+         !g_restoreAnimation.load(std::memory_order_relaxed))) return;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hWnd, &pid);
+    if (pid != GetCurrentProcessId() || !IsWindowVisible(hWnd) ||
+        IsIconic(hWnd) || !IsAppMainWindow(hWnd, true) ||
+        !MinRestoreEffectTargetsTaskbarButton(PeekMinRestoreEffectStyle(hWnd)) ||
+        IsUserExcludedWindow(hWnd)) return;
+    HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO info{sizeof(info)};
+    if (!GetMonitorInfoW(monitor, &info)) return;
+    HWND tray = FindTaskbarForMonitor(monitor);
+    const auto geometry = GetTaskbarGeometry(hWnd, tray, info, false);
+    const POINT fallback = GetFallbackTaskbarButtonPosition(hWnd, tray, info, geometry, 1);
+    WCHAR title[256]{};
+    GetWindowTextW(hWnd, title, ARRAYSIZE(title));
+    GetTaskbarButtonPositionAsync(hWnd, title, fallback, monitor, geometry.edge);
+    // This window just became foreground/visible and is a plausible target
+    // for the next minimize/restore. Warm the GPU pipeline it would need now
+    // instead of letting the first animation pay for cold D3D11 device
+    // creation and shader compilation on its own thread.
+    RequestPredictedGpuWarmup(hWnd);
+}
+
 enum class SwsSelectionIntent { Unavailable, Rejected, Accepted, Restoring };
 
 static bool IsSwsSelectionEndpoint(HWND hWnd) {
@@ -5264,6 +5854,7 @@ DWORD WINAPI SwitchingAnimThread(LPVOID lpParam) {
             {
                 std::lock_guard<std::mutex> lock(g_StateMutex);
                 g_AnimActive.erase(h);
+                g_AnimActiveTick.erase(h);
             }
             if (reinterpret_cast<ULONG_PTR>(
                     GetPropW(h, kPropSwitchAnimationActive)) == 1) {
@@ -5375,6 +5966,7 @@ void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD event, HWND hWnd,
                                   LONG idObject, LONG idChild, DWORD,
                                   DWORD dwmsEventTime) {
     if (event != EVENT_SYSTEM_FOREGROUND || idObject != OBJID_WINDOW || idChild != CHILDID_SELF) return;
+    PrefetchTaskbarDockPosition(hWnd);
     if (!g_switchAnimation.load(std::memory_order_relaxed) || g_unloading.load(std::memory_order_relaxed)) return;
     DWORD windowPid = 0;
     GetWindowThreadProcessId(hWnd, &windowPid);
@@ -5401,6 +5993,7 @@ void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD event, HWND hWnd,
             }
             return;
         }
+        g_AnimActiveTick[hWnd] = GetTickCount();
         g_AnimWantRising.erase(hWnd);
         g_AnimRestoreRequestForeground.erase(hWnd);
         g_AsyncRestoreReservations.erase(hWnd);
@@ -5430,6 +6023,7 @@ void CALLBACK ForegroundEventProc(HWINEVENTHOOK, DWORD event, HWND hWnd,
         delete data;
         std::lock_guard<std::mutex> lock(g_StateMutex);
         g_AnimActive.erase(hWnd);
+        g_AnimActiveTick.erase(hWnd);
     }
 }
 
@@ -5446,6 +6040,7 @@ void CALLBACK TrayHideVisibilityEventProc(HWINEVENTHOOK, DWORD event,
     GetWindowThreadProcessId(hWnd, &windowProcessId);
     if (windowProcessId != GetCurrentProcessId()) return;
 
+    PrefetchTaskbarDockPosition(hWnd);
     // Observe the resulting HWND state rather than relying on a particular
     // exported show API. This also covers DefWindowProc restores,
     // DeferWindowPos/EndDeferWindowPos, AnimateWindow and late async shows.
@@ -5521,6 +6116,7 @@ DWORD WINAPI WinEventHookThread(LPVOID) {
         EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, NULL, ForegroundEventProc,
         GetCurrentProcessId(), 0, WINEVENT_OUTOFCONTEXT);
     g_hForegroundHook.store(hook, std::memory_order_release);
+    PrefetchTaskbarDockPosition(GetForegroundWindow());
     HWINEVENTHOOK trayHideVisibilityHook = SetWinEventHook(
         EVENT_OBJECT_SHOW, EVENT_OBJECT_SHOW, nullptr,
         TrayHideVisibilityEventProc, GetCurrentProcessId(), 0,
@@ -8055,7 +8651,7 @@ static void ScheduleFinalWindowGpuRelease(HWND closingWindow) {
 // -------------------------------------------------------------------------
 // ZenDesktop: macOS genie (kMinRestoreMacGenie). Ported from the macOS
 // Minimize Animation mod (MIT) by Abdullah Masood; the Direct2D genie engine
-// (lamp curve, mesh warp, outline mask, tile count) is Potassiumuncher's
+// (lamp curve and original mesh warp) is Potassiumuncher's
 // (https://github.com/Potassiumuncher). The original only knew a bottom
 // taskbar; here the curve runs in a "canonical" space in which the dock is
 // below the window, mapped to the real taskbar edge by AnimationEngine.
@@ -9436,8 +10032,6 @@ private:
         }
         macFactory = nullptr;  // owned by g_d2dFactory
     }
-    // Creates the Direct2D resources once per animation (the source DIB never
-    // changes afterwards, also not across a minimize/restore reversal).
     bool PrecalcMacGenie() {
         macTiles = Clamp(g_genieTileCount.load(std::memory_order_relaxed),
                          8, 96);
@@ -9959,6 +10553,7 @@ public:
         if (keepGhostBelowTaskbar) {
             HWND hTray = FindTaskbarForMonitor(data->hMon);
             if (hTray && IsWindow(hTray) &&
+                (GetWindowLongPtrW(hTray, GWL_EXSTYLE) & WS_EX_TOPMOST) &&
                 SetWindowPos_Original(
                     hGhost, hTray, 0, 0, 0, 0,
                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER |
@@ -11348,12 +11943,12 @@ public:
                 usingGpuBackend && data->isClosing &&
                 !gpuPresenter.IsFramePaced() &&
                 (!presentingFirstFrame || !firstFrameDwmSynchronized);
-            if (usingGpuBackend &&
-                (lastFrame || synchronizeLayeredGpuCloseFrame)) {
-                // Layered GPU closes don't own a composition swap chain, so
-                // retain their stable DWM synchronization and always drain
-                // the final frame before the ghost is hidden. The separate
-                // refresh timer only limits how often frames are submitted.
+            const bool timerPacedCpuMinRestore = !usingGpuBackend &&
+                !data->isClosing && refreshDeadlinePacing;
+            if ((usingGpuBackend && (lastFrame || synchronizeLayeredGpuCloseFrame)) ||
+                (timerPacedCpuMinRestore && lastFrame)) {
+                // Drain the final frame before handing back to the real window.
+                // Layered GPU closes retain their existing DWM synchronization.
                 FlushDwmOrYield();
             }
             RecordTelemetryFrameSample(renderStartTick, true);
@@ -11376,7 +11971,10 @@ public:
                 break;
             }
             if (!usingGpuBackend &&
+                (!timerPacedCpuMinRestore || presentingFirstFrame) &&
                 (!presentingFirstFrame || !firstFrameDwmSynchronized)) {
+                // The refresh timer already paces intermediate CPU frames.
+                // Waiting for DWM again can push the next render past vblank.
                 FlushDwmOrYield();
             }
         }
@@ -11761,6 +12359,7 @@ public:
                             data->hRealWnd, data->launchAnimationToken);
                     }
                     g_AnimActive.erase(data->hRealWnd);
+                    g_AnimActiveTick.erase(data->hRealWnd);
                     g_AnimWantRising.erase(data->hRealWnd);
                     g_AnimRestoreRequestForeground.erase(data->hRealWnd);
                     g_AsyncRestoreReservations.erase(data->hRealWnd);
@@ -11847,6 +12446,7 @@ public:
         if (!ownershipReleased) {
             std::lock_guard<std::mutex> lock(g_StateMutex);
             g_AnimActive.erase(data->hRealWnd);
+            g_AnimActiveTick.erase(data->hRealWnd);
             g_AnimWantRising.erase(data->hRealWnd);
             g_AnimRestoreRequestForeground.erase(data->hRealWnd);
             g_AsyncRestoreReservations.erase(data->hRealWnd);
@@ -12039,9 +12639,34 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
                 g_LaunchSeen.insert(hWnd);
             }
         } else {
-            blocked = !g_AnimActive.insert(hWnd).second;
+            const bool inserted = g_AnimActive.insert(hWnd).second;
+            if (!inserted) {
+                // Stale entry guard: if the animation that claimed this slot
+                // started more than 6 seconds ago it is almost certainly
+                // orphaned (worker exited without cleanup). Force-evict it so
+                // the current operation can proceed normally.
+                auto tickIt = g_AnimActiveTick.find(hWnd);
+                const DWORD now = GetTickCount();
+                const bool stale =
+                    tickIt != g_AnimActiveTick.end() &&
+                    static_cast<LONG>(now - tickIt->second) > 6000;
+                if (stale) {
+                    g_AnimActiveTick.erase(hWnd);
+                    g_AnimWantRising.erase(hWnd);
+                    g_AnimActive.insert(hWnd);  // re-claim the slot for this operation
+                    blocked = false;
+                    if (IsDiagnosticLoggingEnabled()) {
+                        Wh_Log(L"Evicted stale g_AnimActive entry hwnd=%p "
+                               L"age=%ldms", hWnd,
+                               static_cast<long>(now - tickIt->second));
+                    }
+                } else {
+                    blocked = true;
+                }
+            }
         }
         if (!blocked && !asyncRestoreReservation) {
+            g_AnimActiveTick[hWnd] = GetTickCount();
             g_LaunchSeen.insert(hWnd);
             if (isClosing) {
                 g_AnimWantRising.erase(hWnd);
@@ -12087,6 +12712,7 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
         FailAnimationStart(hWnd, rising, originalExStyle, cloakHidden);
         std::lock_guard<std::mutex> lock(g_StateMutex);
         g_AnimActive.erase(hWnd);
+        g_AnimActiveTick.erase(hWnd);
         g_AnimWantRising.erase(hWnd);
         g_AnimRestoreRequestForeground.erase(hWnd);
         g_AsyncRestoreReservations.erase(hWnd);
@@ -12231,6 +12857,7 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             FailAnimationStart(hWnd, rising, storedExStyle, cloakHidden);
             std::lock_guard<std::mutex> lock(g_StateMutex);
             g_AnimActive.erase(hWnd);
+            g_AnimActiveTick.erase(hWnd);
             return;
         }
 
@@ -12282,6 +12909,7 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
                     clearPairedEffect = pairedEffectToken != 0;
                     if (finalRising) EraseSnapshotLocked(hWnd);
                     g_AnimActive.erase(hWnd);
+                    g_AnimActiveTick.erase(hWnd);
                     g_AnimWantRising.erase(hWnd);
                     g_AnimRestoreRequestForeground.erase(hWnd);
                     g_AsyncRestoreReservations.erase(hWnd);
@@ -12328,11 +12956,13 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
     }
     const bool excelCloseScreenOnlyCapture =
         RequiresExcelScreenOnlyCloseCapture(hWnd, isClosing);
+    const bool composedWindowSnapshot = RequiresComposedWindowSnapshot(hWnd);
     const bool screenOnlyCapture =
-        excelCloseScreenOnlyCapture ||
+        excelCloseScreenOnlyCapture || RequiresShellComposedWindowSnapshot(hWnd) ||
         (isClosing && RequiresScreenCapture(hWnd));
     const bool preferScreenCapture =
-        excelCloseScreenOnlyCapture || ShouldUseBitBlt(hWnd, isClosing);
+        excelCloseScreenOnlyCapture || (!rising && composedWindowSnapshot) ||
+        ShouldUseBitBlt(hWnd, isClosing);
     const bool allowShowDesktopSwitchGhostWait =
         !rising && !isClosing && !onTargetThread &&
         IsClassicShowDesktopOperation();
@@ -12424,11 +13054,30 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             // pixels above the target. Checking the z-order also catches the
             // hit-test-transparent ghosts during batched shell minimizes.
             DWORD switchGhostDeadline = 0;
+            bool caretHintDismissAttempted = false;
             for (;;) {
                 ScreenCaptureEligibility beforeCapture;
                 if (!CanCaptureWindowFromScreen(
                         hWnd, rect, hCaptureTaskbar,
                         &beforeCapture)) {
+                    if (!caretHintDismissAttempted && beforeCapture.blockingWindow) {
+                        WCHAR blockerClass[64]{};
+                        GetClassNameW(beforeCapture.blockingWindow, blockerClass,
+                                      ARRAYSIZE(blockerClass));
+                        if (wcscmp(blockerClass, L"ZenImeCaretHintOverlay") == 0) {
+                            caretHintDismissAttempted = true;
+                            const UINT dismiss = RegisterWindowMessageW(
+                                L"ZenDesktop.DismissCaretHintForCapture.v1");
+                            DWORD_PTR acknowledged = 0;
+                            if (dismiss && SendMessageTimeoutW(
+                                    beforeCapture.blockingWindow, dismiss, 0, 0,
+                                    SMTO_ABORTIFHUNG | SMTO_BLOCK, 50,
+                                    &acknowledged) && acknowledged) {
+                                FlushDwmOrYield();
+                                continue;
+                            }
+                        }
+                    }
                     if (!allowShowDesktopSwitchGhostWait ||
                         !beforeCapture.blockingSwitchAnimationGhost) {
                         LogScreenCaptureFailure(L"before", beforeCapture);
@@ -12504,6 +13153,8 @@ bool StartAnimation(HWND hWnd, BOOL rising, LONG_PTR originalExStyle, BOOL cloak
             // already running on the target window's UI thread. Clear a
             // rejected screen attempt first so partial PrintWindow output
             // can't retain pixels from the composed desktop.
+            // Other apps retain their window capture fallback. Shell material
+            // windows use screenOnlyCapture to avoid a solid-color snapshot.
             GdiFlush();
             memset(tempBits, 0, (size_t)rawW * rawH * sizeof(DWORD));
             captured = PrintWindow(hWnd, tempDC, PW_RENDERFULLCONTENT);
@@ -15634,6 +16285,7 @@ void Wh_ModUninit() {
         std::lock_guard<std::mutex> lock(g_StateMutex);
         stuck.assign(g_AnimActive.begin(), g_AnimActive.end());
         g_AnimActive.clear();
+        g_AnimActiveTick.clear();
         g_AnimWantRising.clear();
         g_AnimRestoreRequestForeground.clear();
         g_AsyncRestoreReservations.clear();
@@ -15677,5 +16329,5 @@ void Wh_ModUninit() {
     }
     CloseSharedEffectShuffleState();
     CloseSharedState();
-    ReleaseD2DFactory();  // workers are joined; no engine holds it now
+    ReleaseD2DFactory();  // all animation workers have been joined
 }

@@ -1,5 +1,5 @@
 ﻿========================================================================
-             ZenDesktop 一键部署包 v5.0.0
+             ZenDesktop 一键部署包 v5.2.0
 ========================================================================
 
 作者：Lanbo
@@ -17,10 +17,12 @@ ZenDesktop 是一套 Windows 11 桌面美化 mod，运行在 Windhawk 上。
                                  Win+X 菜单、托盘溢出、音量浮窗一起美化
   ZenDesktop: 任务栏音乐与歌词   任务栏左下角显示封面、歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等；
                                  可显示 AI 编程助手状态（需先关掉小组件）
+  ZenDesktop: 光标输入法提示     在光标或鼠标旁显示中英及大写切换气泡，支持自定义玻璃
   ZenDesktop: 开始菜单美化       开始菜单与搜索页玻璃效果，可调尺寸
   ZenDesktop: 文件管理器美化     文件管理器整窗半透明，右键菜单玻璃（测试中），取代 ExplorerBlurMica
   ZenDesktop: 果冻窗口（可选）   拖动窗口时像果冻一样晃动，打开后需重启电脑
   ZenDesktop: 桌面双击隐藏图标   双击桌面空白处隐藏/显示图标，闲置时可自动隐藏
+  ZenDesktop: 桌面小组件（可选） 桌面时钟、日历、硬件资源占用与音乐频谱条一体化小组件
   ZenDesktop: 窗口动画（可选）   关窗、最小化、还原、启动、Alt+Tab 动画，含 macOS 神奇效果
   ZenDesktop: 设置美化           「设置」应用（Win+I）玻璃背景，失焦不变纯色，浅色模式可加白底
   ZenDesktop: 通知栏美化         通知中心、日历、快捷设置玻璃效果，浅色模式加白底
@@ -71,7 +73,7 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
   uninstall.bat / uninstall.ps1   一键卸载（从 Windhawk 移除 ZenDesktop mod，不卸载 Windhawk）
   restart_explorer.bat            重启资源管理器
   local@*.wh.cpp                  各 mod 源码
-  optional\                       可选 mod（果冻窗口、窗口动画、桌面小组件、Dock）及第三方许可说明
+  optional\                       可选 mod（果冻窗口、窗口动画、桌面小组件）及第三方许可说明
   tools\ai-status\                任务栏 AI 编程助手状态（可选，见其中的 README.md）
   tools\uninstall-ExplorerBlurMica.bat  卸载 v4.1 的旧版 ExplorerBlurMica（从 v4.1 升级时运行）
   tools\ZenDesktop-StartupCheck.ps1  开机自检（可选，deploy.ps1 -StartupCheck check）
@@ -96,7 +98,7 @@ Windhawk 本身和你自己装的其他 mod 不受影响。
 - ZenDesktop 以 GPL-3.0 发布，许可证全文见 LICENSE。
 ========================================================================
 
-English: ZenDesktop is a Windows 11 styling suite of 9 Windhawk mods.
+English: ZenDesktop is a Windows 11 styling suite of 10 Windhawk mods.
 Extract the zip, run deploy.bat as administrator, then enable the mods you
 want in Windhawk (all are installed disabled). Upgrading from v4.1: run
 tools\uninstall-ExplorerBlurMica.bat first. Uninstall: run uninstall.bat.

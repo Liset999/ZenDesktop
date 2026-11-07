@@ -10,6 +10,7 @@
 # Ignore backup and build directories
 Backups/
 __pycache__/
+.diagnostics/
 ZenDesktop_Backup_v2.7.0/
 ZenDesktop_OneKeyDeploy_v3.0.0_Online/
 

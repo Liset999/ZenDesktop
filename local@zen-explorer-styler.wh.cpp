@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.9
+// @version         1.7.10
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -84,6 +84,7 @@
 
 ## 更新日志
 
+- **1.7.10**：修复整窗玻璃下普通文字绘制（未指定裁剪等选项）跳过透明度处理的问题，黑色文字会因此透明消失，浅色及自定义文字也可能发白。普通文字与裁剪、字形绘制统一生成预乘透明度。覆盖 OS26 液态玻璃及紧凑版使用模糊、云母等整窗背景的绘制路径。
 - **1.7.9**：修复重启电脑后文件列表文字又变白、要重新应用才好的问题。深浅色状态以前在窗口第一次加特效时读一次，之后只信资源管理器开机早期发的深色属性，1.7.8 起同一窗口再加特效还会提前返回，不再重读，于是开机时读错的值一直留着。现在深浅色以注册表为准，开机重试、窗口再次显示、系统深浅色/主题变化时都会重读，变了就只重绘资源管理器窗口，不重启资源管理器、不重载 mod。
 - **1.7.8**：#18 显卡驱动重置加固。以前每次显示窗口、每轮补挂、资源管理器每次设置深浅色时，都会把背景材质、模糊和强调色重新发给 DWM，即使没变也会让 DWM 重建效果。现在每个窗口记住已设的背景，没变就不再发，也不再强制刷新合成；全进程 2 秒内最多改 12 次背景；10 秒内连续失败 3 次就降一级（模糊→亚克力→云母→无），保存设置后重新尝试原选项。
 - **1.7.7**：修复 #18「文字颜色更改无效，固定为白色」：文字颜色改为直接使用设置里的颜色，不再从绘图上下文读回；文件列表在离屏缓冲里画的文字也会套用设置的颜色（只改黑白灰的字，菜单打开时不改）；修正半透明文字的预乘计算，去掉发白发雾的边。
@@ -12004,7 +12005,9 @@ BOOL ExtTextOutWithAlpha(HDC hdc,
                                     lpDx);
     };
 
-    if (!lpString || !c || !options || (GetTextAlign(hdc) & TA_UPDATECP)) {
+    // Zero options is ordinary text output, including first-paint paths in
+    // Explorer. It still needs alpha when the glass covers the client area.
+    if (!lpString || !c || (GetTextAlign(hdc) & TA_UPDATECP)) {
         return original();
     }
 

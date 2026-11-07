@@ -2,9 +2,9 @@
 // @id              wobbly-windows
 // @name            ZenDesktop: 果冻窗口
 // @name:zh-CN      ZenDesktop: 果冻窗口
-// @description     Classic Compiz/KDE Plasma style wobbly windows for Windows 11.
-// @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果。
-// @version         0.115.5
+// @description     Compiz/KDE Plasma style wobbly windows for Windows 11, with ZenDesktop compatibility and visual fixes.
+// @description:zh-CN 为 Windows 11 窗口加入 Compiz/KDE Plasma 风格的果冻晃动效果，包含 ZenDesktop 兼容性适配与视觉修复。
+// @version         0.115.9
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          lalimatyus
 // @github          https://github.com/lalimatyus
@@ -16,14 +16,15 @@
 
 // ==WindhawkModReadme==
 /*
-> **作者：Lanbo**
+> **ZenDesktop 改进与维护：Lanbo**
 > [B站](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo) · [微信赞赏](https://raw.githubusercontent.com/Liset999/ZenDesktop/main/docs/donate-wechat.png)
 
-> 原作者：**lalimatyus**（[Wobbly Windows](https://github.com/lalimatyus/Wobbly-Windows)，GPL-3.0）。本版由 Lanbo 做中文本地化与文字整理。
+> 基于 **lalimatyus** 的 Wobbly Windows v0.115，由 Lanbo 进行中文本地化、视觉节点调整、兼容性适配与维护。原项目采用 GPL-3.0-only 许可证。
+> [原项目与源码](https://github.com/lalimatyus/Wobbly-Windows)
 
 # ZenDesktop: 果冻窗口
 
-拖动、缩放或贴靠窗口时，窗口会像果冻一样弹性晃动，效果参考 Compiz 和 KDE Plasma。本 mod 注入 `dwm.exe`。
+拖动、调整大小、贴靠或最大化窗口时，呈现参考 Compiz 和 KDE Plasma 的弹性晃动效果。模块运行于 Windows 桌面窗口管理器 `dwm.exe`，实际可用性取决于系统内部版本与 DWM 兼容情况。
 
 ![效果演示](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/showcase.gif)
 
@@ -42,12 +43,20 @@
 ## 兼容性与已知问题
 
 - 必须把 `dwm.exe` 加入 Windhawk 的进程包含列表：**设置 > 高级设置 > 进程包含列表**，填入 `dwm.exe` 并保存。ZenDesktop 的部署脚本会自动添加。
-- 作为 ZenDesktop v4.2 的可选模块，安装后默认关闭，需要在 Windhawk 中手动开启。
+- 作为 ZenDesktop 的可选模块，首次部署默认关闭，可在 Windhawk 中按需开启；更新部署保留已有开关状态。
+- 模块依赖 DWM 内部函数和调试符号，Windows 更新后可能需要重新适配。开启后无效果时，请在高级设置中查看模块日志，并提供实际加载版本、Windows 内部版本与完整初始化输出。
+- 无法验证最外层视觉代理偏移时，使用经过类型校验的内容层兼容路径；此时形变可能被窗口外框裁切。
 
 ![设置演示](https://raw.githubusercontent.com/lalimatyus/Wobbly-Windows/refs/heads/main/dwm.gif)
 
 ## 更新日志
 
+以下记录描述各版本发布时的行为；当前版本的兼容路径以“兼容性与已知问题”为准。
+
+- **0.115.9**：偏移解析不支持当前系统时恢复经过类型校验的 Canvas 访问函数回退，避免因此完全无法初始化；已验证的最外层路径仍优先使用。
+- **0.115.8**：兼容 uDWM 26100.9711 中跳往末尾空指针返回的视觉代理访问函数，保留完整路径与偏移验证。
+- **0.115.7**：识别视觉代理访问函数中的空指针提前返回分支，修复因此误判偏移不可验证、初始化失败的问题。未知指令结构仍拒绝加载。
+- **0.115.6**：果冻变形绑定到最外层窗口视觉节点，让背景、边框和内容一起晃动，避免内部形变被固定矩形外框裁切。无法验证最外层代理时跳过，不再回退到内容层。
 - **0.115.5**：性能：桌面可见性轮询在稳态下略降频（300ms→500ms）。
 - **0.115.4**：微信赞赏链接改为指向 `main` 分支。
 - **0.115.3**：说明开头补上原作者说明，原版链接改为指向仓库。
@@ -58,8 +67,9 @@
 ## 致谢与许可
 
 - 原作者：lalimatyus（[Wobbly Windows](https://github.com/lalimatyus/Wobbly-Windows) v0.115）。
-- 许可证：[GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html)。Hook 代码原样保留，源码随包公开。
-- ZenDesktop 修改：仅中文本地化与文字整理。
+- 许可证为 GPL-3.0-only，修改后的模块源码随包提供。原作者署名与许可证声明保留。
+- ZenDesktop 修改包括中文界面与说明、窗口视觉节点绑定、DWM 访问函数解析、兼容回退及桌面可见性轮询调整。
+- [GPL-3.0-only 许可证](https://www.gnu.org/licenses/gpl-3.0.html)
 - 开发者：Lanbo（[哔哩哔哩](https://space.bilibili.com/1280632999) · [抖音](https://v.douyin.com/Isl7QPpKZZ4/) · [爱发电](https://ifdian.net/a/Lanboo)）
 */
 // ==/WindhawkModReadme==
@@ -339,8 +349,6 @@ HMONITOR g_dragCursorMonitor = nullptr;
 ULONGLONG g_monitorTransitionRebaseUntil = 0;
 using CTopLevelWindowGetVisualProxy_t = void*(__cdecl*)(void* pThis);
 CTopLevelWindowGetVisualProxy_t g_getCanvasRootVisualProxy = nullptr;
-using CTopLevelWindowGetRootVisual_t = void*(__cdecl*)(void* pThis, int rootVisualType);
-CTopLevelWindowGetRootVisual_t g_topLevelWindowGetRootVisual = nullptr;
 void* g_transitionWrapperGetVisualWeakFunction = nullptr;
 void* g_transitionWrapperGetVisualProxyWeakFunction = nullptr;
 using CTopLevelWindowGetWindowData_t = void*(__cdecl*)(void* pThis);
@@ -592,46 +600,32 @@ static void* GetTopLevelVisualProxy(void* topLevelWindow,
         return nullptr;
     }
 
-    // Type 0 is the complete window, including the non-client frame. The proxy
-    // member offset is decoded from the exact Canvas getter instead of hardcoded.
-    if (g_topLevelWindowGetRootVisual && g_visualProxyOffset != SIZE_MAX)
+    // CTopLevelWindow is itself a CContainerVisual. Its proxy encloses the
+    // background treatment, border and content. GetRootVisualNoAddRef(0) is
+    // only the inner CWindowBorder on 26100; Canvas is even further inside.
+    // Transforming either child leaves an untransformed ancestor clipping it.
+    // The shared CVisual proxy member is decoded from the exact Canvas getter.
+    void* proxy = nullptr;
+    const wchar_t* selectedSource = L"TopLevelWindowRoot";
+    if (g_visualProxyOffset != SIZE_MAX)
     {
-        constexpr int completeWindowRoot = 0;
-        void* rootVisual =
-            g_topLevelWindowGetRootVisual(topLevelWindow, completeWindowRoot);
-        void* proxy = ReadPointerMember(rootVisual, g_visualProxyOffset);
-        if (IsVisualProxyPointerValid(proxy))
-        {
-            if (source)
-            {
-                *source = L"CompleteWindowRoot";
-            }
-            return proxy;
-        }
+        proxy = ReadPointerMember(topLevelWindow, g_visualProxyOffset);
     }
-
-    if (!g_getCanvasRootVisualProxy)
+    else if (g_getCanvasRootVisualProxy)
     {
-        return nullptr;
+        // Preserve the old typed-accessor compatibility path only when the
+        // outer member offset is unavailable. A failed known root stays rejected.
+        proxy = g_getCanvasRootVisualProxy(topLevelWindow);
+        selectedSource = L"TypedCanvasAccessor";
     }
-
-    // Accept only exact PDB-resolved CVisualProxy/base-compatible proxy types.
-    void* proxy = g_getCanvasRootVisualProxy(topLevelWindow);
     if (!IsVisualProxyPointerValid(proxy))
     {
         return nullptr;
     }
 
-    bool decodedPath = g_canvasVisualOwnerOffset != SIZE_MAX && g_visualProxyOffset != SIZE_MAX;
-    if (decodedPath &&
-        ReadPointerMember(ReadPointerMember(topLevelWindow, g_canvasVisualOwnerOffset),
-                          g_visualProxyOffset) != proxy)
-    {
-        return nullptr;
-    }
     if (source)
     {
-        *source = decodedPath ? L"VerifiedCanvasPath" : L"TypedCanvasAccessor";
+        *source = selectedSource;
     }
     return proxy;
 }
@@ -1548,51 +1542,65 @@ static bool FindVisualProxyAccessPath(void* function, size_t* ownerOffset,
         R"(^mov (r[a-z0-9]+), (?:qword ptr )?\[(r[a-z0-9]+)\s*\+\s*0x([0-9a-f]{1,8})\]$)",
         std::regex_constants::icase);
     BYTE* instruction = static_cast<BYTE*>(function);
-    std::string visualRegister;
-    size_t visualOffset = SIZE_MAX;
-    size_t bytesRead = 0;
-    for (int i = 0; i < 32 && bytesRead < 256; i++)
+    auto decode = [&](WH_DISASM_RESULT& result)
     {
-        WH_DISASM_RESULT result = {};
-        if (!IsDwmExecutableAddress(instruction) || !Wh_Disasm(instruction, &result) ||
-            result.length == 0)
-        {
-            break;
-        }
-        std::string text = result.text;
-        std::smatch match;
-        if (std::regex_match(text, match, loadPattern))
-        {
-            const std::string destination = match[1].str();
-            const std::string base = match[2].str();
-            size_t offset = std::stoull(match[3].str(), nullptr, 16);
-            if (base == "rcx" && offset >= 0x80 && offset <= 0x400 &&
-                offset % sizeof(void*) == 0)
-            {
-                visualRegister = destination;
-                visualOffset = offset;
-            }
-            else if (!visualRegister.empty() && destination == "rax" &&
-                     base == visualRegister && offset <= 0x80 &&
-                     offset % sizeof(void*) == 0)
-            {
-                if (*ownerOffset != SIZE_MAX &&
-                    (*ownerOffset != visualOffset || *proxyOffset != offset))
-                {
-                    return false;
-                }
-                *ownerOffset = visualOffset;
-                *proxyOffset = offset;
-            }
-        }
-        if (text == "ret")
-        {
-            break;
-        }
+        result = {};
+        return IsDwmExecutableAddress(instruction) &&
+               Wh_Disasm(instruction, &result) && result.length > 0 &&
+               result.length <= 15 &&
+               IsDwmExecutableAddress(instruction + result.length - 1);
+    };
+    WH_DISASM_RESULT result = {};
+    std::cmatch match;
+    // Accept exact two-load getters, optionally with the known null guard.
+    // Do not scan past arbitrary returns or follow arbitrary branch targets.
+    if (!decode(result) || !std::regex_match(result.text, match, loadPattern) ||
+        match[1] != "rax" || match[2] != "rcx") return false;
+    size_t visualOffset = std::stoull(match[3].str(), nullptr, 16);
+    if (visualOffset < 0x80 || visualOffset > 0x400 ||
+        visualOffset % sizeof(void*) != 0) return false;
+    instruction += result.length;
+    if (!decode(result)) return false;
+    BYTE* nullReturn = nullptr;
+    if (std::string_view(result.text) == "test rax, rax")
+    {
         instruction += result.length;
-        bytesRead += result.length;
+        // jnz +2; ret; int3. Non-null execution jumps over the null return
+        // to the second load. Verified against the PDB-resolved local getter.
+        if (!IsReadableMemory(instruction, 2) ||
+            !IsDwmExecutableAddress(instruction + 1)) return false;
+        if (instruction[0] == 0x74 && instruction[1] == 0x06)
+        {
+            // uDWM 26100.9711: jz +6; mov rax,[rax+member]; ret; int3; ret.
+            // Validate the null return now and its exact position after decoding.
+            nullReturn = instruction + 8;
+            if (!IsDwmExecutableAddress(nullReturn) ||
+                !IsReadableMemory(nullReturn, 1) || *nullReturn != 0xC3) return false;
+            instruction += 2;
+        }
+        else
+        {
+            if (!IsReadableMemory(instruction, 4) ||
+                !IsDwmExecutableAddress(instruction + 3) ||
+                instruction[0] != 0x75 || instruction[1] != 0x02 ||
+                instruction[2] != 0xC3 || instruction[3] != 0xCC) return false;
+            instruction += 4;
+        }
+        if (!decode(result)) return false;
     }
-    return *ownerOffset != SIZE_MAX && *proxyOffset != SIZE_MAX;
+    if (!std::regex_match(result.text, match, loadPattern) ||
+        match[1] != "rax" || match[2] != "rax") return false;
+    size_t memberOffset = std::stoull(match[3].str(), nullptr, 16);
+    if (memberOffset > 0x80 || memberOffset % sizeof(void*) != 0) return false;
+    instruction += result.length;
+    if (!decode(result) || result.length != 1 ||
+        std::string_view(result.text) != "ret") return false;
+    if (nullReturn &&
+        (instruction + 2 != nullReturn ||
+         !IsReadableMemory(instruction + 1, 1) || instruction[1] != 0xCC)) return false;
+    *ownerOffset = visualOffset;
+    *proxyOffset = memberOffset;
+    return true;
 }
 
 // Follow only the exact native function's reachable local branches. Accept the
@@ -2653,11 +2661,6 @@ static bool InitializeDwmHooks()
          &g_getCanvasRootVisualProxy,
          nullptr,
          true},
-        {{L"public: class CVisual * __cdecl "
-           L"CTopLevelWindow::GetRootVisualNoAddRef(enum TLWRootVisualType)"},
-         &g_topLevelWindowGetRootVisual,
-         nullptr,
-         true},
         {{L"public: virtual class CTopLevelWindow3D * __cdecl "
             L"winrt::Udwm::Transitions::implementation::TopLevelWindow3DWrapper::GetVisualWeak(void)"},
          &g_transitionWrapperGetVisualWeakFunction, nullptr, true},
@@ -2808,7 +2811,6 @@ static bool InitializeDwmHooks()
     keepValid(g_cMatrixTransformProxyUpdateFloat);
     keepValid(g_topLevelWindow3DStartAnimationOriginal);
     keepValid(g_getCanvasRootVisualProxy);
-    keepValid(g_topLevelWindowGetRootVisual);
     keepValid(g_topLevelWindowGetWindowData);
     keepValid(g_desktopManagerPostStartAnimations);
     auto cacheVtableSymbol = [](void* symbol, std::atomic<void*>& target)
@@ -2891,8 +2893,6 @@ static bool InitializeDwmHooks()
          reinterpret_cast<void*>(g_desktopManagerAdvanceTimelinesOriginal)},
         {L"CTopLevelWindow::GetCanvasRootVisualProxy",
          reinterpret_cast<void*>(g_getCanvasRootVisualProxy)},
-        {L"CTopLevelWindow::GetRootVisualNoAddRef",
-         reinterpret_cast<void*>(g_topLevelWindowGetRootVisual)},
         {L"CTopLevelWindow::CTopLevelWindow",
          reinterpret_cast<void*>(g_topLevelWindowConstructorFunction)},
         {L"CTopLevelWindow::~CTopLevelWindow",
@@ -2937,8 +2937,10 @@ static bool InitializeDwmHooks()
                                    &g_canvasVisualOwnerOffset,
                                    &g_visualProxyOffset))
     {
-        Wh_Log(L"DWM compatibility: visual accessor path unavailable; "
-               L"using typed accessor validation");
+        g_canvasVisualOwnerOffset = SIZE_MAX;
+        g_visualProxyOffset = SIZE_MAX;
+        Wh_Log(L"DWM compatibility: outer visual proxy offset unavailable; "
+               L"using typed Canvas accessor fallback; deformation may be clipped by window frame");
     }
     g_transitionVisualProxyOffset = FindTransitionVisualProxyOffset(
         g_transitionWrapperGetVisualWeakFunction, g_transitionWrapperGetVisualProxyWeakFunction);
@@ -3022,13 +3024,14 @@ static bool InitializeDwmHooks()
         Wh_Log(L"DWM compatibility: existing-window transition mapping unavailable");
     }
     Wh_Log(L"DWM compatibility ABI: HWND lookup=pointer transition lookup=%s "
-           L"matrix=%s visual=complete-root ownerOffset=0x%zx proxyOffset=0x%zx "
+           L"matrix=%s visual=%s ownerOffset=0x%zx proxyOffset=0x%zx "
            L"compositorOffset=0x%zx "
            L"threadIdOffset=0x%zx TLW3DDataOffset=0x%zx",
            g_getSyncedWindowDataVoid
                ? L"void"
                : (g_getSyncedWindowDataLong ? L"HRESULT" : L"unavailable"),
            g_cMatrixTransformProxyUpdate ? L"double" : L"float",
+           g_visualProxyOffset != SIZE_MAX ? L"complete-root" : L"typed-canvas-fallback",
            g_canvasVisualOwnerOffset, g_visualProxyOffset,
            g_desktopManagerCompositorOffset, g_desktopManagerThreadIdOffset,
            g_topLevelWindow3DWindowDataOffset);
