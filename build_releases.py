@@ -19,6 +19,7 @@ common_files = [
     'AAA使用前必看.txt',
     'CHANGELOG_v5.0.0.md',
     'CHANGELOG_v5.2.0.md',
+    'CHANGELOG_v5.2.1.md',
     'README.md',
     'docs/donate-wechat.png',
     'docs/screenshots',  # README.md preview images
@@ -44,9 +45,9 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v5.2.0.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.0_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.0_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v5.2.1.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.1_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.1_Online.zip': common_files
 }
 
 # Windhawk expects the metadata marker at the beginning of the source file.
@@ -70,6 +71,6 @@ for zip_name, file_list in releases.items():
                     z.write(f)
                     print(f"  Added {f}")
             else:
-                print(f"  [WARNING] File not found: {f}")
+                raise FileNotFoundError(f'Required release file not found: {f}')
     if os.path.exists(zip_name):
         print(f"Successfully created {zip_name}. Size: {os.path.getsize(zip_name)} bytes\n")

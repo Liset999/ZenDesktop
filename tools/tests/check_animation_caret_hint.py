@@ -2,7 +2,7 @@ import argparse, subprocess, tempfile
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--compiler-dir',type=Path,required=True);a=p.parse_args()
 root=Path(__file__).resolve().parents[2]
-s=(root/'zen-ime-caret-hint-0.2.4.wh.cpp').read_text(encoding='utf-8-sig')
+s=(root/'local@zen-ime-caret-hint.wh.cpp').read_text(encoding='utf-8-sig')
 handler=s[s.index('LRESULT CALLBACK OverlayWndProc('):s.index('LRESULT CALLBACK HostWndProc(')]
 code=r'''
 #include <windows.h>
@@ -11,6 +11,7 @@ code=r'''
 static HWND overlay;
 static bool g_focusHintPending=true;
 static std::optional<int> g_pendingShow=1;
+static void CancelCaretQuery(){g_pendingShow.reset();}
 static void HideBubble(){ShowWindow(overlay,SW_HIDE);}
 HANDLER
 int main(){

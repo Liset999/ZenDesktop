@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v5.2.0 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.2.1 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -106,7 +106,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v5.2.0" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.2.1" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -244,9 +244,17 @@ Set-ItemProperty -Path $engineSettingsPath -Name "Include" -Value (Merge-Process
 Set-RegValueIfMissing $engineSettingsPath "InjectIntoGames" 0 DWord
 
 Write-Status "Stopping Windhawk Service & UI..."
-Stop-Process -Name windhawk -Force -ErrorAction SilentlyContinue
-Stop-Service -Name Windhawk -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 1
+$exitProcess = Start-Process -FilePath (Join-Path $windhawkDir "windhawk.exe") -ArgumentList @("-exit", "-wait", "-timeout", "45000") -WindowStyle Hidden -PassThru
+if (-not $exitProcess.WaitForExit(60000)) {
+    throw "Windhawk did not finish unloading within 60 seconds. Deployment stopped before replacing mod files."
+}
+if ($exitProcess.ExitCode -ne 0) {
+    throw "Windhawk shutdown failed with exit code $($exitProcess.ExitCode)."
+}
+$windhawkService = Get-Service -Name Windhawk -ErrorAction SilentlyContinue
+if ($windhawkService -and $windhawkService.Status -ne 'Stopped') {
+    throw "Windhawk service is still running after shutdown."
+}
 Write-Status "Windhawk successfully stopped." "Green"
 
 # 4. Copy and Inject Active Mods
@@ -322,6 +330,7 @@ if ($Optional) {
     }
 }
 $dwmModSelected = $false
+$sharedHeadersChanged = $false
 if (Test-Path -LiteralPath $optionalDir) {
     $optFiles = @(Get-ChildItem -LiteralPath $optionalDir -Filter "local@*.wh.cpp")
     foreach ($optFile in $optFiles) {
@@ -331,6 +340,7 @@ if (Test-Path -LiteralPath $optionalDir) {
     foreach ($hdr in @(Get-ChildItem -LiteralPath $optionalDir -Filter "zen-*.h" -ErrorAction SilentlyContinue)) {
         $destHdr = Join-Path $modsSource $hdr.Name
         $copyHdr = Copy-FileIfChanged -Source $hdr.FullName -Destination $destHdr
+        if ($copyHdr -ne "skipped") { $sharedHeadersChanged = $true }
         Write-Status ("         [Header] {0}: {1}" -f $hdr.Name, $copyHdr) "DarkGray"
     }
 }
@@ -424,7 +434,11 @@ foreach ($file in $files) {
     $modKey.SetValue("Exclude", [string]$excludeStr, $str)
     $modKey.SetValue("Architecture", [string]$arch, $str)
     $modKey.SetValue("Version", [string]$version, $str)
-    $modKey.SetValue("LibraryFileName", "", $str)
+    # Preserve the compiled DLL when the deployed source is unchanged.
+    # Changed sources still require an explicit compile in the Windhawk UI.
+    if ($copyResult -ne "skipped" -or ($file.DirectoryName -eq $optionalDir -and $sharedHeadersChanged)) {
+        $modKey.SetValue("LibraryFileName", "", $str)
+    }
     $modKey.Close()
     Set-RegValueIfMissing $regPath "LoggingEnabled" 0 DWord
 
@@ -634,7 +648,10 @@ if (($script:copyAdded + $script:copyUpdated) -gt 0 -and (Test-Path $cacheFile))
 
 # 6. Restart Windhawk Service and UI
 Write-Status "Starting Windhawk Service (this can take up to a minute)..."
-Start-Service -Name Windhawk -ErrorAction SilentlyContinue
+if ($windhawkService) {
+    Start-Service -Name Windhawk -ErrorAction Stop
+    $windhawkService.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Running, [TimeSpan]::FromSeconds(60))
+}
 
 $exePath = Join-Path $windhawkDir "windhawk.exe"
 if (Test-Path $exePath) {
@@ -694,7 +711,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v5.2.0 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.2.1 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："
@@ -703,5 +720,5 @@ Write-Host "     再次运行时会按内容（SHA256）比对：未变化的 .w
 Write-Host "  2. 请在 Windhawk 界面中按需开启您想要使用的模块开关，在弹出的窗口中确认保存与编译。"
 Write-Host "  3. deploy 已把 dwm.exe 加入 Windhawk「进程包含列表」；若开启「果冻窗口」，请重启整机后生效。"
 Write-Host "     deploy 只会补上缺失的默认设置，不会覆盖您已有的 Mod 设置。"
-Write-Host "  4. 建议在配置完成后重启整台电脑，使所有美化与透明效果达到最佳状态。"
+Write-Host "  4. 请在完成所需 Mod 的编译和启用后，保存工作并重启电脑。窗口动画对部分已有应用的热注入可能失败。"
 Write-Host ""

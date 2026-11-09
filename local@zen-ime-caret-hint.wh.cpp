@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 光标输入法提示
 // @description     Doubao/macOS-like Chinese/English and Caps Lock capsule beside the text caret (pointer fallback), with Custom Glass.
 // @description:zh-CN 像 Mac 豆包输入法一样：切换中英／大写时在文字光标旁短暂弹出提示胶囊（取不到光标则贴鼠标），并支持自定义玻璃。
-// @version         0.2.5
+// @version         0.2.7
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -18,8 +18,8 @@
 // prefer a real text caret, fall back to the pointer for apps that expose none.
 //
 // API notes (Win10/11):
-// - One Explorer-hosted instance queries the foreground app (MSAA / UIA from
-//   outside the target process). Do not inject every process (@include *).
+// - One Explorer-hosted instance owns the overlay. MSAA / UIA run in a
+//   job-controlled query process with a hard deadline. Input hooks are isolated.
 // - Caret: GetGUIThreadInfo → MSAA OBJID_CARET → thin UIA TextPattern caret →
 //   mouse pointer.
 // - IME: IMM conversion/open on the focus thread's default IME window; bare
@@ -35,7 +35,7 @@
 
 # ZenDesktop: 光标输入法提示
 
-像 **Mac 豆包输入法** 一样：按 Shift 切换中／英，或切换大写锁定时，在**文字光标旁**短暂弹出玻璃胶囊；拿不到光标时退到鼠标旁。点击输入框时显示当前中英或大写状态。
+像 **Mac 豆包输入法** 一样：按 Shift 切换中／英，或切换大写锁定时，在**文字光标旁**短暂弹出玻璃胶囊；拿不到光标时退到鼠标旁。点击输入框时显示当前中英或大写状态；确认输入框但取不到准确光标时贴鼠标。
 
 ## 功能
 
@@ -54,13 +54,16 @@
 
 ## 兼容性与已知问题
 
+- Steam 客户端及 steamwebhelper 窗口暂停提示，避免跨进程输入法／无障碍查询引发卡顿。
 - 小尺寸点击穿透分层窗无法稳定挂 DWM 亚克力；模糊为截屏盒模糊近似。
-- Chromium／Electron／WinUI 等：优先 Win32／MSAA；不行再走后台薄 UIA；再不行贴鼠标。
+- Chromium／Electron／WinUI 等：保留 UIA 输入框自动提醒。查询在独立进程执行，超过 600ms 回收；确认输入框但无准确光标时贴鼠标。
 - 以管理员身份运行的程序受 UIPI 限制时，读不到光标会退到鼠标旁。
 - 部分聊天软件（QQ 等）不暴露 IMM 状态：光靠 Shift 轻点仍可翻转提示。
 
 ## 更新日志
 
+- **0.2.7**：保留输入框自动提醒，将无障碍查询隔离到限时进程，键鼠钩子使用独立线程；修复失败重试降频、旧定位结果、卸载等待及输入框左边缘误定位。
+- **0.2.6**：Steam 窗口跳过输入法、MSAA 和 UIA 查询，并取消待显示提示。
 - **0.2.4**：关闭大写锁定后显示当前中／英状态，开启时显示大写。
 - **0.2.3**：气泡按实际尺寸居中显示在文字光标正上方，间距 6 像素；屏幕顶部空间不足时显示在下方。
 - **0.2.2**：定位完成后一次显示，避免鼠标到输入框跳位；点击或聚焦输入框显示当前中英／大写状态。
@@ -226,7 +229,6 @@
 #include <cmath>
 #include <cstring>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
 #include <utility>
@@ -245,8 +247,8 @@ constexpr UINT kFadeIntervalMs = 16;
 constexpr ULONGLONG kLangRefreshMs = 200;
 constexpr ULONGLONG kLangFailRetryMs = 1000;
 constexpr ULONGLONG kCaretExpiryMs = 600;
-constexpr int kCaretAttempts = 2;
-constexpr DWORD kCaretRetryDelayMs = 180;
+constexpr UINT kKeyboardMessage = WM_APP + 1;
+constexpr UINT kMouseMessage = WM_APP + 2;
 constexpr ULONGLONG kDuplicateShowMs = 700;
 constexpr ULONGLONG kShiftTapMaxMs = 1200;
 constexpr ULONGLONG kShiftSettleMs = 80;
@@ -288,32 +290,59 @@ HWND g_hostWnd = nullptr;
 HWND g_overlayWnd = nullptr;
 HINSTANCE g_hInstance = nullptr;
 HANDLE g_hostThread = nullptr;
+HANDLE g_inputThread = nullptr;
 HANDLE g_stopEvent = nullptr;
 HANDLE g_singleInstance = nullptr;
 std::atomic<bool> g_settingsChanged{false};
 
-struct CaretRequest {
-    ULONGLONG id = 0;
+struct CaretPacket {
+    DWORD size = sizeof(CaretPacket);
     HWND focus = nullptr;
     bool requireEditor = false;
-};
-struct CaretResult {
-    ULONGLONG id = 0;
-    std::optional<RECT> rect;
+    bool editor = false;
+    bool hasRect = false;
+    RECT rect{};
 };
 struct PendingShow {
-    CaretRequest request;
+    HWND focus = nullptr;
+    HWND foreground = nullptr;
+    ULONGLONG generation = 0;
+    ULONGLONG inputGeneration = 0;
     std::wstring text;
     ULONGLONG startedAt = 0;
+    bool requireEditor = false;
 };
 
-HANDLE g_caretThread = nullptr;
-HANDLE g_caretRequestEvent = nullptr;
-std::mutex g_caretMutex;
-std::optional<CaretRequest> g_caretRequest;
-std::optional<CaretResult> g_caretResult;
+HANDLE g_caretProcess = nullptr;
+HANDLE g_caretJob = nullptr;
+HANDLE g_caretMapping = nullptr;
+CaretPacket* g_caretPacket = nullptr;
 ULONGLONG g_nextCaretRequestId = 0;
+ULONGLONG g_focusGeneration = 0;
+std::atomic<ULONGLONG> g_inputGeneration{0};
 std::optional<PendingShow> g_pendingShow;
+
+// Only the host thread owns the query handles. Closing the job ends even a
+// provider stuck in a synchronous COM call, without unloading executing code.
+void CancelCaretQuery() {
+    if (g_caretJob) {
+        CloseHandle(g_caretJob);
+        g_caretJob = nullptr;
+    }
+    if (g_caretProcess) {
+        CloseHandle(g_caretProcess);
+        g_caretProcess = nullptr;
+    }
+    if (g_caretPacket) {
+        UnmapViewOfFile(g_caretPacket);
+        g_caretPacket = nullptr;
+    }
+    if (g_caretMapping) {
+        CloseHandle(g_caretMapping);
+        g_caretMapping = nullptr;
+    }
+    g_pendingShow.reset();
+}
 
 std::atomic<ULONGLONG> g_logicalFocusTick{0};
 ULONGLONG g_lastLogicalFocusTick = 0;
@@ -510,7 +539,32 @@ bool FocusPrefersPointer(HWND focus) {
     return false;
 }
 
+bool IsSteamWindow(HWND hwnd) {
+    DWORD processId = 0;
+    if (!hwnd || !GetWindowThreadProcessId(hwnd, &processId) || !processId) {
+        return false;
+    }
+    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+    if (!process) {
+        return false;
+    }
+    wchar_t path[MAX_PATH];
+    DWORD length = ARRAYSIZE(path);
+    const BOOL queried = QueryFullProcessImageNameW(process, 0, path, &length);
+    CloseHandle(process);
+    if (!queried) {
+        return false;
+    }
+    const wchar_t* separator = wcsrchr(path, L'\\');
+    const wchar_t* name = separator ? separator + 1 : path;
+    return _wcsicmp(name, L"steam.exe") == 0 ||
+           _wcsicmp(name, L"steamwebhelper.exe") == 0;
+}
+
 bool QueryAccessibleCaret(HWND hwnd, RECT* rect) {
+    if (IsSteamWindow(hwnd)) {
+        return false;
+    }
     IAccessible* caret = nullptr;
     if (FAILED(AccessibleObjectFromWindow(hwnd, OBJID_CARET, IID_IAccessible,
                                           reinterpret_cast<void**>(&caret))) ||
@@ -625,32 +679,13 @@ ComPtr<IUIAutomationTextRange> GetUiaCaretRange(IUIAutomationElement* element) {
     return range;
 }
 
-bool TryCaretFromElementRect(IUIAutomationElement* element, RECT* rect) {
-    CONTROLTYPEID type = 0;
-    if (FAILED(element->get_CurrentControlType(&type)) || type != UIA_EditControlTypeId) {
-        return false;
-    }
-    RECT bounds{};
-    if (FAILED(element->get_CurrentBoundingRectangle(&bounds)) ||
-        bounds.right - bounds.left < 8 || bounds.bottom - bounds.top < 8) {
-        return false;
-    }
-    LONG inset = (bounds.right - bounds.left) / 40;
-    if (inset < 2) {
-        inset = 2;
-    }
-    *rect = {bounds.left + inset, bounds.top + inset, bounds.left + inset + 1,
-             bounds.bottom - inset};
-    return true;
-}
-
 bool TryCaretOnElement(IUIAutomationElement* element, RECT* rect) {
     if (!element) {
         return false;
     }
     ComPtr<IUIAutomationTextRange> range = GetUiaCaretRange(element);
     if (!range) {
-        return TryCaretFromElementRect(element, rect);
+        return false;
     }
     if (ReadUiaCaretBounds(range.Get(), false, rect)) {
         return true;
@@ -667,11 +702,15 @@ bool TryCaretOnElement(IUIAutomationElement* element, RECT* rect) {
             return true;
         }
     }
-    return TryCaretFromElementRect(element, rect);
+    return false;
 }
 
 std::optional<RECT> QueryUiaCaret(IUIAutomation* automation, HWND focus,
-                                  bool requireEditor) {
+                                  bool requireEditor, bool* editorOut) {
+    // Queued work can outlive a foreground change to Steam.
+    if (IsSteamWindow(focus) || IsSteamWindow(GetForegroundWindow())) {
+        return std::nullopt;
+    }
     GUITHREADINFO gui{sizeof(gui)};
     if (!GetGUIThreadInfo(0, &gui)) {
         return std::nullopt;
@@ -687,6 +726,7 @@ std::optional<RECT> QueryUiaCaret(IUIAutomation* automation, HWND focus,
         focused->get_CurrentControlType(&type);
         const bool editor = type == UIA_EditControlTypeId ||
                             static_cast<bool>(GetUiaCaretRange(focused.Get()));
+        *editorOut = editor;
         if (requireEditor && !editor) {
             return std::nullopt;
         }
@@ -707,85 +747,103 @@ std::optional<RECT> QueryUiaCaret(IUIAutomation* automation, HWND focus,
     return std::nullopt;
 }
 
-DWORD WINAPI CaretThread(void*) {
-    const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    if (FAILED(com)) {
-        ZIH_LOG(L"UIA COM init failed: 0x%08lx", static_cast<DWORD>(com));
-        return 0;
-    }
-    ComPtr<IUIAutomation2> automation;
-    HRESULT hr = CoCreateInstance(__uuidof(CUIAutomation8), nullptr, CLSCTX_INPROC_SERVER,
-                                  IID_PPV_ARGS(&automation));
-    if (SUCCEEDED(hr)) {
-        automation->put_ConnectionTimeout(150);
-        automation->put_TransactionTimeout(150);
-    } else {
-        ZIH_LOG(L"UIA create failed: 0x%08lx", static_cast<DWORD>(hr));
-    }
-
-    const HANDLE events[]{g_stopEvent, g_caretRequestEvent};
-    while (WaitForMultipleObjects(ARRAYSIZE(events), events, FALSE, INFINITE) ==
-           WAIT_OBJECT_0 + 1) {
-        std::optional<CaretRequest> request;
-        {
-            std::lock_guard lock(g_caretMutex);
-            request = std::exchange(g_caretRequest, std::nullopt);
-        }
-        if (!request) {
-            continue;
-        }
-        std::optional<RECT> rect;
-        if (automation) {
-            for (int attempt = 0; attempt < kCaretAttempts && !rect; ++attempt) {
-                if (attempt > 0) {
-                    if (WaitForSingleObject(g_stopEvent, kCaretRetryDelayMs) !=
-                        WAIT_TIMEOUT) {
-                        break;
-                    }
-                    std::lock_guard lock(g_caretMutex);
-                    if (g_caretRequest && g_caretRequest->id != request->id) {
-                        break;
-                    }
-                }
-                rect = QueryUiaCaret(automation.Get(), request->focus, request->requireEditor);
-            }
-        }
-        std::lock_guard lock(g_caretMutex);
-        g_caretResult = CaretResult{request->id, rect};
-    }
-    automation.Reset();
-    CoUninitialize();
-    return 0;
-}
-
-bool EnsureCaretThread() {
-    if (g_caretThread) {
-        return true;
-    }
-    g_caretRequestEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-    if (!g_caretRequestEvent) {
-        return false;
-    }
-    g_caretThread = CreateThread(nullptr, 0, CaretThread, nullptr, 0, nullptr);
-    if (!g_caretThread) {
-        CloseHandle(g_caretRequestEvent);
-        g_caretRequestEvent = nullptr;
-        return false;
-    }
-    return true;
-}
-
 bool RequestUiaCaret(HWND focus, const std::wstring& text, bool requireEditor = false) {
-    if (!EnsureCaretThread()) {
+    CancelCaretQuery();
+    if (IsSteamWindow(focus) || IsSteamWindow(GetForegroundWindow())) {
         return false;
     }
-    const CaretRequest request{++g_nextCaretRequestId, focus, requireEditor};
-    g_pendingShow = PendingShow{request, text, GetTickCount64()};
-    {
-        std::lock_guard lock(g_caretMutex);
-        g_caretRequest = request;
+    wchar_t modulePath[32768]{};
+    wchar_t systemPath[MAX_PATH]{};
+    if (!GetModuleFileNameW(g_hInstance, modulePath, ARRAYSIZE(modulePath)) ||
+        !GetSystemDirectoryW(systemPath, ARRAYSIZE(systemPath))) {
+        return false;
     }
-    SetEvent(g_caretRequestEvent);
+    const std::wstring mappingName = L"Local\\ZenCaretQuery-" +
+        std::to_wstring(GetCurrentProcessId()) + L"-" +
+        std::to_wstring(++g_nextCaretRequestId);
+    g_caretMapping = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                                       0, sizeof(CaretPacket), mappingName.c_str());
+    if (!g_caretMapping) {
+        return false;
+    }
+    g_caretPacket = static_cast<CaretPacket*>(MapViewOfFile(
+        g_caretMapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(CaretPacket)));
+    if (!g_caretPacket) {
+        CancelCaretQuery();
+        return false;
+    }
+    *g_caretPacket = CaretPacket{};
+    g_caretPacket->focus = focus;
+    g_caretPacket->requireEditor = requireEditor;
+    g_caretJob = CreateJobObjectW(nullptr, nullptr);
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+    limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    if (!g_caretJob || !SetInformationJobObject(g_caretJob,
+            JobObjectExtendedLimitInformation, &limits, sizeof(limits))) {
+        CancelCaretQuery();
+        return false;
+    }
+    const std::wstring executable = std::wstring(systemPath) + L"\\rundll32.exe";
+    std::wstring command = L"\"" + executable + L"\" \"" + modulePath +
+        L"\",ZenCaretQuery " + mappingName;
+    // The mod imports windhawk.dll from the engine directory. A plain
+    // rundll32 process does not inherit Explorer's loaded DLL search state.
+    wchar_t enginePath[32768]{};
+    HMODULE engine = GetModuleHandleW(L"windhawk.dll");
+    if (engine && !GetModuleFileNameW(engine, enginePath, ARRAYSIZE(enginePath))) {
+        CancelCaretQuery();
+        return false;
+    }
+    std::vector<wchar_t> environment;
+    LPWCH inherited = GetEnvironmentStringsW();
+    if (!inherited) {
+        CancelCaretQuery();
+        return false;
+    }
+    for (const wchar_t* entry = inherited; *entry; entry += wcslen(entry) + 1) {
+        if (_wcsnicmp(entry, L"PATH=", 5) != 0) {
+            environment.insert(environment.end(), entry, entry + wcslen(entry) + 1);
+        }
+    }
+    FreeEnvironmentStringsW(inherited);
+    const DWORD pathLength = GetEnvironmentVariableW(L"PATH", nullptr, 0);
+    std::vector<wchar_t> inheritedPath(pathLength + 1);
+    GetEnvironmentVariableW(L"PATH", inheritedPath.data(), inheritedPath.size());
+    std::wstring searchPath = L"PATH=";
+    wchar_t* separator = wcsrchr(enginePath, L'\\');
+    if (separator) {
+        *separator = 0;
+        searchPath += std::wstring(enginePath) + L";";
+    }
+    searchPath += inheritedPath.data();
+    environment.insert(environment.end(), searchPath.begin(), searchPath.end());
+    environment.push_back(0);
+    environment.push_back(0);
+    STARTUPINFOW startup{sizeof(startup)};
+    startup.dwFlags = STARTF_USESHOWWINDOW;
+    startup.wShowWindow = SW_HIDE;
+    PROCESS_INFORMATION process{};
+    if (!CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE,
+                        CREATE_SUSPENDED | CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT,
+                        environment.data(), nullptr,
+                        &startup, &process)) {
+        CancelCaretQuery();
+        return false;
+    }
+    g_caretProcess = process.hProcess;
+    const bool assigned = AssignProcessToJobObject(g_caretJob, process.hProcess) != FALSE;
+    const bool resumed = assigned && ResumeThread(process.hThread) != static_cast<DWORD>(-1);
+    if (!resumed) {
+        // The process is still suspended and has never run provider code.
+        TerminateProcess(process.hProcess, ERROR_CANCELLED);
+    }
+    CloseHandle(process.hThread);
+    if (!resumed) {
+        CancelCaretQuery();
+        return false;
+    }
+    g_pendingShow = PendingShow{focus, GetForegroundWindow(), g_focusGeneration,
+                                g_inputGeneration.load(), text, GetTickCount64(), requireEditor};
     return true;
 }
 
@@ -806,13 +864,17 @@ std::optional<HintLang> DetectLangHint(HWND focus, const wchar_t** methodOut) {
 
     constexpr WPARAM kGetConversionMode = 0x0001;  // IMC_GETCONVERSIONMODE
     constexpr WPARAM kGetOpenStatus = 0x0005;      // IMC_GETOPENSTATUS
-    constexpr UINT kImeTimeoutMs = 30;
+    constexpr UINT kImeTimeoutMs = 10;
+    const ULONGLONG deadline = GetTickCount64() + 40;
     constexpr UINT kSendFlags = SMTO_BLOCK | SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT;
     const HWND candidates[]{focus, GetAncestor(focus, GA_ROOT), GetForegroundWindow(),
                             g_cachedImeOwner};
     HWND seen[4]{};
     int seenCount = 0;
     for (HWND hwnd : candidates) {
+        if (GetTickCount64() >= deadline) {
+            break;
+        }
         HWND ime = hwnd ? ImmGetDefaultIMEWnd(hwnd) : nullptr;
         if (!ime) {
             continue;
@@ -838,6 +900,9 @@ std::optional<HintLang> DetectLangHint(HWND focus, const wchar_t** methodOut) {
             return HintLang::English;
         }
         DWORD_PTR conversion = 0;
+        if (GetTickCount64() >= deadline) {
+            break;
+        }
         if (!SendMessageTimeoutW(ime, WM_IME_CONTROL, kGetConversionMode, 0, kSendFlags,
                                  kImeTimeoutMs, &conversion)) {
             continue;
@@ -1345,11 +1410,13 @@ void ShowHint(const std::wstring& text, HWND focus, const GUITHREADINFO& gui,
         return;
     }
 
-    const wchar_t* caretMethod = L"";
-    RECT caret{};
-    if (QueryCaretScreenRect(focus, gui, &caret, &caretMethod) &&
+    if (gui.hwndCaret && gui.rcCaret.bottom > gui.rcCaret.top &&
         FocusStillCurrent(focus)) {
-        ZIH_LOG(L"show \"%s\" via=%s caret=%s", text.c_str(), langMethod, caretMethod);
+        RECT caret = gui.rcCaret;
+        if (caret.right == caret.left) {
+            ++caret.right;
+        }
+        MapWindowPoints(gui.hwndCaret, nullptr, reinterpret_cast<POINT*>(&caret), 2);
         ShowBubbleAt(text, caret, GetWindowDpiSafe(focus));
         return;
     }
@@ -1365,55 +1432,63 @@ void CompletePendingShow(HWND focus) {
     if (!g_pendingShow) {
         return;
     }
-    const PendingShow& pending = *g_pendingShow;
-    if (pending.request.focus != focus) {
-        g_pendingShow.reset();
+    const PendingShow pending = *g_pendingShow;
+    if (pending.focus != focus || pending.foreground != GetForegroundWindow() ||
+        pending.generation != g_focusGeneration ||
+        pending.inputGeneration != g_inputGeneration.load() || !FocusStillCurrent(focus)) {
+        CancelCaretQuery();
         return;
     }
-    if (GetTickCount64() - pending.startedAt > kCaretExpiryMs) {
-        const std::wstring text = pending.text;
-        const bool pointerFallback = !pending.request.requireEditor;
-        g_pendingShow.reset();
-        if (pointerFallback && FocusStillCurrent(focus)) {
-            ShowPointerBubble(text);
-        }
+    const bool complete = WaitForSingleObject(g_caretProcess, 0) == WAIT_OBJECT_0;
+    const bool expired = GetTickCount64() - pending.startedAt >= kCaretExpiryMs;
+    if (!complete && !expired) {
         return;
     }
-
-    std::optional<CaretResult> result;
-    {
-        std::lock_guard lock(g_caretMutex);
-        if (g_caretResult && g_caretResult->id == pending.request.id) {
-            result = std::exchange(g_caretResult, std::nullopt);
-        }
+    CaretPacket result{};
+    DWORD exitCode = ERROR_CANCELLED;
+    if (complete && GetExitCodeProcess(g_caretProcess, &exitCode) && exitCode == 0) {
+        result = *g_caretPacket;
     }
-    if (!result) {
-        return;
-    }
-
-    const std::wstring text = pending.text;
-    const bool pointerFallback = !pending.request.requireEditor;
-    g_pendingShow.reset();
-    if (!FocusStillCurrent(focus)) {
-        return;
-    }
-    if (result->rect) {
-        ShowBubbleAt(text, *result->rect, GetWindowDpiSafe(focus));
-    } else if (pointerFallback) {
-        ShowPointerBubble(text);
+    CancelCaretQuery();
+    if (result.hasRect) {
+        ShowBubbleAt(pending.text, result.rect, GetWindowDpiSafe(focus));
+    } else if (!pending.requireEditor || result.editor) {
+        ShowPointerBubble(pending.text);
     }
 }
 
-LRESULT CALLBACK MouseProc(int code, WPARAM message, LPARAM data) {
-    if (code == HC_ACTION && message == WM_LBUTTONUP) {
+void HandleMouse(WPARAM message) {
+    if (message == WM_LBUTTONUP) {
         g_clickPending = true;
         g_clickReadyAt = GetTickCount64() + 80;
     }
-    return CallNextHookEx(nullptr, code, message, data);
 }
 
 bool IsShiftKey(DWORD key) {
     return key == VK_SHIFT || key == VK_LSHIFT || key == VK_RSHIFT;
+}
+
+void HandleShiftTap(HWND foreground) {
+    if (!foreground || foreground != GetForegroundWindow()) {
+        return;
+    }
+    if (!g_pendingShiftTaps || foreground != g_pendingShiftForeground) {
+        g_pendingShiftTaps = 0;
+        g_shiftBaseline = g_hasLastLang ? std::optional<HintLang>(g_lastLang) : std::nullopt;
+    }
+    ++g_pendingShiftTaps;
+    g_pendingShiftForeground = foreground;
+    g_shiftReadyAt = GetTickCount64() + kShiftSettleMs;
+}
+
+LRESULT CALLBACK MouseProc(int code, WPARAM message, LPARAM data) {
+    if (code == HC_ACTION && message == WM_LBUTTONDOWN) {
+        ++g_inputGeneration;
+    }
+    if (code == HC_ACTION && message == WM_LBUTTONUP) {
+        PostMessageW(g_hostWnd, kMouseMessage, message, 0);
+    }
+    return CallNextHookEx(nullptr, code, message, data);
 }
 
 LRESULT CALLBACK KeyboardProc(int code, WPARAM message, LPARAM data) {
@@ -1421,6 +1496,10 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM message, LPARAM data) {
         const auto& key = *reinterpret_cast<const KBDLLHOOKSTRUCT*>(data);
         const bool down = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
         const bool up = message == WM_KEYUP || message == WM_SYSKEYUP;
+        if (down) {
+            ++g_inputGeneration;
+        }
+        // Shift/chord state belongs exclusively to this input thread.
         if (IsShiftKey(key.vkCode)) {
             if (down && !g_shiftDown) {
                 g_shiftDown = true;
@@ -1432,23 +1511,15 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM message, LPARAM data) {
                     (GetAsyncKeyState(VK_LWIN) & 0x8000) ||
                     (GetAsyncKeyState(VK_RWIN) & 0x8000);
             } else if (up && g_shiftDown) {
-                const ULONGLONG now = GetTickCount64();
                 HWND foreground = GetForegroundWindow();
-                if (!g_shiftUsedInChord && now - g_shiftDownAt <= kShiftTapMaxMs &&
+                if (!g_shiftUsedInChord &&
+                    GetTickCount64() - g_shiftDownAt <= kShiftTapMaxMs &&
                     foreground && foreground == g_shiftForeground) {
-                    if (!g_pendingShiftTaps || foreground != g_pendingShiftForeground) {
-                        g_pendingShiftTaps = 0;
-                        g_shiftBaseline = g_hasLastLang
-                                              ? std::optional<HintLang>(g_lastLang)
-                                              : std::nullopt;
-                    }
-                    ++g_pendingShiftTaps;
-                    g_pendingShiftForeground = foreground;
-                    g_shiftReadyAt = now + kShiftSettleMs;
+                    PostMessageW(g_hostWnd, kKeyboardMessage,
+                                 reinterpret_cast<WPARAM>(foreground), 0);
                 }
                 g_shiftDown = false;
             } else if (down) {
-                // A second Shift key also forms a chord.
                 g_shiftUsedInChord = true;
             }
         } else if (down && g_shiftDown) {
@@ -1456,6 +1527,30 @@ LRESULT CALLBACK KeyboardProc(int code, WPARAM message, LPARAM data) {
         }
     }
     return CallNextHookEx(nullptr, code, message, data);
+}
+
+DWORD WINAPI InputThread(void*) {
+    g_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseProc, g_hInstance, 0);
+    g_keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardProc, g_hInstance, 0);
+    if (!g_mouseHook || !g_keyboardHook) {
+        ZIH_LOG(L"Input hook initialization failed: %lu", GetLastError());
+    }
+    while (MsgWaitForMultipleObjectsEx(1, &g_stopEvent, INFINITE, QS_ALLINPUT,
+                                       MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0 + 1) {
+        MSG message{};
+        while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
+            DispatchMessageW(&message);
+        }
+    }
+    if (g_mouseHook) {
+        UnhookWindowsHookEx(g_mouseHook);
+        g_mouseHook = nullptr;
+    }
+    if (g_keyboardHook) {
+        UnhookWindowsHookEx(g_keyboardHook);
+        g_keyboardHook = nullptr;
+    }
+    return 0;
 }
 
 std::optional<HintLang> ResolveShiftLang(std::optional<HintLang> raw,
@@ -1493,14 +1588,17 @@ std::optional<HintLang> ResolveShiftLang(std::optional<HintLang> raw,
 void PollOnce() {
     if (g_settingsChanged.exchange(false)) {
         LoadSettings();
+        CancelCaretQuery();
+        HideBubble();
         g_hasLastLang = false;
         g_hasLastCaps = false;
         g_staleImeLang.reset();
         g_pendingShiftTaps = 0;
+        g_langQueryFailing = false;
         g_lastLangQueryTick = 0;
     }
     if (!g_settings.bubbleEnabled) {
-        g_pendingShow.reset();
+        CancelCaretQuery();
         if (g_bubbleVisible) {
             HideBubble();
         }
@@ -1509,7 +1607,26 @@ void PollOnce() {
 
     HWND foreground = GetForegroundWindow();
     if (!foreground || foreground == g_overlayWnd || foreground == g_hostWnd) {
-        g_pendingShow.reset();
+        CancelCaretQuery();
+        g_lastFocus = nullptr;
+        g_hasLastLang = false;
+        g_hasLastCaps = false;
+        if (g_bubbleVisible) {
+            HideBubble();
+        }
+        return;
+    }
+
+    // Avoid querying Steam's
+    // IME or accessibility providers, and discard work from the previous app.
+    if (IsSteamWindow(foreground)) {
+        CancelCaretQuery();
+        g_focusHintPending = false;
+        g_clickPending = false;
+        g_pendingShiftTaps = 0;
+        g_cachedForeground = nullptr;
+        g_cachedFocus = nullptr;
+        g_cachedImeOwner = nullptr;
         g_lastFocus = nullptr;
         g_hasLastLang = false;
         g_hasLastCaps = false;
@@ -1524,11 +1641,14 @@ void PollOnce() {
     const bool logicalEventNew = (logicalTick != g_lastLogicalFocusTick);
     g_lastLogicalFocusTick = logicalTick;
     if (logicalEventNew || foreground != g_cachedForeground) {
+        ++g_focusGeneration;
+        CancelCaretQuery();
         g_focusHintPending = true;
     }
     if (g_clickPending) {
         // Cancel work for the previous control even when both share one HWND.
-        g_pendingShow.reset();
+        ++g_focusGeneration;
+        CancelCaretQuery();
         if (now < g_clickReadyAt) {
             return;
         }
@@ -1542,7 +1662,7 @@ void PollOnce() {
                                  !g_cachedFocus;
     if (needsFocusQuery) {
         if (!GetGUIThreadInfo(0, &gui)) {
-            g_pendingShow.reset();
+            CancelCaretQuery();
             g_cachedForeground = nullptr;
             g_cachedFocus = nullptr;
             if (g_bubbleVisible) {
@@ -1558,7 +1678,7 @@ void PollOnce() {
 
     HWND focus = g_cachedFocus ? g_cachedFocus : foreground;
     if (focus == g_overlayWnd || focus == g_hostWnd) {
-        g_pendingShow.reset();
+        CancelCaretQuery();
         g_lastFocus = nullptr;
         g_hasLastLang = false;
         g_hasLastCaps = false;
@@ -1573,10 +1693,13 @@ void PollOnce() {
         g_staleImeLang.reset();
         g_hasLastLang = false;
         g_lastLangQueryTick = 0;
+        g_langQueryFailing = false;
         if (foreground != g_pendingShiftForeground) {
             g_pendingShiftTaps = 0;
         }
     }
+    g_lastForeground = foreground;
+    g_lastFocus = focus;
     if (g_pendingShiftTaps && now < g_shiftReadyAt) {
         return;
     }
@@ -1586,16 +1709,16 @@ void PollOnce() {
     const ULONGLONG langRetryMs = g_langQueryFailing ? kLangFailRetryMs : kLangRefreshMs;
     const wchar_t* langMethod = L"cached";
     std::optional<HintLang> lang;
-    if (!shiftTap && !g_focusHintPending && g_hasLastLang &&
-        now - g_lastLangQueryTick < langRetryMs) {
-        lang = g_staleImeLang ? g_staleImeLang : std::optional<HintLang>(g_lastLang);
-    } else {
+    const bool queryDue = !g_lastLangQueryTick ||
+                          now - g_lastLangQueryTick >= langRetryMs;
+    if (shiftTap || queryDue) {
         langMethod = L"";
         lang = DetectLangHint(focus, &langMethod);
         g_langQueryFailing = !lang;
-        if (lang) {
-            g_lastLangQueryTick = now;
-        }
+        // Record attempts too, including the very first failed query.
+        g_lastLangQueryTick = GetTickCount64();
+    } else if (g_hasLastLang) {
+        lang = g_staleImeLang ? g_staleImeLang : std::optional<HintLang>(g_lastLang);
     }
 
     if (IsChineseLayoutForWindow(focus)) {
@@ -1624,19 +1747,17 @@ void PollOnce() {
         text = BuildImeBubbleText(*lang, capsOn);
     }
 
-    if (g_focusHintPending && !shouldShow && (lang || capsOn)) {
+    if (g_focusHintPending && !shouldShow) {
         // UIA confirms an editable control before a click/focus hint can appear.
         const std::wstring current = capsOn ? CapsLabel(true)
-                                           : BuildImeBubbleText(*lang, false);
+                                           : BuildImeBubbleText(lang.value_or(g_lastLang), false);
         HideBubble();
         RequestUiaCaret(focus, current, true);
     }
-    if (lang || capsOn || shouldShow) {
-        g_focusHintPending = false;
-    }
+    g_focusHintPending = false;
 
     if (shouldShow) {
-        g_pendingShow.reset();
+        CancelCaretQuery();
         if (!needsFocusQuery) {
             GUITHREADINFO fresh{sizeof(fresh)};
             if (GetGUIThreadInfo(0, &fresh)) {
@@ -1665,7 +1786,7 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     static const UINT dismissForCapture =
         RegisterWindowMessageW(L"ZenDesktop.DismissCaretHintForCapture.v1");
     if (dismissForCapture && msg == dismissForCapture) {
-        g_pendingShow.reset();
+        CancelCaretQuery();
         g_focusHintPending = false;
         HideBubble();
         return TRUE;
@@ -1683,6 +1804,12 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 LRESULT CALLBACK HostWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+        case kKeyboardMessage:
+            HandleShiftTap(reinterpret_cast<HWND>(wParam));
+            return 0;
+        case kMouseMessage:
+            HandleMouse(wParam);
+            return 0;
         case WM_TIMER:
             if (wParam == kPollTimerId) {
                 PollOnce();
@@ -1745,7 +1872,7 @@ void CALLBACK WinEventProc(HWINEVENTHOOK, DWORD event, HWND hwnd, LONG idObject,
         (idObject == OBJID_CLIENT || idObject == OBJID_WINDOW)) {
         HWND foreground = GetForegroundWindow();
         if (foreground && GetAncestor(hwnd, GA_ROOT) == GetAncestor(foreground, GA_ROOT)) {
-            g_logicalFocusTick.store(GetTickCount64());
+            g_logicalFocusTick.fetch_add(1);
         }
     }
 }
@@ -1761,13 +1888,9 @@ DWORD WINAPI HostThread(void*) {
     g_hostWnd = CreateWindowExW(0, kHostClass, L"", WS_POPUP, 0, 0, 0, 0,
                                 HWND_MESSAGE, nullptr, g_hInstance, nullptr);
     if (g_hostWnd) {
-        g_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, MouseProc, g_hInstance, 0);
-        if (!g_mouseHook) {
-            ZIH_LOG(L"Mouse hook failed: %lu", GetLastError());
-        }
-        g_keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, KeyboardProc, g_hInstance, 0);
-        if (!g_keyboardHook) {
-            ZIH_LOG(L"Keyboard hook failed: %lu", GetLastError());
+        g_inputThread = CreateThread(nullptr, 0, InputThread, nullptr, 0, nullptr);
+        if (!g_inputThread) {
+            ZIH_LOG(L"Input thread creation failed: %lu", GetLastError());
         }
         HWINEVENTHOOK foregroundHook = SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr,
@@ -1798,27 +1921,17 @@ DWORD WINAPI HostThread(void*) {
             }
         }
 
-        if (g_mouseHook) {
-            UnhookWindowsHookEx(g_mouseHook);
-            g_mouseHook = nullptr;
-        }
-        if (g_keyboardHook) {
-            UnhookWindowsHookEx(g_keyboardHook);
-            g_keyboardHook = nullptr;
-        }
         if (foregroundHook) {
             UnhookWinEvent(foregroundHook);
         }
         if (focusHook) {
             UnhookWinEvent(focusHook);
         }
-        if (g_caretThread) {
-            SetEvent(g_stopEvent);
-            WaitForSingleObject(g_caretThread, INFINITE);
-            CloseHandle(g_caretThread);
-            CloseHandle(g_caretRequestEvent);
-            g_caretThread = nullptr;
-            g_caretRequestEvent = nullptr;
+        CancelCaretQuery();
+        if (g_inputThread) {
+            WaitForSingleObject(g_inputThread, INFINITE);
+            CloseHandle(g_inputThread);
+            g_inputThread = nullptr;
         }
         if (g_overlayWnd) {
             DestroyWindow(g_overlayWnd);
@@ -1839,6 +1952,54 @@ DWORD WINAPI HostThread(void*) {
 
 }  // namespace
 
+// rundll32 entry point. The parent owns the job and enforces the deadline.
+extern "C" __declspec(dllexport) void CALLBACK ZenCaretQuery(
+    HWND, HINSTANCE, LPSTR command, int) {
+    wchar_t mappingName[160]{};
+    if (!MultiByteToWideChar(CP_ACP, 0, command, -1, mappingName, ARRAYSIZE(mappingName))) {
+        return;
+    }
+    HANDLE mapping = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, mappingName);
+    if (!mapping) {
+        return;
+    }
+    auto* packet = static_cast<CaretPacket*>(MapViewOfFile(
+        mapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(CaretPacket)));
+    if (packet && packet->size == sizeof(CaretPacket) &&
+        !IsSteamWindow(packet->focus) && !IsSteamWindow(GetForegroundWindow())) {
+        SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        if (SUCCEEDED(com)) {
+            ComPtr<IUIAutomation2> automation;
+            if (SUCCEEDED(CoCreateInstance(__uuidof(CUIAutomation8), nullptr,
+                    CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&automation)))) {
+                automation->put_ConnectionTimeout(100);
+                automation->put_TransactionTimeout(100);
+                auto rect = QueryUiaCaret(automation.Get(), packet->focus,
+                                          packet->requireEditor, &packet->editor);
+                if (rect) {
+                    packet->rect = *rect;
+                    packet->hasRect = true;
+                }
+            }
+            if (!packet->hasRect && (!packet->requireEditor || packet->editor)) {
+                GUITHREADINFO gui{sizeof(gui)};
+                const wchar_t* method = L"";
+                if (GetGUIThreadInfo(0, &gui) &&
+                    QueryCaretScreenRect(packet->focus, gui, &packet->rect, &method)) {
+                    packet->hasRect = true;
+                }
+            }
+            automation.Reset();
+            CoUninitialize();
+        }
+    }
+    if (packet) {
+        UnmapViewOfFile(packet);
+    }
+    CloseHandle(mapping);
+}
+
 BOOL Wh_ModInit() {
     USEROBJECTFLAGS stationFlags{};
     if (!GetUserObjectInformationW(GetProcessWindowStation(), UOI_FLAGS, &stationFlags,
@@ -1857,7 +2018,7 @@ BOOL Wh_ModInit() {
 
 void Wh_ModAfterInit() {
     LoadSettings();
-    ZIH_LOG(L"zen-ime-caret-hint 0.2.4 up: ime=%d caps=%d classes=\"%s\"",
+    ZIH_LOG(L"zen-ime-caret-hint 0.2.7 up: ime=%d caps=%d classes=\"%s\"",
             g_settings.showOnImeToggle ? 1 : 0, g_settings.showOnCapsLock ? 1 : 0,
             g_settings.editorClasses.c_str());
 

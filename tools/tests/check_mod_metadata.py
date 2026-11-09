@@ -6,6 +6,8 @@ root = Path(__file__).resolve().parents[2]
 paths = [Path(p) for p in sys.argv[1:]] or sorted(root.glob('*.wh.cpp')) + sorted((root / 'optional').glob('*.wh.cpp'))
 errors = []
 for path in paths:
+    if path.read_bytes().startswith(b'\xef\xbb\xbf'):
+        errors.append(f'{path}: UTF-8 BOM prevents Windhawk metadata recognition')
     source = path.read_text(encoding='utf-8-sig')
     match = re.search(r'^// ==WindhawkMod==\s*\n(.*?)^// ==/WindhawkMod==', source, re.M | re.S)
     if not match:

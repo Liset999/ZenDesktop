@@ -43,6 +43,14 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 ---
 
+## v5.2.1 更新亮点
+
+完整更新日志见 [CHANGELOG_v5.2.1.md](CHANGELOG_v5.2.1.md)。
+
+- **光标输入法提示 0.2.7**。修复 Steam 卡顿，将无障碍查询隔离到限时进程，键鼠钩子使用独立线程，保留输入框自动提醒并改进定位。Steam 已获用户实机恢复确认。
+- **重复部署改进**。等待 Windhawk 正常退出，保留未变化源码的已编译 DLL 注册信息，检查服务启动结果。
+- **生效步骤**。完成所需模块的编译和启用后，请保存工作并重启电脑。窗口动画对部分已有应用仍存在热注入限制，本版沿用官方 Windhawk。
+
 ## v5.2.0 更新亮点
 
 完整更新日志见 [CHANGELOG_v5.2.0.md](CHANGELOG_v5.2.0.md)。
@@ -225,9 +233,9 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 | 文件 | 适合谁 |
 |---|---|
-| `ZenDesktop_OneKeyDeploy_v5.2.0.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
-| `ZenDesktop_OneKeyDeploy_v5.2.0_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
-| `ZenDesktop_OneKeyDeploy_v5.2.0_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
+| `ZenDesktop_OneKeyDeploy_v5.2.1.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
+| `ZenDesktop_OneKeyDeploy_v5.2.1_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
+| `ZenDesktop_OneKeyDeploy_v5.2.1_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
 
 ## 安装
 
