@@ -19,7 +19,7 @@ common_files = [
     'AAA使用前必看.txt',
     'CHANGELOG_v5.0.0.md',
     'CHANGELOG_v5.2.0.md',
-    'CHANGELOG_v5.2.2.md',
+    'CHANGELOG_v5.2.5.md',
     'README.md',
     'docs/donate-wechat.png',
     'docs/screenshots',  # README.md preview images
@@ -45,9 +45,9 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v5.2.2.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.2_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.2_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v5.2.5.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.5_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.5_Online.zip': common_files
 }
 
 # Windhawk expects the metadata marker at the beginning of the source file.

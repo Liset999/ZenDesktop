@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v5.2.2 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.2.5 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -106,7 +106,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v5.2.2" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.2.5" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -460,9 +460,9 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "tintColor" "#232323" String $label
         Set-RegValueIfMissing $settingsPath "tintOpacity" 23 DWord $label
         Set-RegValueIfMissing $settingsPath "fieldOpacity" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
+        Set-RegValueIfMissing $settingsPath "textColorMode" "white" String $label
         Set-RegValueIfMissing $settingsPath "contextMenuEnable" 1 DWord $label
-        Set-RegValueIfMissing $settingsPath "contextMenuBlur" 30 DWord $label
+        Set-RegValueIfMissing $settingsPath "contextMenuBlur" 15 DWord $label
     }
 
     if ($id -eq "local@zen-taskbar-acrylic") {
@@ -497,6 +497,12 @@ foreach ($file in $files) {
             Set-RegValueIfMissing $settingsPath "unifyFlyouts" 0 DWord $label
         }
         Set-RegValueIfMissing $settingsPath "look.theme" "TranslucentTaskbar" String $label
+        Set-RegValueIfMissing $settingsPath "look.bgColorMode" "Default" String $label
+        Set-RegValueIfMissing $settingsPath "look.textColorMode" "white" String $label
+        Set-RegValueIfMissing $settingsPath "taskbar.blurPreset" 3 DWord $label
+        Set-RegValueIfMissing $settingsPath "taskbar.opacityPreset" 15 DWord $label
+        Set-RegValueIfMissing $settingsPath "taskbar.luminosityPreset" 15 DWord $label
+        Set-RegValueIfMissing $settingsPath "unifyFlyouts" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "size.taskbarHeight" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "size.iconSize" 0 DWord $label
@@ -523,6 +529,12 @@ foreach ($file in $files) {
         $label = "StartMenu Acrylic"
         Set-RegValueIfMissing $settingsPath "width" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "height" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "theme" "SimplyTransparent" String $label
+        Set-RegValueIfMissing $settingsPath "bgColorMode" "Default" String $label
+        Set-RegValueIfMissing $settingsPath "blurPreset" 5 DWord $label
+        Set-RegValueIfMissing $settingsPath "opacityPreset" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "luminosityPreset" 20 DWord $label
+        Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
     }
 
     if ($id -eq "local@windows-11-settings-styler-fork") {
@@ -532,12 +544,16 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "textColorMode" "default" String $label
         Set-RegValueIfMissing $settingsPath "blurPreset" 0 DWord $label
         Set-RegValueIfMissing $settingsPath "opacityPreset" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "luminosityPreset" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "luminosityPreset" 10 DWord $label
         Set-RegValueIfMissing $settingsPath "lightModeBase" 20 DWord $label
     }
 
     if ($id -eq "local@zen-notificationcenter-acrylic") {
         $label = "NotificationCenter Acrylic"
+        Set-RegValueIfMissing $settingsPath "theme" "TranslucentShell" String $label
+        Set-RegValueIfMissing $settingsPath "bgColorMode" "Default" String $label
+        Set-RegValueIfMissing $settingsPath "blurPreset" 3 DWord $label
+        Set-RegValueIfMissing $settingsPath "luminosityPreset" 20 DWord $label
         Set-RegValueIfMissing $settingsPath "lightModeContrast" "standard" String $label
     }
 
@@ -568,6 +584,32 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "enableLrclib" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "aiStatus" "compact" String $label
         Set-RegValueIfMissing $settingsPath "aiDoneSeconds" "120" String $label
+        Set-RegValueIfMissing $settingsPath "common.clickAction" "expand" String $label
+        Set-RegValueIfMissing $settingsPath "common.resources" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "common.weather" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "common.files" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "common.media" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "common.ai" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "common.whenIdle" "show" String $label
+        Set-RegValueIfMissing $settingsPath "common.sizePreset" "standard" String $label
+        Set-RegValueIfMissing $settingsPath "appearance.effect" "acrylic" String $label
+        Set-RegValueIfMissing $settingsPath "appearance.blur" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "appearance.color" "Default" String $label
+        Set-RegValueIfMissing $settingsPath "appearance.opacity" 10 DWord $label
+        Set-RegValueIfMissing $settingsPath "appearance.luminosity" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "appearance.textColorMode" "default" String $label
+        Set-RegValueIfMissing $settingsPath "advanced.layout.positionMode" "widgets" String $label
+        Set-RegValueIfMissing $settingsPath "advanced.lyrics.netease" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.lyrics.qq" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.lyrics.lrclib" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.ai.mode" "compact" String $label
+        Set-RegValueIfMissing $settingsPath "advanced.ai.doneSeconds" "30" String $label
+        Set-RegValueIfMissing $settingsPath "advanced.weather.allowIp" 0 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.weather.locationMode" "auto" String $label
+        Set-RegValueIfMissing $settingsPath "advanced.text.showArt" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.text.showButtons" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.text.bold" 1 DWord $label
+        Set-RegValueIfMissing $settingsPath "advanced.text.fontPreset" "msyh" String $label
     }
 
     if ($id -eq "local@zen-ime-caret-hint") {
@@ -593,6 +635,12 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "glass.bgColorMode" "Default" String $label
     }
 
+    if ($id -eq "local@wobbly-windows") {
+        $label = "Wobbly Windows"
+        Set-RegValueIfMissing $settingsPath "WobblinessPreset" "0" String $label
+        Set-RegValueIfMissing $settingsPath "EnableResizeWobble" 1 DWord $label
+    }
+
     if ($id -eq "local@zen-desktop-widgets") {
         $initWidgetSettings = Join-Path $PSScriptRoot "tools\Initialize-DesktopWidgetSettings.ps1"
         if (Test-Path $initWidgetSettings) {
@@ -614,20 +662,20 @@ foreach ($file in $files) {
             "close.close_animation"                 = 1
             "close.hide_as_close"                   = 1
             "close.random_effect"                   = 0
-            "close.duration_ms"                     = 630
-            "close.shatter_block_size"              = 5
+            "close.duration_ms"                     = 550
+            "close.shatter_block_size"              = 4
             "close.gpu_acceleration"                = 1
             "minimize_restore.minimize_animation"   = 1
             "minimize_restore.restore_animation"    = 1
-            "minimize_restore.launch_animation"     = 0
+            "minimize_restore.launch_animation"     = 1
             "minimize_restore.random_effect"        = 0
             "minimize_restore.duration_ms"          = 360
             "minimize_restore.genie_tile_count"     = 35
             "minimize_restore.unhide_taskbar"       = 1
             "minimize_restore.unhide_duration_ms"   = 450
-            "minimize_restore.show_desktop_top_window_only" = 0
+            "minimize_restore.show_desktop_top_window_only" = 1
             "minimize_restore.gpu_acceleration"     = 1
-            "window_switch.switch_animation"        = 0
+            "window_switch.switch_animation"        = 1
             "window_switch.duration_ms"             = 200
             "diagnostics.performance_telemetry"     = 0
             "skip_games"                            = 1
@@ -635,7 +683,7 @@ foreach ($file in $files) {
         foreach ($key in $waDefaults.Keys) {
             Set-RegValueIfMissing $settingsPath $key $waDefaults[$key] DWord $label
         }
-        Set-RegValueIfMissing $settingsPath "close.effect_style" "thanos" String $label
+        Set-RegValueIfMissing $settingsPath "close.effect_style" "shatter" String $label
         Set-RegValueIfMissing $settingsPath "minimize_restore.effect_style" "macos_genie" String $label
     }
 
@@ -725,7 +773,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v5.2.2 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.2.5 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："

@@ -18,7 +18,7 @@ $old.SetValue('audio.placement', 'both', [Microsoft.Win32.RegistryValueKind]::St
 $old.SetValue('clock.advanced.use24Hour', 0, [Microsoft.Win32.RegistryValueKind]::DWord)
 $old.SetValue('clock.advanced.glow', 0, [Microsoft.Win32.RegistryValueKind]::DWord)
 Initialize-DesktopWidgetSettings -Key $old
-if ($old.GetValue('audio.appearance.bars') -ne 24 -or $old.GetValue('audio.barHeight') -ne '22') { throw 'Missing audio defaults' }
+if ($old.GetValue('audio.appearance.bars') -ne 25 -or $old.GetValue('audio.barHeight') -ne '33') { throw 'Missing audio defaults' }
 if ($old.GetValue('audio.enabled') -ne 1 -or $old.GetValue('audio.placement') -ne 'taskbar') { throw 'User settings overwritten' }
 if ($old.GetValue('clock.use24Hour') -ne 0 -or $old.GetValue('clockAdvanced.glow') -ne 0) { throw 'Migration lost zero values' }
 $old.SetValue('audio.appearance.bars', 0, [Microsoft.Win32.RegistryValueKind]::DWord)
@@ -27,7 +27,7 @@ Initialize-DesktopWidgetSettings -Key $old
 if ($old.GetValue('audio.appearance.bars') -ne 0 -or $old.GetValue('clockAdvanced.glow') -ne 1) { throw 'Repeated migration overwrote user choices' }
 $fresh = New-Object WidgetMemoryKey
 Initialize-DesktopWidgetSettings -Key $fresh
-if ($fresh.GetValue('audio.enabled') -ne 0 -or $fresh.GetValue('clock.use24Hour') -ne 1) { throw 'Fresh defaults differ' }
+if ($fresh.GetValue('audio.enabled') -ne 1 -or $fresh.GetValue('clock.use24Hour') -ne 1) { throw 'Fresh defaults differ' }
 Write-Output 'PASS: missing defaults, existing choices, legacy migration, explicit zero, repeat migration, fresh defaults'
 
 $legacy = New-Object WidgetMemoryKey
