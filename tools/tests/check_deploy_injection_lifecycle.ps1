@@ -8,6 +8,12 @@ if ($source -match 'Stop-Process -Name windhawk -Force') {
 if ($source -notmatch 'ArgumentList @\("-exit", "-wait", "-timeout", "45000"\)') {
     $failures += 'Deployment does not wait for the supported engine shutdown.'
 }
+if ($source -notmatch '\[regex\]::Matches\(\$content, ''// @architecture') {
+    $failures += 'Deployment does not collect every architecture declaration.'
+}
+if ($source -notmatch '\$arches -join "\|"') {
+    $failures += 'Multiple architectures are not joined for Windhawk.'
+}
 if ($source -notmatch 'if \(\$copyResult -ne "skipped" -or \(\$file.DirectoryName -eq \$optionalDir -and \$sharedHeadersChanged\)\)\s*\{\s*\$modKey.SetValue\("LibraryFileName"') {
     $failures += 'Unchanged sources lose their compiled library registration.'
 }

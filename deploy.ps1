@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v5.2.1 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.2.2 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -106,7 +106,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v5.2.1" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.2.2" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -372,8 +372,13 @@ foreach ($file in $files) {
     
     # @architecture
     $arch = "x86-64"
-    if ($content -match '// @architecture\s+(.+)') {
-        $arch = $Matches[1].Trim()
+    $arches = @()
+    $matchesArch = [regex]::Matches($content, '// @architecture\s+(.+)')
+    foreach ($m in $matchesArch) {
+        $arches += $m.Groups[1].Value.Trim()
+    }
+    if ($arches.Count -gt 0) {
+        $arch = $arches -join "|"
     }
     
     # @include
@@ -588,6 +593,15 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "glass.bgColorMode" "Default" String $label
     }
 
+    if ($id -eq "local@zen-desktop-widgets") {
+        $initWidgetSettings = Join-Path $PSScriptRoot "tools\Initialize-DesktopWidgetSettings.ps1"
+        if (Test-Path $initWidgetSettings) {
+            . $initWidgetSettings
+            $wKey = Open-HklmKey $settingsPath
+            try { Initialize-DesktopWidgetSettings -Key $wKey } finally { $wKey.Close() }
+        }
+    }
+
     if ($id -eq "local@windows-animations") {
         # Matches the mod's settings block (1.4.0: macOS genie merged in, so
         # minimize/restore default on with the macos_genie style). Nested
@@ -711,7 +725,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v5.2.1 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.2.2 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："

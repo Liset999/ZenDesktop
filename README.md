@@ -43,6 +43,13 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 ---
 
+## v5.2.2 更新亮点
+
+完整更新日志见 [CHANGELOG_v5.2.2.md](CHANGELOG_v5.2.2.md)。
+
+- **桌面小组件恢复显示**。部署脚本保留 x86 和 x86-64 两个架构，64 位资源管理器可以继续加载时钟、日历、资源占用和音频可视化。
+- **升级无需重新编译**。本版不修改 Mod 源码，已编译且源码未变化的 DLL 会保留；缺失的小组件默认设置会补齐。
+
 ## v5.2.1 更新亮点
 
 完整更新日志见 [CHANGELOG_v5.2.1.md](CHANGELOG_v5.2.1.md)。
@@ -233,9 +240,9 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 | 文件 | 适合谁 |
 |---|---|
-| `ZenDesktop_OneKeyDeploy_v5.2.1.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
-| `ZenDesktop_OneKeyDeploy_v5.2.1_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
-| `ZenDesktop_OneKeyDeploy_v5.2.1_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
+| `ZenDesktop_OneKeyDeploy_v5.2.2.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
+| `ZenDesktop_OneKeyDeploy_v5.2.2_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
+| `ZenDesktop_OneKeyDeploy_v5.2.2_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
 
 ## 安装
 
