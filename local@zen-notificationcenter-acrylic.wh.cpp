@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.2.4
+// @version         4.2.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -67,6 +67,7 @@
 
 ## 更新日志
 
+- **4.2.5**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
 - **4.2.4**：模糊、不透明度和亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.2.3**：性能：缓存 CoreWnd 列表（短 TTL + IsWindow 校验），减少 EnumWindows。
 - **4.2.2**：修复横幅通知（Toast 弹窗）材质未统一的问题，全面补齐所有内置主题的 ToastBackgroundBorder 与 FlexibleToastView 适配，并在浅色对比度模式下加深横幅通知文字。
@@ -3817,6 +3818,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <limits>
 #include <list>
 #include <mutex>

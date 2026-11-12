@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.7
+// @version         4.2.8
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -59,6 +59,7 @@
 
 ## 更新日志
 
+- **4.2.8**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
 - **4.2.7**：卡片模糊、不透明度、亮度和浅色白底下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.2.6**：性能：缓存 Settings CoreWindow HWND，避免每次 EnumWindows。
 - **4.2.5**：跳过「个性化 → 背景」页的 `BackgroundStackPanel` 子树样式，收窄全局 `Border#Root` / `ContentPresenter#ContentPresenter` 透明规则，减轻 Win11 26H2/26300 进背景页闪退。
@@ -1858,6 +1859,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <limits>
 #include <list>
 #include <mutex>

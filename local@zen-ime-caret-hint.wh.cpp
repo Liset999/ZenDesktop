@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 光标输入法提示
 // @description     Doubao/macOS-like Chinese/English and Caps Lock capsule beside the text caret (pointer fallback), with Custom Glass.
 // @description:zh-CN 像 Mac 豆包输入法一样：切换中英／大写时在文字光标旁短暂弹出提示胶囊（取不到光标则贴鼠标），并支持自定义玻璃。
-// @version         0.2.8
+// @version         0.2.9
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -62,6 +62,7 @@
 
 ## 更新日志
 
+- **0.2.9**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
 - **0.2.8**：自定义玻璃的模糊、不透明度和亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **0.2.7**：保留输入框自动提醒，将无障碍查询隔离到限时进程，键鼠钩子使用独立线程；修复失败重试降频、旧定位结果、卸载等待及输入框左边缘误定位。
 - **0.2.6**：Steam 窗口跳过输入法、MSAA 和 UIA 查询，并取消待显示提示。
@@ -229,6 +230,7 @@
 #include <climits>
 #include <cmath>
 #include <cstring>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <memory>
 #include <optional>
 #include <string>
@@ -2038,7 +2040,7 @@ BOOL Wh_ModInit() {
 
 void Wh_ModAfterInit() {
     LoadSettings();
-    ZIH_LOG(L"zen-ime-caret-hint 0.2.8 up: ime=%d caps=%d classes=\"%s\"",
+    ZIH_LOG(L"zen-ime-caret-hint 0.2.9 up: ime=%d caps=%d classes=\"%s\"",
             g_settings.showOnImeToggle ? 1 : 0, g_settings.showOnCapsLock ? 1 : 0,
             g_settings.editorClasses.c_str());
 

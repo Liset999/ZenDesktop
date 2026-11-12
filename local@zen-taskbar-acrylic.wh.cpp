@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.4.5
+// @version         4.4.6
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -65,6 +65,7 @@
 
 ## 更新日志
 
+- **4.4.6**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
 - **4.4.5**：模糊、不透明度、亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.4.3**：背景颜色/模糊/不透明度/亮度设置对所有走共享背景的主题生效（不再仅限自定义玻璃）。主题自带色调在「主题默认」时保留；纹理/贴图类主题（Win7/XP/Vista/Aeris 等）选项旁标注「（不受背景设置影响）」。移除与自定义玻璃重复的「纯粹透明」「透明流光」及其浅色变体，旧选择在加载时自动映射到自定义玻璃并尽量贴近原外观。
 - **4.4.2**：全部内置主题自动适配竖向任务栏（左/右停靠）。通过 `Taskbar.TaskbarFrame > Grid#RootGrid@DockingStates` 的 DockedLeft/DockedRight/DockedTop/DockedBottom 视觉状态写入 `taskbarDock`；竖向时跳过写死的 Width/Height，对任务栏框架/托盘的非对称 Margin、Padding、BorderThickness、CornerRadius 做轴交换，并给居中的悬浮坞补上 VerticalAlignment。顶部停靠仍按横向布局，但会显式标记。横向底部任务栏观感不变。无新设置项。
@@ -12641,6 +12642,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <charconv>
 #include <chrono>
 #include <cmath>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <condition_variable>
 #include <filesystem>
 #include <limits>

@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.12
+// @version         4.1.13
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -63,6 +63,7 @@
 
 ## 更新日志
 
+- **4.1.13**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
 - **4.1.12**：模糊、不透明度和亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.1.11**：性能：缓存 CoreWindow HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
 - **4.1.10**：修复从任务栏打开的搜索页不透明、还是 Windows 自带深色亚克力的问题：搜索页进程（SearchHost.exe）开机就在后台待命，mod 过早挂上时没接到真正显示的界面，之后也不会再试；现在搜索页打开时会自动重新挂接，直到外框被美化为止。自定义玻璃和液态玻璃下搜索页外框保持 Windows 自带的圆角和细描边，不再加彩色描边和大圆角；「最近」列表区域背景同样透明。一键部署会顺便重启 SearchHost.exe。
@@ -7938,6 +7939,7 @@ HRESULT InjectWindhawkTAP() noexcept
 #include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <limits>
 #include <list>
 #include <mutex>

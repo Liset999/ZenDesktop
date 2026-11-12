@@ -128,6 +128,8 @@ def reader_errors():
             errors.append(f"{name}: {helper} does not parse a decimal string")
         if "Wh_GetIntSetting" not in body and "GetInt(" not in body:
             errors.append(f"{name}: {helper} does not fall back to the legacy integer")
+        if "#include <cwchar>" not in text and "#include <wchar.h>" not in text:
+            errors.append(f"{name}: missing #include <cwchar> for wcstol")
     return errors
 
 
