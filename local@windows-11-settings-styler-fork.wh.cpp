@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.6
+// @version         4.2.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -59,6 +59,7 @@
 
 ## 更新日志
 
+- **4.2.7**：卡片模糊、不透明度、亮度和浅色白底下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.2.6**：性能：缓存 Settings CoreWindow HWND，避免每次 EnumWindows。
 - **4.2.5**：跳过「个性化 → 背景」页的 `BackgroundStackPanel` 子树样式，收窄全局 `Border#Root` / `ContentPresenter#ContentPresenter` 透明规则，减轻 Win11 26H2/26300 进背景页闪退。
 - **4.2.4**：修复控制面板 / 设置里白底卡片盖住白色文字（白字时卡片改为深色半透明；补清 SubtleFillColorDefault 等残留白底资源）。
@@ -116,58 +117,58 @@
     - SunsetOrange: "落日橙"
     - ChampagneGold: "香槟金"
     - MorandiSage: "莫兰迪绿"
-- blurPreset: 0
+- blurPreset: "0"
   $name: "Card blur"
   $name:zh-CN: "卡片模糊"
   $description: "Blur strength of cards and lists, 0–60. 0 is no blur. Default: 0."
   $description:zh-CN: "卡片与列表区域的模糊强度，范围 0–60，0 为不模糊。默认 0。"
   $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
-- opacityPreset: 0
+    - "0": "0：不模糊"
+    - "10": "10：轻微"
+    - "20": "20：中等"
+    - "30": "30：较强"
+    - "45": "45：强"
+    - "60": "60：最强"
+- opacityPreset: "0"
   $name: "Opacity"
   $name:zh-CN: "不透明度"
   $description: "Fill strength of the glass color, 0–100%. In light mode a minimum is applied so text stays readable. Default: 0%."
   $description:zh-CN: "玻璃背景颜色的填充浓度，范围 0–100%。浅色模式下会自动保留最低浓度，保证文字清晰。默认 0%。"
   $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 40: "40%：适中"
-    - 50: "50%：中等"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
-- luminosityPreset: 0
+    - "0": "0%：完全透明"
+    - "10": "10%：很薄"
+    - "25": "25%：较薄"
+    - "40": "40%：适中"
+    - "50": "50%：中等"
+    - "75": "75%：较厚"
+    - "90": "90%：很厚"
+    - "100": "100%：完全不透明"
+- luminosityPreset: "0"
   $name: "Luminosity"
   $name:zh-CN: "亮度"
   $description: "Darkening of the background, 0–150%. Larger is darker. Default: 0%."
   $description:zh-CN: "背景的压暗程度，范围 0–150%，数值越大越暗。默认 0%。"
   $options:
-    - 0: "0%：最透亮（推荐）"
-    - 25: "25%：微暗"
-    - 50: "50%：中等"
-    - 75: "75%：偏暗"
-    - 100: "100%：暗"
-    - 125: "125%：较暗"
-    - 150: "150%：最暗"
-- lightModeBase: 20
+    - "0": "0%：最透亮（推荐）"
+    - "25": "25%：微暗"
+    - "50": "50%：中等"
+    - "75": "75%：偏暗"
+    - "100": "100%：暗"
+    - "125": "125%：较暗"
+    - "150": "150%：最暗"
+- lightModeBase: "20"
   $name: "Light mode: white base"
   $name:zh-CN: "浅色模式：白底"
   $description: "In light mode, keeps at least this much white under the glass and darkens gray text, so the navigation pane and headings stay readable over busy wallpapers. No effect in dark mode. Default: 20%."
   $description:zh-CN: "浅色模式下在玻璃下保留至少这么多的白色底，并加深灰色文字，让左侧导航和标题在花哨壁纸上也看得清。深色模式不受影响。默认为 20%。"
   $options:
-    - 0: "关闭"
-    - 10: "10%：很薄"
-    - 20: "20%：薄（推荐）"
-    - 30: "30%：较薄"
-    - 45: "45%：适中"
-    - 60: "60%：较厚"
-    - 75: "75%：厚"
+    - "0": "关闭"
+    - "10": "10%：很薄"
+    - "20": "20%：薄（推荐）"
+    - "30": "30%：较薄"
+    - "45": "45%：适中"
+    - "60": "60%：较厚"
+    - "75": "75%：厚"
 - textColorMode: "default"
   $name: "Text color"
   $name:zh-CN: "文字颜色"
@@ -7501,6 +7502,22 @@ void ReplaceStyleConstant(StyleConstants& styleConstants,
     styleConstants.push_back({std::wstring(name), value});
 }
 
+// Dropdown presets are strings so Windhawk 2.0 accepts $options. Older saves
+// stored the same choice as a DWORD. A complete decimal string is that choice;
+// otherwise the legacy integer is used (0 when the value is missing).
+int ZenReadPresetInt(PCWSTR name) {
+    string_setting_unique_ptr text(Wh_GetStringSetting(name));
+    const WCHAR* value = text.get();
+    if (value && *value) {
+        wchar_t* end = nullptr;
+        long parsed = wcstol(value, &end, 10);
+        if (end != value && *end == L'\0') {
+            return static_cast<int>(parsed);
+        }
+    }
+    return Wh_GetIntSetting(name);
+}
+
 void ProcessAllStylesFromSettings() {
     PCWSTR themeName = Wh_GetStringSetting(L"theme");
     const Theme* theme = nullptr;
@@ -7562,9 +7579,9 @@ void ProcessAllStylesFromSettings() {
 
     if (acrylicTheme) {
         PCWSTR bgColorMode = Wh_GetStringSetting(L"bgColorMode");
-        int blurVal = Wh_GetIntSetting(L"blurPreset");   // card blur only
-        int opVal = Wh_GetIntSetting(L"opacityPreset");
-        int lumVal = Wh_GetIntSetting(L"luminosityPreset");
+        int blurVal = ZenReadPresetInt(L"blurPreset");   // card blur only
+        int opVal = ZenReadPresetInt(L"opacityPreset");
+        int lumVal = ZenReadPresetInt(L"luminosityPreset");
 
         // Defaults are all 0 (user preference). Only clamp negatives.
         if (blurVal < 0) blurVal = 0;
@@ -7608,7 +7625,7 @@ void ProcessAllStylesFromSettings() {
         // 4.2.0: light mode white base so text over busy wallpapers stays
         // readable. Raises the window tint to at least this opacity; cards
         // keep their own settings. Dark mode is unaffected.
-        int lightBase = Wh_GetIntSetting(L"lightModeBase");
+        int lightBase = ZenReadPresetInt(L"lightModeBase");
         if (lightBase < 0) lightBase = 0;
         if (lightBase > 100) lightBase = 100;
         int chromeOpVal = opVal;
@@ -7746,7 +7763,7 @@ void ProcessAllStylesFromSettings() {
         theme ? theme->themeResourceVariables : std::vector<PCWSTR>{};
     // 4.2.0: with the light mode white base on, darken gray (secondary /
     // tertiary) text in light mode only. User resource variables still win.
-    if (acrylicTheme && Wh_GetIntSetting(L"lightModeBase") > 0) {
+    if (acrylicTheme && ZenReadPresetInt(L"lightModeBase") > 0) {
         themeResourceVariables.push_back(
             L"TextFillColorPrimaryBrush@Light:=<SolidColorBrush Color=\"#F2000000\" />");
         themeResourceVariables.push_back(

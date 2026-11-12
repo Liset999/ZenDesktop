@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏美化
 // @description     Acrylic, blurred and transparent taskbar themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 任务栏提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.4.4
+// @version         4.4.5
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -65,6 +65,7 @@
 
 ## 更新日志
 
+- **4.4.5**：模糊、不透明度、亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **4.4.3**：背景颜色/模糊/不透明度/亮度设置对所有走共享背景的主题生效（不再仅限自定义玻璃）。主题自带色调在「主题默认」时保留；纹理/贴图类主题（Win7/XP/Vista/Aeris 等）选项旁标注「（不受背景设置影响）」。移除与自定义玻璃重复的「纯粹透明」「透明流光」及其浅色变体，旧选择在加载时自动映射到自定义玻璃并尽量贴近原外观。
 - **4.4.2**：全部内置主题自动适配竖向任务栏（左/右停靠）。通过 `Taskbar.TaskbarFrame > Grid#RootGrid@DockingStates` 的 DockedLeft/DockedRight/DockedTop/DockedBottom 视觉状态写入 `taskbarDock`；竖向时跳过写死的 Width/Height，对任务栏框架/托盘的非对称 Margin、Padding、BorderThickness、CornerRadius 做轴交换，并给居中的悬浮坞补上 VerticalAlignment。顶部停靠仍按横向布局，但会显式标记。横向底部任务栏观感不变。无新设置项。
 - **4.4.1**（#17/#18）：修资源管理器重启或开机后任务栏、音量浮窗样式丢失。根因：新 explorer 里有的 XAML 线程在 mod 认出它的窗口之前就开始建界面树，这些元素被直接丢掉且不会再上报，只有手动重置才会重新遍历。现在这种线程在第一个元素到达时就初始化（仅限任务栏/浮窗宿主线程）；有元素被丢过时兜底定时器不再误判为「已就绪」；TaskbarCreated 和兜底重挂会重新读取设置（和手动保存设置一样）。自动全量重挂之间至少间隔 4 秒，减少短时间内反复重建模糊画刷。
@@ -678,45 +679,45 @@ from the **TranslucentTB** project.
   $description: "Overall theme, background tint and text color."
   $description:zh-CN: "整体主题、背景色调和文字颜色。"
 - taskbar:
-    - blurPreset: 30
+    - blurPreset: "30"
       $name: "Blur"
       $name:zh-CN: "模糊"
       $description: "Background blur strength, 0–60. Larger is blurrier."
       $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
       $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
-    - opacityPreset: 50
+        - "0": "0：不模糊"
+        - "10": "10：轻微"
+        - "20": "20：中等"
+        - "30": "30：较强"
+        - "45": "45：强"
+        - "60": "60：最强"
+    - opacityPreset: "50"
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
       $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
       $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 75: "75%：较厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
-    - luminosityPreset: 20
+        - "0": "0%：完全透明"
+        - "10": "10%：很薄"
+        - "25": "25%：较薄"
+        - "50": "50%：适中"
+        - "75": "75%：较厚"
+        - "90": "90%：很厚"
+        - "100": "100%：完全不透明"
+    - luminosityPreset: "20"
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Luminosity layer strength of the background, 0–150."
       $description:zh-CN: "背景亮度层的强度，范围 0–150。"
       $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+        - "0": "0：最低"
+        - "20": "20：低"
+        - "25": "25：较低"
+        - "50": "50：中"
+        - "75": "75：较高"
+        - "100": "100：标准"
+        - "125": "125：高"
+        - "150": "150：最高"
   $name: "Taskbar background"
   $name:zh-CN: "任务栏背景"
   $description: "Blur, opacity and luminosity of the taskbar background. Applies to Custom Glass and other themes that use the shared background. Texture/image themes are unaffected (labeled in the theme list)."
@@ -742,89 +743,89 @@ from the **TranslucentTB** project.
   $description: "The overflow panel and the volume/brightness OSD use the taskbar background's blur, opacity and luminosity; their own groups below are ignored. Default: on."
   $description:zh-CN: "托盘溢出面板和音量/亮度浮窗跟随「任务栏背景」的模糊、不透明度和亮度，下方两组各自的设置被忽略。默认开启。"
 - tray:
-    - blurPreset: 30
+    - blurPreset: "30"
       $name: "Blur"
       $name:zh-CN: "模糊"
       $description: "Blur strength of the overflow icon panel, independent of the taskbar, 0–60. Default: 30."
       $description:zh-CN: "溢出图标面板的模糊强度，独立于任务栏本身，范围 0–60。默认 30。"
       $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
-    - opacityPreset: 50
+        - "0": "0：不模糊"
+        - "10": "10：轻微"
+        - "20": "20：中等"
+        - "30": "30：较强"
+        - "45": "45：强"
+        - "60": "60：最强"
+    - opacityPreset: "50"
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Fill strength of the overflow icon panel (the flyout shown when tray icons do not fit, not the clock), 0–100%. Default: 50%."
       $description:zh-CN: "溢出图标面板（托盘图标放不下时弹出的面板，不是时钟）的颜色浓度，范围 0–100%。默认 50%。"
       $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 75: "75%：较厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
-    - luminosityPreset: 20
+        - "0": "0%：完全透明"
+        - "10": "10%：很薄"
+        - "25": "25%：较薄"
+        - "50": "50%：适中"
+        - "75": "75%：较厚"
+        - "90": "90%：很厚"
+        - "100": "100%：完全不透明"
+    - luminosityPreset: "20"
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Luminosity layer strength of the overflow icon panel, 0–150. Default: 20."
       $description:zh-CN: "溢出图标面板亮度层的强度，范围 0–150。默认 20。"
       $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+        - "0": "0：最低"
+        - "20": "20：低"
+        - "25": "25：较低"
+        - "50": "50：中"
+        - "75": "75：较高"
+        - "100": "100：标准"
+        - "125": "125：高"
+        - "150": "150：最高"
   $name: "Overflow panel"
   $name:zh-CN: "托盘溢出面板"
   $description: "The panel shown when tray icons do not fit (not the clock). Ignored while \"Unify flyouts\" is on."
   $description:zh-CN: "托盘图标放不下时弹出的面板（不是时钟）。开启「统一设置」时忽略此组。"
 - volume:
-    - blurPreset: 30
+    - blurPreset: "30"
       $name: "Blur"
       $name:zh-CN: "模糊"
       $description: "Blur strength of the volume/brightness slider, 0–60. Default: 30."
       $description:zh-CN: "音量/亮度滑条的模糊强度，范围 0–60。默认 30。"
       $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
-    - opacityPreset: 50
+        - "0": "0：不模糊"
+        - "10": "10：轻微"
+        - "20": "20：中等"
+        - "30": "30：较强"
+        - "45": "45：强"
+        - "60": "60：最强"
+    - opacityPreset: "50"
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Fill strength of the slider shown when changing volume or brightness (not the Win+A panel), 0–100%. Default: 50%."
       $description:zh-CN: "调节音量或亮度时弹出的滑条（不是 Win+A 面板）的颜色浓度，范围 0–100%。默认 50%。"
       $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 75: "75%：较厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
-    - luminosityPreset: 20
+        - "0": "0%：完全透明"
+        - "10": "10%：很薄"
+        - "25": "25%：较薄"
+        - "50": "50%：适中"
+        - "75": "75%：较厚"
+        - "90": "90%：很厚"
+        - "100": "100%：完全不透明"
+    - luminosityPreset: "20"
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Luminosity layer strength of the volume/brightness slider, 0–150. Default: 20."
       $description:zh-CN: "音量/亮度滑条亮度层的强度，范围 0–150。默认 20。"
       $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+        - "0": "0：最低"
+        - "20": "20：低"
+        - "25": "25：较低"
+        - "50": "50：中"
+        - "75": "75：较高"
+        - "100": "100：标准"
+        - "125": "125：高"
+        - "150": "150：最高"
   $name: "Volume/brightness OSD"
   $name:zh-CN: "音量/亮度浮窗"
   $description: "The slider shown when changing volume or brightness (not the Win+A panel). Ignored while \"Unify flyouts\" is on."
@@ -835,47 +836,47 @@ from the **TranslucentTB** project.
       $name:zh-CN: "最大化时加深背景"
       $description: "When a monitor has a maximized window, its taskbar switches to the denser background defined by the three settings below. Default: off."
       $description:zh-CN: "某个显示器上有最大化窗口时，该显示器的任务栏改用下方三项定义的更实的背景。默认关闭。"
-    - blur: 24
+    - blur: "24"
       $name: "Blur"
       $name:zh-CN: "模糊"
       $description: "Used only when the maximized window layer is on, 0–60. Default: 24."
       $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–60。默认 24。"
       $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 24: "24：中等偏强"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
-    - opacity: 72
+        - "0": "0：不模糊"
+        - "10": "10：轻微"
+        - "20": "20：中等"
+        - "24": "24：中等偏强"
+        - "30": "30：较强"
+        - "45": "45：强"
+        - "60": "60：最强"
+    - opacity: "72"
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Used only when the maximized window layer is on, 0–100%. Default: 72%."
       $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–100%。默认 72%。"
       $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 72: "72%：较厚"
-        - 85: "85%：厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
-    - luminosity: 20
+        - "0": "0%：完全透明"
+        - "10": "10%：很薄"
+        - "25": "25%：较薄"
+        - "50": "50%：适中"
+        - "72": "72%：较厚"
+        - "85": "85%：厚"
+        - "90": "90%：很厚"
+        - "100": "100%：完全不透明"
+    - luminosity: "20"
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Used only when the maximized window layer is on, 0–150. Default: 20."
       $description:zh-CN: "仅在开启「最大化时加深背景」后生效，范围 0–150。默认 20。"
       $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+        - "0": "0：最低"
+        - "20": "20：低"
+        - "25": "25：较低"
+        - "50": "50：中"
+        - "75": "75：较高"
+        - "100": "100：标准"
+        - "125": "125：高"
+        - "150": "150：最高"
   $name: "Maximized window"
   $name:zh-CN: "最大化时"
   $description: "Denser taskbar background on monitors with a maximized window. Applies to themes that use the shared background."
@@ -21788,7 +21789,33 @@ bool ZenUnifyFlyouts() {
 // Set by ZenApplyBrushPresets for the current pass.
 thread_local bool g_zenSettingsUnseeded;
 
-// Int settings are stored as numbers, so Wh_GetIntSetting is the right reader.
+// Dropdown presets are strings so Windhawk 2.0 accepts $options. Older saves
+// stored the same choice as a DWORD. A complete decimal string is that choice;
+// otherwise the legacy integer is used (0 when the value is missing).
+int ZenReadStoredInt(PCWSTR name) {
+    string_setting_unique_ptr text(Wh_GetStringSetting(name));
+    const WCHAR* value = text.get();
+    if (value && *value) {
+        wchar_t* end = nullptr;
+        long parsed = wcstol(value, &end, 10);
+        if (end != value && *end == L'\0') {
+            return static_cast<int>(parsed);
+        }
+    }
+    return Wh_GetIntSetting(name);
+}
+
+int ZenGetPresetIntCompat(PCWSTR nestedName, PCWSTR legacyName) {
+    switch (ZenGetSettingsLayout()) {
+        case ZenSettingsLayout::kNested:
+            return ZenReadStoredInt(nestedName);
+        case ZenSettingsLayout::kLegacy:
+            return ZenReadStoredInt(legacyName);
+        default:
+            return ZenReadStoredInt(nestedName) || ZenReadStoredInt(legacyName);
+    }
+}
+
 // Falls back to the settings-block default when the settings are missing or
 // the value is out of range.
 int ZenGetIntSettingInRange(PCWSTR nestedName,
@@ -21799,7 +21826,7 @@ int ZenGetIntSettingInRange(PCWSTR nestedName,
     if (g_zenSettingsUnseeded) {
         return fallback;
     }
-    int value = ZenGetIntSettingCompat(nestedName, legacyName);
+    int value = ZenGetPresetIntCompat(nestedName, legacyName);
     return value >= minValue && value <= maxValue ? value : fallback;
 }
 
