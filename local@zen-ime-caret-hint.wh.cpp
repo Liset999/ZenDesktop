@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 光标输入法提示
 // @description     Doubao/macOS-like Chinese/English and Caps Lock capsule beside the text caret (pointer fallback), with Custom Glass.
 // @description:zh-CN 像 Mac 豆包输入法一样：切换中英／大写时在文字光标旁短暂弹出提示胶囊（取不到光标则贴鼠标），并支持自定义玻璃。
-// @version         0.2.7
+// @version         0.2.9
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -62,6 +62,8 @@
 
 ## 更新日志
 
+- **0.2.9**：补上解析下拉数值用的 `<cwchar>`，修复 Windhawk 编译失败。选项和以前保存的数值不变。
+- **0.2.8**：自定义玻璃的模糊、不透明度和亮度下拉改为字符串选项，Windhawk 2.0 设置页可以正常显示。以前保存的数值仍按原来的档位生效。
 - **0.2.7**：保留输入框自动提醒，将无障碍查询隔离到限时进程，键鼠钩子使用独立线程；修复失败重试降频、旧定位结果、卸载等待及输入框左边缘误定位。
 - **0.2.6**：Steam 窗口跳过输入法、MSAA 和 UIA 查询，并取消待显示提示。
 - **0.2.4**：关闭大写锁定后显示当前中／英状态，开启时显示大写。
@@ -156,45 +158,45 @@
         - SunsetOrange: "落日橙"
         - ChampagneGold: "香槟金"
         - MorandiSage: "莫兰迪绿"
-    - blurPreset: 30
+    - blurPreset: "30"
       $name: "Blur"
       $name:zh-CN: "模糊"
       $description: "Background blur strength, 0–60. Larger is blurrier."
       $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
       $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
-    - opacityPreset: 50
+        - "0": "0：不模糊"
+        - "10": "10：轻微"
+        - "20": "20：中等"
+        - "30": "30：较强"
+        - "45": "45：强"
+        - "60": "60：最强"
+    - opacityPreset: "50"
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Fill strength of the background color, 0–100%. Default 50%."
       $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。默认 50%。"
       $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 75: "75%：较厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
-    - luminosityPreset: 20
+        - "0": "0%：完全透明"
+        - "10": "10%：很薄"
+        - "25": "25%：较薄"
+        - "50": "50%：适中"
+        - "75": "75%：较厚"
+        - "90": "90%：很厚"
+        - "100": "100%：完全不透明"
+    - luminosityPreset: "20"
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Luminosity layer strength, 0–150. Default 20."
       $description:zh-CN: "背景亮度层的强度，范围 0–150。默认 20。"
       $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+        - "0": "0：最低"
+        - "20": "20：低"
+        - "25": "25：较低"
+        - "50": "50：中"
+        - "75": "75：较高"
+        - "100": "100：标准"
+        - "125": "125：高"
+        - "150": "150：最高"
   $name: "Custom glass"
   $name:zh-CN: "自定义玻璃"
   $description: "Shared glass for 中/英/Caps bubbles. Same presets as other ZenDesktop mods."
@@ -228,6 +230,7 @@
 #include <climits>
 #include <cmath>
 #include <cstring>
+#include <cwchar>  // wcstol for decimal preset strings
 #include <memory>
 #include <optional>
 #include <string>
@@ -400,6 +403,25 @@ int ClampInt(int v, int lo, int hi) {
     return (std::max)(lo, (std::min)(hi, v));
 }
 
+// Dropdown presets are strings so Windhawk 2.0 accepts $options. Older saves
+// stored the same choice as a DWORD. A complete decimal string is that choice;
+// otherwise the legacy integer is used (0 when the value is missing).
+int ReadPresetInt(PCWSTR name) {
+    PCWSTR value = Wh_GetStringSetting(name);
+    int parsed = 0;
+    bool fromText = false;
+    if (value && *value) {
+        wchar_t* end = nullptr;
+        long number = wcstol(value, &end, 10);
+        if (end != value && *end == L'\0') {
+            parsed = static_cast<int>(number);
+            fromText = true;
+        }
+    }
+    Wh_FreeStringSetting(value);
+    return fromText ? parsed : Wh_GetIntSetting(name);
+}
+
 void LoadSettings() {
     g_settings.bubbleEnabled = Wh_GetIntSetting(L"bubbleEnabled") != 0;
     g_settings.showOnImeToggle = Wh_GetIntSetting(L"showOnImeToggle") != 0;
@@ -437,11 +459,11 @@ void LoadSettings() {
         Wh_FreeStringSetting(color);
     }
     g_settings.glass.blurPreset =
-        ClampInt(Wh_GetIntSetting(L"glass.blurPreset"), 0, 60);
+        ClampInt(ReadPresetInt(L"glass.blurPreset"), 0, 60);
     g_settings.glass.opacityPreset =
-        ClampInt(Wh_GetIntSetting(L"glass.opacityPreset"), 0, 100);
+        ClampInt(ReadPresetInt(L"glass.opacityPreset"), 0, 100);
     g_settings.glass.luminosityPreset =
-        ClampInt(Wh_GetIntSetting(L"glass.luminosityPreset"), 0, 150);
+        ClampInt(ReadPresetInt(L"glass.luminosityPreset"), 0, 150);
 }
 
 int GetWindowDpiSafe(HWND hwnd) {
@@ -2018,7 +2040,7 @@ BOOL Wh_ModInit() {
 
 void Wh_ModAfterInit() {
     LoadSettings();
-    ZIH_LOG(L"zen-ime-caret-hint 0.2.7 up: ime=%d caps=%d classes=\"%s\"",
+    ZIH_LOG(L"zen-ime-caret-hint 0.2.9 up: ime=%d caps=%d classes=\"%s\"",
             g_settings.showOnImeToggle ? 1 : 0, g_settings.showOnCapsLock ? 1 : 0,
             g_settings.editorClasses.c_str());
 
