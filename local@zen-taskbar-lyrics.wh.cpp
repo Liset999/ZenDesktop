@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 任务栏音乐与歌词
 // @description     Compact media panel in the taskbar Widgets slot: album art, synced lyrics, playback buttons, and AI agent status.
 // @description:zh-CN 在任务栏左下角（小组件的位置）放一个音乐小面板：专辑封面、同步歌词、上一首／播放暂停／下一首，还能显示本机 AI 编程助手的状态。
-// @version         0.5.21
+// @version         0.5.23
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -159,6 +159,9 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
 - 歌词缓存在 `%LOCALAPPDATA%\ZenDesktop\lyrics\`。所有联网和媒体控制都在后台线程，不会卡任务栏。媒体会话与 AI 状态在多显示器间共用一份。
 
 ## 更新日志
+
+- **0.5.23**：兼容 Windhawk 2.0：数字和布尔设置改用兼容写法，同时保留原有配置。
+
 - **0.5.21**：修复精简设置布局下「单击操作」等常用项不生效：以前仅当旧键 positionMode 非空才加载整段设置，导致界面已选「打开播放器」仍按默认展开；现以 common／general 布局探测为准加载。
 - **0.5.20**：多应用同时 Playing 时优先音乐播放器（Spotify／网易云／QQ 音乐等），B站／浏览器等低优先级源即使在播也不会长期抢走歌词；文件夹窗口 explorer 不再启动任何工作线程，设置变更不再刷屏。
 - **0.5.19**：媒体会话改为粘滞选择（优先正在播放、短时不跟系统 current 抖动），避免 Spotify 与 B站／浏览器抢会话时歌词乱切；仅任务栏宿主 explorer 进程跑媒体／歌词／AI／天气线程，文件夹窗口进程不再重复搜词。
@@ -251,15 +254,8 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
     $name:zh-CN: 模糊度
     $description: 自定义玻璃和液态玻璃可调；0 不模糊，数值越大越模糊。
     $description:zh-CN: 自定义玻璃和液态玻璃可调；0 不模糊，数值越大越模糊。
-    $options:
-    - 0: 清晰（0）
-    - 3: 很轻（3）
-    - 6: 轻微（6）
-    - 12: 标准（12）
-    - 20: 柔和（20）
-    - 30: 较强（30）
-    - 45: 强（45）
-    - 60: 最强（60）
+    #! $min: 0
+    #! $max: 60
   - color: Default
     $name: 玻璃颜色
     $name:zh-CN: 玻璃颜色
@@ -316,13 +312,8 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
   - fontSize: 12
     $name: 字号
     $name:zh-CN: 字号
-    $options:
-    - 10: 10 磅
-    - 11: 11 磅
-    - 12: 12 磅（推荐）
-    - 13: 13 磅
-    - 14: 14 磅
-    - 16: 16 磅
+    #! $min: 10
+    #! $max: 16
   $name: 颜色与外观
   $name:zh-CN: 颜色与外观
 - advanced:
@@ -457,7 +448,7 @@ Codex、opencode 和 DeepSeek Harness 读 `AGENTS.md`（DeepSeek Harness 全局�
       $options:
       - compact: 一行列出所有助手
       - rotate: 轮流显示（每 4 秒换一个，带说明）
-      - false: 关闭
+      - "false": 关闭
     - doneSeconds: '120'
       $name: 完成状态保留
       $name:zh-CN: 完成状态保留

@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 开始菜单美化
 // @description     Acrylic and transparent Start menu themes with adjustable color, blur, opacity and luminosity.
 // @description:zh-CN 为 Windows 11 开始菜单提供亚克力与透明背景，颜色、模糊、不透明度和亮度可调。
-// @version         4.1.11
+// @version         4.1.13
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -62,6 +62,9 @@
 - 改完设置后搜索页没有变化时，结束 `SearchHost.exe` 让系统重启它。
 
 ## 更新日志
+
+- **4.1.13**：兼容 Windhawk 2.0：数字设置改用数字范围声明，数字和布尔选项键统一改为字符串，同时保留原有配置。
+
 
 - **4.1.11**：性能：缓存 CoreWindow HWND；TaskbarCreated 全量重挂 500ms 防抖合并。
 - **4.1.10**：修复从任务栏打开的搜索页不透明、还是 Windows 自带深色亚克力的问题：搜索页进程（SearchHost.exe）开机就在后台待命，mod 过早挂上时没接到真正显示的界面，之后也不会再试；现在搜索页打开时会自动重新挂接，直到外框被美化为止。自定义玻璃和液态玻璃下搜索页外框保持 Windows 自带的圆角和细描边，不再加彩色描边和大圆角；「最近」列表区域背景同样透明。一键部署会顺便重启 SearchHost.exe。
@@ -455,7 +458,7 @@ from the **TranslucentTB** project.
   - RosePine: "玫瑰松（Rosé Pine）"
   - Everblush: "常青红（Everblush）"
   - SunValley: "Sun Valley"
-  - 21996: "泄露版 21996（Build 21996）"
+  - "21996": "泄露版 21996（Build 21996）"
   - UniMenu: "统一菜单（UniMenu）"
   - LegacyFluent: "经典 Fluent（Legacy Fluent）"
   - OnlySearch: "仅搜索（Only Search）"
@@ -491,40 +494,22 @@ from the **TranslucentTB** project.
   $name:zh-CN: "模糊"
   $description: "Background blur strength, 0–60. Larger is blurrier."
   $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
+  #! $min: 0
+  #! $max: 60
 - opacityPreset: 50
   $name: "Opacity"
   $name:zh-CN: "不透明度"
   $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
   $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
+  #! $min: 0
+  #! $max: 100
 - luminosityPreset: 20
   $name: "Luminosity"
   $name:zh-CN: "亮度"
   $description: "Luminosity layer strength of the background, 0–150."
   $description:zh-CN: "背景亮度层的强度，范围 0–150。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
+  #! $min: 0
+  #! $max: 150
 - textColorMode: "default"
   $name: "Text color"
   $name:zh-CN: "文字颜色"
@@ -601,39 +586,22 @@ from the **TranslucentTB** project.
   $name:zh-CN: "文件夹：模糊"
   $description: "Blur strength of the folder panel, 0–60. Default: 20."
   $description:zh-CN: "文件夹面板的模糊强度，范围 0–60。默认 20。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
+  #! $min: 0
+  #! $max: 60
 - folderOpacityPreset: 40
   $name: "Folder: opacity"
   $name:zh-CN: "文件夹：不透明度"
   $description: "Fill strength of the folder panel color, 0–100%. Default: 40%."
   $description:zh-CN: "文件夹面板颜色的填充浓度，范围 0–100%。默认 40%。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 40: "40%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
+  #! $min: 0
+  #! $max: 100
 - folderLuminosityPreset: 100
   $name: "Folder: luminosity"
   $name:zh-CN: "文件夹：亮度"
   $description: "Luminosity layer strength of the folder panel, 0–150. Default: 100."
   $description:zh-CN: "文件夹面板亮度层的强度，范围 0–150。默认 100。"
-  $options:
-    - 0: "0：最低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
+  #! $min: 0
+  #! $max: 150
 - styleConstants: [""]
   $name: "Advanced: style constants"
   $name:zh-CN: "高级：样式常量"

@@ -53,6 +53,7 @@ ZenDesktop_OneKeyDeploy_v4.0.0/
 
 # Ignore generated outputs and local documents
 generated/
+internal/
 docs/superpowers/
 ZenDesktop_OneKeyDeploy_v3.3.0_Online/
 ZenDesktop_OneKeyDeploy_v3.4.0_Online/

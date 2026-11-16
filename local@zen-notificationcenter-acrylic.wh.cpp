@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 通知栏美化
 // @description     Acrylic and transparent notification center, quick settings and calendar.
 // @description:zh-CN 为 Windows 11 通知中心、快捷设置和日历面板提供亚克力与透明背景。
-// @version         4.2.3
+// @version         4.2.4
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          m417z, Lanbo
 // @github          https://github.com/m417z, https://github.com/Liset999
@@ -66,6 +66,9 @@
   - 4.1.2 曾把液态玻璃主题的括号写坏导致编不过；4.1.3 已修，并补上上游的 CompositionDiag 防护，减少部分系统上挂接失败 / 闪退
 
 ## 更新日志
+
+- **4.2.4**：兼容 Windhawk 2.0：面板和浮窗的数字设置改用数字范围声明，同时保留原有整数配置。
+
 
 - **4.2.3**：性能：缓存 CoreWnd 列表（短 TTL + IsWindow 校验），减少 EnumWindows。
 - **4.2.2**：修复横幅通知（Toast 弹窗）材质未统一的问题，全面补齐所有内置主题的 ToastBackgroundBorder 与 FlexibleToastView 适配，并在浅色对比度模式下加深横幅通知文字。
@@ -416,40 +419,22 @@ from the **TranslucentTB** project.
   $name:zh-CN: "模糊"
   $description: "Background blur strength, 0–60. Larger is blurrier."
   $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
+  #! $min: 0
+  #! $max: 60
 - opacityPreset: 50
   $name: "Opacity"
   $name:zh-CN: "不透明度"
   $description: "Fill strength of the background color, 0–100%. 0% is fully transparent, 100% is opaque."
   $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。0% 为完全透明，100% 为完全不透明。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 50: "50%：适中"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
+  #! $min: 0
+  #! $max: 100
 - luminosityPreset: 20
   $name: "Luminosity"
   $name:zh-CN: "亮度"
   $description: "Luminosity layer strength of the background, 0–150."
   $description:zh-CN: "背景亮度层的强度，范围 0–150。"
-  $options:
-    - 0: "0：最低"
-    - 20: "20：低"
-    - 25: "25：较低"
-    - 50: "50：中"
-    - 75: "75：较高"
-    - 100: "100：标准"
-    - 125: "125：高"
-    - 150: "150：最高"
+  #! $min: 0
+  #! $max: 150
 - textColorMode: "default"
   $name: "Text color"
   $name:zh-CN: "文字颜色"

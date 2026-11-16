@@ -17,6 +17,11 @@ for path in paths:
     for offset, line in enumerate(match.group(1).splitlines()):
         if line.strip() and not re.fullmatch(r'//\s+@[A-Za-z][\w-]*(?::[\w-]+)?\s+\S.*', line):
             errors.append(f'{path}:{first_line + offset}: invalid metadata line: {line}')
+    id_match = re.search(r'^//\s+@id\s+([^\s]+)\s*$', match.group(1), re.M)
+    if not id_match:
+        errors.append(f'{path}: missing @id metadata')
+    elif not re.fullmatch(r'[0-9a-z-]+', id_match.group(1)):
+        errors.append(f'{path}: invalid @id {id_match.group(1)!r}; use only 0-9, a-z, and hyphen')
 for error in errors:
     print(error)
 if errors:

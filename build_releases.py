@@ -1,8 +1,11 @@
 import zipfile
 import os
+import subprocess
+import sys
 
 common_files = [
     'local@zen-taskbar-acrylic.wh.cpp',
+    'local@zen-taskbar-height-and-icon-size.wh.cpp',
     'local@zen-notificationcenter-acrylic.wh.cpp',
     'local@zen-startmenu-acrylic.wh.cpp',
     'local@zen-desktop-toggle-icons.wh.cpp',
@@ -19,7 +22,7 @@ common_files = [
     'AAA使用前必看.txt',
     'CHANGELOG_v5.0.0.md',
     'CHANGELOG_v5.2.0.md',
-    'CHANGELOG_v5.2.5.md',
+    'CHANGELOG_v5.2.6.md',
     'README.md',
     'docs/donate-wechat.png',
     'docs/screenshots',  # README.md preview images
@@ -45,10 +48,18 @@ common_files = [
 ]
 
 releases = {
-    'ZenDesktop_OneKeyDeploy_v5.2.5.zip': common_files + ['windhawk_setup.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.5_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
-    'ZenDesktop_OneKeyDeploy_v5.2.5_Online.zip': common_files
+    'ZenDesktop_OneKeyDeploy_v5.2.6.zip': common_files + ['windhawk_setup.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.6_Offline.zip': common_files + ['windhawk_setup_offline.exe'],
+    'ZenDesktop_OneKeyDeploy_v5.2.6_Online.zip': common_files
 }
+
+# Every packaged Mod must document its current version in its own
+# WindhawkModReadme before any archive is created.
+mod_sources = [f for f in common_files if f.endswith('.wh.cpp')]
+subprocess.run(
+    [sys.executable, 'tools/tests/check_mod_release_notes.py', *mod_sources],
+    check=True,
+)
 
 # Windhawk expects the metadata marker at the beginning of the source file.
 for source in (f for f in common_files if f.endswith('.wh.cpp')):

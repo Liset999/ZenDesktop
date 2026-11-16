@@ -48,6 +48,7 @@ if (-not $isAdmin) {
 $modIds = New-Object System.Collections.Generic.List[string]
 foreach ($id in @(
     "local@zen-taskbar-acrylic",
+    "local@zen-taskbar-height-and-icon-size",
     "local@zen-notificationcenter-acrylic",
     "local@zen-startmenu-acrylic",
     "local@zen-desktop-toggle-icons",

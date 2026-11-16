@@ -8,6 +8,12 @@ if ($source -match 'Stop-Process -Name windhawk -Force') {
 if ($source -notmatch 'ArgumentList @\("-exit", "-wait", "-timeout", "45000"\)') {
     $failures += 'Deployment does not wait for the supported engine shutdown.'
 }
+if ($source -notmatch '\$windhawkTimeoutExitCode\s*=\s*-2147023436') {
+    $failures += 'Deployment does not recognize Windhawk shutdown timeout HRESULT.'
+}
+if ($source -notmatch 'if \(\$windhawkService\.Status -ne ''Stopped''\)') {
+    $failures += 'Deployment does not verify the service before accepting a shutdown timeout.'
+}
 if ($source -notmatch '\[regex\]::Matches\(\$content, ''// @architecture') {
     $failures += 'Deployment does not collect every architecture declaration.'
 }

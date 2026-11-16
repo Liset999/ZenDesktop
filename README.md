@@ -50,6 +50,10 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **桌面小组件恢复显示**。部署脚本保留 x86 和 x86-64 两个架构，64 位资源管理器可以继续加载时钟、日历、资源占用和音频可视化。
 - **升级无需重新编译**。本版不修改 Mod 源码，已编译且源码未变化的 DLL 会保留；缺失的小组件默认设置会补齐。
 
+## v5.2.6 更新亮点
+
+完整更新日志见 [CHANGELOG_v5.2.6.md](CHANGELOG_v5.2.6.md)。本版拆出任务栏高度 Mod，并修复 Windhawk 2.0 设置兼容性；实际修改过的 Mod 版本号已同步更新，源码未变化的 Mod 保持原版本号。
+
 ## v5.2.1 更新亮点
 
 完整更新日志见 [CHANGELOG_v5.2.1.md](CHANGELOG_v5.2.1.md)。
@@ -73,7 +77,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 完整更新日志见 [CHANGELOG_v5.0.0.md](CHANGELOG_v5.0.0.md)。
 
-- **任务栏高度 / 图标大小**：「任务栏美化」新增「任务栏尺寸」分组，0 = 系统默认；不要同时开启 m417z 的「Taskbar height and icon size」。
+- **任务栏高度 / 图标大小**：拆为独立的「ZenDesktop: 任务栏高度与图标大小」Mod，直接采用 m417z 社区实现并完成中文设置翻译。
 - **新 mod「文件管理器美化」**：取代 ExplorerBlurMica，整窗半透明模糊，色调、不透明度、文字颜色都能在 Windhawk 里调，还能给右键菜单换上玻璃（测试中）。
 - **新 mod「任务栏音乐与歌词」**：占用小组件的位置，显示封面、滚动歌词和播放按钮，支持 Spotify、网易云音乐、QQ 音乐等播放器。
 - **AI 工作状态**：歌词面板可以显示 Claude Code、Codex、opencode、Antigravity、DeepSeek Harness 正在做什么，附带编译好的 `zen-status.exe`。
@@ -87,7 +91,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 ## Mod 介绍
 
-8 个核心 mod 加可选 mod（果冻窗口、窗口动画、桌面小组件）。**首次部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。核心美化 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
+9 个核心 mod 加可选 mod（果冻窗口、窗口动画、桌面小组件）。**首次部署后全部默认关闭**，在 Windhawk「已安装的 Mod」里想用哪个开哪个。核心美化 mod 的「文字颜色」用同一套选项（主题默认、白色、深色、跟随系统和几种彩色），搭配起来风格一致。
 
 **光标输入法提示**在输入法中英切换和大写锁定切换时显示气泡，支持自定义玻璃，并与窗口动画协调截图。
 
@@ -100,7 +104,16 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - 设置按区分组；「统一设置」默认打开，弹窗跟随任务栏背景，关掉可单独调。
 - 可选「最大化时加深背景」：有窗口最大化时，那块屏幕的任务栏自动换成更实的背景。
 - 可选任务栏空白处点击穿透，适合 Dock 风格主题。
-- 核心 mod。基于 m417z 的 Windows 11 Taskbar Styler（GPL-3.0）；「任务栏尺寸」移植自 m417z 的 Taskbar height and icon size v1.3.10（GPL-3.0）。
+- 核心 mod。基于 m417z 的 Windows 11 Taskbar Styler（GPL-3.0）。任务栏高度和图标大小请使用旁边的独立 Mod。
+
+### ZenDesktop: 任务栏高度与图标大小
+
+调整 Windows 11 任务栏高度、图标大小和任务栏按钮宽度，直接采用 m417z 的社区实现，ZenDesktop 只翻译名称、简介和设置。
+
+- 默认任务栏高度 52，图标大小 32；可按需要改回系统默认或自定义数值。
+- 支持新版 Windows 11 的小图标和小按钮设置。
+- 不要同时开启社区原版「Taskbar height and icon size」，两个 Mod 会 hook 同一批任务栏符号。
+- 核心 Mod，GPL-3.0，原作者 m417z。
 
 ### ZenDesktop: 任务栏音乐与歌词
 
@@ -240,9 +253,9 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 
 | 文件 | 适合谁 |
 |---|---|
-| `ZenDesktop_OneKeyDeploy_v5.2.5.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
-| `ZenDesktop_OneKeyDeploy_v5.2.5_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
-| `ZenDesktop_OneKeyDeploy_v5.2.5_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
+| `ZenDesktop_OneKeyDeploy_v5.2.6.zip` | **大多数人选这个**。内含 Windhawk 联网安装器和全部 mod |
+| `ZenDesktop_OneKeyDeploy_v5.2.6_Offline.zip` | 网络差、Windhawk 总装不上的人。内含离线版 Windhawk 安装器，体积较大 |
+| `ZenDesktop_OneKeyDeploy_v5.2.6_Online.zip` | **已经装好 Windhawk** 的人。只含 mod 和脚本，最小 |
 
 ## 安装
 
@@ -303,6 +316,7 @@ https://github.com/user-attachments/assets/82f305da-e65e-453f-ac8d-ff5a9edfc242
 - **亮壁纸下音量数字看不清**：任务栏美化里关掉「统一设置」后，单独把「音量/亮度浮窗」不透明度调高；或开着统一设置时把任务栏背景不透明度调高一点。
 - **托盘退出要动画**：打开可选 Mod「窗口动画」，并确认「隐藏到托盘时也播放」开着（默认开）。
 - **开机后文件管理器顶部（标签栏、地址栏、命令栏）不透明**：1.6.6 起会在开机后自动补挂几次，等几秒就会变透明；还不行就在 Windhawk 里把「文件管理器美化」关掉再打开。
+- **部署提示 Windhawk shutdown timeout**：`0x800705B4` 表示 Windhawk 等待注入进程卸载超时。新版部署会先确认 Windhawk 服务已停止，服务已停就继续复制源码；服务仍在运行才会终止部署。
 - **开机或资源管理器自重启后，任务栏 / 托盘溢出 / 音量浮窗变回系统原样**：4.2.8 起会监听 TaskbarCreated，并在约 2.5s / 8s / 20s 自动补挂（与文件管理器顶部同思路）。开了「统一设置」一般不必再手动重置；还不行就在 Windhawk 里把「任务栏美化」关掉再打开。
 - **文件管理器不透明、命令栏发黑**：只用「文件管理器美化」，不要同时开 ExplorerBlurMica；还注册着 EBM 的，先运行 `tools/uninstall-ExplorerBlurMica.bat`。
 - **开机后托盘图标不透明**：在「任务栏美化」的「高级：XAML 诊断冲突处理」里改成「阻止其他程序」。TranslucentTB 等同类软件会和美化 mod 抢 XAML 诊断，建议不要同时用。

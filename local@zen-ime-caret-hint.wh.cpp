@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 光标输入法提示
 // @description     Doubao/macOS-like Chinese/English and Caps Lock capsule beside the text caret (pointer fallback), with Custom Glass.
 // @description:zh-CN 像 Mac 豆包输入法一样：切换中英／大写时在文字光标旁短暂弹出提示胶囊（取不到光标则贴鼠标），并支持自定义玻璃。
-// @version         0.2.7
+// @version         0.2.8
 // @author          Lanbo
 // @github          https://github.com/Liset999
 // @donateUrl       https://ifdian.net/a/Lanboo
@@ -61,6 +61,9 @@
 - 部分聊天软件（QQ 等）不暴露 IMM 状态：光靠 Shift 轻点仍可翻转提示。
 
 ## 更新日志
+
+- **0.2.8**：兼容 Windhawk 2.0：玻璃效果中的数字设置改用数字范围声明，同时保留原有整数配置。
+
 
 - **0.2.7**：保留输入框自动提醒，将无障碍查询隔离到限时进程，键鼠钩子使用独立线程；修复失败重试降频、旧定位结果、卸载等待及输入框左边缘误定位。
 - **0.2.6**：Steam 窗口跳过输入法、MSAA 和 UIA 查询，并取消待显示提示。
@@ -161,40 +164,22 @@
       $name:zh-CN: "模糊"
       $description: "Background blur strength, 0–60. Larger is blurrier."
       $description:zh-CN: "背景模糊强度，范围 0–60，数值越大越模糊。"
-      $options:
-        - 0: "0：不模糊"
-        - 10: "10：轻微"
-        - 20: "20：中等"
-        - 30: "30：较强"
-        - 45: "45：强"
-        - 60: "60：最强"
+      #! $min: 0
+      #! $max: 60
     - opacityPreset: 50
       $name: "Opacity"
       $name:zh-CN: "不透明度"
       $description: "Fill strength of the background color, 0–100%. Default 50%."
       $description:zh-CN: "背景颜色的填充浓度，范围 0–100%。默认 50%。"
-      $options:
-        - 0: "0%：完全透明"
-        - 10: "10%：很薄"
-        - 25: "25%：较薄"
-        - 50: "50%：适中"
-        - 75: "75%：较厚"
-        - 90: "90%：很厚"
-        - 100: "100%：完全不透明"
+      #! $min: 0
+      #! $max: 100
     - luminosityPreset: 20
       $name: "Luminosity"
       $name:zh-CN: "亮度"
       $description: "Luminosity layer strength, 0–150. Default 20."
       $description:zh-CN: "背景亮度层的强度，范围 0–150。默认 20。"
-      $options:
-        - 0: "0：最低"
-        - 20: "20：低"
-        - 25: "25：较低"
-        - 50: "50：中"
-        - 75: "75：较高"
-        - 100: "100：标准"
-        - 125: "125：高"
-        - 150: "150：最高"
+      #! $min: 0
+      #! $max: 150
   $name: "Custom glass"
   $name:zh-CN: "自定义玻璃"
   $description: "Shared glass for 中/英/Caps bubbles. Same presets as other ZenDesktop mods."

@@ -1,6 +1,6 @@
 ﻿# ============================================================
 #  ZenDesktop Direct Injection Deploy Engine
-#  Refined v5.2.5 - Full Chinese Localization & Dynamic Engine
+#  Refined v5.2.6 - Full Chinese Localization & Dynamic Engine
 # ============================================================
 # v4.2-draft: optional mods can be preselected for unattended runs, e.g.
 #   deploy.ps1 -Optional "wobbly-windows,windows-animations"
@@ -106,7 +106,7 @@ function Merge-ProcessList ($current, [string[]]$entries) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   ZenDesktop Direct Injection Engine v5.2.5" "Green"
+Write-Status "   ZenDesktop Direct Injection Engine v5.2.6" "Green"
 Write-Status "================================================" "Green"
 
 # 1. Enforce Administrator Privileges
@@ -248,12 +248,33 @@ $exitProcess = Start-Process -FilePath (Join-Path $windhawkDir "windhawk.exe") -
 if (-not $exitProcess.WaitForExit(60000)) {
     throw "Windhawk did not finish unloading within 60 seconds. Deployment stopped before replacing mod files."
 }
-if ($exitProcess.ExitCode -ne 0) {
+
+# Windhawk returns HRESULT_FROM_WIN32(ERROR_TIMEOUT) (0x800705B4 / -2147023436)
+# when an injected process takes longer than its internal wait. The service can
+# already be stopped at that point, and source files can be updated safely; only
+# continue after checking the service state. Other exit codes remain fatal.
+$windhawkTimeoutExitCode = -2147023436
+$shutdownTimedOut = ($exitProcess.ExitCode -eq $windhawkTimeoutExitCode)
+if ($exitProcess.ExitCode -ne 0 -and -not $shutdownTimedOut) {
     throw "Windhawk shutdown failed with exit code $($exitProcess.ExitCode)."
 }
 $windhawkService = Get-Service -Name Windhawk -ErrorAction SilentlyContinue
-if ($windhawkService -and $windhawkService.Status -ne 'Stopped') {
-    throw "Windhawk service is still running after shutdown."
+if ($windhawkService) {
+    $windhawkService.Refresh()
+    if ($windhawkService.Status -ne 'Stopped') {
+        try {
+            $windhawkService.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Stopped, [TimeSpan]::FromSeconds(15))
+            $windhawkService.Refresh()
+        } catch {
+            # The status check below produces the deployment-specific error.
+        }
+    }
+    if ($windhawkService.Status -ne 'Stopped') {
+        throw "Windhawk service is still running after shutdown."
+    }
+}
+if ($shutdownTimedOut) {
+    Write-Status "Windhawk reported a shutdown timeout, but its service is stopped; continuing with source deployment." "Yellow"
 }
 Write-Status "Windhawk successfully stopped." "Green"
 
@@ -297,12 +318,12 @@ if ($files.Count -eq 0) {
 }
 
 # v4.2: deploy 仅负责将所有 Mod 源码及元数据装入 Windhawk，不负责开启，不负责编译。
-# 上游「Taskbar height and icon size」与「任务栏美化 → 任务栏尺寸」钩同一批符号，同时开启会互相覆盖。只提示。
+# 任务栏高度现在是独立 Mod；它与上游同名 Mod 使用同一批符号，同时开启会互相覆盖。
 $upstreamTbSize = "HKLM:\SOFTWARE\Windhawk\Engine\Mods\taskbar-icon-size"
 if (Test-Path $upstreamTbSize) {
     $tbsDisabled = (Get-ItemProperty -Path $upstreamTbSize -Name Disabled -ErrorAction SilentlyContinue).Disabled
     if ($tbsDisabled -ne 1) {
-        Write-Host "[ZenDeploy] 检测到已启用「Taskbar height and icon size」：如使用「任务栏美化 → 任务栏尺寸」，请在 Windhawk 中关闭它。" -ForegroundColor Yellow
+        Write-Host "[ZenDeploy] 检测到已启用上游「Taskbar height and icon size」：请在 Windhawk 中关闭其中一个，避免两个高度 Mod 同时 hook。" -ForegroundColor Yellow
     }
 }
 
@@ -504,8 +525,15 @@ foreach ($file in $files) {
         Set-RegValueIfMissing $settingsPath "taskbar.luminosityPreset" 15 DWord $label
         Set-RegValueIfMissing $settingsPath "unifyFlyouts" 1 DWord $label
         Set-RegValueIfMissing $settingsPath "maximized.enabled" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "size.taskbarHeight" 0 DWord $label
-        Set-RegValueIfMissing $settingsPath "size.iconSize" 0 DWord $label
+    }
+
+    if ($id -eq "local@zen-taskbar-height-and-icon-size") {
+        $label = "Taskbar height and icon size"
+        Set-RegValueIfMissing $settingsPath "TaskbarHeight" 52 DWord $label
+        Set-RegValueIfMissing $settingsPath "IconSize" 32 DWord $label
+        Set-RegValueIfMissing $settingsPath "TaskbarButtonWidth" 44 DWord $label
+        Set-RegValueIfMissing $settingsPath "IconSizeSmall" 16 DWord $label
+        Set-RegValueIfMissing $settingsPath "TaskbarButtonWidthSmall" 32 DWord $label
     }
 
     if ($id -eq "local@macos-minimize-animation") {
@@ -773,7 +801,7 @@ if ($dwmModSelected) {
 }
 
 Write-Status "================================================" "Green"
-Write-Status "   [SUCCESS] ZenDesktop v5.2.5 一键部署完成！" "Green"
+Write-Status "   [SUCCESS] ZenDesktop v5.2.6 一键部署完成！" "Green"
 Write-Status "================================================" "Green"
 Write-Host ""
 Write-Host "后续说明与使用建议："

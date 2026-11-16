@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 文件管理器美化
 // @description     Translucent File Explorer with adjustable tint, transparent chrome, and glass desktop context menus.
 // @description:zh-CN 让 Windows 11 文件管理器整窗半透明模糊，色调可调，命令栏、地址栏、标签栏透明，并美化桌面与资源管理器的右键菜单。
-// @version         1.7.10
+// @version         1.7.11
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -83,6 +83,9 @@
 - 同一时间只能有一个程序使用 XAML 诊断，处理方式由「高级：XAML 诊断冲突处理」决定：「弹窗询问」每次让你选择；「阻止其他程序」保证本 mod 生效，但对方可能失效；「允许其他程序」让对方生效，但本 mod 的样式可能失效。
 
 ## 更新日志
+
+- **1.7.11**：修复控制面板顶部位图在透明文件管理器中残留白条的问题，按系统位图内容匹配并清除背景。
+
 
 - **1.7.10**：修复整窗玻璃下普通文字绘制（未指定裁剪等选项）跳过透明度处理的问题，黑色文字会因此透明消失，浅色及自定义文字也可能发白。普通文字与裁剪、字形绘制统一生成预乘透明度。覆盖 OS26 液态玻璃及紧凑版使用模糊、云母等整窗背景的绘制路径。
 - **1.7.9**：修复重启电脑后文件列表文字又变白、要重新应用才好的问题。深浅色状态以前在窗口第一次加特效时读一次，之后只信资源管理器开机早期发的深色属性，1.7.8 起同一窗口再加特效还会提前返回，不再重读，于是开机时读错的值一直留着。现在深浅色以注册表为准，开机重试、窗口再次显示、系统深浅色/主题变化时都会重读，变了就只重绘资源管理器窗口，不重启资源管理器、不重载 mod。
@@ -11848,6 +11851,135 @@ BOOL WINAPI DeleteDC_Hook(HDC hdc) {
     return DeleteDC_Original(hdc);
 }
 
+// Control Panel's HomePageHeader uses shell32 bitmap 635 (UIFILE 24), not a
+// ControlPanel theme part. Copying its RGB background into glass leaves zero
+// alpha with nonzero RGB, which different GPU/display paths composite
+// differently. Match the actual system resource before clearing this image;
+// dimensions alone would also match unrelated icons and pictures.
+using BitBlt_t = decltype(&BitBlt);
+BitBlt_t BitBlt_Original;
+using StretchBlt_t = decltype(&StretchBlt);
+StretchBlt_t StretchBlt_Original;
+using AlphaBlend_t = decltype(&AlphaBlend);
+AlphaBlend_t AlphaBlend_Original;
+
+struct ZenHeaderBitmap {
+    int width = 0;
+    int height = 0;
+    std::vector<DWORD> rgb;
+};
+
+bool ZenReadHeaderBitmap(HDC source, ZenHeaderBitmap& result) {
+    BITMAP bitmap{};
+    if (!GetObject(GetCurrentObject(source, OBJ_BITMAP), sizeof(bitmap), &bitmap) ||
+        bitmap.bmWidth <= 0 || bitmap.bmHeight <= 0 ||
+        bitmap.bmWidth > 256 || bitmap.bmHeight > 256) {
+        return false;
+    }
+    try {
+        result.rgb.resize(bitmap.bmWidth * bitmap.bmHeight);
+    } catch (...) {
+        return false;
+    }
+    BITMAPINFO info{};
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = bitmap.bmWidth;
+    info.bmiHeader.biHeight = -bitmap.bmHeight;
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    void* bits = nullptr;
+    HBITMAP copy = CreateDIBSection(nullptr, &info, DIB_RGB_COLORS, &bits, nullptr, 0);
+    HDC dc = CreateCompatibleDC_Original(nullptr);
+    if (!copy || !dc) {
+        if (copy) DeleteObject(copy);
+        if (dc) DeleteDC_Original(dc);
+        return false;
+    }
+    HGDIOBJ previous = SelectObject(dc, copy);
+    bool ok = BitBlt_Original(dc, 0, 0, bitmap.bmWidth, bitmap.bmHeight,
+                             source, 0, 0, SRCCOPY);
+    if (ok) {
+        GdiFlush();
+        result.width = bitmap.bmWidth;
+        result.height = bitmap.bmHeight;
+        auto pixels = static_cast<const DWORD*>(bits);
+        std::copy_n(pixels, result.width * result.height, result.rgb.begin());
+        for (auto& pixel : result.rgb) pixel &= 0x00FFFFFF;
+    }
+    SelectObject(dc, previous);
+    DeleteObject(copy);
+    DeleteDC_Original(dc);
+    if (!ok) result.rgb.clear();
+    return ok;
+}
+
+bool ZenPaintControlPanelHeader(HDC destination, int x, int y, int width,
+                               int height, HDC source) {
+    HWND root = g_entireWindowEffectWndForThread;
+    if (!root || !source || width <= 0 || height <= 0 ||
+        !GetProp(root, L"windhawk_background_effect-" WH_MOD_ID)) {
+        return false;
+    }
+    HWND window = WindowFromDC(destination);
+    if (window && GetAncestor(window, GA_ROOT) != root) return false;
+    const DCWnd* memoryWindow = window ? nullptr : GetMemoryDCWnd(destination);
+    if (memoryWindow && !memoryWindow->fileExplorer) return false;
+
+    static const ZenHeaderBitmap reference = [] {
+        ZenHeaderBitmap image;
+        HBITMAP bitmap = static_cast<HBITMAP>(LoadImageW(
+            GetModuleHandleW(L"shell32.dll"), MAKEINTRESOURCEW(635), IMAGE_BITMAP,
+            0, 0, LR_CREATEDIBSECTION));
+        HDC dc = CreateCompatibleDC_Original(nullptr);
+        if (bitmap && dc) {
+            HGDIOBJ previous = SelectObject(dc, bitmap);
+            ZenReadHeaderBitmap(dc, image);
+            SelectObject(dc, previous);
+        }
+        if (dc) DeleteDC_Original(dc);
+        if (bitmap) DeleteObject(bitmap);
+        return image;
+    }();
+    BITMAP bitmap{};
+    if (reference.rgb.empty() ||
+        !GetObject(GetCurrentObject(source, OBJ_BITMAP), sizeof(bitmap), &bitmap) ||
+        bitmap.bmWidth != reference.width || bitmap.bmHeight != reference.height) {
+        return false;
+    }
+    ZenHeaderBitmap image;
+    if (!ZenReadHeaderBitmap(source, image) || image.rgb != reference.rgb) return false;
+
+    RECT rect{x, y, x + width, y + height};
+    return FillRect_Original(destination, &rect,
+                              static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH))) != 0;
+}
+
+BOOL WINAPI BitBlt_Hook(HDC destination, int x, int y, int width, int height,
+                       HDC source, int sourceX, int sourceY, DWORD operation) {
+    if (operation == SRCCOPY && ZenPaintControlPanelHeader(
+            destination, x, y, width, height, source)) return TRUE;
+    return BitBlt_Original(destination, x, y, width, height, source, sourceX,
+                           sourceY, operation);
+}
+
+BOOL WINAPI StretchBlt_Hook(HDC destination, int x, int y, int width, int height,
+                           HDC source, int sourceX, int sourceY, int sourceWidth,
+                           int sourceHeight, DWORD operation) {
+    if (operation == SRCCOPY && ZenPaintControlPanelHeader(
+            destination, x, y, width, height, source)) return TRUE;
+    return StretchBlt_Original(destination, x, y, width, height, source, sourceX,
+                               sourceY, sourceWidth, sourceHeight, operation);
+}
+
+BOOL WINAPI AlphaBlend_Hook(HDC destination, int x, int y, int width, int height,
+                           HDC source, int sourceX, int sourceY, int sourceWidth,
+                           int sourceHeight, BLENDFUNCTION blend) {
+    if (blend.BlendOp == AC_SRC_OVER && ZenPaintControlPanelHeader(
+            destination, x, y, width, height, source)) return TRUE;
+    return AlphaBlend_Original(destination, x, y, width, height, source, sourceX,
+                               sourceY, sourceWidth, sourceHeight, blend);
+}
+
 // The navigation pane divider is a horizontal line drawn by ExplorerFrame.dll,
 // which is drawn translucent.
 using Polyline_t = decltype(&Polyline);
@@ -14163,6 +14295,10 @@ BOOL Wh_ModInit() {
                                    &CreateCompatibleDC_Original);
 
     WindhawkUtils::SetFunctionHook(DeleteDC, DeleteDC_Hook, &DeleteDC_Original);
+
+    WindhawkUtils::SetFunctionHook(BitBlt, BitBlt_Hook, &BitBlt_Original);
+    WindhawkUtils::SetFunctionHook(StretchBlt, StretchBlt_Hook, &StretchBlt_Original);
+    WindhawkUtils::SetFunctionHook(AlphaBlend, AlphaBlend_Hook, &AlphaBlend_Original);
 
     WindhawkUtils::SetFunctionHook(ExtTextOutW, ExtTextOutW_Hook,
                                    &ExtTextOutW_Original);

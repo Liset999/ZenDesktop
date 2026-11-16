@@ -4,7 +4,7 @@
 // @name:zh-CN      ZenDesktop: 设置美化
 // @description     Translucent glass background for the Windows 11 Settings app, in both dark and light mode.
 // @description:zh-CN 为 Windows 11「设置」应用提供透明玻璃背景，适配深色和浅色模式。
-// @version         4.2.6
+// @version         4.2.7
 // @donateUrl       https://ifdian.net/a/Lanboo
 // @author          Lanbo & m417z
 // @github          https://github.com/Liset999
@@ -58,6 +58,9 @@
 - 窗口失去焦点时仍保持亚克力效果，不会切换为纯色（Windows 默认会在失焦时把亚克力换成纯色，本 mod 让应用始终按前台状态绘制）。
 
 ## 更新日志
+
+- **4.2.7**：兼容 Windhawk 2.0：整数设置改用数字范围声明，同时保留原有整数值和配置。
+
 
 - **4.2.6**：性能：缓存 Settings CoreWindow HWND，避免每次 EnumWindows。
 - **4.2.5**：跳过「个性化 → 背景」页的 `BackgroundStackPanel` 子树样式，收窄全局 `Border#Root` / `ContentPresenter#ContentPresenter` 透明规则，减轻 Win11 26H2/26300 进背景页闪退。
@@ -121,53 +124,29 @@
   $name:zh-CN: "卡片模糊"
   $description: "Blur strength of cards and lists, 0–60. 0 is no blur. Default: 0."
   $description:zh-CN: "卡片与列表区域的模糊强度，范围 0–60，0 为不模糊。默认 0。"
-  $options:
-    - 0: "0：不模糊"
-    - 10: "10：轻微"
-    - 20: "20：中等"
-    - 30: "30：较强"
-    - 45: "45：强"
-    - 60: "60：最强"
+  #! $min: 0
+  #! $max: 60
 - opacityPreset: 0
   $name: "Opacity"
   $name:zh-CN: "不透明度"
   $description: "Fill strength of the glass color, 0–100%. In light mode a minimum is applied so text stays readable. Default: 0%."
   $description:zh-CN: "玻璃背景颜色的填充浓度，范围 0–100%。浅色模式下会自动保留最低浓度，保证文字清晰。默认 0%。"
-  $options:
-    - 0: "0%：完全透明"
-    - 10: "10%：很薄"
-    - 25: "25%：较薄"
-    - 40: "40%：适中"
-    - 50: "50%：中等"
-    - 75: "75%：较厚"
-    - 90: "90%：很厚"
-    - 100: "100%：完全不透明"
+  #! $min: 0
+  #! $max: 100
 - luminosityPreset: 0
   $name: "Luminosity"
   $name:zh-CN: "亮度"
   $description: "Darkening of the background, 0–150%. Larger is darker. Default: 0%."
   $description:zh-CN: "背景的压暗程度，范围 0–150%，数值越大越暗。默认 0%。"
-  $options:
-    - 0: "0%：最透亮（推荐）"
-    - 25: "25%：微暗"
-    - 50: "50%：中等"
-    - 75: "75%：偏暗"
-    - 100: "100%：暗"
-    - 125: "125%：较暗"
-    - 150: "150%：最暗"
+  #! $min: 0
+  #! $max: 150
 - lightModeBase: 20
   $name: "Light mode: white base"
   $name:zh-CN: "浅色模式：白底"
   $description: "In light mode, keeps at least this much white under the glass and darkens gray text, so the navigation pane and headings stay readable over busy wallpapers. No effect in dark mode. Default: 20%."
   $description:zh-CN: "浅色模式下在玻璃下保留至少这么多的白色底，并加深灰色文字，让左侧导航和标题在花哨壁纸上也看得清。深色模式不受影响。默认为 20%。"
-  $options:
-    - 0: "关闭"
-    - 10: "10%：很薄"
-    - 20: "20%：薄（推荐）"
-    - 30: "30%：较薄"
-    - 45: "45%：适中"
-    - 60: "60%：较厚"
-    - 75: "75%：厚"
+  #! $min: 0
+  #! $max: 75
 - textColorMode: "default"
   $name: "Text color"
   $name:zh-CN: "文字颜色"
